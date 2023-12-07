@@ -1,0 +1,15 @@
+{
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": true,
+            "source.fixAll": true
+        }
+    },
+    "svelte.enable-ts-plugin": true,
+    "prettier.configPath": ".prettierrc",
+    "prettier.requireConfig": true,
+    "[svelte]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
+}
