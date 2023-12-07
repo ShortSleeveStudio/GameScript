@@ -29,6 +29,10 @@ export function localStorageStore<T extends LocalStorageValue>(
  * @param version version you want to match in the store
  * @returns true if the version matches
  */
-export function doesMatchVersion(store: any, version: number): boolean {
-	return typeof store === 'object' && 'version' in store && store.version === version;
+export function doesMatchVersion(store: unknown, version: number): boolean {
+	return (
+		typeof store === 'object' &&
+		'version' in <object>store &&
+		(<LocalStorageValue>store).version === version
+	);
 }

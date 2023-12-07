@@ -5,31 +5,19 @@ import {
 } from '$lib/stores/custom/local-storage-store';
 import { get, type Writable } from 'svelte/store';
 
-/**
- * Update this whenever the schema changes in an incompatible way.
- */
+// Update this whenever the schema changes in an incompatible way.
 const Version: number = 0;
+
+// Default value for darkmode
 const DefaultValue: Darkmode = {
 	version: Version,
 	value: 'system',
 };
 
-/**
- * The darkmode setting object.
- */
+// The darkmode setting object.
 interface Darkmode extends LocalStorageValue {
 	value: 'system' | 'dark' | 'light';
 }
-
-/**
- * Export the darkmode setting as a store.
- */
-export const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
-
-/**
- * System darkmode change handler.
- */
-let isSystemDarkMode: boolean = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 /**
  * System darkmode change handler.
@@ -43,15 +31,19 @@ function onSystemDarkmodeChanged(eventList: MediaQueryListEvent): void {
 }
 
 /**
- * Monitor for changes to darkmode system preference.
+ * Darkmode is a store for the current user darkmode preference.
  */
+export const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
+
+// System darkmode change handler.
+let isSystemDarkMode: boolean = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+// Monitor for changes to darkmode system preference.
 window
 	.matchMedia('(prefers-color-scheme: dark)')
 	.addEventListener('change', onSystemDarkmodeChanged);
 
-/**
- * Listen for changes to darkmode and react accordingly.
- */
+// Listen for changes to darkmode and react accordingly.
 darkmode.subscribe((darkmodeValue: Darkmode) => {
 	// Make sure schema matches, or delete the old value
 	if (!doesMatchVersion(darkmodeValue, Version)) {
