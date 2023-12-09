@@ -2,7 +2,7 @@ import {
 	doesMatchVersion,
 	localStorageStore,
 	type LocalStorageValue,
-} from '$lib/stores/custom/local-storage-store';
+} from '@lib/stores/custom/local-storage-store';
 import { get, type Writable } from 'svelte/store';
 
 // Update this whenever the schema changes in an incompatible way.
@@ -14,44 +14,32 @@ const DefaultValue: Darkmode = {
 	value: 'system',
 };
 
-// The darkmode setting object.
+// The darkmode setting object
 interface Darkmode extends LocalStorageValue {
 	value: 'system' | 'dark' | 'light';
 }
 
-/**
- * System darkmode change handler.
- * @param eventList darkmode mediaquery information
- */
-function onSystemDarkmodeChanged(eventList: MediaQueryListEvent): void {
-	// Update cached value
-	isSystemDarkMode = eventList.matches;
-	// force an update
-	darkmode.set(get(darkmode));
+// Define the writable store for darkmode
+const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
+
+// Make sure schema matches, or delete the old value
+if (!doesMatchVersion(get(darkmode), Version)) {
+	darkmode.set(DefaultValue); // causes recursion
 }
 
-/**
- * Darkmode is a store for the current user darkmode preference.
- */
-export const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
-
-// System darkmode change handler.
+// Monitor for changes to darkmode system preference
 let isSystemDarkMode: boolean = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-// Monitor for changes to darkmode system preference.
 window
 	.matchMedia('(prefers-color-scheme: dark)')
-	.addEventListener('change', onSystemDarkmodeChanged);
+	.addEventListener('change', function (eventList: MediaQueryListEvent): void {
+		// Update cached value
+		isSystemDarkMode = eventList.matches;
+		// force an update
+		darkmode.set(get(darkmode));
+	});
 
-// Listen for changes to darkmode and react accordingly.
 darkmode.subscribe((darkmodeValue: Darkmode) => {
-	// Make sure schema matches, or delete the old value
-	if (!doesMatchVersion(darkmodeValue, Version)) {
-		darkmode.set(DefaultValue); // causes recursion
-		return;
-	}
-
-	// Update darkmode
+	// Listen for changes to darkmode and react accordingly.
 	switch (darkmodeValue.value) {
 		case 'system':
 			if (isSystemDarkMode) {
@@ -68,3 +56,8 @@ darkmode.subscribe((darkmodeValue: Darkmode) => {
 			break;
 	}
 });
+
+/**
+ * Darkmode is a store for the current user darkmode preference.
+ */
+export default darkmode;

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" type="image/svg+xml" href="/svelte.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>GameScript</title>
+		<script type="module">
+			console.log('https://github.com/tauri-apps/tauri/issues/8357');
+			window.__TAURI_METADATA__ = Object.keys(window.__TAURI_INTERNALS__.metadata).reduce(
+				(metadata, property) => {
+					metadata[`__${property}`] = window.__TAURI_INTERNALS__.metadata[property];
+					return metadata;
+				},
+				{},
+			);
+			window.__TAURI_INVOKE__ = window.__TAURI_INTERNALS__.invoke;
+			window.__TAURI_IPC__ = window.__TAURI_INTERNALS__.ipc;
+
+			// Create application
+			import('/src/main.ts');
+		</script>
+	</head>
+	<body class="bg-white font-mono text-base dark:bg-black"></body>
+</html>

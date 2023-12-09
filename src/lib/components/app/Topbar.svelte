@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { maximized } from '$lib/stores/maximized';
-	import { appWindow } from '@tauri-apps/api/window';
+	import { mainWindow } from '@lib/api/window';
+	import { maximized } from '@lib/stores/maximized';
 </script>
 
 <div
@@ -42,7 +42,7 @@
 	<span class="inline-grid grid-cols-3 items-center justify-self-end">
 		<!-- Minimize -->
 		<button
-			on:click={appWindow.minimize}
+			on:click={mainWindow.minimize}
 			type="button"
 			class="border-x border-slate-200 px-3.5 py-1
 			hover:bg-slate-100
@@ -67,7 +67,7 @@
 		</button>
 		<!-- Maximize -->
 		<button
-			on:click={appWindow.toggleMaximize}
+			on:click={mainWindow.toggleMaximize}
 			type="button"
 			class="border-r border-slate-200 px-3.5 py-1
 			hover:bg-slate-100
@@ -103,7 +103,7 @@
 		</button>
 		<!-- Close -->
 		<button
-			on:click={appWindow.close}
+			on:click={mainWindow.close}
 			type="button"
 			class="border-slate-200 px-3.5 py-1
 			hover:bg-slate-100

@@ -1,4 +1,4 @@
-import { persisted, type Options } from '$lib/TEMPORARY/svelte-persisted-store';
+import { persisted, type Options } from '@lib/TEMPORARY/svelte-persisted-store';
 import type { Writable } from 'svelte/store';
 
 /**

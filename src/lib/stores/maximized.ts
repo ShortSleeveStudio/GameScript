@@ -1,13 +1,12 @@
-import { appWindow } from '@tauri-apps/api/window';
+import { mainWindow } from '@lib/api/window';
 import { readable, type Readable } from 'svelte/store';
 
 /**
- * Boolean for if the window is maximized or not.
+ * Boolean store for if the window is maximized or not.
  */
-export const maximized: Readable<boolean> = readable(false, (set) => {
-	const stopPromise: Promise<() => void> = appWindow.onResized(async () => {
-		set(await appWindow.isMaximized());
+export const maximized: Readable<boolean> = readable(await mainWindow.isMaximized(), (set) => {
+	const stopPromise: Promise<() => void> = mainWindow.onResized(async () => {
+		set(await mainWindow.isMaximized());
 	});
 	return async () => (await stopPromise)();
 });
-// TODO find a way to allow for reloading window settings that updates this maximized value
