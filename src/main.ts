@@ -1,18 +1,20 @@
 /**
  * Module initialization
  */
-// API init
+// API
 import '@lib/api/window';
 
-// Store init
+// Store
 import '@lib/stores/darkmode';
 import '@lib/stores/maximized';
 
-// Main app init
+// Main app
 import App from './App.svelte';
-import './tailwind.css';
+import './main.css';
 
-// Start application
+/**
+ * Hajime!
+ */
 const app = new App({
 	target: <Element>document.body,
 });

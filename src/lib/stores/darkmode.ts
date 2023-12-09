@@ -5,6 +5,12 @@ import {
 } from '@lib/stores/custom/local-storage-store';
 import { get, type Writable } from 'svelte/store';
 
+// Site theme attribute
+const SiteThemeAttribute: string = 'site-theme';
+
+// Media match query
+const SystemThemeQuery: string = '(prefers-color-scheme: dark)';
+
 // Update this whenever the schema changes in an incompatible way.
 const Version: number = 0;
 
@@ -28,9 +34,9 @@ if (!doesMatchVersion(get(darkmode), Version)) {
 }
 
 // Monitor for changes to darkmode system preference
-let isSystemDarkMode: boolean = window.matchMedia('(prefers-color-scheme: dark)').matches;
+let isSystemDarkMode: boolean = window.matchMedia(SystemThemeQuery).matches;
 window
-	.matchMedia('(prefers-color-scheme: dark)')
+	.matchMedia(SystemThemeQuery)
 	.addEventListener('change', function (eventList: MediaQueryListEvent): void {
 		// Update cached value
 		isSystemDarkMode = eventList.matches;
@@ -42,20 +48,24 @@ darkmode.subscribe((darkmodeValue: Darkmode) => {
 	// Listen for changes to darkmode and react accordingly.
 	switch (darkmodeValue.value) {
 		case 'system':
-			if (isSystemDarkMode) {
-				document.documentElement.classList.add('dark');
-			} else {
-				document.documentElement.classList.remove('dark');
-			}
+			setDarkMode(isSystemDarkMode);
 			break;
 		case 'dark':
-			document.documentElement.classList.add('dark');
+			setDarkMode(true);
 			break;
 		case 'light':
-			document.documentElement.classList.remove('dark');
+			setDarkMode(false);
 			break;
 	}
 });
+
+function setDarkMode(isDark: boolean) {
+	if (isDark) {
+		document.documentElement.setAttribute(SiteThemeAttribute, 'dark');
+	} else {
+		document.documentElement.removeAttribute(SiteThemeAttribute);
+	}
+}
 
 /**
  * Darkmode is a store for the current user darkmode preference.

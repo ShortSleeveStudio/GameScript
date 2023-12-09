@@ -3,5 +3,7 @@
 	import Container from '@lib/components/app/Container.svelte';
 </script>
 
-<Topbar />
-<Container />
+<main>
+	<Topbar />
+	<Container />
+</main>
