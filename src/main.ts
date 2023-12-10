@@ -15,7 +15,6 @@ import './main.css';
 /**
  * Hajime!
  */
-const app = new App({
+export const app = new App({
 	target: <Element>document.body,
 });
-export default app;

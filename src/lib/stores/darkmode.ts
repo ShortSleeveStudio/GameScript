@@ -25,8 +25,10 @@ interface Darkmode extends LocalStorageValue {
 	value: 'system' | 'dark' | 'light';
 }
 
-// Define the writable store for darkmode
-const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
+/**
+ * Darkmode is a store for the current user darkmode preference.
+ */
+export const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
 
 // Make sure schema matches, or delete the old value
 if (!doesMatchVersion(get(darkmode), Version)) {
@@ -66,8 +68,3 @@ function setDarkMode(isDark: boolean) {
 		document.documentElement.removeAttribute(SiteThemeAttribute);
 	}
 }
-
-/**
- * Darkmode is a store for the current user darkmode preference.
- */
-export default darkmode;
