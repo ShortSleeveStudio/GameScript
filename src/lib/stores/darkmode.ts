@@ -1,38 +1,23 @@
-import {
-	doesMatchVersion,
-	localStorageStore,
-	type LocalStorageValue,
-} from '@lib/stores/custom/local-storage-store';
+import { persisted } from '@lib/TEMPORARY/svelte-persisted-store';
 import { get, type Writable } from 'svelte/store';
-
-// Site theme attribute
-const SiteThemeAttribute: string = 'site-theme';
 
 // Media match query
 const SystemThemeQuery: string = '(prefers-color-scheme: dark)';
 
-// Update this whenever the schema changes in an incompatible way.
-const Version: number = 0;
-
-// Default value for darkmode
-const DefaultValue: Darkmode = {
-	version: Version,
-	value: 'system',
-};
-
-// The darkmode setting object
-interface Darkmode extends LocalStorageValue {
-	value: 'system' | 'dark' | 'light';
-}
+/**
+ * Valid dark modes
+ */
+const ValidDarkmodes = ['System', 'Dark', 'Light'] as const;
+export type Darkmode = typeof ValidDarkmodes[number];
 
 /**
  * Darkmode is a store for the current user darkmode preference.
  */
-export const darkmode: Writable<Darkmode> = localStorageStore('preferences', DefaultValue);
+export const darkmode: Writable<Darkmode> = persisted('preferences', ValidDarkmodes[0]);
 
 // Make sure schema matches, or delete the old value
-if (!doesMatchVersion(get(darkmode), Version)) {
-	darkmode.set(DefaultValue); // causes recursion
+if (ValidDarkmodes.includes(get(darkmode))) {
+	darkmode.set(ValidDarkmodes[0]);
 }
 
 // Monitor for changes to darkmode system preference
@@ -48,23 +33,24 @@ window
 
 darkmode.subscribe((darkmodeValue: Darkmode) => {
 	// Listen for changes to darkmode and react accordingly.
-	switch (darkmodeValue.value) {
-		case 'system':
+	switch (darkmodeValue) {
+		case 'System':
 			setDarkMode(isSystemDarkMode);
 			break;
-		case 'dark':
+		case 'Dark':
 			setDarkMode(true);
 			break;
-		case 'light':
+		case 'Light':
 			setDarkMode(false);
 			break;
 	}
 });
 
 function setDarkMode(isDark: boolean) {
+	// "white" | "g10" | "g80" | "g90" | "g100"
 	if (isDark) {
-		document.documentElement.setAttribute(SiteThemeAttribute, 'dark');
+		document.documentElement.setAttribute('theme', 'g90');
 	} else {
-		document.documentElement.removeAttribute(SiteThemeAttribute);
+		document.documentElement.setAttribute('theme', 'g10');
 	}
 }

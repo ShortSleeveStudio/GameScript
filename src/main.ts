@@ -9,8 +9,8 @@ import '@lib/stores/darkmode';
 import '@lib/stores/maximized';
 
 // Main app
+import 'carbon-components-svelte/css/all.css';
 import App from './App.svelte';
-import './main.css';
 
 /**
  * Hajime!

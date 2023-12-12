@@ -1,4 +1,5 @@
 {
+	"editor.formatOnSave": true,
 	"[typescript]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode",
 		"editor.codeActionsOnSave": {
@@ -7,13 +8,12 @@
 		}
 	},
 	"[svelte]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
+		"editor.defaultFormatter": "svelte.svelte-vscode"
 	},
 	"[html]": {
 		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	},
 	"svelte.enable-ts-plugin": true,
 	"prettier.configPath": ".prettierrc",
-	"prettier.requireConfig": true,
-	"tailwindCSS.colorDecorators": false
+	"prettier.requireConfig": true
 }
