@@ -10,6 +10,8 @@
 
 <style>
 	.overlay-container {
+		display: grid;
+		pointer-events: none;
 		z-index: var(--z-index-overlay);
 		top: var(--cds-spacing-09);
 		position: fixed;

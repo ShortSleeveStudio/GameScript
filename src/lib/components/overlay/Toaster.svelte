@@ -28,12 +28,15 @@
 <style>
 	.toast-container {
 		position: fixed;
-		width: 100%;
-		height: 100%;
 		display: flex;
 		flex-direction: column;
 		flex-wrap: nowrap;
 		justify-content: flex-start;
 		align-items: flex-end;
+		justify-self: flex-end;
+	}
+
+	.toast-item {
+		pointer-events: auto;
 	}
 </style>

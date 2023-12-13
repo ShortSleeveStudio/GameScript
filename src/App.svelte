@@ -5,9 +5,11 @@
 	import { ToastItem, showToast } from '@lib/stores/toasts';
 
 	function globalErrorHandler(event: unknown) {
-		let error = event as ErrorEvent;
-		showToast(new ToastItem('error', 'Error', error.message, new Date().toLocaleString()));
+		showToast(
+			new ToastItem('error', 'Error', (<ErrorEvent>event).message, new Date().toLocaleString()),
+		);
 	}
+	console.log('remember to re-enable error handler');
 </script>
 
 <svelte:window on:error|preventDefault|stopPropagation={globalErrorHandler} />

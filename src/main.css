@@ -1,5 +1,5 @@
 html {
-	--z-index-overlay: 10;
+	--z-index-overlay: 10000;
 }
 
 body {

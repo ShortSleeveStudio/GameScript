@@ -10,6 +10,9 @@ import '@lib/stores/maximized';
 
 // Main app
 import 'carbon-components-svelte/css/all.css';
+import 'golden-layout/dist/css/goldenlayout-base.css';
+import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
+
 import App from './App.svelte';
 
 /**
