@@ -8,7 +8,7 @@ node_modules
 !.env.example
 
 src-tauri/target
-src/lib/TEMPORARY
+src/lib/vendor
 
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml

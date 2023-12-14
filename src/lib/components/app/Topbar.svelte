@@ -15,9 +15,15 @@
 	import SubtractLarge from 'carbon-icons-svelte/lib/SubtractLarge.svelte';
 	import { maximized } from '@lib/stores/maximized';
 	import { mainWindow } from '@lib/api/window';
-	import { darkmode, type Darkmode } from '@lib/stores/darkmode';
+	import { darkmode } from '@lib/stores/darkmode';
+	import { SHUTDOWN } from '@lib/events/events';
 
 	let isSideNavOpen = false;
+
+	function shutdown() {
+		dispatchEvent(new CustomEvent(SHUTDOWN));
+		mainWindow.close();
+	}
 </script>
 
 <Header
@@ -33,15 +39,12 @@
 			icon={$maximized ? Minimize : Maximize}
 			on:click={mainWindow.toggleMaximize}
 		/>
-		<HeaderGlobalAction icon={Close} on:click={mainWindow.close} />
+		<HeaderGlobalAction icon={Close} on:click={shutdown} />
 	</HeaderUtilities>
 </Header>
 
 <SideNav bind:isOpen={isSideNavOpen}>
 	<SideNavItems>
-		<!-- <SideNavLink text="Link 1" />
-		<SideNavLink text="Link 2" />
-		<SideNavLink text="Link 3" /> -->
 		<SideNavLink
 			text="Throw Error"
 			on:click={() => {

@@ -1,4 +1,4 @@
-import { persisted } from '@lib/TEMPORARY/svelte-persisted-store';
+import { persisted } from '@lib/vendor/svelte-persisted-store';
 import { get, type Writable } from 'svelte/store';
 
 // Media match query

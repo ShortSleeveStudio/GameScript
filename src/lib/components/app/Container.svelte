@@ -1,28 +1,62 @@
 <script lang="ts">
-	import {
-		GoldenLayout,
-		type ComponentContainer,
-		ResolvedComponentItemConfig,
-		type LogicalZIndex,
-		JsonValue,
-		LayoutConfig,
-		ItemType,
-	} from 'golden-layout';
-	import Settings from '@lib/components/settings/Settings.svelte';
+	// import {
+	// 	GoldenLayout,
+	// 	type ComponentContainer,
+	// 	ResolvedComponentItemConfig,
+	// 	type LogicalZIndex,
+	// 	JsonValue,
+	// 	LayoutConfig,
+	// 	ItemType,
+	// } from '@lib/vendor/golden-layout';
+
+	// import Settings from '@lib/components/settings/Settings.svelte';
 	import { onMount } from 'svelte';
+	import { SHUTDOWN } from '@lib/events/events';
+	import { Tab, TabContent, Tabs } from 'carbon-components-svelte';
+	import type { ComponentContainer } from '@lib/vendor/golden-layout/ts/container/component-container';
+	import { GoldenLayout } from '@lib/vendor/golden-layout/ts/golden-layout';
+	import { ResolvedComponentItemConfig } from '@lib/vendor/golden-layout/ts/config/resolved-config';
+	import {
+		ItemType,
+		JsonValue,
+		type LogicalZIndex,
+	} from '@lib/vendor/golden-layout/ts/utils/types';
+	import type { LayoutConfig } from '@lib/vendor/golden-layout/ts/config/config';
 
 	// Valid component types
-	const ValidComponents: JsonValue[] = ['settings', 'actors'] as const;
+	const ValidComponents: JsonValue[] = [
+		'actors',
+		'build',
+		'conversation-editor',
+		'conversation-finder',
+		'inspector',
+		'locales',
+		'localization-editor',
+		'localization-finder',
+		'search',
+		'settings',
+	] as const;
 
 	const minSizeDockable: string = `${8 * 30}px`;
-
 	const boundComponentMap = new Map<ComponentContainer, HTMLElement>();
+
+	// Containers
 	let goldenLayout: GoldenLayout;
 	let mainContainerBoundingClientRect: DOMRect;
 	let mainContainer: HTMLElement;
 	let hidden: HTMLElement;
-	let settings: HTMLElement;
+
+	// Components
 	let actors: HTMLElement;
+	let build: HTMLElement;
+	let conversationEditor: HTMLElement;
+	let conversationFinder: HTMLElement;
+	let inspector: HTMLElement;
+	let locales: HTMLElement;
+	let localizationEditor: HTMLElement;
+	let localizationFinder: HTMLElement;
+	let search: HTMLElement;
+	let settings: HTMLElement;
 
 	function bindComponentEventListener(
 		container: ComponentContainer,
@@ -154,8 +188,9 @@
 		goldenLayout.beforeVirtualRectingEvent = handleBeforeVirtualRectingEvent;
 
 		const test: LayoutConfig = {
-			settings: {
-				showPopoutIcon: false,
+			dimensions: {
+				borderWidth: 1,
+				headerHeight: 32,
 			},
 			root: {
 				type: ItemType.row,
@@ -163,34 +198,76 @@
 					{
 						minSize: minSizeDockable,
 						title: 'Settings',
+						// isClosable: false,
 						header: {
-							show: 'top',
+							maximise: false,
 							popout: false,
+							// show: false,
 						},
 						type: 'component',
-						componentType: ValidComponents[0], // settings
+						componentType: ValidComponents[9], // settings
 					},
 					{
 						minSize: minSizeDockable,
 						title: 'Actors',
+						// isClosable: false,
 						header: {
-							show: 'top',
+							maximise: false,
 							popout: false,
+							// show: false,
 						},
 						type: 'component',
-						componentType: ValidComponents[1], // actors
+						componentType: ValidComponents[0], // actors
 					},
 				],
 			},
 		};
 		goldenLayout.loadLayout(test);
+
+		// addEventListener(SHUTDOWN, (e: Event) => {
+		// 	console.log(`settings recieved ${e}`);
+		// });
 	});
 </script>
 
-<main bind:this={mainContainer}></main>
+<main bind:this={mainContainer} id="main"></main>
 <del bind:this={hidden}>
 	<dockable bind:this={actors}>Actors</dockable>
-	<dockable bind:this={settings}>Settings</dockable>
+	<dockable bind:this={build}>Build</dockable>
+	<dockable bind:this={conversationEditor}>Conversation Editor</dockable>
+	<dockable bind:this={conversationFinder}>Conversation Finder</dockable>
+	<dockable bind:this={inspector}>Inspector</dockable>
+	<dockable bind:this={locales}>Locales</dockable>
+	<dockable bind:this={localizationEditor}>Lozalization Editor</dockable>
+	<dockable bind:this={localizationFinder}>Lozalization Finder</dockable>
+	<dockable bind:this={search}>Search</dockable>
+	<dockable bind:this={settings}>
+		Settings
+		<Tabs type="container">
+			<Tab label="actors" />
+			<Tab label="build" />
+			<Tab label="conversation-editor" />
+			<Tab label="conversation-finder" />
+			<Tab label="inspector" />
+			<Tab label="locales" />
+			<Tab label="localization-editor" />
+			<Tab label="localization-finder" />
+			<Tab label="search" />
+			<Tab label="settings" />
+			<svelte:fragment slot="content">
+				<TabContent>Actors</TabContent>
+				<TabContent>Build</TabContent>
+				<TabContent>Conversation-editor</TabContent>
+				<TabContent>Conversation-finder</TabContent>
+				<TabContent>Inspector</TabContent>
+				<TabContent>Locales</TabContent>
+				<TabContent>Localization-editor</TabContent>
+				<TabContent>Localization-finder</TabContent>
+				<TabContent>Search</TabContent>
+				<TabContent>Settings</TabContent>
+			</svelte:fragment>
+		</Tabs>
+	</dockable>
 </del>
 
 <style>
