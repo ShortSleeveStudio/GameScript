@@ -8,6 +8,7 @@
 		SideNavMenu,
 		SideNavMenuItem,
 		SideNavLink,
+		SideNavDivider,
 	} from 'carbon-components-svelte';
 	import Close from 'carbon-icons-svelte/lib/Close.svelte';
 	import Maximize from 'carbon-icons-svelte/lib/Maximize.svelte';
@@ -16,12 +17,24 @@
 	import { maximized } from '@lib/stores/maximized';
 	import { mainWindow } from '@lib/api/window';
 	import { darkmode } from '@lib/stores/darkmode';
-	import { SHUTDOWN } from '@lib/events/events';
+	import { EVENT_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
+	import {
+		actorsIsVisible,
+		buildIsVisible,
+		conversationEditorIsVisible,
+		conversationFinderIsVisible,
+		inspectorIsVisible,
+		localesIsVisible,
+		localizationEditorIsVisible,
+		localizationFinderIsVisible,
+		searchIsVisible,
+		settingsIsVisible,
+	} from '@lib/stores/layout';
 
 	let isSideNavOpen = false;
 
 	function shutdown() {
-		dispatchEvent(new CustomEvent(SHUTDOWN));
+		dispatchEvent(new CustomEvent(EVENT_SHUTDOWN));
 		mainWindow.close();
 	}
 </script>
@@ -51,6 +64,64 @@
 				throw new Error('Parameter is not a number!');
 			}}
 		/>
+		<SideNavMenu text="Layout">
+			<SideNavMenuItem
+				text="Load Default Layout"
+				on:click={() => dispatchEvent(new CustomEvent(EVENT_RESET_LAYOUT))}
+			/>
+			<SideNavDivider />
+			<SideNavMenuItem
+				text="Actors"
+				isSelected={$actorsIsVisible}
+				on:click={() => ($actorsIsVisible = !$actorsIsVisible)}
+			/>
+
+			<SideNavMenuItem
+				text="Build"
+				isSelected={$buildIsVisible}
+				on:click={() => ($buildIsVisible = !$buildIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Conversation Editor"
+				isSelected={$conversationEditorIsVisible}
+				on:click={() => ($conversationEditorIsVisible = !$conversationEditorIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Conversation Finder"
+				isSelected={$conversationFinderIsVisible}
+				on:click={() => ($conversationFinderIsVisible = !$conversationFinderIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Inspector"
+				isSelected={$inspectorIsVisible}
+				on:click={() => ($inspectorIsVisible = !$inspectorIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Locales"
+				isSelected={$localesIsVisible}
+				on:click={() => ($localesIsVisible = !$localesIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Localization Editor"
+				isSelected={$localizationEditorIsVisible}
+				on:click={() => ($localizationEditorIsVisible = !$localizationEditorIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Localization Finder"
+				isSelected={$localizationFinderIsVisible}
+				on:click={() => ($localizationFinderIsVisible = !$localizationFinderIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Search"
+				isSelected={$searchIsVisible}
+				on:click={() => ($searchIsVisible = !$searchIsVisible)}
+			/>
+			<SideNavMenuItem
+				text="Settings"
+				isSelected={$settingsIsVisible}
+				on:click={() => ($settingsIsVisible = !$settingsIsVisible)}
+			/>
+		</SideNavMenu>
 		<SideNavMenu text="Darkmode">
 			<SideNavMenuItem
 				text="System"

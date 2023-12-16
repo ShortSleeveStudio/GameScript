@@ -1,16 +1,33 @@
 import { ComponentItemConfig, ItemConfig } from '../config/config';
-import { ResolvedComponentItemConfig, ResolvedHeaderedItemConfig, ResolvedItemConfig, ResolvedStackItemConfig } from '../config/resolved-config';
+import {
+    ResolvedComponentItemConfig,
+    ResolvedHeaderedItemConfig,
+    ResolvedItemConfig,
+    ResolvedStackItemConfig,
+} from '../config/resolved-config';
 import { Header } from '../controls/header';
-import { AssertError, UnexpectedNullError, UnexpectedUndefinedError } from '../errors/internal-error';
+import {
+    AssertError,
+    UnexpectedNullError,
+    UnexpectedUndefinedError,
+} from '../errors/internal-error';
 import { LayoutManager } from '../layout-manager';
 import { DomConstants } from '../utils/dom-constants';
 import { DragListener } from '../utils/drag-listener';
 import { EventEmitter } from '../utils/event-emitter';
-import { ItemType, JsonValue, Side, SizeUnitEnum, WidthOrHeightPropertyName, type AreaLinkedRect, type WidthAndHeight } from '../utils/types';
+import {
+    ItemType,
+    JsonValue,
+    Side,
+    SizeUnitEnum,
+    WidthOrHeightPropertyName,
+    type AreaLinkedRect,
+    type WidthAndHeight,
+} from '../utils/types';
 import {
     getElementWidthAndHeight,
     numberToPixels,
-    setElementDisplayVisibility
+    setElementDisplayVisibility,
 } from '../utils/utils';
 import { ComponentItem } from './component-item';
 import { ComponentParentableItem } from './component-parentable-item';
@@ -48,16 +65,32 @@ export class Stack extends ComponentParentableItem {
     /** @internal */
     private _minimisedListener = () => this.handleMinimised();
 
-    get childElementContainer(): HTMLElement { return this._childElementContainer; }
-    get header(): Header { return this._header; }
-    get headerShow(): boolean { return this._header.show; }
-    get headerSide(): Side { return this._header.side; }
-    get headerLeftRightSided(): boolean { return this._header.leftRightSided; }
+    get childElementContainer(): HTMLElement {
+        return this._childElementContainer;
+    }
+    get header(): Header {
+        return this._header;
+    }
+    get headerShow(): boolean {
+        return this._header.show;
+    }
+    get headerSide(): Side {
+        return this._header.side;
+    }
+    get headerLeftRightSided(): boolean {
+        return this._header.leftRightSided;
+    }
     /** @internal */
-    get contentAreaDimensions(): Stack.ContentAreaDimensions | undefined { return this._contentAreaDimensions; }
+    get contentAreaDimensions(): Stack.ContentAreaDimensions | undefined {
+        return this._contentAreaDimensions;
+    }
     /** @internal */
-    get initialWantMaximise(): boolean { return this._initialWantMaximise; }
-    get isMaximised(): boolean { return this === this.layoutManager.maximisedStack; }
+    get initialWantMaximise(): boolean {
+        return this._initialWantMaximise;
+    }
+    get isMaximised(): boolean {
+        return this === this.layoutManager.maximisedStack;
+    }
     get stackParent(): ContentItem {
         if (!this.parent) {
             throw new Error('Stack should always have a parent');
@@ -66,7 +99,11 @@ export class Stack extends ComponentParentableItem {
     }
 
     /** @internal */
-    constructor(layoutManager: LayoutManager, config: ResolvedStackItemConfig, parent: ContentItem) {
+    constructor(
+        layoutManager: LayoutManager,
+        config: ResolvedStackItemConfig,
+        parent: ContentItem,
+    ) {
         super(layoutManager, config, parent, Stack.createElement(document));
 
         this._headerConfig = config.header;
@@ -85,12 +122,26 @@ export class Stack extends ComponentParentableItem {
         this._initialActiveItemIndex = config.activeItemIndex ?? 0; // make sure defined
 
         // check for defined value for each item in order of Stack (this Item), Component (first child), Manager.
-        const show = this._headerConfig?.show ?? componentHeaderConfig?.show ?? layoutHeaderConfig.show;
-        const popout = this._headerConfig?.popout ?? componentHeaderConfig?.popout ?? layoutHeaderConfig.popout;
-        const maximise = this._headerConfig?.maximise ?? componentHeaderConfig?.maximise ?? layoutHeaderConfig.maximise;
-        const close = this._headerConfig?.close ?? componentHeaderConfig?.close ?? layoutHeaderConfig.close;
-        const minimise = this._headerConfig?.minimise ?? componentHeaderConfig?.minimise ?? layoutHeaderConfig.minimise;
-        const tabDropdown = this._headerConfig?.tabDropdown ?? componentHeaderConfig?.tabDropdown ?? layoutHeaderConfig.tabDropdown;
+        const show =
+            this._headerConfig?.show ?? componentHeaderConfig?.show ?? layoutHeaderConfig.show;
+        const popout =
+            this._headerConfig?.popout ??
+            componentHeaderConfig?.popout ??
+            layoutHeaderConfig.popout;
+        const maximise =
+            this._headerConfig?.maximise ??
+            componentHeaderConfig?.maximise ??
+            layoutHeaderConfig.maximise;
+        const close =
+            this._headerConfig?.close ?? componentHeaderConfig?.close ?? layoutHeaderConfig.close;
+        const minimise =
+            this._headerConfig?.minimise ??
+            componentHeaderConfig?.minimise ??
+            layoutHeaderConfig.minimise;
+        const tabDropdown =
+            this._headerConfig?.tabDropdown ??
+            componentHeaderConfig?.tabDropdown ??
+            layoutHeaderConfig.tabDropdown;
         this._maximisedEnabled = maximise !== false;
         const headerSettings: Header.Settings = {
             show: show !== false,
@@ -107,8 +158,10 @@ export class Stack extends ComponentParentableItem {
             tabDropdownLabel: tabDropdown === false ? '' : tabDropdown,
         };
 
-        this._header = new Header(layoutManager,
-            this, headerSettings,
+        this._header = new Header(
+            layoutManager,
+            this,
+            headerSettings,
             config.isClosable && close !== false,
             () => this.getActiveComponentItem(),
             () => this.remove(),
@@ -118,7 +171,8 @@ export class Stack extends ComponentParentableItem {
             (ev) => this.handleHeaderTouchStartEvent(ev),
             (item) => this.handleHeaderComponentRemoveEvent(item),
             (item) => this.handleHeaderComponentFocusEvent(item),
-            (x, y, dragListener, item) => this.handleHeaderComponentStartDragEvent(x, y, dragListener, item),
+            (x, y, dragListener, item) =>
+                this.handleHeaderComponentStartDragEvent(x, y, dragListener, item),
         );
 
         // this._dropZones = {};
@@ -170,14 +224,22 @@ export class Stack extends ComponentParentableItem {
 
         const contentItems = this.contentItems;
         const contentItemCount = contentItems.length;
-        if (contentItemCount > 0) { // contentItemCount will be 0 on drag drop
-            if (this._initialActiveItemIndex < 0 || this._initialActiveItemIndex >= contentItemCount) {
-                throw new Error(`ActiveItemIndex out of range: ${this._initialActiveItemIndex} id: ${this.id}`);
+        if (contentItemCount > 0) {
+            // contentItemCount will be 0 on drag drop
+            if (
+                this._initialActiveItemIndex < 0 ||
+                this._initialActiveItemIndex >= contentItemCount
+            ) {
+                throw new Error(
+                    `ActiveItemIndex out of range: ${this._initialActiveItemIndex} id: ${this.id}`,
+                );
             } else {
                 for (let i = 0; i < contentItemCount; i++) {
                     const contentItem = contentItems[i];
                     if (!(contentItem instanceof ComponentItem)) {
-                        throw new Error(`Stack Content Item is not of type ComponentItem: ${i} id: ${this.id}`);
+                        throw new Error(
+                            `Stack Content Item is not of type ComponentItem: ${i} id: ${this.id}`,
+                        );
                     } else {
                         this._header.createTab(contentItem, i);
                         contentItem.hide();
@@ -185,7 +247,10 @@ export class Stack extends ComponentParentableItem {
                     }
                 }
 
-                this.setActiveComponentItem(contentItems[this._initialActiveItemIndex] as ComponentItem, false);
+                this.setActiveComponentItem(
+                    contentItems[this._initialActiveItemIndex] as ComponentItem,
+                    false,
+                );
 
                 this._header.updateTabSizes();
             }
@@ -204,7 +269,11 @@ export class Stack extends ComponentParentableItem {
         }
     }
 
-    setActiveComponentItem(componentItem: ComponentItem, focus: boolean, suppressFocusEvent = false): void {
+    setActiveComponentItem(
+        componentItem: ComponentItem,
+        focus: boolean,
+        suppressFocusEvent = false,
+    ): void {
         if (this._activeComponentItem !== componentItem) {
             if (this.contentItems.indexOf(componentItem) === -1) {
                 throw new Error('componentItem is not a child of this stack');
@@ -257,7 +326,12 @@ export class Stack extends ComponentParentableItem {
         this._header.setRowColumnClosable(value);
     }
 
-    newComponent(componentType: JsonValue, componentState?: JsonValue, title?: string, index?: number): ComponentItem {
+    newComponent(
+        componentType: JsonValue,
+        componentState?: JsonValue,
+        title?: string,
+        index?: number,
+    ): ComponentItem {
         const itemConfig: ComponentItemConfig = {
             type: 'component',
             componentType,
@@ -267,7 +341,12 @@ export class Stack extends ComponentParentableItem {
         return this.newItem(itemConfig, index) as ComponentItem;
     }
 
-    addComponent(componentType: JsonValue, componentState?: JsonValue, title?: string, index?: number): number {
+    addComponent(
+        componentType: JsonValue,
+        componentState?: JsonValue,
+        title?: string,
+        index?: number,
+    ): number {
         const itemConfig: ComponentItemConfig = {
             type: 'component',
             componentType,
@@ -277,7 +356,7 @@ export class Stack extends ComponentParentableItem {
         return this.addItem(itemConfig, index);
     }
 
-    newItem(itemConfig: ComponentItemConfig,  index?: number): ContentItem {
+    newItem(itemConfig: ComponentItemConfig, index?: number): ContentItem {
         index = this.addItem(itemConfig, index);
         return this.contentItems[index];
     }
@@ -291,7 +370,7 @@ export class Stack extends ComponentParentableItem {
     }
 
     override addChild(contentItem: ContentItem, index?: number, focus = false): number {
-        if(index !== undefined && index > this.contentItems.length){
+        if (index !== undefined && index > this.contentItems.length) {
             index -= 1;
             throw new AssertError('SAC99728'); // undisplayChild() removed so this condition should no longer occur
         }
@@ -326,7 +405,10 @@ export class Stack extends ComponentParentableItem {
                 // removing contentItem, so we can safely assume index 1 is a valid one if
                 // the index of contentItem is 0, otherwise we just use the previous content item.
                 const newActiveComponentIdx = index === 0 ? 1 : index - 1;
-                this.setActiveComponentItem(this.contentItems[newActiveComponentIdx] as ComponentItem, false);
+                this.setActiveComponentItem(
+                    this.contentItems[newActiveComponentIdx] as ComponentItem,
+                    false,
+                );
             }
         }
 
@@ -423,7 +505,7 @@ export class Stack extends ComponentParentableItem {
                 maximised: this.isMaximised,
                 header: this.createHeaderConfig(),
                 activeItemIndex,
-            }
+            };
             return result;
         }
     }
@@ -475,10 +557,14 @@ export class Stack extends ComponentParentableItem {
          * The item was dropped on the top-, left-, bottom- or right- part of the content. Let's
          * aggregate some conditions to make the if statements later on more readable
          */
-        const isVertical = this._dropSegment === Stack.Segment.Top || this._dropSegment === Stack.Segment.Bottom;
-        const isHorizontal = this._dropSegment === Stack.Segment.Left || this._dropSegment === Stack.Segment.Right;
-        const insertBefore = this._dropSegment === Stack.Segment.Top || this._dropSegment === Stack.Segment.Left;
-        const hasCorrectParent = (isVertical && this.stackParent.isColumn) || (isHorizontal && this.stackParent.isRow);
+        const isVertical =
+            this._dropSegment === Stack.Segment.Top || this._dropSegment === Stack.Segment.Bottom;
+        const isHorizontal =
+            this._dropSegment === Stack.Segment.Left || this._dropSegment === Stack.Segment.Right;
+        const insertBefore =
+            this._dropSegment === Stack.Segment.Top || this._dropSegment === Stack.Segment.Left;
+        const hasCorrectParent =
+            (isVertical && this.stackParent.isColumn) || (isHorizontal && this.stackParent.isRow);
 
         /*
          * The content item can be either a component or a stack. If it is a component, wrap it into a stack
@@ -491,18 +577,17 @@ export class Stack extends ComponentParentableItem {
             contentItem = stack;
         }
 
-
         /*
          * If the contentItem that's being dropped is not dropped on a Stack (cases which just passed above and
          * which would wrap the contentItem in a Stack) we need to check whether contentItem is a RowOrColumn.
          * If it is, we need to re-wrap it in a Stack like it was when it was dragged by its Tab (it was dragged!).
          */
-        if(contentItem.type === ItemType.row || contentItem.type === ItemType.column){
+        if (contentItem.type === ItemType.row || contentItem.type === ItemType.column) {
             const itemConfig = ResolvedStackItemConfig.createDefault();
             itemConfig.header = this.createHeaderConfig();
             const stack = this.layoutManager.createContentItem(itemConfig, this);
-            stack.addChild(contentItem)
-            contentItem = stack
+            stack.addChild(contentItem);
+            contentItem = stack;
         }
 
         /*
@@ -550,7 +635,6 @@ export class Stack extends ComponentParentableItem {
             const area = this._contentAreaDimensions[segment].hoverArea;
 
             if (area.x1 < x && area.x2 > x && area.y1 < y && area.y2 > y) {
-
                 if (segment === Stack.Segment.Header) {
                     this._dropSegment = Stack.Segment.Header;
                     this.highlightHeaderDropZone(this._header.leftRightSided ? y : x);
@@ -584,35 +668,34 @@ export class Stack extends ComponentParentableItem {
                     x1: headerArea.x1,
                     y1: headerArea.y1,
                     x2: headerArea.x2,
-                    y2: headerArea.y2
+                    y2: headerArea.y2,
                 },
                 highlightArea: {
                     x1: headerArea.x1,
                     y1: headerArea.y1,
                     x2: headerArea.x2,
-                    y2: headerArea.y2
-                }
-            }
+                    y2: headerArea.y2,
+                },
+            },
         };
 
         /**
          * Highlight the entire body if the stack is empty
          */
         if (this.contentItems.length === 0) {
-
             this._contentAreaDimensions.body = {
                 hoverArea: {
                     x1: contentArea.x1,
                     y1: contentArea.y1,
                     x2: contentArea.x2,
-                    y2: contentArea.y2
+                    y2: contentArea.y2,
                 },
                 highlightArea: {
                     x1: contentArea.x1,
                     y1: contentArea.y1,
                     x2: contentArea.x2,
-                    y2: contentArea.y2
-                }
+                    y2: contentArea.y2,
+                },
             };
 
             return super.getElementArea(this.element);
@@ -622,14 +705,14 @@ export class Stack extends ComponentParentableItem {
                     x1: contentArea.x1,
                     y1: contentArea.y1,
                     x2: contentArea.x1 + contentWidth * 0.25,
-                    y2: contentArea.y2
+                    y2: contentArea.y2,
                 },
                 highlightArea: {
                     x1: contentArea.x1,
                     y1: contentArea.y1,
                     x2: contentArea.x1 + contentWidth * 0.5,
-                    y2: contentArea.y2
-                }
+                    y2: contentArea.y2,
+                },
             };
 
             this._contentAreaDimensions.top = {
@@ -637,14 +720,14 @@ export class Stack extends ComponentParentableItem {
                     x1: contentArea.x1 + contentWidth * 0.25,
                     y1: contentArea.y1,
                     x2: contentArea.x1 + contentWidth * 0.75,
-                    y2: contentArea.y1 + contentHeight * 0.5
+                    y2: contentArea.y1 + contentHeight * 0.5,
                 },
                 highlightArea: {
                     x1: contentArea.x1,
                     y1: contentArea.y1,
                     x2: contentArea.x2,
-                    y2: contentArea.y1 + contentHeight * 0.5
-                }
+                    y2: contentArea.y1 + contentHeight * 0.5,
+                },
             };
 
             this._contentAreaDimensions.right = {
@@ -652,14 +735,14 @@ export class Stack extends ComponentParentableItem {
                     x1: contentArea.x1 + contentWidth * 0.75,
                     y1: contentArea.y1,
                     x2: contentArea.x2,
-                    y2: contentArea.y2
+                    y2: contentArea.y2,
                 },
                 highlightArea: {
                     x1: contentArea.x1 + contentWidth * 0.5,
                     y1: contentArea.y1,
                     x2: contentArea.x2,
-                    y2: contentArea.y2
-                }
+                    y2: contentArea.y2,
+                },
             };
 
             this._contentAreaDimensions.bottom = {
@@ -667,14 +750,14 @@ export class Stack extends ComponentParentableItem {
                     x1: contentArea.x1 + contentWidth * 0.25,
                     y1: contentArea.y1 + contentHeight * 0.5,
                     x2: contentArea.x1 + contentWidth * 0.75,
-                    y2: contentArea.y2
+                    y2: contentArea.y2,
                 },
                 highlightArea: {
                     x1: contentArea.x1,
                     y1: contentArea.y1 + contentHeight * 0.5,
                     x2: contentArea.x2,
-                    y2: contentArea.y2
-                }
+                    y2: contentArea.y2,
+                },
             };
 
             return super.getElementArea(this.element);
@@ -703,7 +786,9 @@ export class Stack extends ComponentParentableItem {
             const content: WidthAndHeight = getElementWidthAndHeight(this.element);
 
             if (this._header.show) {
-                const dimension = this._header.leftRightSided ? WidthOrHeightPropertyName.width : WidthOrHeightPropertyName.height;
+                const dimension = this._header.leftRightSided
+                    ? WidthOrHeightPropertyName.width
+                    : WidthOrHeightPropertyName.height;
                 content[dimension] -= this.layoutManager.layoutConfig.dimensions.headerHeight;
             }
             this._childElementContainer.style.width = numberToPixels(content.width);
@@ -795,15 +880,20 @@ export class Stack extends ComponentParentableItem {
 
             if (x < halfX) {
                 this._dropIndex = tabIndex;
-                tabElement.insertAdjacentElement('beforebegin', this.layoutManager.tabDropPlaceholder);
+                tabElement.insertAdjacentElement(
+                    'beforebegin',
+                    this.layoutManager.tabDropPlaceholder,
+                );
             } else {
                 this._dropIndex = Math.min(tabIndex + 1, visibleTabsLength);
                 tabElement.insertAdjacentElement('afterend', this.layoutManager.tabDropPlaceholder);
             }
 
-            const tabDropPlaceholderRect = this.layoutManager.tabDropPlaceholder.getBoundingClientRect();
+            const tabDropPlaceholderRect =
+                this.layoutManager.tabDropPlaceholder.getBoundingClientRect();
             const tabDropPlaceholderRectTop = tabDropPlaceholderRect.top + document.body.scrollTop;
-            const tabDropPlaceholderRectLeft = tabDropPlaceholderRect.left + document.body.scrollLeft;
+            const tabDropPlaceholderRectLeft =
+                tabDropPlaceholderRect.left + document.body.scrollLeft;
             const tabDropPlaceholderRectWidth = tabDropPlaceholderRect.width;
 
             if (this._header.leftRightSided) {
@@ -838,7 +928,11 @@ export class Stack extends ComponentParentableItem {
     /** @internal */
     private setupHeaderPosition() {
         setElementDisplayVisibility(this._header.element, this._header.show);
-        this.element.classList.remove(DomConstants.ClassName.Left, DomConstants.ClassName.Right, DomConstants.ClassName.Bottom);
+        this.element.classList.remove(
+            DomConstants.ClassName.Left,
+            DomConstants.ClassName.Right,
+            DomConstants.ClassName.Bottom,
+        );
         if (this._header.leftRightSided) {
             this.element.classList.add('lm_' + this._header.side);
         }
@@ -868,7 +962,7 @@ export class Stack extends ComponentParentableItem {
 
     /** @internal */
     private handleResize() {
-        this._header.updateTabSizes()
+        this._header.updateTabSizes();
     }
 
     /** @internal */
@@ -911,7 +1005,12 @@ export class Stack extends ComponentParentableItem {
     }
 
     /** @internal */
-    private handleHeaderComponentStartDragEvent(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem) {
+    private handleHeaderComponentStartDragEvent(
+        x: number,
+        y: number,
+        dragListener: DragListener,
+        componentItem: ComponentItem,
+    ) {
         if (this.isMaximised === true) {
             this.toggleMaximise();
         }

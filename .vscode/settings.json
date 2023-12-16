@@ -1,19 +1,20 @@
 {
-	"editor.formatOnSave": true,
-	"[typescript]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode",
-		"editor.codeActionsOnSave": {
-			"source.organizeImports": "explicit",
-			"source.fixAll": "explicit"
-		}
-	},
-	"[svelte]": {
-		"editor.defaultFormatter": "svelte.svelte-vscode"
-	},
-	"[html]": {
-		"editor.defaultFormatter": "esbenp.prettier-vscode"
-	},
-	"svelte.enable-ts-plugin": true,
-	"prettier.configPath": ".prettierrc",
-	"prettier.requireConfig": true
+    "editor.formatOnSave": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
+        }
+    },
+    "[svelte]": {
+        "editor.defaultFormatter": "svelte.svelte-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "svelte.enable-ts-plugin": true,
+    "prettier.configPath": ".prettierrc",
+    "prettier.requireConfig": true,
+    "prettier.ignorePath": ".prettierignore"
 }

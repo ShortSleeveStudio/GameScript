@@ -2,28 +2,28 @@ import { persisted } from '@lib/vendor/svelte-persisted-store';
 import { get, type Writable } from 'svelte/store';
 
 // Media match query
-const SystemThemeQuery: string = '(prefers-color-scheme: dark)';
+const systemThemeQuery: string = '(prefers-color-scheme: dark)';
 
 /**
  * Valid dark modes
  */
-const ValidDarkmodes = ['System', 'Dark', 'Light'] as const;
-export type Darkmode = typeof ValidDarkmodes[number];
+const validDarkmodes = ['System', 'Dark', 'Light'] as const;
+export type Darkmode = (typeof validDarkmodes)[number];
 
 /**
  * Darkmode is a store for the current user darkmode preference.
  */
-export const darkmode: Writable<Darkmode> = persisted('preferences', ValidDarkmodes[0]);
+export const darkmode: Writable<Darkmode> = persisted('preferences', validDarkmodes[0]);
 
 // Make sure schema matches, or delete the old value
-if (ValidDarkmodes.includes(get(darkmode))) {
-	darkmode.set(ValidDarkmodes[0]);
+if (validDarkmodes.includes(get(darkmode))) {
+	darkmode.set(validDarkmodes[0]);
 }
 
 // Monitor for changes to darkmode system preference
-let isSystemDarkMode: boolean = window.matchMedia(SystemThemeQuery).matches;
+let isSystemDarkMode: boolean = window.matchMedia(systemThemeQuery).matches;
 window
-	.matchMedia(SystemThemeQuery)
+	.matchMedia(systemThemeQuery)
 	.addEventListener('change', function (eventList: MediaQueryListEvent): void {
 		// Update cached value
 		isSystemDarkMode = eventList.matches;

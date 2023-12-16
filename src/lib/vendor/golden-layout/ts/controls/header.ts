@@ -54,7 +54,7 @@ export class Header extends EventEmitter {
     /** @internal */
     private readonly _touchStartListener = (ev: TouchEvent) => this.onTouchStart(ev);
     /** @internal */
-    private readonly _documentMouseUpListener: (this: void) => void;
+    private readonly _documentMouseUpListener: (ev: MouseEvent) => void;
 
     /** @internal */
     private _rowColumnClosable = true;
@@ -150,36 +150,42 @@ export class Header extends EventEmitter {
         this._element.addEventListener('click', this._clickListener, { passive: true });
         this._element.addEventListener('touchstart', this._touchStartListener, { passive: true });
 
-        this._documentMouseUpListener = () => this._tabsContainer.hideAdditionalTabsDropdown()
+        this._documentMouseUpListener = (e: MouseEvent) => {
+            if (this._tabDropdownButton?.element === e.target) return;
+            this._tabsContainer.hideAdditionalTabsDropdown();
+        }
         globalThis.document.addEventListener('mouseup', this._documentMouseUpListener, { passive: true });
 
         this._tabControlOffset = this._layoutManager.layoutConfig.settings.tabControlOffset;
 
         if (this._tabDropdownEnabled) {
             this._tabDropdownButton = new HeaderButton(this, this._tabDropdownLabel, DomConstants.ClassName.TabDropdown,
-                () => this._tabsContainer.showAdditionalTabsDropdown()
+                (event: Event): void => {
+                    event.stopImmediatePropagation(); // So click-out handler doesn't get triggered
+                    this._tabsContainer.toggleAdditionalTabsDropdown()
+                }
             );
         }
 
-        if (this._popoutEnabled) {
-            this._popoutButton = new HeaderButton(this, this._popoutLabel, DomConstants.ClassName.Popout, () => this.handleButtonPopoutEvent());
-        }
+        // if (this._popoutEnabled) {
+        //     this._popoutButton = new HeaderButton(this, this._popoutLabel, DomConstants.ClassName.Popout, () => this.handleButtonPopoutEvent());
+        // }
 
         /**
          * Maximise control - set the component to the full size of the layout
          */
-        if (this._maximiseEnabled) {
-            this._maximiseButton = new HeaderButton(this, this._maximiseLabel, DomConstants.ClassName.Maximise,
-                (ev) => this.handleButtonMaximiseToggleEvent(ev)
-            );
-        }
+        // if (this._maximiseEnabled) {
+        //     this._maximiseButton = new HeaderButton(this, this._maximiseLabel, DomConstants.ClassName.Maximise,
+        //         (ev) => this.handleButtonMaximiseToggleEvent(ev)
+        //     );
+        // }
 
         /**
          * Close button
          */
-        if (this._configClosable) {
-            this._closeButton = new HeaderButton(this, this._closeLabel, DomConstants.ClassName.Close, () => closeEvent());
-        }
+        // if (this._configClosable) {
+        //     this._closeButton = new HeaderButton(this, this._closeLabel, DomConstants.ClassName.Close, () => closeEvent());
+        // }
 
         this.processTabDropdownActiveChanged();
     }
@@ -358,15 +364,15 @@ export class Header extends EventEmitter {
 
     /** @internal */
     private handleTabInitiatedDragStartEvent(x: number, y: number, dragListener: DragListener, componentItem: ComponentItem) {
-        if (!this._canRemoveComponent) {
-            dragListener.cancelDrag();
+        // if (!this._canRemoveComponent) {
+        //     dragListener.cancelDrag();
+        // } else {
+        if (this._componentDragStartEvent === undefined) {
+            throw new UnexpectedUndefinedError('HHTDSE22294');
         } else {
-            if (this._componentDragStartEvent === undefined) {
-                throw new UnexpectedUndefinedError('HHTDSE22294');
-            } else {
-                this._componentDragStartEvent(x, y, dragListener, componentItem);
-            }
+            this._componentDragStartEvent(x, y, dragListener, componentItem);
         }
+        // }
     }
 
     /** @internal */

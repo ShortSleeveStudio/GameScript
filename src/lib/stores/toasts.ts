@@ -3,8 +3,23 @@ import { writable, type Readable, type Writable } from 'svelte/store';
 /**
  * Valid types of toasts
  */
-const ValidToastKinds = ['error', 'info', 'info-square', 'success', 'warning', 'warning-alt'] as const;
-export type ToastKind = typeof ValidToastKinds[number];
+const validToastKinds = [
+    'error',
+    'info',
+    'info-square',
+    'success',
+    'warning',
+    'warning-alt',
+] as const;
+const kindToTitle = {
+    error: 'Error',
+    info: 'Info',
+    'info-square': 'Info',
+    success: 'Success',
+    warning: 'Warning',
+    'warning-alt': 'Warning',
+} as const;
+export type ToastKind = (typeof validToastKinds)[number];
 
 /**
  * Payload for toast UI
@@ -16,13 +31,23 @@ export class ToastItem {
     private _title: string;
     private _subtitle: string;
     private _caption: string;
+    private _details: string | undefined;
 
-    constructor(kind: ToastKind, title: string, subtitle: string, caption: string) {
+    constructor(kind: ToastKind, subtitle: string);
+    constructor(kind: ToastKind, subtitle: string, details: string);
+    constructor(
+        kind: ToastKind,
+        subtitle: string,
+        details?: string,
+        title?: string,
+        caption?: string,
+    ) {
         this._id = ToastItem._toastCount++;
         this._kind = kind;
-        this._title = title;
+        this._title = title ? title : kindToTitle[kind];
         this._subtitle = subtitle;
-        this._caption = caption;
+        this._details = details;
+        this._caption = caption ? caption : new Date().toLocaleString();
     }
 
     public get id(): number {
@@ -45,6 +70,10 @@ export class ToastItem {
         return this._caption;
     }
 
+    public get details(): string | undefined {
+        return this._details;
+    }
+
     // this is the only way to capture this
     public close = (e: Event) => {
         e.preventDefault();
@@ -56,7 +85,7 @@ export class ToastItem {
             }
             return value;
         });
-    }
+    };
 }
 
 // Internal writable store
@@ -69,12 +98,12 @@ const toastsWritable: Writable<ToastItem[]> = writable(<ToastItem[]>[]);
 export function showToast(toast: ToastItem) {
     toastsWritable.update((value: ToastItem[]) => {
         value.unshift(toast);
-        return value
+        return value;
     });
 }
 
 /**
- * Store for all current toasts. 
+ * Store for all current toasts.
  */
 export const toasts: Readable<ToastItem[]> = {
     subscribe: toastsWritable.subscribe,

@@ -14,7 +14,7 @@ export class Tab {
     /** @internal */
     private readonly _titleElement: HTMLSpanElement;
     /** @internal */
-    private readonly _closeElement: HTMLDivElement | undefined;
+    // private readonly _closeElement: HTMLDivElement | undefined;
 
     /** @internal */
     private _dragListener: DragListener | undefined;
@@ -45,7 +45,7 @@ export class Tab {
     get contentItem(): ComponentItem { return this._componentItem; }
     get element(): HTMLElement { return this._element; }
     get titleElement(): HTMLElement { return this._titleElement; }
-    get closeElement(): HTMLElement | undefined { return this._closeElement; }
+    // get closeElement(): HTMLElement | undefined { return this._closeElement; }
     get reorderEnabled(): boolean { return this._dragListener !== undefined; }
     set reorderEnabled(value: boolean) {
         if (value !== this.reorderEnabled) {
@@ -74,16 +74,16 @@ export class Tab {
         this._element.classList.add(DomConstants.ClassName.Tab);
         this._titleElement = document.createElement('span'); 
         this._titleElement.classList.add(DomConstants.ClassName.Title);
-        this._closeElement = document.createElement('div'); 
-        this._closeElement.classList.add(DomConstants.ClassName.CloseTab);
+        // this._closeElement = document.createElement('div'); 
+        // this._closeElement.classList.add(DomConstants.ClassName.CloseTab);
         this._element.appendChild(this._titleElement);
-        this._element.appendChild(this._closeElement);
+        // this._element.appendChild(this._closeElement);
 
-        if (_componentItem.isClosable) {
-            this._closeElement.style.display = '';
-        } else {
-            this._closeElement.style.display = 'none';
-        }
+        // if (_componentItem.isClosable) {
+        //     this._closeElement.style.display = '';
+        // } else {
+        //     this._closeElement.style.display = 'none';
+        // }
 
         this.setTitle(_componentItem.title);
         this._componentItem.on('titleChanged', this._tabTitleChangedListener);
@@ -97,14 +97,14 @@ export class Tab {
         this._element.addEventListener('click', this._tabClickListener, { passive: true });
         this._element.addEventListener('touchstart', this._tabTouchStartListener, { passive: true });
 
-        if (this._componentItem.isClosable) {
-            this._closeElement.addEventListener('click', this._closeClickListener, { passive: true });
-            this._closeElement.addEventListener('touchstart', this._closeTouchStartListener, { passive: true });
-            // this._closeElement.addEventListener('mousedown', this._closeMouseDownListener, { passive: true });
-        } else {
-            this._closeElement.remove();
-            this._closeElement = undefined;
-        }
+        // if (this._componentItem.isClosable) {
+        //     this._closeElement.addEventListener('click', this._closeClickListener, { passive: true });
+        //     this._closeElement.addEventListener('touchstart', this._closeTouchStartListener, { passive: true });
+        //     // this._closeElement.addEventListener('mousedown', this._closeMouseDownListener, { passive: true });
+        // } else {
+        //     this._closeElement.remove();
+        //     this._closeElement = undefined;
+        // }
 
         this._componentItem.setTab(this);
         this._layoutManager.emit('tabCreated', this);
@@ -147,8 +147,8 @@ export class Tab {
         this._dragStartEvent = undefined;
         this._element.removeEventListener('click', this._tabClickListener);
         this._element.removeEventListener('touchstart', this._tabTouchStartListener);
-        this._closeElement?.removeEventListener('click', this._closeClickListener);
-        this._closeElement?.removeEventListener('touchstart', this._closeTouchStartListener);
+        // this._closeElement?.removeEventListener('click', this._closeClickListener);
+        // this._closeElement?.removeEventListener('touchstart', this._closeTouchStartListener);
         // this._closeElement?.removeEventListener('mousedown', this._closeMouseDownListener);
         this._componentItem.off('titleChanged', this._tabTitleChangedListener);
         if (this.reorderEnabled) {

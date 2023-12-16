@@ -245,6 +245,17 @@ export class TabsContainer {
     }
 
     /**
+     * Toggle the additional tabs dropdown.
+     */
+    toggleAdditionalTabsDropdown(): void {
+        if (this._dropdownElement.style.display === 'none') {
+            this.showAdditionalTabsDropdown();
+        } else {
+            this.hideAdditionalTabsDropdown();
+        }
+    }
+
+    /**
      * Shows drop down for additional tabs when there are too many to display.
      */
     showAdditionalTabsDropdown(): void {

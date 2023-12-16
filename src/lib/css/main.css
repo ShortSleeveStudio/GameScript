@@ -1,0 +1,27 @@
+html {
+    --z-index-overlay: 10000;
+
+    --gl-tab-width: 152;
+    --gl-tab-height: 24;
+    --gl-dropdown-arrow-size: 6px;
+    --gl-tab-placeholder-width: 8px;
+}
+
+body {
+    margin: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* This will force dark overlay for the sidenav if needed */
+.bx--side-nav__overlay-active {
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: var(--cds-overlay-01, rgba(22, 22, 22, 0.5)) !important;
+    opacity: 0.25 !important;
+    transition:
+        opacity 240ms cubic-bezier(0.2, 0, 0.38, 0.9),
+        background-color 240ms cubic-bezier(0.2, 0, 0.38, 0.9) !important;
+}

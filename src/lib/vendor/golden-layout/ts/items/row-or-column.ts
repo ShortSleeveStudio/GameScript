@@ -456,7 +456,7 @@ export class RowOrColumn extends ContentItem {
             size: number;
         }
 
-        const minItemSize = this.calculateContentItemMinSize(this);
+        const minItemSize = this.calculateContentItemMinSize(0, this);
 
         if (minItemSize <= 0 || this.contentItems.length <= 1) {
             return;
@@ -566,18 +566,26 @@ export class RowOrColumn extends ContentItem {
         };
     }
 
-    private calculateContentItemMinSize(contentItem: ContentItem) {
-        const minSize = contentItem.minSize;
-        if (minSize !== undefined) {
-            if (contentItem.minSizeUnit === SizeUnitEnum.Pixel) {
-                return minSize;
-            } else {
+    private calculateContentItemMinSize(largestMinSize: number, contentItem: ContentItem): number {
+        // Check if this node has the largest minimum size
+        let minSize = contentItem.minSize;
+        if (minSize) {
+            if (contentItem.minSizeUnit !== SizeUnitEnum.Pixel) {
                 throw new AssertError('ROCGMD98831', JSON.stringify(contentItem));
             }
         } else {
             const dimensions = this.layoutManager.layoutConfig.dimensions;
-            return this._isColumn ? dimensions.defaultMinItemHeight : dimensions.defaultMinItemWidth;
+            minSize = this._isColumn ? dimensions.defaultMinItemHeight : dimensions.defaultMinItemWidth;
         }
+        largestMinSize = Math.max(largestMinSize, minSize);
+
+        // Check all children recursively
+        for (const childItem of contentItem.contentItems) {
+            largestMinSize = this.calculateContentItemMinSize(largestMinSize, childItem);
+        }
+
+        // return the largest minimum size
+        return largestMinSize;
     }
 
     /**
@@ -585,13 +593,11 @@ export class RowOrColumn extends ContentItem {
      * @internal
      */
     private calculateContentItemsTotalMinSize(contentItems: readonly ContentItem[]) {
-        let totalMinSize = 0;
-
+        let largestMinSize = 0;
         for (const contentItem of contentItems) {
-            totalMinSize += this.calculateContentItemMinSize(contentItem);
+            largestMinSize = this.calculateContentItemMinSize(largestMinSize, contentItem);
         }
-
-        return totalMinSize;
+        return largestMinSize;
     }
 
     /**
@@ -604,8 +610,10 @@ export class RowOrColumn extends ContentItem {
 
         const beforeWidth = pixelsToNumber(items.before.element.style[this._dimension]);
         const afterSize = pixelsToNumber(items.after.element.style[this._dimension]);
-        const beforeMinSize = this.calculateContentItemsTotalMinSize(items.before.contentItems);
-        const afterMinSize = this.calculateContentItemsTotalMinSize(items.after.contentItems);
+        const beforeMinSize = this.calculateContentItemsTotalMinSize(
+            items.before.contentItems);
+        const afterMinSize = this.calculateContentItemsTotalMinSize(
+            items.after.contentItems);
 
         this._splitterPosition = 0;
         this._splitterMinPosition = -1 * (beforeWidth - beforeMinSize);
