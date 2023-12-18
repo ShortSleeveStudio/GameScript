@@ -1,0 +1,1 @@
+<div>Locales</div>

@@ -5,8 +5,8 @@
 import '@lib/api/window';
 
 // Store
-import '@lib/stores/darkmode';
-import '@lib/stores/maximized';
+import '@lib/stores/app/darkmode';
+import '@lib/stores/app/maximized';
 
 // Main app
 import 'carbon-components-svelte/css/all.css';
@@ -17,7 +17,7 @@ import '@lib/css/golden-layout-theme-custom.css';
 // import '@lib/vendor/golden-layout/css/goldenlayout-base.css';
 // import '@lib/vendor/golden-layout/css/themes/goldenlayout-dark-theme.css';
 
-import App from './App.svelte';
+import App from './lib/components/app/App.svelte';
 
 /**
  * Hajime!

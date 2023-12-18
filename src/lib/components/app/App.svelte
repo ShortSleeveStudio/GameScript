@@ -2,7 +2,7 @@
     import Topbar from '@lib/components/app/Topbar.svelte';
     import Dock from '@lib/components/app/Dock.svelte';
     import Overlay from '@lib/components/app/Overlay.svelte';
-    import { ToastItem, showToast } from '@lib/stores/toasts';
+    import { ToastItem, showToast } from '@lib/stores/app/toasts';
 
     function globalErrorHandler(event: unknown) {
         console.log(event);
