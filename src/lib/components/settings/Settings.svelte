@@ -1,27 +1,19 @@
-<script>
+<script lang="ts">
     import {
         actorsOpen,
         conversationsOpen,
         dbOpen,
         scriptingOpen,
     } from '@lib/stores/settings/settings';
-    import { Accordion, AccordionItem, Dropdown } from 'carbon-components-svelte';
+    import { Accordion, AccordionItem } from 'carbon-components-svelte';
+
+    import DatabaseSettings from './DatabaseSettings.svelte';
 </script>
 
 <div class="settings">
-    <Accordion size="xl">
+    <Accordion size="sm">
         <AccordionItem title="Database" bind:open={$dbOpen}>
-            <Dropdown
-                size="sm"
-                titleText="Select Backend"
-                selectedId="0"
-                items={[
-                    { id: '0', text: 'Slack' },
-                    { id: '1', text: 'Email' },
-                    { id: '2', text: 'Fax' },
-                ]}
-            />
-            <!-- <p>database stuff here</p> -->
+            <DatabaseSettings />
         </AccordionItem>
         <AccordionItem title="Conversation Editor" bind:open={$conversationsOpen}
             >conversation editor settings</AccordionItem

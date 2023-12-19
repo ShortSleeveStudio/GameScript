@@ -20,7 +20,7 @@
         LOCALIZATION_FINDER_LAYOUT,
         SEARCH_LAYOUT,
         SETTINGS_LAYOUT,
-    } from './default-layout';
+    } from '../../constants/default-layout';
     import { LS_KEY_LAYOUT } from '@lib/constants/local-storage';
     import { ToastItem, showToast } from '@lib/stores/app/toasts';
     import {

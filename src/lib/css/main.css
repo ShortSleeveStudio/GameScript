@@ -25,3 +25,14 @@ body {
         opacity 240ms cubic-bezier(0.2, 0, 0.38, 0.9),
         background-color 240ms cubic-bezier(0.2, 0, 0.38, 0.9) !important;
 }
+
+/* This will prevent the "company" name from stopping window drags */
+.bx--header__name .bx--header__name--prefix {
+    pointer-events: none;
+}
+/* .bx--header__name {
+    font-size: 0.5rem !important;
+    font-weight: 200;
+    font-size: 0.5rem !important;
+    font-size: var(--cds-caption-01-font-size, 0.875rem);
+} */

@@ -15,7 +15,7 @@
     import Minimize from 'carbon-icons-svelte/lib/Minimize.svelte';
     import SubtractLarge from 'carbon-icons-svelte/lib/SubtractLarge.svelte';
     import { maximized } from '@lib/stores/app/maximized';
-    import { mainWindow } from '@lib/api/window';
+    import { mainWindow } from '@lib/api/system/window';
     import { darkmode } from '@lib/stores/app/darkmode';
     import { EVENT_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
     import {
@@ -30,6 +30,7 @@
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
+    import { dbConnected } from '@lib/stores/settings/settings';
 
     let isSideNavOpen = false;
 

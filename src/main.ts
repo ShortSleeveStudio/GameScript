@@ -2,7 +2,8 @@
  * Module initialization
  */
 // API
-import '@lib/api/window';
+import '@lib/api/db/database';
+import '@lib/api/system/window';
 
 // Store
 import '@lib/stores/app/darkmode';

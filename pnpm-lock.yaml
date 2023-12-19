@@ -8,9 +8,15 @@ dependencies:
   '@tauri-apps/api':
     specifier: ^2.0.0-alpha.11
     version: 2.0.0-alpha.12
+  '@tauri-apps/plugin-dialog':
+    specifier: 2.0.0-alpha.4
+    version: 2.0.0-alpha.4
   '@tauri-apps/plugin-shell':
     specifier: ^2.0.0-alpha.3
     version: 2.0.0-alpha.3
+  '@tauri-apps/plugin-sql':
+    specifier: 2.0.0-alpha.4
+    version: 2.0.0-alpha.4
 
 devDependencies:
   '@sveltejs/vite-plugin-svelte':
@@ -554,10 +560,22 @@ packages:
       '@tauri-apps/cli-win32-x64-msvc': 2.0.0-alpha.18
     dev: true
 
+  /@tauri-apps/plugin-dialog@2.0.0-alpha.4:
+    resolution: {integrity: sha512-4NxBgDzxrZ8hPE9OMRYwsXYN2BxQYI/5l1UKEI5V4srFTZK81Vj5GGksCf7gQREZg7CmBRCk95qYx338A6oCag==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-alpha.12
+    dev: false
+
   /@tauri-apps/plugin-shell@2.0.0-alpha.3:
     resolution: {integrity: sha512-v4qLTE9DfzpYdcjZq3ASOC7gFtMtzIDWN5Bo2FheB+pHQvDRq8mrP8gTdkL4/9pQaOFlB0B+MKCwANYhD1jLEQ==}
     dependencies:
       '@tauri-apps/api': 2.0.0-alpha.11
+    dev: false
+
+  /@tauri-apps/plugin-sql@2.0.0-alpha.4:
+    resolution: {integrity: sha512-Zc7RrYYVXw2/DJ33QkTIb1Uj3XHKOjQdeNrkdLsGaK86bwnAPH7/fMJXb/N3LZwCyj/U2pwHZtjcTkPFfeLEUQ==}
+    dependencies:
+      '@tauri-apps/api': 2.0.0-alpha.12
     dev: false
 
   /@tsconfig/svelte@5.0.2:
