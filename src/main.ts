@@ -2,7 +2,7 @@
  * Module initialization
  */
 // API
-import '@lib/api/db/database';
+import '@lib/api/db/db';
 import '@lib/api/system/window';
 
 // Store

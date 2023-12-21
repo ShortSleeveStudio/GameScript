@@ -1,25 +1,27 @@
-import type Database from '@tauri-apps/plugin-sql';
-import type { Writable } from 'svelte/store';
+import { dbConnected, dbSqlitePath, dbType } from '@lib/stores/settings/settings';
+import type { Db } from './db-base';
+import { PostgresDb } from './db-postgres';
+import { SqliteDb } from './db-sqlite';
+import type { DatabaseTypeName } from './db-types';
 
-/**The interface all databases must implement */
-export abstract class Db {
-    protected _db: Database | undefined;
-    protected _isConnected: Writable<boolean>;
+/**Main DB instance */
+export let db: Db;
 
-    constructor(isConnected: Writable<boolean>) {
-        this._db = undefined;
-        this._isConnected = isConnected;
+// Initialization
+dbType.subscribe(onDbTypeChange);
+function onDbTypeChange(newDbtype: DatabaseTypeName) {
+    // Shutdown old DB instance
+    if (db) {
+        db.shutdown();
     }
 
-    async shutdown(): Promise<void> {
-        await this.destroyConnection();
-    }
-
-    protected async destroyConnection() {
-        this._isConnected.set(false);
-        if (this._db) {
-            await this._db.close();
-            this._db = undefined;
-        }
+    // Create new DB instance
+    switch (newDbtype) {
+        case 'SQLite':
+            db = new SqliteDb(dbConnected, dbSqlitePath);
+            break;
+        case 'PostgreSQL':
+            db = new PostgresDb(dbConnected);
+            break;
     }
 }

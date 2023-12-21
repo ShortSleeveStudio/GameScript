@@ -1,5 +1,6 @@
 html {
-    --z-index-overlay: 10000;
+    /* This is below modals, but over most everything else */
+    --z-index-overlay: 8000;
 
     --gl-tab-width: 152;
     --gl-tab-height: 24;
@@ -36,3 +37,21 @@ body {
     font-size: 0.5rem !important;
     font-size: var(--cds-caption-01-font-size, 0.875rem);
 } */
+
+/* When wrapped with this class, text inputs will not display the requirement text during invalid */
+.defeat-form-requirement .bx--form-requirement {
+    display: none !important;
+}
+/* When wrapped with this class, text inputs will add padding to accomodate the danger icon */
+.defeat-form-requirement .bx--text-input--invalid {
+    padding-right: 1rem !important;
+}
+/* Fix DataTable description padding issue */
+.bx--data-table-header {
+    padding: var(--cds-spacing-05, 1rem) var(--cds-spacing-06, 1.5rem) var(--cds-spacing-06, 1.5rem)
+        var(--cds-spacing-05, 1rem) !important;
+}
+/* When applied to a modal, this will remove the modal close button */
+.defeat-modal-close .bx--modal-close {
+    display: none !important;
+}
