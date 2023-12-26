@@ -2,6 +2,7 @@
     import type { DefaultFieldRow } from '@lib/api/db/db-types';
     import type { DbRowView } from '@lib/api/db/db-view-row';
     import { type ActionUnsubscriber } from '@lib/utility/action';
+    import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { SkeletonPlaceholder, TextInput } from 'carbon-components-svelte';
     import { onDestroy, onMount } from 'svelte';
@@ -14,11 +15,58 @@
 
     // TODO: https://svelte-5-preview.vercel.app/status
     const isLoading: Readable<boolean> = rowView.isLoading;
+    let boundValue: string = $rowView.name;
     let currentValue: string = $rowView.name;
+    let isUnique: boolean = true;
+    let rowViewUnsubscriber: Unsubscriber;
+    let uniqueNameTrackerUnsubscriber: ActionUnsubscriber;
+    onMount(() => {
+        // Subscribe to changes in unique name map
+        uniqueNameTrackerUnsubscriber = uniqueNameTracker.subscribe(() => {
+            isUnique = uniqueNameTracker.isNameUnique($rowView.name);
+        });
+
+        // Add name initially (NOTE: order here matters)
+        uniqueNameTracker.addName($rowView.name);
+
+        // Subscribe to changes in row view
+        rowViewUnsubscriber = rowView.subscribe((row: DefaultFieldRow) => {
+            // If the name of this row has changed, we remove it from the map and add the new name
+            if (row.name !== currentValue) {
+                uniqueNameTracker.removeName(currentValue);
+                boundValue = row.name;
+                currentValue = row.name;
+                uniqueNameTracker.addName(currentValue);
+            }
+        });
+    });
+    onDestroy(() => {
+        // Remove deleted field
+        uniqueNameTracker.removeName(currentValue);
+
+        // Unsubscribe to row view changes
+        rowViewUnsubscriber();
+
+        // Unsubscribe to changes in unique name map
+        uniqueNameTrackerUnsubscriber();
+    });
 
     function syncOnBlur() {
-        if ($rowView.name !== currentValue) {
-            $rowView.name = currentValue;
+        const newName = boundValue;
+        const previousName = $rowView.name;
+        if (previousName !== newName) {
+            undoManager.register(
+                new Undoable(
+                    'Default field type selection',
+                    () => {
+                        $rowView.name = previousName;
+                    },
+                    () => {
+                        $rowView.name = newName;
+                    },
+                ),
+            );
+            $rowView.name = newName;
         }
     }
 
@@ -27,41 +75,6 @@
             (<HTMLElement>e.target).blur();
         }
     }
-
-    // Track row name
-    let isUnique: boolean = true;
-    let currentName = $rowView.name;
-    let rowViewUnsubscriber: Unsubscriber;
-    let uniqueNameTrackerUnsubscriber: ActionUnsubscriber;
-    onMount(() => {
-        // Subscribe to changes in unique name map
-        uniqueNameTrackerUnsubscriber = uniqueNameTracker.subscribe(() => {
-            isUnique = uniqueNameTracker.isNameUnique(currentName);
-        });
-
-        // Add name initially (NOTE: order here matters)
-        uniqueNameTracker.addName(currentName);
-
-        // Subscribe to changes in row view
-        rowViewUnsubscriber = rowView.subscribe((row: DefaultFieldRow) => {
-            // If the name of this row has changed, we remove it from the map and add the new name
-            if (row.name !== currentName) {
-                uniqueNameTracker.removeName(currentName);
-                currentName = row.name;
-                uniqueNameTracker.addName(currentName);
-            }
-        });
-    });
-    onDestroy(() => {
-        // Remove deleted field
-        uniqueNameTracker.removeName(currentName);
-
-        // Unsubscribe to row view changes
-        rowViewUnsubscriber();
-
-        // Unsubscribe to changes in unique name map
-        uniqueNameTrackerUnsubscriber();
-    });
 </script>
 
 {#if $isLoading}
@@ -74,7 +87,7 @@
             hideLabel
             disabled={$rowView.required || isApplyingDefaultFields}
             placeholder={inputPlaceholder}
-            bind:value={currentValue}
+            bind:value={boundValue}
             on:blur={syncOnBlur}
             on:keyup={onKeyUp}
         />

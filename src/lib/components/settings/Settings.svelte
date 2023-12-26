@@ -18,25 +18,11 @@
             <h3>Actors</h3>
         {/if}
     </Content>
-
-    <!-- <Accordion size="sm">
-        <AccordionItem title="Database" bind:open={$settingsDbOpen}></AccordionItem>
-        <AccordionItem title="Conversation Editor" bind:open={$settingsConversationsOpen}
-        ></AccordionItem>
-        <AccordionItem title="Coding" bind:open={$settingsCodingOpen}
-            >coding settings here</AccordionItem
-        >
-        <AccordionItem title="Actors" bind:open={$settingsActorsOpen}
-            >actor settings here</AccordionItem
-        >
-    </Accordion> -->
 </div>
 
 <style>
     .settings {
         height: 100%;
-        overflow-y: auto;
-        /* overflow-y: scroll; */
-        /* overflow-x: hidden; */
+        min-width: calc(70px * 8);
     }
 </style>
