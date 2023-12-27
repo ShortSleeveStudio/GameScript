@@ -11,7 +11,7 @@
     console.log('remember to renaable error');
 </script>
 
-<!-- <svelte:window on:error|preventDefault|stopPropagation={globalErrorHandler} /> -->
+<svelte:window on:error|preventDefault|stopPropagation={globalErrorHandler} />
 <Topbar />
 <Overlay />
 <Dock />

@@ -1,6 +1,6 @@
 html {
-    /* This is below modals, but over most everything else */
-    --z-index-overlay: 8000;
+    /* This is below modals and sidenav, but over most everything else */
+    --z-index-overlay: 7000;
 
     --gl-tab-width: 152;
     --gl-tab-height: 24;

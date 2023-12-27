@@ -1,3 +1,4 @@
+import { IsLoading } from '@lib/stores/utility/is-loading';
 import {
     writable,
     type Invalidator,
@@ -14,23 +15,19 @@ import type { IDbTableView } from './db-view-table-interface';
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _db: Db;
     private _tableName: DatabaseTableName;
-    private _pendingChanges: number;
-    private _internalIsLoading: Writable<boolean>;
-    private _isLoading: Readable<boolean>;
+    private _isLoading: IsLoading;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
 
     constructor(database: Db, tableName: DatabaseTableName) {
         this._db = database;
         this._tableName = tableName;
-        this._pendingChanges = 0;
-        this._internalIsLoading = writable(false);
-        this._isLoading = { subscribe: this._internalIsLoading.subscribe };
+        this._isLoading = new IsLoading();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
         this.onTableChange();
     }
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    get isLoading() {
+    get isLoading(): Readable<boolean> {
         return this._isLoading;
     }
 
@@ -41,22 +38,30 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         return this._internalWritable.subscribe(run, invalidate);
     }
 
-    async createRow(row: RowType): Promise<void> {
-        this.incrementLoading();
-        await this._db.createRow<RowType>(this._tableName, row);
-        this.decrementLoading();
+    async createRow(row: RowType): Promise<RowType> {
+        this._isLoading.increment();
+        row = await this._db.createRow<RowType>(this._tableName, row);
+        this._isLoading.decrement();
+        return row;
+    }
+
+    async createRows(rows: RowType[]): Promise<RowType[]> {
+        this._isLoading.increment();
+        rows = await this._db.createRows<RowType>(this._tableName, rows);
+        this._isLoading.decrement();
+        return rows;
     }
 
     async deleteRow(row: RowType): Promise<void> {
-        this.incrementLoading();
+        this._isLoading.increment();
         await this._db.deleteRow<RowType>(this._tableName, row);
-        this.decrementLoading();
+        this._isLoading.decrement();
     }
 
     async deleteRows(rows: RowType[]): Promise<void> {
-        this.incrementLoading();
+        this._isLoading.increment();
         await this._db.deleteRows<RowType>(this._tableName, rows);
-        this.decrementLoading();
+        this._isLoading.decrement();
     }
 
     // TODO: take an argument
@@ -66,13 +71,5 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
         // Update store
         this._internalWritable.set(newRowsViews);
-    }
-
-    private incrementLoading() {
-        this._internalIsLoading.set(++this._pendingChanges > 0);
-    }
-
-    private decrementLoading() {
-        this._internalIsLoading.set(--this._pendingChanges > 0);
     }
 }

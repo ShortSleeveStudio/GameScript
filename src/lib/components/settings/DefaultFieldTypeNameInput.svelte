@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { DefaultFieldRow } from '@lib/api/db/db-types';
-    import type { DbRowView } from '@lib/api/db/db-view-row';
+    import { type IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { type ActionUnsubscriber } from '@lib/utility/action';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
@@ -8,13 +9,12 @@
     import { onDestroy, onMount } from 'svelte';
     import type { Readable, Unsubscriber } from 'svelte/motion';
 
-    export let rowView: DbRowView<DefaultFieldRow>;
+    export let rowView: IDbRowView<DefaultFieldRow>;
     export let inputPlaceholder: string;
     export let uniqueNameTracker: UniqueNameTracker;
-    export let isApplyingDefaultFields: boolean;
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isLoading;
+    const isLoading: Readable<boolean> = rowView.isColumnLoading('name');
     let boundValue: string = $rowView.name;
     let currentValue: string = $rowView.name;
     let isUnique: boolean = true;
@@ -51,23 +51,23 @@
         uniqueNameTrackerUnsubscriber();
     });
 
-    function syncOnBlur() {
-        const newName = boundValue;
-        const previousName = $rowView.name;
-        if (previousName !== newName) {
-            undoManager.register(
-                new Undoable(
-                    'Default field type selection',
-                    () => {
-                        $rowView.name = previousName;
-                    },
-                    () => {
-                        $rowView.name = newName;
-                    },
-                ),
-            );
-            $rowView.name = newName;
-        }
+    async function syncOnBlur() {
+        const newValue = boundValue;
+        const oldValue = currentValue;
+        if (oldValue === newValue) return;
+
+        await rowView.updateColumn('name', newValue);
+        undoManager.register(
+            new Undoable(
+                'Default field type selection',
+                async () => {
+                    await rowView.updateColumn('name', oldValue);
+                },
+                async () => {
+                    await rowView.updateColumn('name', newValue);
+                },
+            ),
+        );
     }
 
     function onKeyUp(e: KeyboardEvent) {
@@ -85,7 +85,7 @@
             size="sm"
             invalid={!isUnique}
             hideLabel
-            disabled={$rowView.required || isApplyingDefaultFields}
+            disabled={$rowView.required || $isApplyingDefaultFields}
             placeholder={inputPlaceholder}
             bind:value={boundValue}
             on:blur={syncOnBlur}

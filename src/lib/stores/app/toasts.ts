@@ -1,5 +1,5 @@
 import { writable, type Readable, type Writable } from 'svelte/store';
-
+// TODO: https://svelte-5-preview.vercel.app/status
 /**
  * Valid types of toasts
  */
@@ -76,7 +76,9 @@ export class ToastItem {
 
     // this is the only way to capture this
     public close = (e: Event) => {
-        e.preventDefault();
+        if (e) {
+            e.preventDefault();
+        }
         toastsWritable.update((value: ToastItem[]) => {
             const index: number = value.findIndex((item: ToastItem) => item.id === this.id);
             if (index !== -1) {

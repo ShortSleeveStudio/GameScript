@@ -30,7 +30,7 @@
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
-    import { dbConnected } from '@lib/stores/settings/settings';
+    import { NotificationItem, showNotification } from '@lib/stores/app/notifications';
 
     let isSideNavOpen = false;
 
@@ -63,6 +63,12 @@
             text="Throw Error"
             on:click={() => {
                 throw new Error('Parameter is not a number!');
+            }}
+        />
+        <SideNavLink
+            text="Show Notification"
+            on:click={() => {
+                showNotification(new NotificationItem('info', 'Title', 'subtitle'));
             }}
         />
         <SideNavMenu text="Layout">

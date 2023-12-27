@@ -26,6 +26,8 @@
     import { wait } from '@lib/utility/test';
     import { fade } from 'svelte/transition';
     import { durationFast02 } from '@lib/motion/motion';
+    import { Undoable, undoManager } from '@lib/utility/undo-manager';
+    import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
 
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
     const headers = [
@@ -38,7 +40,6 @@
     let defaultFieldTableView: IDbTableView<DefaultFieldRow> = db.fetchTable('default_fields');
     let isModalOpen: boolean = false;
     let applyFieldsProgress: number = 0;
-    let isApplyingDefaultFields: boolean = false;
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     // TODO: https://svelte-5-preview.vercel.app/status
     const isLoading: Readable<boolean> = defaultFieldTableView.isLoading;
@@ -59,33 +60,65 @@
 
     async function applyDefaultFields(): Promise<void> {
         // TODO: implement me
-        if (isApplyingDefaultFields) return;
+        if ($isApplyingDefaultFields) return;
         applyFieldsProgress = 0;
-        isApplyingDefaultFields = true;
+        $isApplyingDefaultFields = true;
         isModalOpen = false;
         for (; applyFieldsProgress < 100; applyFieldsProgress += 10) {
             await wait(300);
         }
         await wait(600);
-        isApplyingDefaultFields = false;
+        $isApplyingDefaultFields = false;
     }
 
     async function addRow(): Promise<void> {
-        await defaultFieldTableView.createRow(<DefaultFieldRow>{
+        let newRow: DefaultFieldRow = <DefaultFieldRow>{
             name: 'New Field',
             fieldType: ACTOR_FIELD_TYPE_ID,
             nodeType: CONVERSATION_NODE_TYPE_ID,
             required: false,
-        });
+        };
+        newRow = await defaultFieldTableView.createRow(newRow);
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'Default field creation',
+                async () => {
+                    await defaultFieldTableView.deleteRow(newRow);
+                },
+                async () => {
+                    newRow = await defaultFieldTableView.createRow(newRow);
+                },
+            ),
+        );
     }
 
     async function deleteRows(): Promise<void> {
-        $defaultFieldTableView.forEach((row) => {
-            if (selectedRowIds.includes(get(row).id)) {
-                defaultFieldTableView.deleteRow(get(row));
+        let rowsToDelete: DefaultFieldRow[] = [];
+        $defaultFieldTableView.forEach((rowView) => {
+            const row: DefaultFieldRow = get(rowView);
+            if (selectedRowIds.includes(row.id)) {
+                rowsToDelete.push(row);
             }
         });
         selectedRowIds = [];
+
+        // Delete rows
+        await defaultFieldTableView.deleteRows(rowsToDelete);
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'Default field deletion',
+                async () => {
+                    rowsToDelete = await defaultFieldTableView.createRows(rowsToDelete);
+                },
+                async () => {
+                    await defaultFieldTableView.deleteRows(rowsToDelete);
+                },
+            ),
+        );
     }
 </script>
 
@@ -109,24 +142,23 @@
             <!-- TODO: https://svelte-5-preview.vercel.app/status -->
             <DefaultFieldTypeNameInput
                 rowView={row}
-                {isApplyingDefaultFields}
                 {uniqueNameTracker}
                 inputPlaceholder={TEXT_INPUT_PROMPT}
             />
         {:else if cell.key === 'type'}
             <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-            <DefaultFieldTypeDropdown rowView={row} {isApplyingDefaultFields} />
+            <DefaultFieldTypeDropdown rowView={row} />
         {/if}
     </svelte:fragment>
 
     <Toolbar size="sm">
-        {#if !isApplyingDefaultFields}
+        {#if !$isApplyingDefaultFields}
             <ToolbarBatchActions>
                 <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
             </ToolbarBatchActions>
         {/if}
         <ToolbarContent>
-            {#if isApplyingDefaultFields}
+            {#if $isApplyingDefaultFields}
                 <span style="width: 100%;" transition:fade={{ duration: durationFast02 }}>
                     <ProgressBar
                         kind="indented"
@@ -136,14 +168,14 @@
                     />
                 </span>
             {/if}
-            <!-- <ToolbarMenu disabled={$isLoading || isApplyingDefaultFields}>
+            <!-- <ToolbarMenu disabled={$isLoading || $isApplyingDefaultFields}>
                 <ToolbarMenuItem danger on:click={() => (isModalOpen = true)}
                     >Apply to All</ToolbarMenuItem
                 >
             </ToolbarMenu> -->
             <Button
                 size="small"
-                disabled={$isLoading || isApplyingDefaultFields}
+                disabled={$isLoading || $isApplyingDefaultFields}
                 kind="danger-tertiary"
                 iconDescription="Apply to All"
                 tooltipPosition="left"
@@ -152,7 +184,7 @@
             />
             <Button
                 on:click={addRow}
-                disabled={$isLoading || isApplyingDefaultFields}
+                disabled={$isLoading || $isApplyingDefaultFields}
                 icon={$isLoading ? InlineLoading : undefined}>Add Field</Button
             >
         </ToolbarContent>

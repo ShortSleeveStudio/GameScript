@@ -22,13 +22,26 @@ export abstract class Db {
     /**
      * This creates a single row in the table.
      * Throws an error during failures.
+     * Returns the id of the newly created row.
      * @param tableName Name of the table
      * @param row The row to create
      */
     abstract createRow<RowType extends Row>(
         tableName: DatabaseTableName,
         row: RowType,
-    ): Promise<void>;
+    ): Promise<RowType>;
+
+    /**
+     * This creates a list of rows in the table.
+     * Throws an error during failures.
+     * Returns the rows with their id fields populated.
+     * @param tableName Name of the table
+     * @param rows The rows to create
+     */
+    abstract createRows<RowType extends Row>(
+        tableName: DatabaseTableName,
+        rows: RowType[],
+    ): Promise<RowType[]>;
 
     /**
      * The fetches (all) rows in a table and returns them sorted by id.

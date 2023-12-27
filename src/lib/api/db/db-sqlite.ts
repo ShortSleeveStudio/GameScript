@@ -63,37 +63,53 @@ export class SqliteDb extends Db {
     async createRow<RowType extends Row>(
         tableName: DatabaseTableName,
         row: RowType,
-    ): Promise<void> {
-        // Generate query arguments
-        let propertyNames: string = '';
-        let placeHolders: string = '';
-        const argumentArray: unknown[] = [];
-        let index: number = 0;
-        for (const prop in row) {
-            // We never set id
-            if (prop === 'id') continue;
-            if (argumentArray.length >= 1) {
-                propertyNames += ', ';
-                placeHolders += ', ';
-            }
-            propertyNames += prop;
-            placeHolders += '$' + ++index; // starts at 1
-            const value: unknown = row[prop];
-            argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
-        }
+    ): Promise<RowType> {
+        return (await this.createRows(tableName, [row]))[0];
+    }
 
-        // Execute
-        const result: QueryResult = await this._db.execute(
-            `INSERT INTO ${tableName} (${propertyNames}) VALUES (${placeHolders});`,
-            argumentArray,
-        );
-        this.assertQueryResult(result, 'Failed to create row');
+    async createRows<RowType extends Row>(
+        tableName: DatabaseTableName,
+        rows: RowType[],
+    ): Promise<RowType[]> {
+        for (let i = 0; i < rows.length; i++) {
+            // Grab row
+            const row: RowType = rows[i];
+
+            // Generate query arguments
+            let propertyNames: string = '';
+            let placeHolders: string = '';
+            const argumentArray: unknown[] = [];
+            let index: number = 0;
+            for (const prop in row) {
+                if (argumentArray.length >= 1) {
+                    propertyNames += ', ';
+                    placeHolders += ', ';
+                }
+                propertyNames += prop;
+                placeHolders += '$' + ++index; // starts at 1
+                const value: unknown = row[prop];
+                argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
+            }
+
+            // Execute
+            const result: QueryResult = await this._db.execute(
+                `INSERT INTO ${tableName} (${propertyNames}) VALUES (${placeHolders});`,
+                argumentArray,
+            );
+            this.assertQueryResult(result, 'Failed to create row');
+
+            // Set row id
+            row.id = result.lastInsertId;
+        }
 
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
         this.notifyTableViews(tableName);
+
+        // Return new id
+        return rows;
     }
 
     // TODO: add filters and aliases
@@ -152,7 +168,7 @@ export class SqliteDb extends Db {
         const argumentArray: unknown[] = [];
         let i: number = 0;
         for (const prop in row) {
-            // We never set id
+            // We never set id for updates
             if (prop === 'id') continue;
             if (argumentArray.length >= 1) keyValuePairs += ', ';
             keyValuePairs += `${prop} = $${++i}`; // start at 1
@@ -297,17 +313,6 @@ export class SqliteDb extends Db {
         }
         return message;
     }
-
-    // private rowComparator<RowType extends Row>(rowLeft: RowType, rowRight: RowType): number {
-    //     const left: number = rowLeft.id;
-    //     const right: number = rowRight.id;
-    //     if (left < right) {
-    //         return -1;
-    //     } else if (left > right) {
-    //         return 1;
-    //     }
-    //     return 0;
-    // }
 }
 
 ///

@@ -16,9 +16,10 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
     ): Unsubscriber;
-    createRow(row: RowType): Promise<void>;
+    createRow(row: RowType): Promise<RowType>;
+    createRows(rows: RowType[]): Promise<RowType[]>;
     deleteRow(row: RowType): Promise<void>;
-    deleteRows(row: RowType[]): Promise<void>;
+    deleteRows(rows: RowType[]): Promise<void>;
     /**
      * Change has taken place, the table view must be updated. The _rows will be kept sorted.
      * NOTE: this is a readable store so we don't have a propagate changes back to the db. :)

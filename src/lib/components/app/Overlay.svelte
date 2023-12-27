@@ -1,9 +1,11 @@
 <script lang="ts">
     import Toaster from '@lib/components/app/Toaster.svelte';
+    import Notifier from './Notifier.svelte';
 </script>
 
 <div class="overlay-container">
     <Toaster />
+    <Notifier />
 </div>
 
 <!-- TODO: https://github.com/carbon-design-system/carbon-components-svelte/issues/1629  -->

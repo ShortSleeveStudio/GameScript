@@ -1,7 +1,7 @@
 /**
  * A function that runs during an undo event.
  */
-export type UndoAction = () => void;
+export type UndoAction = () => Promise<void>;
 
 /**
  * Represents a single undoable action.
@@ -21,12 +21,12 @@ export class Undoable {
         return this._commandString;
     }
 
-    undo(): void {
-        this._undo();
+    async undo(): Promise<void> {
+        await this._undo();
     }
 
-    redo(): void {
-        this._redo();
+    async redo(): Promise<void> {
+        await this._redo();
     }
 }
 
@@ -34,28 +34,50 @@ export class Undoable {
  * Handles undo and redo functionality for the whole app.
  */
 export class UndoManager {
+    private _isBusyUndo: boolean;
+    private _isBusyRedo: boolean;
     private _undoStack: Undoable[];
     private _redoStack: Undoable[];
 
     constructor() {
+        this._isBusyUndo = false;
+        this._isBusyRedo = false;
         this._undoStack = [];
         this._redoStack = [];
     }
 
-    undo(): void {
-        const undoable: Undoable = <Undoable>this._undoStack.pop();
-        if (undoable) {
-            undoable.undo();
-            this._redoStack.push(undoable);
-        }
+    get isBusy() {
+        return this._isBusyUndo || this._isBusyRedo;
     }
 
-    redo(): void {
+    get isBusyUndo() {
+        return this._isBusyUndo;
+    }
+
+    get isBusyRedo() {
+        return this._isBusyRedo;
+    }
+
+    async undo(): Promise<void> {
+        if (this.isBusy) return;
+        this._isBusyUndo = true;
+        const undoable: Undoable = <Undoable>this._undoStack.pop();
+        if (undoable) {
+            await undoable.undo();
+            this._redoStack.push(undoable);
+        }
+        this._isBusyUndo = false;
+    }
+
+    async redo(): Promise<void> {
+        if (this.isBusy) return;
+        this._isBusyRedo = true;
         const undoable: Undoable = <Undoable>this._redoStack.pop();
         if (undoable) {
-            undoable.redo();
+            await undoable.redo();
             this._undoStack.push(undoable);
         }
+        this._isBusyRedo = false;
     }
 
     register(undoable: Undoable) {

@@ -13,8 +13,14 @@ export class PostgresDb extends Db {
     fetchTable<RowType extends Row>(tableName: DatabaseTableName): IDbTableView<RowType> {
         throw new Error(`Method not implemented. ${tableName}`);
     }
-    createRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<void> {
+    createRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<RowType> {
         throw new Error(`Method not implemented. ${tableName} ${row}`);
+    }
+    createRows<RowType extends Row>(
+        tableName: DatabaseTableName,
+        rows: RowType[],
+    ): Promise<RowType[]> {
+        throw new Error(`Method not implemented. ${tableName} ${rows}`);
     }
     fetchRows<RowType extends Row>(tableName: DatabaseTableName): Promise<IDbRowView<RowType>[]> {
         throw new Error(`Method not implemented. ${tableName}`);

@@ -1,3 +1,4 @@
+import { IsLoading } from '@lib/stores/utility/is-loading';
 import {
     get,
     writable,
@@ -5,7 +6,6 @@ import {
     type Readable,
     type Subscriber,
     type Unsubscriber,
-    type Updater,
     type Writable,
 } from 'svelte/store';
 import type { Db } from './db-base';
@@ -16,18 +16,19 @@ import type { IDbRowView } from './db-view-row-interface';
 export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     private _db: Db;
     private _tableName: DatabaseTableName;
-    private _pendingChanges: number;
-    private _internalIsLoading: Writable<boolean>;
-    private _isLoading: Readable<boolean>;
+    private _isLoading: IsLoading;
     private _internalWritable: Writable<RowType>;
+    private _columnLoadingMap: Map<string, IsLoading>;
 
     constructor(database: Db, tableName: DatabaseTableName, row: RowType) {
         this._db = database;
         this._tableName = tableName;
-        this._pendingChanges = 0;
-        this._internalIsLoading = writable(false);
-        this._isLoading = { subscribe: this._internalIsLoading.subscribe };
+        this._isLoading = new IsLoading();
         this._internalWritable = writable<RowType>(row);
+        this._columnLoadingMap = new Map();
+        for (const prop in row) {
+            this._columnLoadingMap.set(prop, new IsLoading());
+        }
     }
 
     get id() {
@@ -35,19 +36,34 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     }
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    get isLoading() {
+    get isLoading(): Readable<boolean> {
         return this._isLoading;
     }
 
-    async set(value: RowType): Promise<void> {
-        // Update database
-        this.incrementLoading();
-        await this._db.updateRow(this._tableName, value);
-        this.decrementLoading();
+    isColumnLoading<K extends keyof RowType>(columnName: K): Readable<boolean> {
+        return this.getColumnIsLoading(<string>columnName);
     }
 
-    update(updater: Updater<RowType>): void {
-        this.set(updater(get(this._internalWritable)));
+    async updateRow(row: RowType): Promise<void> {
+        this._isLoading.increment();
+        await this._db.updateRow(this._tableName, row);
+        this._isLoading.decrement();
+    }
+
+    async updateColumn<K extends keyof RowType, T extends RowType[K]>(
+        columnName: K,
+        columnValue: T,
+    ): Promise<void> {
+        this._isLoading.increment();
+        const columnIsLoading: IsLoading = this.getColumnIsLoading(<string>columnName);
+        columnIsLoading.increment();
+
+        const rowVal: RowType = get(this._internalWritable);
+        rowVal[columnName] = columnValue;
+        await this._db.updateRow(this._tableName, rowVal);
+
+        columnIsLoading.decrement();
+        this._isLoading.decrement();
     }
 
     subscribe(
@@ -58,15 +74,10 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     }
 
     onRowUpdated(newRow: RowType): void {
-        // Set value
         this._internalWritable.set(newRow);
     }
 
-    private incrementLoading() {
-        this._internalIsLoading.set(++this._pendingChanges > 0);
-    }
-
-    private decrementLoading() {
-        this._internalIsLoading.set(--this._pendingChanges > 0);
+    private getColumnIsLoading(columnName: string) {
+        return <IsLoading>this._columnLoadingMap.get(columnName);
     }
 }

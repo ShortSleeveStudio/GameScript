@@ -1,3 +1,4 @@
+// TODO: not used
 /**Comparator for sorted array */
 export type Comparator<T> = (left: T, right: T) => number;
 
