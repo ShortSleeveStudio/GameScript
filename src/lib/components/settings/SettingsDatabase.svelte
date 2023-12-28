@@ -39,10 +39,7 @@
         // Stat or touch file
         if (!isExtant) {
             // TODO: https://github.com/tauri-apps/plugins-workspace/issues/856
-            await writeFile(filePath, new Uint8Array(0), <WriteFileOptions>{
-                create: true,
-                append: false,
-            });
+            await writeFile(filePath, new Uint8Array(), {});
         }
 
         const baseName: string = await basename(filePath);
