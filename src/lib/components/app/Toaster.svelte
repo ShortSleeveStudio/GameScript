@@ -1,9 +1,12 @@
 <script lang="ts">
     import { ToastNotification } from 'carbon-components-svelte';
-    import { toasts } from '@lib/stores/app/toasts';
+    import { ToastItem, toastManager } from '@lib/stores/app/toasts';
     import { fly, slide } from 'svelte/transition';
     import { flip } from 'svelte/animate';
-    import { durationModerate02 } from '@lib/motion/motion';
+    import { durationModerate02 } from '@lib/constants/motion';
+    import type { Readable } from 'svelte/store';
+
+    const toasts: Readable<ToastItem[]> = toastManager.getToasts();
 </script>
 
 <div class="toast-container">
@@ -19,7 +22,10 @@
                 title={toast.title}
                 subtitle={toast.subtitle}
                 caption={toast.caption}
-                on:close={toast.close}
+                on:close={(e) => {
+                    if (e) e.preventDefault();
+                    toastManager.hideToast(toast);
+                }}
             />
         </span>
     {/each}

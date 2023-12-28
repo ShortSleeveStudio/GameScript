@@ -1,5 +1,5 @@
 import type Database from '@tauri-apps/plugin-sql';
-import type { Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import type { DatabaseTableName, Row } from './db-types';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
@@ -54,16 +54,6 @@ export abstract class Db {
     ): Promise<IDbRowView<RowType>[]>;
 
     /**
-     * This fetches a single row in a table.
-     * @param tableName Name of the table
-     * @param row The row to fetch
-     */
-    abstract fetchRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<IDbRowView<RowType>>;
-
-    /**
      * This updates a single row in a table.
      * @param tableName Name of the table
      * @param row The row to update
@@ -107,5 +97,18 @@ export abstract class Db {
         if (this._db) {
             await this._db.close();
         }
+    }
+
+    protected assertQueryResult(result: unknown, errorMessage: string): void {
+        if (!result) throw new Error(errorMessage);
+    }
+
+    protected assertConnected(): void {
+        if (this.isConnected()) return;
+        throw new Error('Operation failed: no database connection');
+    }
+
+    protected isConnected(): boolean {
+        return get(this._isConnected);
     }
 }

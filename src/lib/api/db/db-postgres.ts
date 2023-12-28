@@ -25,12 +25,6 @@ export class PostgresDb extends Db {
     fetchRows<RowType extends Row>(tableName: DatabaseTableName): Promise<IDbRowView<RowType>[]> {
         throw new Error(`Method not implemented. ${tableName}`);
     }
-    fetchRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<IDbRowView<RowType>> {
-        throw new Error(`Method not implemented. ${tableName} ${row}`);
-    }
     updateRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<void> {
         throw new Error(`Method not implemented. ${tableName} ${row}`);
     }

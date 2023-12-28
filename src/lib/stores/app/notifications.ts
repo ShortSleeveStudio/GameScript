@@ -73,30 +73,33 @@ export class NotificationItem {
     public get lowContrast(): boolean {
         return this._lowContrast;
     }
+}
 
-    // this is the only way to capture this
-    public close = (e: Event) => {
-        if (e) {
-            e.preventDefault();
-        }
-        notificationWritable.set(undefined);
+/**
+ * Manager for notifications.
+ */
+export class NotificationManager {
+    private _notificationWritable: Writable<Notification>;
+    private _notificationReadable: Readable<Notification>;
+
+    constructor() {
+        this._notificationWritable = writable(undefined);
+        this._notificationReadable = { subscribe: this._notificationWritable.subscribe };
+    }
+
+    getNotification(): Readable<Notification> {
+        return this._notificationReadable;
+    }
+
+    showNotification(notification: NotificationItem) {
+        this._notificationWritable.set(notification);
+    }
+
+    // This allows us to pass this method around as a callback while retaining 'this'
+    hideNotification = () => {
+        this._notificationWritable.set(undefined);
     };
 }
 
-// Internal writable store
-const notificationWritable: Writable<Notification> = writable(undefined);
-
-/**
- * Show a notification.
- * @param notification The notification to show
- */
-export function showNotification(notification: NotificationItem) {
-    notificationWritable.set(notification);
-}
-
-/**
- * Store for current notification.
- */
-export const notification: Readable<Notification> = {
-    subscribe: notificationWritable.subscribe,
-};
+/**Notification manager singleton. */
+export const notificationManager: NotificationManager = new NotificationManager();

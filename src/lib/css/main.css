@@ -55,3 +55,62 @@ body {
 .defeat-modal-close .bx--modal-close {
     display: none !important;
 }
+
+/* Themeing borrowed from carbon components website */
+.bx--row {
+    margin-bottom: var(--cds-layout-03);
+}
+
+.bx--col > h1 {
+    font-size: var(--cds-expressive-heading-05-font-size);
+    font-weight: var(--cds-expressive-heading-05-font-weight);
+    letter-spacing: var(--cds-expressive-heading-05-letter-spacing);
+    line-height: var(--cds-expressive-heading-05-line-height);
+    margin-bottom: var(--cds-layout-01);
+}
+
+.bx--col > h2 {
+    font-size: var(--cds-expressive-heading-04-font-size);
+    font-weight: var(--cds-expressive-heading-04-font-weight);
+    letter-spacing: var(--cds-expressive-heading-04-letter-spacing);
+    line-height: var(--cds-expressive-heading-04-line-height);
+    /* padding-top: var(--cds-layout-03); */
+    margin-bottom: var(--cds-layout-01);
+}
+
+.bx--col > h3 {
+    font-size: var(--cds-expressive-heading-03-font-size);
+    font-weight: var(--cds-expressive-heading-03-font-weight);
+    letter-spacing: var(--cds-expressive-heading-03-letter-spacing);
+    line-height: var(--cds-expressive-heading-03-line-height);
+    /* padding-top: var(--cds-layout-04); */
+    margin-bottom: var(--cds-layout-01);
+}
+
+.bx--col > h4 {
+    font-size: var(--cds-expressive-heading-02-font-size);
+    font-weight: var(--cds-expressive-heading-02-font-weight);
+    letter-spacing: var(--cds-expressive-heading-02-letter-spacing);
+    line-height: var(--cds-expressive-heading-02-line-height);
+    /* padding-top: var(--cds-layout-04); */
+    margin-bottom: var(--cds-layout-01);
+}
+
+.bx--col > p {
+    font-size: var(--cds-body-long-02-font-size, 1rem);
+    font-weight: var(--cds-body-long-02-font-weight, 400);
+    line-height: var(--cds-body-long-02-line-height, 1.5);
+    letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
+    margin-bottom: var(--cds-layout-02);
+}
+
+.bx--col sup {
+    font-size: var(--cds-label-01-font-size, 0.75rem);
+    letter-spacing: var(--cds-label-01-letter-spacing, 0.32px);
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--cds-text-02, #525252);
+    font-weight: 400;
+    line-height: 1rem;
+    vertical-align: baseline;
+}

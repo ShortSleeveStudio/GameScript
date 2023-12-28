@@ -30,7 +30,7 @@
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
-    import { NotificationItem, showNotification } from '@lib/stores/app/notifications';
+    import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
 
     let isSideNavOpen = false;
 
@@ -68,7 +68,9 @@
         <SideNavLink
             text="Show Notification"
             on:click={() => {
-                showNotification(new NotificationItem('info', 'Title', 'subtitle'));
+                notificationManager.showNotification(
+                    new NotificationItem('info', 'Title', 'subtitle'),
+                );
             }}
         />
         <SideNavMenu text="Layout">

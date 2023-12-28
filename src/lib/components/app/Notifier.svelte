@@ -1,11 +1,13 @@
 <script lang="ts">
-    import { type Notification, notification } from '@lib/stores/app/notifications';
-    import { durationModerate02 } from '@lib/motion/motion';
+    import { type Notification, notificationManager } from '@lib/stores/app/notifications';
+    import { durationModerate02 } from '@lib/constants/motion';
     import { fade } from 'svelte/transition';
     import { InlineNotification } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
+    import type { Readable } from 'svelte/motion';
 
-    let currentTimeout: number;
+    const notification: Readable<Notification> = notificationManager.getNotification();
+    let currentTimeout: NodeJS.Timeout;
     onDestroy(
         notification.subscribe((newNotification: Notification) => {
             // New notification
@@ -14,7 +16,10 @@
                 clearTimeout(currentTimeout);
 
                 // Set new timeout
-                currentTimeout = setTimeout(newNotification.close, newNotification.timeoutMs);
+                currentTimeout = setTimeout(
+                    notificationManager.hideNotification,
+                    newNotification.timeoutMs,
+                );
             }
         }),
     );
@@ -29,7 +34,7 @@
                 subtitle={$notification.subtitle}
                 lowContrast={$notification.lowContrast}
                 hideCloseButton={true}
-                on:close={$notification.close}
+                on:close={() => notificationManager.hideNotification()}
             />
         </span>
     {/if}

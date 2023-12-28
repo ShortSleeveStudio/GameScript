@@ -1,9 +1,8 @@
 ///
 /// Helpers
-
+///
 import type { DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
 
-///
 function TypeNameToType<T, R>(name: T, index: number): R {
     return <R>{ id: index, name: name };
 }
@@ -32,13 +31,23 @@ export const DATABASE_TYPES: DatabaseType[] = DATABASE_TYPE_NAMES.map<DatabaseTy
 /// Tables
 ///
 /**List of tables */
+export const TABLE_NAME_CONVERSATIONS = 'conversations';
+export const TABLE_NAME_DEFAULT_FIELDS = 'default_fields';
+export const TABLE_NAME_FIELD_TYPES = 'field_types';
+export const TABLE_NAME_FIELDS = 'fields';
+export const TABLE_NAME_NODE_TYPES = 'node_types';
+export const TABLE_NAME_NODES = 'nodes';
+export const TABLE_NAME_PROGRAMMING_LANGUAGES = 'programming_languages';
+export const TABLE_NAME_SELECTED_PROGRAMMING_LANGUAGE = 'selected_programming_language';
 export const DATABASE_TABLE_NAMES = [
-    'conversations',
-    'default_fields',
-    'field_types',
-    'fields',
-    'node_types',
-    'nodes',
+    TABLE_NAME_CONVERSATIONS,
+    TABLE_NAME_DEFAULT_FIELDS,
+    TABLE_NAME_FIELD_TYPES,
+    TABLE_NAME_FIELDS,
+    TABLE_NAME_NODE_TYPES,
+    TABLE_NAME_NODES,
+    TABLE_NAME_PROGRAMMING_LANGUAGES,
+    TABLE_NAME_SELECTED_PROGRAMMING_LANGUAGE,
 ] as const;
 
 /**Database name type */
@@ -129,4 +138,40 @@ export interface DefaultFieldRow extends Row {
     fieldType: number;
     nodeType: number;
     required: boolean;
+}
+
+///
+/// Programming Language
+///
+export const PROGRAMMING_LANGUAGE_NAMES = [
+    'C#', // 0
+    'C++', // 1
+] as const;
+export const PROGRAMMING_LANGUAGE_ID_CS = 0;
+export const PROGRAMMING_LANGUAGE_ID_CPP = 1;
+
+/**Proramming language name type */
+export type ProgrammingLanguageName = (typeof PROGRAMMING_LANGUAGE_NAMES)[number];
+
+/**Dropdowns to select programming lanugage */
+export const PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS: DropdownItem[] = PROGRAMMING_LANGUAGE_NAMES.map(
+    (languageName: string, index: number) =>
+        <DropdownItem>{
+            id: index,
+            text: languageName,
+        },
+);
+
+/**Programming language row */
+export interface ProgrammingLanguageRow extends Row {
+    name: string;
+    selected: boolean;
+}
+
+///
+/// Selected Programming Language
+///
+/**Selected programming language row */
+export interface SelectedProgrammingLanguageRow extends Row {
+    languageId: number;
 }

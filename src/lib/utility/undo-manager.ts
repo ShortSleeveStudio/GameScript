@@ -1,3 +1,8 @@
+import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
+import { dbConnected } from '@lib/stores/settings/settings';
+import type { Readable } from 'svelte/motion';
+import { get } from 'svelte/store';
+
 /**
  * A function that runs during an undo event.
  */
@@ -38,12 +43,14 @@ export class UndoManager {
     private _isBusyRedo: boolean;
     private _undoStack: Undoable[];
     private _redoStack: Undoable[];
+    private _dbConnected: Readable<boolean>;
 
-    constructor() {
+    constructor(isDbConnected: Readable<boolean>) {
         this._isBusyUndo = false;
         this._isBusyRedo = false;
         this._undoStack = [];
         this._redoStack = [];
+        this._dbConnected = isDbConnected;
     }
 
     get isBusy() {
@@ -59,7 +66,7 @@ export class UndoManager {
     }
 
     async undo(): Promise<void> {
-        if (this.isBusy) return;
+        if (!this.isReady()) return;
         this._isBusyUndo = true;
         const undoable: Undoable = <Undoable>this._undoStack.pop();
         if (undoable) {
@@ -70,7 +77,7 @@ export class UndoManager {
     }
 
     async redo(): Promise<void> {
-        if (this.isBusy) return;
+        if (!this.isReady()) return;
         this._isBusyRedo = true;
         const undoable: Undoable = <Undoable>this._redoStack.pop();
         if (undoable) {
@@ -84,7 +91,32 @@ export class UndoManager {
         this._undoStack.push(undoable);
         this._redoStack.length = 0;
     }
+
+    private isReady(): boolean {
+        if (this.isBusy) {
+            this.notifyUndoRedoBusy();
+            return false;
+        }
+        if (!get(this._dbConnected)) {
+            this.notifyNotConnected();
+            return false;
+        }
+        return true;
+    }
+
+    private notifyUndoRedoBusy(): void {
+        const message: string = this.isBusyUndo
+            ? 'Undo already in progress'
+            : 'Redo already in progress';
+        notificationManager.showNotification(new NotificationItem('info', '', message));
+    }
+
+    private notifyNotConnected(): void {
+        notificationManager.showNotification(
+            new NotificationItem('info', '', 'No database connection'),
+        );
+    }
 }
 
 /**Main Undo Manager instance */
-export const undoManager: UndoManager = new UndoManager();
+export const undoManager: UndoManager = new UndoManager(dbConnected);

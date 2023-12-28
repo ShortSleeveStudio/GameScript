@@ -73,14 +73,32 @@ export class ToastItem {
     public get details(): string | undefined {
         return this._details;
     }
+}
 
-    // this is the only way to capture this
-    public close = (e: Event) => {
-        if (e) {
-            e.preventDefault();
-        }
-        toastsWritable.update((value: ToastItem[]) => {
-            const index: number = value.findIndex((item: ToastItem) => item.id === this.id);
+export class ToastManager {
+    private _toastsWritable: Writable<ToastItem[]>;
+    private _toastsReadable: Readable<ToastItem[]>;
+
+    constructor() {
+        this._toastsWritable = writable(<ToastItem[]>[]);
+        this._toastsReadable = { subscribe: this._toastsWritable.subscribe };
+    }
+
+    getToasts(): Readable<ToastItem[]> {
+        return this._toastsReadable;
+    }
+
+    showToast(toast: ToastItem) {
+        this._toastsWritable.update((value: ToastItem[]) => {
+            value.unshift(toast);
+            return value;
+        });
+    }
+
+    // This allows us to pass this method around as a callback while retaining 'this'
+    hideToast = (toast: ToastItem) => {
+        this._toastsWritable.update((value: ToastItem[]) => {
+            const index: number = value.findIndex((item: ToastItem) => item.id === toast.id);
             if (index !== -1) {
                 // Remove this item
                 value.splice(index, 1);
@@ -90,23 +108,5 @@ export class ToastItem {
     };
 }
 
-// Internal writable store
-const toastsWritable: Writable<ToastItem[]> = writable(<ToastItem[]>[]);
-
-/**
- * Show a toast
- * @param toast The toast to show
- */
-export function showToast(toast: ToastItem) {
-    toastsWritable.update((value: ToastItem[]) => {
-        value.unshift(toast);
-        return value;
-    });
-}
-
-/**
- * Store for all current toasts.
- */
-export const toasts: Readable<ToastItem[]> = {
-    subscribe: toastsWritable.subscribe,
-};
+/**Toast manager singleton. */
+export const toastManager: ToastManager = new ToastManager();

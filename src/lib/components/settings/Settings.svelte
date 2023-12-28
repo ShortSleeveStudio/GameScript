@@ -1,22 +1,23 @@
 <script lang="ts">
     import { dbConnected } from '@lib/stores/settings/settings';
-    import { Content } from 'carbon-components-svelte';
+    import { Content, Grid } from 'carbon-components-svelte';
 
-    import DatabaseSettings from './SettingsDatabase.svelte';
-    import ConversationEditorSettings from './SettingsConversationEditor.svelte';
+    import SettingsDatabase from './SettingsDatabase.svelte';
+    import SettingsConversationEditor from './SettingsConversationEditor.svelte';
+    import SettingsCoding from './SettingsCoding.svelte';
+    import SettingsActors from './SettingsActors.svelte';
 </script>
 
 <div class="settings">
     <Content>
-        <h3>Database</h3>
-        <DatabaseSettings />
-        {#if $dbConnected}
-            <h3>Conversation Editor</h3>
-            <ConversationEditorSettings />
-            <h3>Coding</h3>
-
-            <h3>Actors</h3>
-        {/if}
+        <Grid noGutter>
+            <SettingsDatabase />
+            {#if $dbConnected}
+                <SettingsConversationEditor />
+                <SettingsCoding />
+                <SettingsActors />
+            {/if}
+        </Grid>
     </Content>
 </div>
 

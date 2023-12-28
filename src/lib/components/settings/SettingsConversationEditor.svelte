@@ -1,12 +1,10 @@
 <script lang="ts">
-    import { db } from '@lib/api/db/db';
     import {
         ACTOR_FIELD_TYPE_ID,
         CONVERSATION_NODE_TYPE_ID,
         type DefaultFieldRow,
     } from '@lib/api/db/db-types';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import {
         DataTable,
         Toolbar,
@@ -16,6 +14,8 @@
         InlineLoading,
         Modal,
         ProgressBar,
+        Column,
+        Row,
     } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import { get, type Readable } from 'svelte/store';
@@ -25,9 +25,10 @@
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { wait } from '@lib/utility/test';
     import { fade } from 'svelte/transition';
-    import { durationFast02 } from '@lib/motion/motion';
+    import { durationFast02 } from '@lib/constants/motion';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
+    import { defaultFieldTableView } from '@lib/tables/default-fields';
 
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
     const headers = [
@@ -37,7 +38,6 @@
 
     let nonSelectableRowIds: number[] = [];
     let selectedRowIds: number[] = [];
-    let defaultFieldTableView: IDbTableView<DefaultFieldRow> = db.fetchTable('default_fields');
     let isModalOpen: boolean = false;
     let applyFieldsProgress: number = 0;
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
@@ -122,74 +122,77 @@
     }
 </script>
 
-<DataTable
-    size="medium"
-    title="Default Fields"
-    description="These fields will appear in all new conversation nodes.
-    You can also apply these fields across existing nodes in the options menu."
-    batchSelection
-    {nonSelectableRowIds}
-    bind:selectedRowIds
-    {headers}
-    rows={$defaultFieldTableView}
->
-    <svelte:fragment slot="cell-header" let:header>
-        {header.value}
-    </svelte:fragment>
+<Row>
+    <Column>
+        <h2>Conversation Editor</h2>
+        <DataTable
+            size="medium"
+            title="Default Fields"
+            description="These fields will appear in all new conversation nodes.
+            You can also apply these fields across existing nodes in the options menu."
+            batchSelection
+            {nonSelectableRowIds}
+            bind:selectedRowIds
+            {headers}
+            rows={$defaultFieldTableView}
+        >
+            <svelte:fragment slot="cell-header" let:header>
+                {header.value}
+            </svelte:fragment>
 
-    <svelte:fragment slot="cell" let:row let:cell>
-        {#if cell.key === 'name'}
-            <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-            <DefaultFieldTypeNameInput
-                rowView={row}
-                {uniqueNameTracker}
-                inputPlaceholder={TEXT_INPUT_PROMPT}
-            />
-        {:else if cell.key === 'type'}
-            <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-            <DefaultFieldTypeDropdown rowView={row} />
-        {/if}
-    </svelte:fragment>
-
-    <Toolbar size="sm">
-        {#if !$isApplyingDefaultFields}
-            <ToolbarBatchActions>
-                <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
-            </ToolbarBatchActions>
-        {/if}
-        <ToolbarContent>
-            {#if $isApplyingDefaultFields}
-                <span style="width: 100%;" transition:fade={{ duration: durationFast02 }}>
-                    <ProgressBar
-                        kind="indented"
-                        value={applyFieldsProgress}
-                        max={100}
-                        labelText={applyFieldsProgress < 100 ? 'Applying to All...' : 'Done!'}
+            <svelte:fragment slot="cell" let:row let:cell>
+                {#if cell.key === 'name'}
+                    <!-- TODO: https://svelte-5-preview.vercel.app/status -->
+                    <DefaultFieldTypeNameInput
+                        rowView={row}
+                        {uniqueNameTracker}
+                        inputPlaceholder={TEXT_INPUT_PROMPT}
                     />
-                </span>
-            {/if}
-            <!-- <ToolbarMenu disabled={$isLoading || $isApplyingDefaultFields}>
-                <ToolbarMenuItem danger on:click={() => (isModalOpen = true)}
-                    >Apply to All</ToolbarMenuItem
-                >
-            </ToolbarMenu> -->
-            <Button
-                size="small"
-                disabled={$isLoading || $isApplyingDefaultFields}
-                kind="danger-tertiary"
-                iconDescription="Apply to All"
-                tooltipPosition="left"
-                icon={Async}
-                on:click={() => (isModalOpen = true)}
-            />
-            <Button
-                on:click={addRow}
-                disabled={$isLoading || $isApplyingDefaultFields}
-                icon={$isLoading ? InlineLoading : undefined}>Add Field</Button
-            >
-        </ToolbarContent>
-    </Toolbar>
-</DataTable>
+                {:else if cell.key === 'type'}
+                    <!-- TODO: https://svelte-5-preview.vercel.app/status -->
+                    <DefaultFieldTypeDropdown rowView={row} />
+                {/if}
+            </svelte:fragment>
+
+            <Toolbar size="sm">
+                {#if !$isApplyingDefaultFields}
+                    <ToolbarBatchActions>
+                        <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
+                    </ToolbarBatchActions>
+                {/if}
+                <ToolbarContent>
+                    {#if $isApplyingDefaultFields}
+                        <span style="width: 100%;" transition:fade={{ duration: durationFast02 }}>
+                            <ProgressBar
+                                kind="indented"
+                                value={applyFieldsProgress}
+                                max={100}
+                                labelText={applyFieldsProgress < 100
+                                    ? 'Applying to All...'
+                                    : 'Done!'}
+                            />
+                        </span>
+                    {/if}
+                    <Button
+                        size="small"
+                        disabled={$isLoading || $isApplyingDefaultFields}
+                        kind="danger-tertiary"
+                        iconDescription="Apply to All"
+                        tooltipPosition="left"
+                        icon={Async}
+                        on:click={() => (isModalOpen = true)}
+                    />
+                    <Button
+                        on:click={addRow}
+                        disabled={$isLoading || $isApplyingDefaultFields}
+                        icon={$isLoading ? InlineLoading : undefined}>Add Field</Button
+                    >
+                </ToolbarContent>
+            </Toolbar>
+        </DataTable>
+    </Column>
+</Row>
+
 <Modal
     size="sm"
     danger

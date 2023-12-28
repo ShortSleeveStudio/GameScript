@@ -3,8 +3,8 @@ import {
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
 } from '@lib/constants/local-storage';
+import type { FileDetails } from '@lib/utility/file-details';
 import { persisted } from '@lib/vendor/svelte-persisted-store';
-import type { FileResponse } from '@lib/vendor/types/file-response';
 import { appDataDir, join } from '@tauri-apps/api/path';
 import { writable, type Writable } from 'svelte/store';
 
@@ -19,10 +19,9 @@ export const dbType: Writable<DatabaseTypeName> = persisted(
     DATABASE_TYPE_NAMES[0],
 );
 /**SQLite database file path */
-export const dbSqlitePath: Writable<FileResponse> = persisted(LS_KEY_SETTINGS_DB_SQLITE_PATH, {
+export const dbSqlitePath: Writable<FileDetails> = persisted(LS_KEY_SETTINGS_DB_SQLITE_PATH, {
     path: await join(await appDataDir(), 'GameScript.db'),
-    name: 'GameScript.db',
-    size: 0,
+    fileName: 'GameScript.db',
 });
 /**SQLite database file path error */
 export const dbSqlitePathError: Writable<string> = writable('Invalid database file');

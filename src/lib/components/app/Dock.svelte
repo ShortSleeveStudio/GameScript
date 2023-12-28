@@ -22,7 +22,7 @@
         SETTINGS_LAYOUT,
     } from '../../constants/default-layout';
     import { LS_KEY_LAYOUT } from '@lib/constants/local-storage';
-    import { ToastItem, showToast } from '@lib/stores/app/toasts';
+    import { ToastItem, toastManager } from '@lib/stores/app/toasts';
     import {
         actorsIsVisible,
         buildIsVisible,
@@ -110,7 +110,9 @@
                 if (e instanceof Error) {
                     message = e.message;
                 }
-                showToast(new ToastItem('warning', 'Failed to load previous layout', message));
+                toastManager.showToast(
+                    new ToastItem('warning', 'Failed to load previous layout', message),
+                );
             }
         }
         return config;

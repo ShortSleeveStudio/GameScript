@@ -1,10 +1,21 @@
-import { dbSqlitePathError } from '@lib/stores/settings/settings';
+import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
+import type { FileDetails } from '@lib/utility/file-details';
 import { wait } from '@lib/utility/test';
-import type { FileResponse } from '@lib/vendor/types/file-response';
 import Database, { type QueryResult } from '@tauri-apps/plugin-sql';
 import { type Unsubscriber, type Writable } from 'svelte/store';
 import { Db } from './db-base';
-import { FIELD_TYPES, NODE_TYPES, type DatabaseTableName, type Row } from './db-types';
+import {
+    FIELD_TYPES,
+    NODE_TYPES,
+    PROGRAMMING_LANGUAGE_NAMES,
+    TABLE_NAME_DEFAULT_FIELDS,
+    TABLE_NAME_FIELD_TYPES,
+    TABLE_NAME_NODE_TYPES,
+    TABLE_NAME_PROGRAMMING_LANGUAGES,
+    TABLE_NAME_SELECTED_PROGRAMMING_LANGUAGE,
+    type DatabaseTableName,
+    type Row,
+} from './db-types';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
@@ -17,36 +28,28 @@ import type { IDbTableView } from './db-view-table-interface';
  * C:\Users\<username>\AppData\Roaming\com.tauri.dev\GameScript.db
  */
 export class SqliteDb extends Db {
-    private _unsubscribe: Unsubscriber;
     private _tableToRowView: Map<string, Map<number, IDbRowView<Row>>>;
     private _tableToTableView: Map<string, IDbTableView<Row>[]>;
+    private _unsubscribeSqlitePath: Unsubscriber;
+    private _unsubscribeDbConnected: Unsubscriber;
+    private _sqlitePathStore: Writable<FileDetails>;
+    private _dbSqlitePathError: Writable<string>;
+    private _notificationManager: NotificationManager;
 
-    constructor(isConnected: Writable<boolean>, sqlitePathStore: Writable<FileResponse>) {
+    constructor(
+        isConnected: Writable<boolean>,
+        sqlitePathStore: Writable<FileDetails>,
+        dbSqlitePathError: Writable<string>,
+        notificationManager: NotificationManager,
+    ) {
         super(isConnected);
         this._tableToRowView = new Map();
         this._tableToTableView = new Map();
-        this._unsubscribe = sqlitePathStore.subscribe(async (fileResponse: FileResponse) => {
-            // Destroy previous connection
-            super.destroyConnection();
-
-            // Only attempt to connect if we have a valid path
-            if (!fileResponse || !fileResponse.path) {
-                return;
-            }
-
-            try {
-                // Attempt to connect
-                this._db = await Database.load(`sqlite:${fileResponse.path}`);
-
-                // Ensure schema
-                await this.initializeSchema();
-
-                // Notify connected
-                this._isConnected.set(true);
-            } catch (e: unknown) {
-                dbSqlitePathError.set(this.extractError(e));
-            }
-        });
+        this._sqlitePathStore = sqlitePathStore;
+        this._dbSqlitePathError = dbSqlitePathError;
+        this._notificationManager = notificationManager;
+        this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
+        this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
     }
 
     fetchTable<RowType extends Row>(tableName: DatabaseTableName): IDbTableView<RowType> {
@@ -64,6 +67,7 @@ export class SqliteDb extends Db {
         tableName: DatabaseTableName,
         row: RowType,
     ): Promise<RowType> {
+        this.assertConnected();
         return (await this.createRows(tableName, [row]))[0];
     }
 
@@ -71,6 +75,7 @@ export class SqliteDb extends Db {
         tableName: DatabaseTableName,
         rows: RowType[],
     ): Promise<RowType[]> {
+        this.assertConnected();
         for (let i = 0; i < rows.length; i++) {
             // Grab row
             const row: RowType = rows[i];
@@ -116,6 +121,8 @@ export class SqliteDb extends Db {
     async fetchRows<RowType extends Row>(
         tableName: DatabaseTableName,
     ): Promise<IDbRowView<RowType>[]> {
+        if (!this.isConnected()) return <IDbRowView<RowType>[]>[];
+
         // Fetch rows
         const results = await this._db.select<RowType[]>(
             `SELECT * FROM ${tableName} ORDER BY id ASC`,
@@ -138,31 +145,11 @@ export class SqliteDb extends Db {
         return newRowViews;
     }
 
-    async fetchRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<IDbRowView<RowType>> {
-        // Fetch row
-        const result = await this._db.select<RowType>(`SELECT * FROM ${tableName} WHERE id = ?`, [
-            tableName,
-            row.id,
-        ]);
-        this.assertQueryResult(result, 'Failed to update row');
-
-        // Fetch row views
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableName);
-
-        // TODO: remove
-        await wait(300);
-
-        // Fetched cached row view, or create a new one if it doesn't exist
-        return this.getOrCreateRowView(rowViews, tableName, result);
-    }
-
     async updateRow<RowType extends Row>(
         tableName: DatabaseTableName,
         row: RowType,
     ): Promise<void> {
+        this.assertConnected();
         // Generate query arguments
         let keyValuePairs: string = '';
         const argumentArray: unknown[] = [];
@@ -197,6 +184,7 @@ export class SqliteDb extends Db {
         tableName: DatabaseTableName,
         row: RowType,
     ): Promise<void> {
+        this.assertConnected();
         await this.deleteRows(tableName, [row]);
     }
 
@@ -204,6 +192,7 @@ export class SqliteDb extends Db {
         tableName: DatabaseTableName,
         rows: RowType[],
     ): Promise<void> {
+        this.assertConnected();
         // Delete
         const result: QueryResult = await this._db.execute(
             `DELETE FROM ${tableName} WHERE id IN (${rows.map((row) => row.id).join(', ')})`,
@@ -222,12 +211,52 @@ export class SqliteDb extends Db {
 
     async shutdown(): Promise<void> {
         await super.shutdown();
-        this._unsubscribe();
+        this._unsubscribeSqlitePath();
+        this._unsubscribeDbConnected();
     }
 
-    private assertQueryResult(result: unknown, errorMessage: string): void {
-        if (!result) throw new Error(errorMessage);
-    }
+    private onDbConnectedChanged = (isConnected: boolean) => {
+        // Notify user
+        if (isConnected) {
+            this._notificationManager.showNotification(
+                new NotificationItem('success', '', 'Connected to database'),
+            );
+        } else {
+            this._notificationManager.showNotification(
+                new NotificationItem('warning', '', 'Disconnected from database'),
+            );
+        }
+
+        // Notify tables
+        this._tableToTableView.forEach((tableViewList: IDbTableView<Row>[]) => {
+            for (let i = 0; i < tableViewList.length; i++) {
+                tableViewList[0].onTableChange();
+            }
+        });
+    };
+
+    private onDbPathChanged = async (fileDetails: FileDetails) => {
+        // Destroy previous connection
+        super.destroyConnection();
+
+        // Only attempt to connect if we have a valid path
+        if (!fileDetails || !fileDetails.path) {
+            return;
+        }
+
+        try {
+            // Attempt to connect
+            this._db = await Database.load(`sqlite:${fileDetails.path}`);
+
+            // Ensure schema
+            await this.initializeSchema();
+
+            // Notify connected
+            this._isConnected.set(true);
+        } catch (e: unknown) {
+            this._dbSqlitePathError.set(this.extractError(e));
+        }
+    };
 
     private notifyTableViews<RowType extends Row>(tableName: string) {
         const tableViewList: IDbTableView<RowType>[] =
@@ -320,19 +349,19 @@ export class SqliteDb extends Db {
 ///
 /**Create default fields table */
 const CREATE_TABLE_FIELD_TYPES = `
-CREATE TABLE IF NOT EXISTS "field_types" (
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_FIELD_TYPES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );`;
 const CREATE_TABLE_NODE_TYPES = `
-CREATE TABLE IF NOT EXISTS "node_types" (
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_NODE_TYPES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );`;
 const CREATE_TABLE_DEFAULT_FIELDS = `
-CREATE TABLE IF NOT EXISTS "default_fields" (
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_DEFAULT_FIELDS}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL,
 	"fieldType"	INTEGER NOT NULL,
@@ -342,51 +371,73 @@ CREATE TABLE IF NOT EXISTS "default_fields" (
 	FOREIGN KEY("nodeType") REFERENCES "node_types"("id"),
 	PRIMARY KEY("id" AUTOINCREMENT)
 );`;
+const CREATE_TABLE_PROGRAMMING_LANGUAGES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_PROGRAMMING_LANGUAGES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);`;
+const CREATE_TABLE_SELECTED_PROGRAMMING_LANGUAGE = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_SELECTED_PROGRAMMING_LANGUAGE}" (
+	"id"	INTEGER CHECK(id = 0),
+	"languageId"	INTEGER NOT NULL DEFAULT 0,
+	FOREIGN KEY("languageId") REFERENCES "programming_languages",
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
 const CREATE_TABLE_QUERIES = [
     CREATE_TABLE_FIELD_TYPES,
     CREATE_TABLE_NODE_TYPES,
     CREATE_TABLE_DEFAULT_FIELDS,
+    CREATE_TABLE_PROGRAMMING_LANGUAGES,
+    CREATE_TABLE_SELECTED_PROGRAMMING_LANGUAGE,
 ];
 
 ///
 /// Table Initialization
 ///
-/**Node Types */
-const INITIALIZE_NODE_TYPES = `
-BEGIN TRANSACTION;
-${NODE_TYPES.map(
-    (nodeType) =>
-        `INSERT OR IGNORE INTO node_types (id, name) VALUES(${nodeType.id}, '${nodeType.name}');`,
-).join('\n')}
-COMMIT;
-`;
-
-/**Field Types */
 const INITIALIZE_FIELD_TYPES = `
 BEGIN TRANSACTION;
 ${FIELD_TYPES.map(
     (fieldType) =>
-        `INSERT OR IGNORE INTO field_types (id, name) VALUES(${fieldType.id}, '${fieldType.name}');`,
+        `INSERT OR IGNORE INTO ${TABLE_NAME_FIELD_TYPES} (id, name) VALUES (${fieldType.id}, '${fieldType.name}');`,
 ).join('\n')}
 COMMIT;
 `;
-
-/**Default Fields */
+const INITIALIZE_NODE_TYPES = `
+BEGIN TRANSACTION;
+${NODE_TYPES.map(
+    (nodeType) =>
+        `INSERT OR IGNORE INTO ${TABLE_NAME_NODE_TYPES} (id, name) VALUES(${nodeType.id}, '${nodeType.name}');`,
+).join('\n')}
+COMMIT;
+`;
 const INITIALIZE_DEFAULT_FIELDS = `
 BEGIN TRANSACTION;
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (0, 'Actor', 0, 1, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (1, 'UI Text', 4, 1, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (2, 'Script Text', 4, 1, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (3, 'Condition', 2, 1, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (4, 'Code', 2, 1, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (5, 'Name', 4, 0, true);
-INSERT OR IGNORE INTO default_fields (id, name, fieldType, nodeType, required) VALUES (6, 'Color', 3, 0, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (0, 'Actor', 0, 1, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (1, 'UI Text', 4, 1, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (2, 'Script Text', 4, 1, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (3, 'Condition', 2, 1, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (4, 'Code', 2, 1, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (5, 'Name', 4, 0, true);
+INSERT OR IGNORE INTO ${TABLE_NAME_DEFAULT_FIELDS} (id, name, fieldType, nodeType, required) VALUES (6, 'Color', 3, 0, true);
 COMMIT;
+`;
+const INITIALIZE_PROGRAMMING_LANGUAGES = `
+BEGIN TRANSACTION;
+${PROGRAMMING_LANGUAGE_NAMES.map((languageName: string, index: number) => {
+    return `INSERT OR IGNORE INTO ${TABLE_NAME_PROGRAMMING_LANGUAGES} (id, name) VALUES (${index}, '${languageName}');`;
+}).join('\n')}
+COMMIT;
+`;
+
+const INITIALIZE_SELECTED_PROGRAMMING_LANGUAGE = `
+INSERT OR IGNORE INTO ${TABLE_NAME_SELECTED_PROGRAMMING_LANGUAGE} (id, languageId) VALUES (0, 0);
 `;
 const INITIALIZE_TABLE_QUERIES = [
     INITIALIZE_NODE_TYPES,
     INITIALIZE_FIELD_TYPES,
     INITIALIZE_DEFAULT_FIELDS,
+    INITIALIZE_PROGRAMMING_LANGUAGES,
+    INITIALIZE_SELECTED_PROGRAMMING_LANGUAGE,
 ];
-
-//EVENT_DB_CHANGED
