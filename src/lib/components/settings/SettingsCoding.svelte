@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { selectedProgrammingLanguageTableView } from '@lib/tables/selected-programming-language';
     import {
         Button,
         Column,
@@ -12,6 +11,7 @@
     } from 'carbon-components-svelte';
     import CodingLanguageDropdown from './CodingLanguageDropdown.svelte';
     import { TrashCan } from 'carbon-icons-svelte';
+    import { programmingLanguage } from '@lib/tables/programming-language';
 
     const headers = [
         { key: 'name', value: 'Name' },
@@ -37,9 +37,9 @@
         <h2>Coding</h2>
         <p>
             <sup>Programming Language</sup>
-            {#each $selectedProgrammingLanguageTableView as selectedRow}
-                <CodingLanguageDropdown rowView={selectedRow} />
-            {/each}
+            {#if $programmingLanguage.length === 1}
+                <CodingLanguageDropdown programmingLanguageNode={$programmingLanguage[0]} />
+            {/if}
         </p>
         <DataTable
             size="medium"

@@ -1,9 +1,4 @@
 <script lang="ts">
-    import {
-        ACTOR_FIELD_TYPE_ID,
-        CONVERSATION_NODE_TYPE_ID,
-        type DefaultFieldRow,
-    } from '@lib/api/db/db-types';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import {
         DataTable,
@@ -23,36 +18,55 @@
     import DefaultFieldTypeNameInput from './DefaultFieldTypeNameInput.svelte';
     import { Async, TrashCan } from 'carbon-icons-svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
-    import { wait } from '@lib/utility/test';
     import { fade } from 'svelte/transition';
     import { durationFast02 } from '@lib/constants/motion';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
-    import { defaultFieldTableView } from '@lib/tables/default-fields';
+    import {
+        FIELD_TYPE_ID_ACTOR,
+        TABLE_NAME_FIELDS,
+        type FieldRow,
+        type NodeRow,
+    } from '@lib/api/db/db-schema';
+    import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
+    import { createFilter } from '@lib/api/db/db-filter';
+    import { db } from '@lib/api/db/db';
+    import { wait } from '@lib/utility/wait';
 
+    export let defaultFieldsNode: IDbRowView<NodeRow>;
+    const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
     const headers = [
         { key: 'name', value: 'Name' },
         { key: 'type', value: 'Type' },
     ];
-
     let nonSelectableRowIds: number[] = [];
     let selectedRowIds: number[] = [];
     let isModalOpen: boolean = false;
     let applyFieldsProgress: number = 0;
-    const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
+    let defaultFields: IDbTableView<FieldRow> = db.fetchTable(
+        TABLE_NAME_FIELDS,
+        createFilter<FieldRow>().where('parent').is(defaultFieldsNode.id).build(),
+    );
+    let unsubscribeDefaultFields = defaultFields.subscribe(onTableViewChange);
+    onDestroy(() => {
+        unsubscribeDefaultFields();
+        db.releaseTable(defaultFields);
+    });
     // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = defaultFieldTableView.isLoading;
-    onDestroy(defaultFieldTableView.subscribe(onTableViewChange));
+    let isLoading: Readable<boolean> = defaultFields.isLoading;
+    defaultFields.isLoading.subscribe((loading: boolean) => {
+        console.log(loading);
+    });
 
-    function onTableViewChange(newRows: IDbRowView<DefaultFieldRow>[]) {
+    function onTableViewChange(newFields: IDbRowView<FieldRow>[]) {
         nonSelectableRowIds.length = 0;
-        for (let i = 0; i < newRows.length; i++) {
+        for (let i = 0; i < newFields.length; i++) {
             // Grab row
-            let row: DefaultFieldRow = get(newRows[i]);
+            let row: FieldRow = get(newFields[i]);
 
             // Non-selectable rows
-            if (row.required) {
+            if (row.isDefault) {
                 nonSelectableRowIds.push(row.id);
             }
         }
@@ -72,50 +86,50 @@
     }
 
     async function addRow(): Promise<void> {
-        let newRow: DefaultFieldRow = <DefaultFieldRow>{
+        let newRow: FieldRow = <FieldRow>{
+            parent: defaultFieldsNode.id,
+            type: FIELD_TYPE_ID_ACTOR,
             name: 'New Field',
-            fieldType: ACTOR_FIELD_TYPE_ID,
-            nodeType: CONVERSATION_NODE_TYPE_ID,
-            required: false,
+            isDefault: false,
         };
-        newRow = await defaultFieldTableView.createRow(newRow);
+        newRow = await defaultFields.createRow(newRow);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'Default field creation',
                 async () => {
-                    await defaultFieldTableView.deleteRow(newRow);
+                    await defaultFields.deleteRow(newRow);
                 },
                 async () => {
-                    newRow = await defaultFieldTableView.createRow(newRow);
+                    newRow = await defaultFields.createRow(newRow);
                 },
             ),
         );
     }
 
     async function deleteRows(): Promise<void> {
-        let rowsToDelete: DefaultFieldRow[] = [];
-        $defaultFieldTableView.forEach((rowView) => {
-            const row: DefaultFieldRow = get(rowView);
-            if (selectedRowIds.includes(row.id)) {
-                rowsToDelete.push(row);
+        let rowsToDelete: FieldRow[] = [];
+        get(defaultFields).forEach((fieldRowView: IDbRowView<FieldRow>) => {
+            const fieldRow: FieldRow = get(fieldRowView);
+            if (selectedRowIds.includes(fieldRow.id)) {
+                rowsToDelete.push(fieldRow);
             }
         });
         selectedRowIds = [];
 
         // Delete rows
-        await defaultFieldTableView.deleteRows(rowsToDelete);
+        await defaultFields.deleteRows(rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'Default field deletion',
                 async () => {
-                    rowsToDelete = await defaultFieldTableView.createRows(rowsToDelete);
+                    rowsToDelete = await defaultFields.createRows(rowsToDelete);
                 },
                 async () => {
-                    await defaultFieldTableView.deleteRows(rowsToDelete);
+                    await defaultFields.deleteRows(rowsToDelete);
                 },
             ),
         );
@@ -134,7 +148,7 @@
             {nonSelectableRowIds}
             bind:selectedRowIds
             {headers}
-            rows={$defaultFieldTableView}
+            rows={$defaultFields}
         >
             <svelte:fragment slot="cell-header" let:header>
                 {header.value}

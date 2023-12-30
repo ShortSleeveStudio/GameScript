@@ -1,33 +1,25 @@
-// /**Column types for a filter */
-// export type FilterColumnType = string | number | boolean;
+import type { Filter, FilterBuilder } from './db-filter-interface';
+import { FilterBuilderSqlite } from './db-filter-sqlite';
+import type { Row } from './db-schema';
 
-// /**Column list types for a filter */
-// export type FilterColumnListType = FilterColumnType[];
+class EmptyFilter<RowType extends Row> implements Filter<RowType> {
+    wouldAffectRow(): boolean {
+        return true;
+    }
+    wouldAffectRows(): boolean {
+        return true;
+    }
+    toString(): string {
+        return '';
+    }
+}
 
-// /**Builds filters for database queries */
-// export interface FilterBuilder {
-//     where(fieldName: string): WhereClauseOperatorSelector;
-// }
+/**Factory for filters */
+export function createFilter<RowType extends Row>(): FilterBuilder<RowType> {
+    return new FilterBuilderSqlite<RowType>();
+}
 
-// /**Builds where clauses for database queries */
-// export interface WhereClauseOperatorSelector {
-//     is(value: FilterColumnType): FilterCompleteOrContinue;
-//     isNot(value: FilterColumnType): FilterCompleteOrContinue;
-//     like(value: FilterColumnType): FilterCompleteOrContinue;
-//     notLike(value: FilterColumnType): FilterCompleteOrContinue;
-//     lt(value: FilterColumnType): FilterCompleteOrContinue;
-//     lte(value: FilterColumnType): FilterCompleteOrContinue;
-//     gt(value: FilterColumnType): FilterCompleteOrContinue;
-//     gte(value: FilterColumnType): FilterCompleteOrContinue;
-//     in(value: FilterColumnListType): FilterCompleteOrContinue;
-// }
-
-// /**Continues or completes building where clauses for database queries */
-// export interface FilterCompleteOrContinue {
-//     and(): WhereClauseOperatorSelector;
-//     or(): WhereClauseOperatorSelector;
-//     build(): Filter;
-// }
-
-// /**This doesn't expose any functionality, but it used to pass to the database table view methods */
-// export interface Filter {}
+/**Factory for empty filters */
+export function createEmptyFilter<RowType extends Row>(): Filter<RowType> {
+    return new EmptyFilter();
+}

@@ -9,7 +9,7 @@ import {
     type Writable,
 } from 'svelte/store';
 import type { Db } from './db-base';
-import type { DatabaseTableName, Row } from './db-types';
+import type { DatabaseTableName, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */

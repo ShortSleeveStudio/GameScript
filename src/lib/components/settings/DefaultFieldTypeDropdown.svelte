@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FIELD_TYPE_DROP_DOWN_ITEMS, type DefaultFieldRow } from '@lib/api/db/db-types';
+    import { FIELD_TYPE_DROP_DOWN_ITEMS, type FieldRow } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -7,17 +7,17 @@
     import { onDestroy } from 'svelte';
     import type { Readable } from 'svelte/store';
 
-    export let rowView: IDbRowView<DefaultFieldRow>;
+    export let rowView: IDbRowView<FieldRow>;
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isColumnLoading('fieldType');
-    let boundValue: number = $rowView.fieldType;
-    let currentValue: number = $rowView.fieldType;
+    const isLoading: Readable<boolean> = rowView.isColumnLoading('type');
+    let boundValue: number = $rowView.type;
+    let currentValue: number = $rowView.type;
     onDestroy(
-        rowView.subscribe((row: DefaultFieldRow) => {
-            if (row.fieldType !== currentValue) {
-                boundValue = row.fieldType;
-                currentValue = row.fieldType;
+        rowView.subscribe((row: FieldRow) => {
+            if (row.type !== currentValue) {
+                boundValue = row.type;
+                currentValue = row.type;
             }
         }),
     );
@@ -27,15 +27,15 @@
         const oldValue = currentValue;
         if (oldValue === newValue) return;
 
-        await rowView.updateColumn('fieldType', newValue);
+        await rowView.updateColumn('type', newValue);
         undoManager.register(
             new Undoable(
                 'Set default field type',
                 async () => {
-                    await rowView.updateColumn('fieldType', oldValue);
+                    await rowView.updateColumn('type', oldValue);
                 },
                 async () => {
-                    await rowView.updateColumn('fieldType', newValue);
+                    await rowView.updateColumn('type', newValue);
                 },
             ),
         );
@@ -49,7 +49,7 @@
         size="sm"
         items={FIELD_TYPE_DROP_DOWN_ITEMS}
         bind:selectedId={boundValue}
-        disabled={$rowView.required || $isApplyingDefaultFields}
+        disabled={$rowView.isDefault || $isApplyingDefaultFields}
         direction="top"
         on:select={onSelect}
     />

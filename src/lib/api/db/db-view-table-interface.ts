@@ -1,5 +1,5 @@
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
-import { type Row } from './db-types';
+import { type DatabaseTableName, type Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**
@@ -12,6 +12,7 @@ import type { IDbRowView } from './db-view-row-interface';
  */
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
     isLoading: Readable<boolean>;
+    tableName: DatabaseTableName;
     subscribe(
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
@@ -20,6 +21,7 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     createRows(rows: RowType[]): Promise<RowType[]>;
     deleteRow(row: RowType): Promise<void>;
     deleteRows(rows: RowType[]): Promise<void>;
+    dispose(): void;
     /**
      * Change has taken place, the table view must be updated. The _rows will be kept sorted.
      * NOTE: this is a readable store so we don't have a propagate changes back to the db. :)

@@ -1,8 +1,16 @@
 import type Database from '@tauri-apps/plugin-sql';
 import { get, type Writable } from 'svelte/store';
-import type { DatabaseTableName, Row } from './db-types';
+import type { Filter } from './db-filter-interface';
+import type { DatabaseTableName, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
+
+// Operation types
+export const OPS = [0, 1, 2];
+export type OpType = (typeof OPS)[number];
+export const OP_CREATE: OpType = 0;
+export const OP_DELETE: OpType = 1;
+export const OP_UPDATE: OpType = 2;
 
 /**The interface all databases must implement */
 export abstract class Db {
@@ -17,7 +25,16 @@ export abstract class Db {
      * Creates a table view.
      * @param tableName Name of the table
      */
-    abstract fetchTable<RowType extends Row>(tableName: DatabaseTableName): IDbTableView<RowType>;
+    abstract fetchTable<RowType extends Row>(
+        tableName: DatabaseTableName,
+        filter: Filter<RowType>,
+    ): IDbTableView<RowType>;
+
+    /**
+     * Disposes of a single table view
+     * @param tableView The table view to release
+     */
+    abstract releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void;
 
     /**
      * This creates a single row in the table.
@@ -51,6 +68,7 @@ export abstract class Db {
      */
     abstract fetchRows<RowType extends Row>(
         tableName: DatabaseTableName,
+        filter: Filter<RowType>,
     ): Promise<IDbRowView<RowType>[]>;
 
     /**

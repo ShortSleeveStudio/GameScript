@@ -6,14 +6,14 @@
         dbType,
     } from '@lib/stores/settings/settings';
     import { Dropdown, FileUploaderItem, Button, Tag, Row, Column } from 'carbon-components-svelte';
-    import { writeFile, type WriteFileOptions } from '@tauri-apps/plugin-fs';
+    import { writeFile } from '@tauri-apps/plugin-fs';
     import { exists } from '@tauri-apps/plugin-fs';
     import { save } from '@tauri-apps/plugin-dialog';
     import { FILE_DB_EXTENSION_FILTER } from '@lib/constants/file';
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
-    import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
     import type { FileDetails } from '@lib/utility/file-details';
     import { basename } from '@tauri-apps/api/path';
+    import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(

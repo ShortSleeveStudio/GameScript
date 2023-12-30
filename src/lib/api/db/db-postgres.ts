@@ -1,6 +1,7 @@
 import type { Writable } from 'svelte/store';
 import { Db } from './db-base';
-import type { DatabaseTableName, Row } from './db-types';
+import type { Filter } from './db-filter-interface';
+import type { DatabaseTableName, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -9,9 +10,14 @@ export class PostgresDb extends Db {
     constructor(isConnected: Writable<boolean>) {
         super(isConnected);
     }
-
-    fetchTable<RowType extends Row>(tableName: DatabaseTableName): IDbTableView<RowType> {
-        throw new Error(`Method not implemented. ${tableName}`);
+    fetchTable<RowType extends Row>(
+        tableName: DatabaseTableName,
+        filter: Filter<RowType>,
+    ): IDbTableView<RowType> {
+        throw new Error(`Method not implemented. ${tableName} ${filter}`);
+    }
+    releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
+        throw new Error(`Method not implemented. ${tableView}`);
     }
     createRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<RowType> {
         throw new Error(`Method not implemented. ${tableName} ${row}`);
@@ -22,8 +28,11 @@ export class PostgresDb extends Db {
     ): Promise<RowType[]> {
         throw new Error(`Method not implemented. ${tableName} ${rows}`);
     }
-    fetchRows<RowType extends Row>(tableName: DatabaseTableName): Promise<IDbRowView<RowType>[]> {
-        throw new Error(`Method not implemented. ${tableName}`);
+    fetchRows<RowType extends Row>(
+        tableName: DatabaseTableName,
+        filter: Filter<RowType>,
+    ): Promise<IDbRowView<RowType>[]> {
+        throw new Error(`Method not implemented. ${tableName} ${filter}`);
     }
     updateRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<void> {
         throw new Error(`Method not implemented. ${tableName} ${row}`);
