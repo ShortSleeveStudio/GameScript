@@ -6,7 +6,6 @@
     import SettingsConversationEditor from './SettingsConversationEditor.svelte';
     import SettingsCoding from './SettingsCoding.svelte';
     import SettingsActors from './SettingsActors.svelte';
-    import { defaultFieldsDialogue } from '@lib/tables/default-fields';
 </script>
 
 <div class="settings">
@@ -14,9 +13,10 @@
         <Grid noGutter>
             <SettingsDatabase />
             {#if $dbConnected}
-                {#if $defaultFieldsDialogue.length === 1}
-                    <SettingsConversationEditor defaultFieldsNode={$defaultFieldsDialogue[0]} />
-                {/if}
+                <SettingsConversationEditor />
+                <!-- {#if $defaultFieldsDialogue.length === 1} -->
+                <!-- <SettingsConversationEditor defaultFieldsNode={$defaultFieldsDialogue[0]} /> -->
+                <!-- {/if} -->
                 <SettingsCoding />
                 <SettingsActors />
             {/if}

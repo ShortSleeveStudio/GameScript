@@ -2,98 +2,195 @@ import { TypeNameToType } from '@lib/utility/type-helpers';
 import type { DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
 
 ///
-/// Tables
-///
-export const TABLE_NAME_NODE_TYPES = 'node_types';
-export const TABLE_NAME_FIELD_TYPES = 'field_types';
-export const TABLE_NAME_NODES = 'nodes';
-export const TABLE_NAME_FIELDS = 'fields';
-export const DATABASE_TABLE_NAMES = [
-    TABLE_NAME_NODE_TYPES,
-    TABLE_NAME_FIELD_TYPES,
-    TABLE_NAME_NODES,
-    TABLE_NAME_FIELDS,
-] as const;
-
-/**Database name type */
-export type DatabaseTableName = (typeof DATABASE_TABLE_NAMES)[number];
-
-///
 /// Rows
 ///
 export interface Row {
     // This is ignored during serialization for inserts/updates
     id: number;
+    name: string;
 }
 
 ///
-/// Programming Language Types
+/// Tables
 ///
-export const PROGRAMMING_LANGUAGE_NAMES = [
-    'C#', // 0
-    'C++', // 1
-] as const;
-export const PROGRAMMING_LANGUAGE_ID_CS = 0;
-export const PROGRAMMING_LANGUAGE_ID_CPP = 1;
+export interface Table extends Row {}
 
+export const TABLE_NAME_TABLES = 'tables';
+export const TABLE_NAME_AUTO_COMPLETES = 'auto_completes';
+export const TABLE_NAME_PROGRAMMING_LANGUAGES = 'programming_languages';
+export const TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL = 'programming_language_principal';
+export const TABLE_NAME_ROUTINES = 'routines';
+export const TABLE_NAME_LOCALES = 'locales';
+export const TABLE_NAME_LOCALE_PRINCIPAL = 'locale_principal';
+export const TABLE_NAME_LOCALIZATION_TABLES = 'localization_tables';
+export const TABLE_NAME_LOCALIZATIONS = 'localizations';
+export const TABLE_NAME_ACTORS = 'actors';
+export const TABLE_NAME_ACTOR_PRINCIPAL = 'actor_principal';
+export const TABLE_NAME_CONVERSATIONS = 'conversations';
+export const TABLE_NAME_NODES = 'nodes';
+export const TABLE_NAME_FIELD_TYPES = 'field_types';
+export const TABLE_NAME_FIELDS = 'fields';
+export const TABLE_NAME_DEFAULT_FIELDS = 'default_fields';
+export const DATABASE_TABLE_NAMES = [
+    TABLE_NAME_TABLES,
+    TABLE_NAME_AUTO_COMPLETES,
+    TABLE_NAME_PROGRAMMING_LANGUAGES,
+    TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_NAME_ROUTINES,
+    TABLE_NAME_LOCALES,
+    TABLE_NAME_LOCALE_PRINCIPAL,
+    TABLE_NAME_LOCALIZATION_TABLES,
+    TABLE_NAME_LOCALIZATIONS,
+    TABLE_NAME_ACTORS,
+    TABLE_NAME_ACTOR_PRINCIPAL,
+    TABLE_NAME_CONVERSATIONS,
+    TABLE_NAME_NODES,
+    TABLE_NAME_FIELD_TYPES,
+    TABLE_NAME_FIELDS,
+    TABLE_NAME_DEFAULT_FIELDS,
+] as const;
+/**Database name type */
+export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
+export type DatabaseTableName = (typeof DATABASE_TABLE_NAMES)[number];
+export const DATABASE_TABLES: Table[] = DATABASE_TABLE_NAMES.map<Table>(
+    TypeNameToType<DatabaseTableName, Table>,
+);
+export const TABLE_ID_TABLES: DatabaseTableId = 0;
+export const TABLE_ID_AUTO_COMPLETES: DatabaseTableId = 1;
+export const TABLE_ID_PROGRAMMING_LANGUAGES: DatabaseTableId = 2;
+export const TABLE_ID_PROGRAMMING_LANGUAGE_PRINCIPAL: DatabaseTableId = 3;
+export const TABLE_ID_ROUTINES: DatabaseTableId = 4;
+export const TABLE_ID_LOCALES: DatabaseTableId = 5;
+export const TABLE_ID_LOCALE_PRINCIPAL: DatabaseTableId = 6;
+export const TABLE_ID_LOCALIZATION_TABLES: DatabaseTableId = 7;
+export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 8;
+export const TABLE_ID_ACTORS: DatabaseTableId = 9;
+export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 10;
+export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 11;
+export const TABLE_ID_NODES: DatabaseTableId = 12;
+export const TABLE_ID_FIELD_TYPES: DatabaseTableId = 13;
+export const TABLE_ID_FIELDS: DatabaseTableId = 14;
+export const TABLE_ID_FIELD_DEFAULTS: DatabaseTableId = 15;
+
+///
+/// Auto-Completes
+///
+export interface AutoComplete extends Row {
+    kind: string;
+    insertion: string;
+}
+
+///
+/// Programming Languages
+///
+export interface ProgrammingLanguage extends Row {}
+
+export const PROGRAMMING_LANGUAGE_NAME_CS = 'C#';
+export const PROGRAMMING_LANGUAGE_NAME_CPP = 'C++';
+export const PROGRAMMING_LANGUAGE_NAMES = [
+    PROGRAMMING_LANGUAGE_NAME_CS,
+    PROGRAMMING_LANGUAGE_NAME_CPP,
+] as const;
 /**Proramming language name type */
+export type ProgrammingLanguageId = (typeof PROGRAMMING_LANGUAGES)[number]['id'];
 export type ProgrammingLanguageName = (typeof PROGRAMMING_LANGUAGE_NAMES)[number];
+export const PROGRAMMING_LANGUAGES: Table[] = PROGRAMMING_LANGUAGE_NAMES.map<ProgrammingLanguage>(
+    TypeNameToType<ProgrammingLanguageName, ProgrammingLanguage>,
+);
+export const PROGRAMMING_LANGUAGE_ID_CS: ProgrammingLanguageId = 0;
+export const PROGRAMMING_LANGUAGE_ID_CPP: ProgrammingLanguageId = 1;
 
 /**Dropdowns to select programming lanugage */
 export const PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS: DropdownItem[] = PROGRAMMING_LANGUAGE_NAMES.map(
-    (languageName: string) =>
+    (languageName: string, index: number) =>
         <DropdownItem>{
-            id: languageName,
+            id: index,
             text: languageName,
         },
 );
 
 ///
-/// Node Types
+/// Programming Language Principal
 ///
-export interface NodeTypeRow extends Row {
-    name: NodeTypeName;
+export interface ProgrammingLanguagePrincipal extends Row {
+    principal: ProgrammingLanguageId; // FK Programming Languages
 }
 
-/**Node type names */
-export const NODE_TYPE_NAMES = [
-    'Actor',
-    'Auto-Complete',
-    'Conversation',
-    'Default Field',
-    'Dialogue',
-    'Locale',
-    'Localization Table',
-    'Localization',
-    'Programming Language',
-    'Routine',
-] as const;
-export const NODE_TYPE_ID_ACTOR = 0;
-export const NODE_TYPE_ID_AUTO_COMPLETE = 1;
-export const NODE_TYPE_ID_CONVERSATION = 2;
-export const NODE_TYPE_ID_DEFAULT_FIELD = 3;
-export const NODE_TYPE_ID_DIALOGUE = 4;
-export const NODE_TYPE_ID_LOCALE = 5;
-export const NODE_TYPE_ID_LOCALIZATION_TABLE = 6;
-export const NODE_TYPE_ID_LOCALIZATION = 7;
-export const NODE_TYPE_ID_PROGRAMMING_LANGUAGE = 8;
-export const NODE_TYPE_ID_ROUTINE = 9;
+///
+/// Routines
+///
+export interface Routine extends Row {
+    code: string;
+}
 
-/**List of supported field types */
-export const NODE_TYPES: NodeTypeRow[] = NODE_TYPE_NAMES.map<NodeTypeRow>(
-    TypeNameToType<NodeTypeName, NodeTypeRow>,
-);
+///
+/// Locales
+///
+export interface Locale extends Row {}
 
-/**Node type id type */
-export type NodeTypeId = (typeof NODE_TYPES)[number]['id'];
+///
+/// Locale Principal
+///
+export interface LocalePrincipal extends Row {
+    principal: number; // FK Locales
+}
 
-/**Node type name type */
-export type NodeTypeName = (typeof NODE_TYPE_NAMES)[number];
+///
+/// Localization Tables
+///
+export interface LocalizationTable extends Row {}
+
+///
+/// Localization
+///
+export interface Localization extends Row {
+    parent: number; // FK Localization Tables
+    [locale: number]: string | number; // FK Locales -> Localization
+    // 'name' is used for nicknames
+}
+
+///
+/// Actors
+///
+export interface Actor extends Row {
+    color: string;
+    localizedName: number; // FK Localization
+}
+
+///
+/// Actor Principal
+///
+export interface ActorPrincipal extends Row {
+    principal: number; // FK Actor
+}
+
+///
+/// Conversations
+///
+export interface Conversation extends Row {
+    parent: number; // FK Conversation
+    isFolder: boolean;
+    notes: string;
+    // UNIQUE(parent, name)
+}
+
+///
+/// Nodes
+///
+export interface Node extends Row {
+    parent: number; // FK Conversation
+    actor: number; // FK Actors
+    uiText: number; // FK Localizations
+    voiceText: number; // FK Localizations
+    condition: number; // FK Routines
+    code: number; // FK Routines
+    notes: string;
+}
 
 ///
 /// Field Types
 ///
-export interface FieldTypeRow extends Row {
+export interface FieldType extends Row {
     name: FieldTypeName;
 }
 
@@ -101,25 +198,25 @@ export interface FieldTypeRow extends Row {
 export const FIELD_TYPE_NAMES = [
     'Actor', // 0
     'Boolean', // 1
-    'Code', // 2
-    'Color', // 3
-    'Decimal', // 4
-    'Integer', // 5
-    'Localized Text', // 6
-    'Text', // 7
+    'Color', // 2
+    'Decimal', // 3
+    'Integer', // 4
+    'Text', // 5
+    'Routine', // 6
+    'Localized Text', // 7
 ] as const;
 export const FIELD_TYPE_ID_ACTOR: FieldTypeId = 0;
 export const FIELD_TYPE_ID_BOOLEAN: FieldTypeId = 1;
-export const FIELD_TYPE_ID_CODE: FieldTypeId = 2;
-export const FIELD_TYPE_ID_COLOR: FieldTypeId = 3;
-export const FIELD_TYPE_ID_DECIMAL: FieldTypeId = 4;
-export const FIELD_TYPE_ID_INTEGER: FieldTypeId = 5;
-export const FIELD_TYPE_ID_LOCALIZED_TEXT: FieldTypeId = 6;
-export const FIELD_TYPE_ID_TEXT: FieldTypeId = 7;
+export const FIELD_TYPE_ID_COLOR: FieldTypeId = 2;
+export const FIELD_TYPE_ID_DECIMAL: FieldTypeId = 3;
+export const FIELD_TYPE_ID_INTEGER: FieldTypeId = 4;
+export const FIELD_TYPE_ID_TEXT: FieldTypeId = 5;
+export const FIELD_TYPE_ID_ROUTINE: FieldTypeId = 6;
+export const FIELD_TYPE_ID_LOCALIZED_TEXT: FieldTypeId = 7;
 
 /**List of supported field types */
-export const FIELD_TYPES: FieldTypeRow[] = FIELD_TYPE_NAMES.map<FieldTypeRow>(
-    TypeNameToType<FieldTypeName, FieldTypeRow>,
+export const FIELD_TYPES: FieldType[] = FIELD_TYPE_NAMES.map<FieldType>(
+    TypeNameToType<FieldTypeName, FieldType>,
 );
 
 /**Field type name type */
@@ -130,7 +227,7 @@ export type FieldTypeId = (typeof FIELD_TYPES)[number]['id'];
 
 /**Dropdown items for field types */
 export const FIELD_TYPE_DROP_DOWN_ITEMS: DropdownItem[] = FIELD_TYPES.map(
-    (fieldType: FieldTypeRow) =>
+    (fieldType: FieldType) =>
         <DropdownItem>{
             id: fieldType.id,
             text: fieldType.name,
@@ -138,85 +235,29 @@ export const FIELD_TYPE_DROP_DOWN_ITEMS: DropdownItem[] = FIELD_TYPES.map(
 );
 
 ///
-/// Nodes
-///
-export interface NodeRow extends Row {
-    parent: number; // FK Nodes
-    type: NodeTypeId; // FK Node Types
-    name: string;
-    isFolder: boolean;
-    // Unique(parent, name, type)
-}
-
-///
 /// Fields
 ///
-export interface FieldRow extends Row {
-    parent: number; // FK Node
-    type: FieldTypeId;
-    name: string; // used to idenify EXCEPT for localizations which use reference
-    isDefault: boolean; // Used for all node types (eg. adding arbitrary field to actor)
+export interface Field extends Row {
+    parentActor: number; // FK Actors
+    parentConversation: number; // FK Conversations
+    parentNode: number; // FK Nodes
+    parentType: DatabaseTableId; // FK Tables
+    type: FieldTypeId; // TK Field Types
     // The following fields will only be conditionally populated
     bool: boolean;
-    code: string;
-    text: string; // When this is a default fields, this can contain helpful text
+    text: string;
     color: string;
     decimal: number;
     integer: number;
-    reference: number; // FK Nodes - Actor / Routine / Localized Text / Locale
+    routine: number; // FK Routines
+    localizedText: number; // FK Localizations
     // Unique(parent, name, type)
 }
 
-/* 
-Notes on each node type. A node type can be thought of as a table.
-
-Actor
- - parent: always null
- - name: the nickname for the actor. There's also a localized text field.
- - isFolder: always false
-
-Auto-Complete
- - parent: always null
- - name: not used, label is a field
- - isFolder: always false
-
-Conversation
- - parent: can have folder conversations as parents
- - name: name of the folder or conversation
- - isFolder: true if folder, false if conversation
-
-Default Fields
- - parent: always null
- - name: not used, label is a field
- - isFolder: always false
-
-Dialogue
- - parent: the containing conversation
- - name: not used
- - isFolder: always false
-
-Locale
- - parent: always null
- - name: name of the locale. eg. "en_US"
- - isFolder: always false
-
-Localization Table
- - parent: always null. For now...
- - name: Actors | ConversationID + Conversation Name | user selected string
- - isFolder: always false. For now...
-
-Localization
- - parent: the containing localization table
- - name: optional nickname
- - isFolder: always false
-
-Programming Language
- - parent: always null
- - name: name of the selected programming language
- - isFolder: always false
-
-Routine
- - parent: always null
- - name: name of the routine 
- - isFolder: always false
-*/
+///
+/// Default Fields
+///
+export interface DefaultField extends Row {
+    type: FieldTypeId; // TK Field Types
+    parentType: DatabaseTableId; // FK Tables
+}

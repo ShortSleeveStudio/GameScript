@@ -1,95 +1,279 @@
 import {
+    DATABASE_TABLE_NAMES,
     FIELD_TYPES,
-    FIELD_TYPE_ID_ACTOR,
-    FIELD_TYPE_ID_BOOLEAN,
-    FIELD_TYPE_ID_CODE,
-    FIELD_TYPE_ID_COLOR,
-    FIELD_TYPE_ID_LOCALIZED_TEXT,
-    FIELD_TYPE_ID_TEXT,
-    NODE_TYPES,
-    NODE_TYPE_ID_ACTOR,
-    NODE_TYPE_ID_AUTO_COMPLETE,
-    NODE_TYPE_ID_DEFAULT_FIELD,
-    NODE_TYPE_ID_DIALOGUE,
-    NODE_TYPE_ID_LOCALE,
-    NODE_TYPE_ID_LOCALIZATION,
-    NODE_TYPE_ID_LOCALIZATION_TABLE,
-    NODE_TYPE_ID_PROGRAMMING_LANGUAGE,
-    NODE_TYPE_ID_ROUTINE,
+    PROGRAMMING_LANGUAGE_NAMES,
+    TABLE_NAME_ACTORS,
+    TABLE_NAME_ACTOR_PRINCIPAL,
+    TABLE_NAME_AUTO_COMPLETES,
+    TABLE_NAME_CONVERSATIONS,
+    TABLE_NAME_DEFAULT_FIELDS,
     TABLE_NAME_FIELDS,
     TABLE_NAME_FIELD_TYPES,
+    TABLE_NAME_LOCALES,
+    TABLE_NAME_LOCALE_PRINCIPAL,
+    TABLE_NAME_LOCALIZATIONS,
+    TABLE_NAME_LOCALIZATION_TABLES,
     TABLE_NAME_NODES,
-    TABLE_NAME_NODE_TYPES,
-    type NodeTypeRow,
+    TABLE_NAME_PROGRAMMING_LANGUAGES,
+    TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_NAME_ROUTINES,
+    TABLE_NAME_TABLES,
 } from './db-schema';
 
 ///
 /// Table Creation
 ///
-const CREATE_TABLE_NODE_TYPES = `
-CREATE TABLE IF NOT EXISTS "${TABLE_NAME_NODE_TYPES}" (
+const CREATE_TABLE_TABLES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_TABLES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	UNIQUE("name")
+);
+`;
+const CREATE_TABLE_AUTO_COMPLETES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_AUTO_COMPLETES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	"kind"	TEXT NOT NULL,
+	"insertion"	TEXT NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_PROGRAMMING_LANGUAGES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_PROGRAMMING_LANGUAGES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
 	PRIMARY KEY("id" AUTOINCREMENT)
-);`;
+);
+`;
+const CREATE_TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL}" (
+	"id"	INTEGER,
+	"principal"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("principal") REFERENCES "${TABLE_NAME_PROGRAMMING_LANGUAGES}"
+);
+`;
+const CREATE_TABLE_ROUTINES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_ROUTINES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	"code"	TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_LOCALES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_LOCALE_PRINCIPAL = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALE_PRINCIPAL}" (
+	"id"	INTEGER,
+	"principal"	INTEGER,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("principal") REFERENCES "${TABLE_NAME_LOCALES}"
+);
+`;
+const CREATE_TABLE_LOCALIZATION_TABLES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATION_TABLES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const DEFAULT_LOCALE_ID = 0;
+const CREATE_TABLE_LOCALIZATIONS = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATIONS}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL,
+	"parent"	INTEGER NOT NULL,
+	"${DEFAULT_LOCALE_ID}"	TEXT,
+	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_LOCALIZATION_TABLES}",
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_ACTORS = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_ACTORS}" (
+    "id"	INTEGER,
+    "name"	TEXT NOT NULL UNIQUE,
+    "color"	TEXT NOT NULL,
+    "localizedName"	INTEGER,
+    FOREIGN KEY("localizedName") REFERENCES "${TABLE_NAME_LOCALIZATIONS}",
+    PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_ACTOR_PRINCIPAL = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_ACTOR_PRINCIPAL}" (
+    "id"	INTEGER,
+    "principal"	INTEGER,
+    FOREIGN KEY("principal") REFERENCES "${TABLE_NAME_ACTORS}",
+    PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
+const CREATE_TABLE_CONVERSATIONS = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_CONVERSATIONS}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL,
+	"parent"	INTEGER,
+	"isFolder"	INTEGER NOT NULL,
+	"notes"	TEXT,
+	FOREIGN KEY("parent") REFERENCES "conversations",
+	PRIMARY KEY("id" AUTOINCREMENT),
+    UNIQUE("name","parent")
+);
+`;
+const CREATE_TABLE_NODES = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_NODES}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL UNIQUE,
+	"parent"	INTEGER NOT NULL,
+	"actor"	INTEGER NOT NULL,
+	"uiText"	INTEGER NOT NULL,
+	"voiceText"	INTEGER NOT NULL,
+	"condition"	INTEGER NOT NULL,
+	"code"	INTEGER NOT NULL,
+	"notes"	TEXT,
+	FOREIGN KEY("uiText") REFERENCES "${TABLE_NAME_LOCALIZATIONS}",
+	FOREIGN KEY("actor") REFERENCES "${TABLE_NAME_ACTORS}",
+	FOREIGN KEY("voiceText") REFERENCES "${TABLE_NAME_LOCALIZATIONS}",
+	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_CONVERSATIONS}",
+	FOREIGN KEY("condition") REFERENCES "${TABLE_NAME_ROUTINES}",
+	FOREIGN KEY("code") REFERENCES "${TABLE_NAME_ROUTINES}",
+	PRIMARY KEY("id" AUTOINCREMENT)
+);
+`;
 const CREATE_TABLE_FIELD_TYPES = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_FIELD_TYPES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
-	PRIMARY KEY("id" AUTOINCREMENT)
-);`;
-const CREATE_TABLE_NODES = `
-CREATE TABLE IF NOT EXISTS "${TABLE_NAME_NODES}" (
-	"id"	INTEGER,
-	"parent"	INTEGER,
-	"type"	INTEGER NOT NULL,
-	"name"	TEXT,
-	"isFolder"	INTEGER NOT NULL,
-    UNIQUE("parent","name","type"),
-	FOREIGN KEY("type") REFERENCES "${TABLE_NAME_NODE_TYPES}",
-	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_NODES}",
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;
 const CREATE_TABLE_FIELDS = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_FIELDS}" (
 	"id"	INTEGER,
-	"parent"	INTEGER NOT NULL,
-	"type"	INTEGER NOT NULL,
 	"name"	TEXT NOT NULL,
+	"parentActor"	INTEGER,
+	"parentConversation"	INTEGER,
+	"parentNode"	INTEGER,
+	"parentType"	INTEGER NOT NULL,
+	"type"	INTEGER NOT NULL,
 	"isDefault"	INTEGER NOT NULL,
 	"bool"	INTEGER,
-	"code"	TEXT,
 	"text"	TEXT,
 	"color"	TEXT,
 	"decimal"	NUMERIC,
 	"integer"	INTEGER,
-	"reference"	INTEGER,
-	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_NODES}",
-	FOREIGN KEY("reference") REFERENCES "${TABLE_NAME_NODES}",
-	UNIQUE("parent","name","type"),
+	"routine"	INTEGER,
+	"localizedText"	INTEGER,
+	FOREIGN KEY("parentActor") REFERENCES "${TABLE_NAME_ACTORS}",
+	FOREIGN KEY("parentConversation") REFERENCES "${TABLE_NAME_CONVERSATIONS}",
+	FOREIGN KEY("parentNode") REFERENCES "${TABLE_NAME_NODES}",
+	FOREIGN KEY("parentType") REFERENCES "${TABLE_NAME_TABLES}",
+	FOREIGN KEY("type") REFERENCES "${TABLE_NAME_FIELD_TYPES}",
+	FOREIGN KEY("routine") REFERENCES "${TABLE_NAME_ROUTINES}",
+	FOREIGN KEY("localizedText") REFERENCES "${TABLE_NAME_LOCALIZATIONS}",
+	UNIQUE("name","parentActor","parentConversation","parentNode"),
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;
+const CREATE_TABLE_DEFAULT_FIELDS = `
+CREATE TABLE IF NOT EXISTS "${TABLE_NAME_DEFAULT_FIELDS}" (
+	"id"	INTEGER,
+	"name"	TEXT NOT NULL,
+	"type"	INTEGER NOT NULL,
+	"parentType"	INTEGER NOT NULL,
+	PRIMARY KEY("id" AUTOINCREMENT),
+	FOREIGN KEY("type") REFERENCES "${TABLE_NAME_FIELD_TYPES}",
+	FOREIGN KEY("parentType") REFERENCES "${TABLE_NAME_TABLES}"
+);`;
 export const CREATE_TABLE_QUERIES = [
-    CREATE_TABLE_NODE_TYPES,
-    CREATE_TABLE_FIELD_TYPES,
+    CREATE_TABLE_TABLES,
+    CREATE_TABLE_AUTO_COMPLETES,
+    CREATE_TABLE_PROGRAMMING_LANGUAGES,
+    CREATE_TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    CREATE_TABLE_ROUTINES,
+    CREATE_TABLE_LOCALES,
+    CREATE_TABLE_LOCALE_PRINCIPAL,
+    CREATE_TABLE_LOCALIZATION_TABLES,
+    CREATE_TABLE_LOCALIZATIONS,
+    CREATE_TABLE_ACTORS,
+    CREATE_TABLE_ACTOR_PRINCIPAL,
+    CREATE_TABLE_CONVERSATIONS,
     CREATE_TABLE_NODES,
+    CREATE_TABLE_FIELD_TYPES,
     CREATE_TABLE_FIELDS,
+    CREATE_TABLE_DEFAULT_FIELDS,
 ];
 
 ///
 /// Table Initialization
 ///
-// Node Types
-const INITIALIZE_NODE_TYPES = `
+let rowIndex: number;
+// Tables
+rowIndex = 0;
+const INITIALIZE_TABLES = `
 BEGIN TRANSACTION;
-${NODE_TYPES.map(
-    (nodeType) =>
-        `INSERT OR IGNORE INTO ${TABLE_NAME_NODE_TYPES} (id, name) VALUES(${nodeType.id}, '${nodeType.name}');`,
+${DATABASE_TABLE_NAMES.map(
+    (tableName: string) =>
+        `INSERT OR IGNORE INTO ${TABLE_NAME_TABLES} (id, name) VALUES (${rowIndex++}, '${tableName}');`,
 ).join('\n')}
 COMMIT;
 `;
+// Auto-Completes
+// Programming Languages
+rowIndex = 0;
+const DEFAULT_PROGRAMMING_LANGUAGE_ID = rowIndex;
+const INITIALIZE_PROGRAMMING_LANGUAGES = `
+BEGIN TRANSACTION;
+${PROGRAMMING_LANGUAGE_NAMES.map(
+    (languageName: string) =>
+        `INSERT OR IGNORE INTO ${TABLE_NAME_PROGRAMMING_LANGUAGES} (id, name) VALUES (${rowIndex++}, '${languageName}');`,
+).join('\n')}
+COMMIT;
+`;
+// Programming Language Principal
+rowIndex = 0;
+const INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL = `
+INSERT OR IGNORE INTO ${TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL} (id, principal) VALUES (${rowIndex++}, ${DEFAULT_PROGRAMMING_LANGUAGE_ID});`;
+// Routines
+rowIndex = 0;
+const INITIALIZE_ROUTINES = `
+INSERT OR IGNORE INTO ${TABLE_NAME_ROUTINES} (id, name, code) VALUES (${rowIndex++}, 'Do Nothing', '');`;
+// Locales
+rowIndex = DEFAULT_LOCALE_ID;
+const INITIALIZE_LOCALES = `
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALES} (id, name) VALUES (${rowIndex++}, 'en_US');`;
+// Locale Principal
+rowIndex = 0;
+const INITIALIZE_LOCALE_PRINCIPAL = `
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALE_PRINCIPAL} (id, principal) VALUES (${rowIndex++}, ${DEFAULT_LOCALE_ID});`;
+// Localization Tables
+rowIndex = 0;
+const DEFAULT_LOCALIZATION_TABLE_ID = rowIndex;
+const INITIALIZE_LOCALIZATION_TABLES = `
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATION_TABLES} (id, name) VALUES (${rowIndex++}, 'Actors');`;
+// Localizations
+rowIndex = 0;
+const DEFAULT_LOCALIZATION_ID = rowIndex;
+const INITIALIZE_LOCALIZATIONS = `
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, name, parent, '${DEFAULT_LOCALE_ID}') VALUES (${rowIndex++}, 'Actors', ${DEFAULT_LOCALIZATION_TABLE_ID}, 'Player');
+`;
+// Actors
+rowIndex = 0;
+const DEFAULT_ACTOR_ID = rowIndex;
+const INITIALIZE_ACTORS = `
+INSERT OR IGNORE INTO ${TABLE_NAME_ACTORS} (id, name, color, localizedName) VALUES (${rowIndex++}, 'Player', '00E0FF', ${DEFAULT_LOCALIZATION_ID});`;
+// Actor Principal
+rowIndex = 0;
+const INITIALIZE_ACTOR_PRINCIPAL = `
+INSERT OR IGNORE INTO ${TABLE_NAME_ACTOR_PRINCIPAL} (id, principal) VALUES (${rowIndex++}, ${DEFAULT_ACTOR_ID});`;
+// Conversations
+// Nodes
 // Field Types
 const INITIALIZE_FIELD_TYPES = `
 BEGIN TRANSACTION;
@@ -99,215 +283,17 @@ ${FIELD_TYPES.map(
 ).join('\n')}
 COMMIT;
 `;
-// Nodes
-let nodeCount: number = 0;
-let nodeInitializationString: string = `
-BEGIN TRANSACTION;
-`;
-/**Actors */
-const DEFAULT_ACTOR_ID = nodeCount++;
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${DEFAULT_ACTOR_ID}, NULL, ${NODE_TYPE_ID_ACTOR}, 'Player', false);
-`;
-/**Auto-Completes */
-/**Conversations */
-/**Default Fields */
-let defaultFieldIndex = 0;
-const DEFAULT_FIELD_NODE_IDS = new Array<number>(NODE_TYPES.length);
-nodeInitializationString += NODE_TYPES.map((nodeType: NodeTypeRow) => {
-    const nodeId = nodeCount++;
-    DEFAULT_FIELD_NODE_IDS[defaultFieldIndex++] = nodeId;
-    return `INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-        (id, parent, type, name, isFolder) VALUES 
-        (${nodeId}, NULL, ${NODE_TYPE_ID_DEFAULT_FIELD}, '${nodeType.name}', false);`;
-}).join('\n');
-/**Dialogues */
-/**Locales */
-const DEFAULT_LOCALE_ID = nodeCount++;
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${DEFAULT_LOCALE_ID}, NULL, ${NODE_TYPE_ID_LOCALE}, 'en_US', false);
-`;
-/**Localization Tables */
-const ACTOR_LOCALIZATION_TABLE_ID = nodeCount++;
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${ACTOR_LOCALIZATION_TABLE_ID}, NULL, ${NODE_TYPE_ID_LOCALIZATION_TABLE}, 'Actors', false);
-`;
-/**Localizations */
-const ACTOR_NAME_LOCALIZATION_ID = nodeCount++;
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${ACTOR_NAME_LOCALIZATION_ID}, ${ACTOR_LOCALIZATION_TABLE_ID}, ${NODE_TYPE_ID_LOCALIZATION}, 'Player Name', false);
-`;
-/**Programming Language */
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${nodeCount++}, NULL, ${NODE_TYPE_ID_PROGRAMMING_LANGUAGE}, 'C#', false);
-`;
-/**Routines */
-const EMPTY_ROUTINE_ID = nodeCount++;
-nodeInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_NODES} 
-(id, parent, type, name, isFolder) VALUES 
-(${EMPTY_ROUTINE_ID}, NULL, ${NODE_TYPE_ID_ROUTINE}, 'No Op', false);
-`;
-nodeInitializationString += `
-COMMIT;
-`;
-const INITIALIZE_NODES = nodeInitializationString;
-
-// Fields
-let fieldCount: number = 0;
-let fieldsInitializationString: string = `
-BEGIN TRANSACTION;
-`;
-/**Actor */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault, reference) VALUES 
-(${fieldCount++}, ${DEFAULT_ACTOR_ID}, ${FIELD_TYPE_ID_LOCALIZED_TEXT}, 'Actor Name', true, ${ACTOR_NAME_LOCALIZATION_ID});
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault, color) VALUES 
-(${fieldCount++}, ${DEFAULT_ACTOR_ID}, ${FIELD_TYPE_ID_COLOR}, 'Node Color', true, 'C33535');
-`;
-/**Auto-Complete */
-/**Conversation */
-/**Default Fields - Actor */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_ACTOR]
-}, ${FIELD_TYPE_ID_LOCALIZED_TEXT}, 'Actor Name', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_ACTOR]
-}, ${FIELD_TYPE_ID_COLOR}, 'Node Color', true);
-`;
-/**Default Fields - Auto-Complete */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_AUTO_COMPLETE]
-}, ${FIELD_TYPE_ID_TEXT}, 'Label', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_AUTO_COMPLETE]
-}, ${FIELD_TYPE_ID_TEXT}, 'Kind', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_AUTO_COMPLETE]
-}, ${FIELD_TYPE_ID_TEXT}, 'Text to Insert', true);
-`;
-/**Default Fields - Conversation */
-/**Default Fields - Default Fields*/
-/**Default Fields - Dialogue*/
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_DIALOGUE]
-}, ${FIELD_TYPE_ID_ACTOR}, 'Actor', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_DIALOGUE]
-}, ${FIELD_TYPE_ID_LOCALIZED_TEXT}, 'UI Text', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_DIALOGUE]
-}, ${FIELD_TYPE_ID_LOCALIZED_TEXT}, 'Voice Text', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_DIALOGUE]
-}, ${FIELD_TYPE_ID_CODE}, 'Condition', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_DIALOGUE]
-}, ${FIELD_TYPE_ID_CODE}, 'Code', true);
-`;
-/**Default Fields - Locale*/
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_LOCALE]
-}, ${FIELD_TYPE_ID_BOOLEAN}, 'Is Primary', true);
-`;
-/**Default Fields - Localization Table*/
-/**Default Fields - Localization*/
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, isDefault, reference) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_LOCALIZATION]
-}, ${FIELD_TYPE_ID_TEXT}, true, ${DEFAULT_LOCALE_ID});
-`; // localization nodes use "reference" instead of "name" to identify the column
-/**Default Fields - Programming Language*/
-/**Default Fields - Routine*/
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_ROUTINE]
-}, ${FIELD_TYPE_ID_BOOLEAN}, 'Is Default', true);
-
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault) VALUES 
-(${fieldCount++}, ${
-    DEFAULT_FIELD_NODE_IDS[NODE_TYPE_ID_ROUTINE]
-}, ${FIELD_TYPE_ID_CODE}, 'Code', true);
-`;
-/**Dialogue */
-/**Locale */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault, bool) VALUES 
-(${fieldCount++}, ${DEFAULT_LOCALE_ID}, ${FIELD_TYPE_ID_BOOLEAN}, 'Is Primary', true, true);
-`;
-/**Localization Table */
-/**Localization */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, isDefault, reference, text) VALUES 
-(${fieldCount++}, ${ACTOR_NAME_LOCALIZATION_ID}, ${FIELD_TYPE_ID_TEXT}, true, ${DEFAULT_LOCALE_ID}, 'Player');
-`;
-/**Programming Language*/
-/**Routine */
-fieldsInitializationString += `
-INSERT OR IGNORE INTO ${TABLE_NAME_FIELDS} 
-(id, parent, type, name, isDefault, code) VALUES 
-(${fieldCount++}, ${EMPTY_ROUTINE_ID}, ${FIELD_TYPE_ID_CODE}, 'Code', true, '');
-`;
-fieldsInitializationString += `
-COMMIT;
-`;
-const INITIALIZE_FIELDS = fieldsInitializationString;
+// Default Fields
 export const INITIALIZE_TABLE_QUERIES = [
-    INITIALIZE_NODE_TYPES,
+    INITIALIZE_TABLES,
+    INITIALIZE_PROGRAMMING_LANGUAGES,
+    INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    INITIALIZE_ROUTINES,
+    INITIALIZE_LOCALES,
+    INITIALIZE_LOCALE_PRINCIPAL,
+    INITIALIZE_LOCALIZATION_TABLES,
+    INITIALIZE_LOCALIZATIONS,
+    INITIALIZE_ACTORS,
+    INITIALIZE_ACTOR_PRINCIPAL,
     INITIALIZE_FIELD_TYPES,
-    INITIALIZE_NODES,
-    INITIALIZE_FIELDS,
 ];

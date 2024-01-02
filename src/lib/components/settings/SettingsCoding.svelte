@@ -11,7 +11,7 @@
     } from 'carbon-components-svelte';
     import CodingLanguageDropdown from './CodingLanguageDropdown.svelte';
     import { TrashCan } from 'carbon-icons-svelte';
-    import { programmingLanguage } from '@lib/tables/programming-language';
+    import { programmingLanguagePrincipal } from '@lib/tables/programming-language-principal';
 
     const headers = [
         { key: 'name', value: 'Name' },
@@ -37,9 +37,7 @@
         <h2>Coding</h2>
         <p>
             <sup>Programming Language</sup>
-            {#if $programmingLanguage.length === 1}
-                <CodingLanguageDropdown programmingLanguageNode={$programmingLanguage[0]} />
-            {/if}
+            <CodingLanguageDropdown />
         </p>
         <DataTable
             size="medium"

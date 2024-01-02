@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { FieldRow } from '@lib/api/db/db-schema';
+    import type { DefaultField } from '@lib/api/db/db-schema';
     import { type IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { type ActionUnsubscriber } from '@lib/utility/action';
@@ -9,7 +9,7 @@
     import { onDestroy, onMount } from 'svelte';
     import type { Readable, Unsubscriber } from 'svelte/motion';
 
-    export let rowView: IDbRowView<FieldRow>;
+    export let rowView: IDbRowView<DefaultField>;
     export let inputPlaceholder: string;
     export let uniqueNameTracker: UniqueNameTracker;
 
@@ -30,7 +30,7 @@
         uniqueNameTracker.addName($rowView.name);
 
         // Subscribe to changes in row view
-        rowViewUnsubscriber = rowView.subscribe((row: FieldRow) => {
+        rowViewUnsubscriber = rowView.subscribe((row: DefaultField) => {
             // If the name of this row has changed, we remove it from the map and add the new name
             if (row.name !== currentValue) {
                 uniqueNameTracker.removeName(currentValue);
@@ -85,7 +85,7 @@
             size="sm"
             invalid={!isUnique}
             hideLabel
-            disabled={$rowView.isDefault || $isApplyingDefaultFields}
+            disabled={$isApplyingDefaultFields}
             placeholder={inputPlaceholder}
             bind:value={boundValue}
             on:blur={syncOnBlur}

@@ -27,50 +27,29 @@
         TABLE_NAME_FIELDS,
         type FieldRow,
         type NodeRow,
+        type Field,
+        type DefaultField,
+        TABLE_ID_CONVERSATIONS,
     } from '@lib/api/db/db-schema';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { createFilter } from '@lib/api/db/db-filter';
     import { db } from '@lib/api/db/db';
     import { wait } from '@lib/utility/wait';
+    import { conversationDefaultFields } from '@lib/tables/default-fields';
 
-    export let defaultFieldsNode: IDbRowView<NodeRow>;
+    // export let defaultFieldsNode: IDbRowView<NodeRow>;
+
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
     const headers = [
         { key: 'name', value: 'Name' },
         { key: 'type', value: 'Type' },
     ];
-    let nonSelectableRowIds: number[] = [];
     let selectedRowIds: number[] = [];
     let isModalOpen: boolean = false;
     let applyFieldsProgress: number = 0;
-    let defaultFields: IDbTableView<FieldRow> = db.fetchTable(
-        TABLE_NAME_FIELDS,
-        createFilter<FieldRow>().where('parent').is(defaultFieldsNode.id).build(),
-    );
-    let unsubscribeDefaultFields = defaultFields.subscribe(onTableViewChange);
-    onDestroy(() => {
-        unsubscribeDefaultFields();
-        db.releaseTable(defaultFields);
-    });
     // TODO: https://svelte-5-preview.vercel.app/status
-    let isLoading: Readable<boolean> = defaultFields.isLoading;
-    defaultFields.isLoading.subscribe((loading: boolean) => {
-        console.log(loading);
-    });
-
-    function onTableViewChange(newFields: IDbRowView<FieldRow>[]) {
-        nonSelectableRowIds.length = 0;
-        for (let i = 0; i < newFields.length; i++) {
-            // Grab row
-            let row: FieldRow = get(newFields[i]);
-
-            // Non-selectable rows
-            if (row.isDefault) {
-                nonSelectableRowIds.push(row.id);
-            }
-        }
-    }
+    let isLoading: Readable<boolean> = conversationDefaultFields.isLoading;
 
     async function applyDefaultFields(): Promise<void> {
         // TODO: implement me
@@ -86,50 +65,50 @@
     }
 
     async function addRow(): Promise<void> {
-        let newRow: FieldRow = <FieldRow>{
-            parent: defaultFieldsNode.id,
-            type: FIELD_TYPE_ID_ACTOR,
+        console.log('FIX ME TO BE UNIQUE');
+        let newDefaultField: DefaultField = <DefaultField>{
             name: 'New Field',
-            isDefault: false,
+            type: FIELD_TYPE_ID_ACTOR,
+            parentType: TABLE_ID_CONVERSATIONS,
         };
-        newRow = await defaultFields.createRow(newRow);
+        let newRow: DefaultField = await conversationDefaultFields.createRow(newDefaultField);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'Default field creation',
                 async () => {
-                    await defaultFields.deleteRow(newRow);
+                    await conversationDefaultFields.deleteRow(newRow);
                 },
                 async () => {
-                    newRow = await defaultFields.createRow(newRow);
+                    newRow = await conversationDefaultFields.createRow(newRow);
                 },
             ),
         );
     }
 
     async function deleteRows(): Promise<void> {
-        let rowsToDelete: FieldRow[] = [];
-        get(defaultFields).forEach((fieldRowView: IDbRowView<FieldRow>) => {
-            const fieldRow: FieldRow = get(fieldRowView);
-            if (selectedRowIds.includes(fieldRow.id)) {
-                rowsToDelete.push(fieldRow);
+        let rowsToDelete: DefaultField[] = [];
+        get(conversationDefaultFields).forEach((defaultFieldRowView: IDbRowView<DefaultField>) => {
+            const defaultField: DefaultField = get(defaultFieldRowView);
+            if (selectedRowIds.includes(defaultField.id)) {
+                rowsToDelete.push(defaultField);
             }
         });
         selectedRowIds = [];
 
         // Delete rows
-        await defaultFields.deleteRows(rowsToDelete);
+        await conversationDefaultFields.deleteRows(rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'Default field deletion',
                 async () => {
-                    rowsToDelete = await defaultFields.createRows(rowsToDelete);
+                    rowsToDelete = await conversationDefaultFields.createRows(rowsToDelete);
                 },
                 async () => {
-                    await defaultFields.deleteRows(rowsToDelete);
+                    await conversationDefaultFields.deleteRows(rowsToDelete);
                 },
             ),
         );
@@ -145,10 +124,9 @@
             description="These fields will appear in all new conversation nodes.
             You can also apply these fields across existing nodes in the options menu."
             batchSelection
-            {nonSelectableRowIds}
             bind:selectedRowIds
             {headers}
-            rows={$defaultFields}
+            rows={$conversationDefaultFields}
         >
             <svelte:fragment slot="cell-header" let:header>
                 {header.value}

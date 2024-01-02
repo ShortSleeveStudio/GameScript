@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FIELD_TYPE_DROP_DOWN_ITEMS, type FieldRow } from '@lib/api/db/db-schema';
+    import { FIELD_TYPE_DROP_DOWN_ITEMS, type DefaultField } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -7,14 +7,14 @@
     import { onDestroy } from 'svelte';
     import type { Readable } from 'svelte/store';
 
-    export let rowView: IDbRowView<FieldRow>;
+    export let rowView: IDbRowView<DefaultField>;
 
     // TODO: https://svelte-5-preview.vercel.app/status
     const isLoading: Readable<boolean> = rowView.isColumnLoading('type');
     let boundValue: number = $rowView.type;
     let currentValue: number = $rowView.type;
     onDestroy(
-        rowView.subscribe((row: FieldRow) => {
+        rowView.subscribe((row: DefaultField) => {
             if (row.type !== currentValue) {
                 boundValue = row.type;
                 currentValue = row.type;
@@ -49,7 +49,7 @@
         size="sm"
         items={FIELD_TYPE_DROP_DOWN_ITEMS}
         bind:selectedId={boundValue}
-        disabled={$rowView.isDefault || $isApplyingDefaultFields}
+        disabled={$isApplyingDefaultFields}
         direction="top"
         on:select={onSelect}
     />

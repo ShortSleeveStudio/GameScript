@@ -135,7 +135,7 @@ export class SqliteDb extends Db {
         // Fetch rows
         const filterString: string = filter.toString();
         const query: string = `SELECT * FROM ${tableName} ${
-            filter ? `WHERE ${filterString}` : ''
+            filterString ? `WHERE ${filterString}` : ''
         } ORDER BY id ASC`;
         const results = await this._db.select<RowType[]>(query);
 
