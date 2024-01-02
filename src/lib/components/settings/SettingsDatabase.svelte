@@ -8,12 +8,13 @@
     import { Dropdown, FileUploaderItem, Button, Tag, Row, Column } from 'carbon-components-svelte';
     import { writeFile } from '@tauri-apps/plugin-fs';
     import { exists } from '@tauri-apps/plugin-fs';
-    import { save } from '@tauri-apps/plugin-dialog';
+    import { save, open } from '@tauri-apps/plugin-dialog';
     import { FILE_DB_EXTENSION_FILTER } from '@lib/constants/file';
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
     import type { FileDetails } from '@lib/utility/file-details';
     import { basename } from '@tauri-apps/api/path';
     import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
+    import { Add } from 'carbon-icons-svelte';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
@@ -24,8 +25,7 @@
             },
     );
 
-    // SQLite database file handler
-    async function handleSqliteFileDialog() {
+    async function sqliteDatabaseDialogNew() {
         // Grab file path
         let filePath: string | null = await save({
             title: 'Create or Select a Database',
@@ -36,7 +36,7 @@
         // Does the file exist
         const isExtant = await exists(filePath);
 
-        // Stat or touch file
+        // Touch file
         if (!isExtant) {
             // TODO: https://github.com/tauri-apps/plugins-workspace/issues/856
             await writeFile(filePath, new Uint8Array(), {});
@@ -47,6 +47,20 @@
             path: filePath,
             fileName: baseName,
         };
+    }
+
+    async function sqliteDatabaseDialogOpen() {
+        let file = await open({
+            multiple: false,
+            directory: false,
+            filters: [FILE_DB_EXTENSION_FILTER],
+        });
+        if (file && file.path) {
+            $dbSqlitePath = <FileDetails>{
+                path: file.path,
+                fileName: file.name,
+            };
+        }
     }
 
     function resetConnection() {
@@ -68,7 +82,13 @@
         {#if $dbType === 'SQLite'}
             <p>
                 <sup>Database File</sup>
-                <Button size="small" on:click={handleSqliteFileDialog}>Select database</Button>
+                <Button size="small" on:click={sqliteDatabaseDialogOpen}>Open Database</Button>
+                <Button
+                    size="small"
+                    iconDescription="New Database"
+                    on:click={sqliteDatabaseDialogNew}
+                    icon={Add}
+                ></Button>
                 {#if $dbSqlitePath.path}
                     <div class="button-span">
                         {#if $dbConnected}

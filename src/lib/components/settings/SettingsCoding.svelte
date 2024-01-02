@@ -11,11 +11,11 @@
     } from 'carbon-components-svelte';
     import CodingLanguageDropdown from './CodingLanguageDropdown.svelte';
     import { TrashCan } from 'carbon-icons-svelte';
-    import { programmingLanguagePrincipal } from '@lib/tables/programming-language-principal';
+    import FocusButton from '../common/FocusButton.svelte';
 
     const headers = [
-        { key: 'name', value: 'Name' },
-        { key: 'isDefault', value: 'Default' },
+        { key: 'name', value: 'Name', minWidth: '50%' },
+        { key: 'isDefault', value: 'Default', minWidth: '50%' },
     ];
     let selectedRowIds: number[] = [];
     let isLoading: boolean = false;
@@ -31,6 +31,9 @@
         selectedRowIds = [];
     }
 </script>
+
+here
+<FocusButton />
 
 <Row>
     <Column>

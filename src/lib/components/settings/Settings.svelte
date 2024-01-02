@@ -14,9 +14,6 @@
             <SettingsDatabase />
             {#if $dbConnected}
                 <SettingsConversationEditor />
-                <!-- {#if $defaultFieldsDialogue.length === 1} -->
-                <!-- <SettingsConversationEditor defaultFieldsNode={$defaultFieldsDialogue[0]} /> -->
-                <!-- {/if} -->
                 <SettingsCoding />
                 <SettingsActors />
             {/if}

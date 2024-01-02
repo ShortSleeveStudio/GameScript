@@ -24,16 +24,9 @@
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import {
         FIELD_TYPE_ID_ACTOR,
-        TABLE_NAME_FIELDS,
-        type FieldRow,
-        type NodeRow,
-        type Field,
         type DefaultField,
         TABLE_ID_CONVERSATIONS,
     } from '@lib/api/db/db-schema';
-    import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
-    import { createFilter } from '@lib/api/db/db-filter';
-    import { db } from '@lib/api/db/db';
     import { wait } from '@lib/utility/wait';
     import { conversationDefaultFields } from '@lib/tables/default-fields';
 
@@ -42,8 +35,8 @@
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
     const headers = [
-        { key: 'name', value: 'Name' },
-        { key: 'type', value: 'Type' },
+        { key: 'name', value: 'Name', minWidth: '50%' },
+        { key: 'type', value: 'Type', minWidth: '50%' },
     ];
     let selectedRowIds: number[] = [];
     let isModalOpen: boolean = false;
@@ -65,7 +58,6 @@
     }
 
     async function addRow(): Promise<void> {
-        console.log('FIX ME TO BE UNIQUE');
         let newDefaultField: DefaultField = <DefaultField>{
             name: 'New Field',
             type: FIELD_TYPE_ID_ACTOR,

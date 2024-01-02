@@ -1,5 +1,6 @@
 import { IsLoading } from '@lib/stores/utility/is-loading';
 import {
+    get,
     writable,
     type Invalidator,
     type Readable,
@@ -26,7 +27,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._filter = filter;
         this._isLoading = new IsLoading();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
-        this.onTableChange();
+        this.onReloadRequired();
     }
 
     // TODO: https://svelte-5-preview.vercel.app/status
@@ -91,8 +92,66 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._db.releaseTable(this);
     }
 
-    // TODO: take an argument
-    async onTableChange(): Promise<void> {
+    async onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void> {
+        const newList: IDbRowView<RowType>[] = [];
+        const oldList: IDbRowView<RowType>[] = get(this._internalWritable);
+        let oldI = 0;
+        let createdI = 0;
+        for (; createdI < rows.length && oldI < oldList.length; ) {
+            const oldRow: IDbRowView<RowType> = oldList[oldI];
+            const newRow: IDbRowView<RowType> = rows[createdI];
+
+            // Add new rows, retain old
+            if (oldRow.id < newRow.id) {
+                newList.push(oldRow);
+                oldI++;
+            } else if (oldRow.id > newRow.id) {
+                newList.push(newRow);
+                createdI++;
+            } else {
+                newList.push(newRow);
+                oldI++;
+                createdI++;
+            }
+        }
+        // Add any remaining rows
+        for (; oldI < oldList.length; oldI++) newList.push(oldList[oldI]);
+        for (; createdI < rows.length; createdI++) newList.push(rows[createdI]);
+
+        // Notify
+        this._internalWritable.set(newList);
+    }
+
+    async onRowsDeleted(rows: number[]): Promise<void> {
+        const newList: IDbRowView<RowType>[] = [];
+        const oldList: IDbRowView<RowType>[] = get(this._internalWritable);
+        // Sanity
+        if (rows.length > oldList.length) throw new Error('More rows deleted than exist');
+        let oldI = 0;
+        let deletedI = 0;
+        for (; deletedI < rows.length && oldI < oldList.length; ) {
+            const oldRow: IDbRowView<RowType> = oldList[oldI];
+            const deletedRowId: number = rows[deletedI];
+
+            // Retain non-deleted rows, skip deleted rows
+            if (oldRow.id < deletedRowId) {
+                newList.push(oldList[oldI]);
+                oldI++;
+            } else if (oldRow.id > deletedRowId) {
+                deletedI++;
+            } else {
+                oldI++;
+                deletedI++;
+            }
+        }
+        // Add any remaining new rows
+        for (; oldI < oldList.length; oldI++) newList.push(oldList[oldI]);
+
+        // Notify
+        this._internalWritable.set(newList);
+    }
+
+    async onReloadRequired(): Promise<void> {
         // Load new rows
         const newRowsViews: IDbRowView<RowType>[] = await this._db.fetchRows(
             this._tableName,

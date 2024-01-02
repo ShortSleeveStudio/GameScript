@@ -18,6 +18,7 @@ export interface TableAndRows<RowType extends Row> {
     rows: IDbRowView<RowType>[];
 }
 
+// TODO: see if we can ditch this entirely
 /**Convenience class to notify if a table or its rows are updated */
 export class TableAndRowStore<RowType extends Row> implements Readable<TableAndRows<RowType>> {
     private _db: Db;
@@ -35,7 +36,7 @@ export class TableAndRowStore<RowType extends Row> implements Readable<TableAndR
         this._filter = filter;
         this._table = this._db.fetchTable(this._tableName, this._filter);
         this._interalWritable = writable({ table: this._table, rows: [] });
-        this._unsubscribeTable = this._table.subscribe(this.onTableChange);
+        this._unsubscribeTable = this._table.subscribe(this.onTableChanged);
     }
     subscribe(
         run: Subscriber<TableAndRows<RowType>>,
@@ -51,7 +52,7 @@ export class TableAndRowStore<RowType extends Row> implements Readable<TableAndR
         this._db.releaseTable(this._table);
     }
 
-    private onTableChange = (rows: IDbRowView<RowType>[]) => {
+    private onTableChanged = (rows: IDbRowView<RowType>[]) => {
         const newMap: Map<number, Unsubscriber> = new Map();
         for (let i = 0; i < rows.length; i++) {
             // Grab row

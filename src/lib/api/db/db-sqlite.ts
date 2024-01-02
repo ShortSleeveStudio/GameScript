@@ -117,9 +117,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        for (let i = 0; i < rows.length; i++) {
-            this.notify<RowType>(OP_CREATE, tableName, rows[i]);
-        }
+        this.notify<RowType>(OP_CREATE, tableName, rows);
 
         // Return new id
         return rows;
@@ -150,7 +148,7 @@ export class SqliteDb extends Db {
             },
         );
 
-        // TODO: remove
+        // TODO: REMOVE THIS
         await wait(300);
 
         return newRowViews;
@@ -184,7 +182,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_UPDATE, tableName, row);
+        this.notify<RowType>(OP_UPDATE, tableName, [row]);
     }
 
     async deleteRow<RowType extends Row>(
@@ -213,9 +211,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        for (let i = 0; i < rows.length; i++) {
-            this.notify<RowType>(OP_DELETE, tableName, rows[i]);
-        }
+        this.notify<RowType>(OP_DELETE, tableName, rows);
     }
 
     async shutdown(): Promise<void> {
@@ -227,38 +223,73 @@ export class SqliteDb extends Db {
     // [C|U|D]
     // TableName
     // <object>
-    private notify<RowType extends Row>(op: OpType, tableName: DatabaseTableName, row: RowType) {
-        // let simplifiedRow: RowType;
-        // switch (tableName) {
-        //     case 'nodes':
-        //         break;
-        //     case 'fields':
-        //         break;
-        //     default:
-        //         throw new Error(`Invalid table was mutated: ${tableName}`);
-        // }
-        console.log('FIX ME');
-
+    // This will look very different for postgres
+    private notify<RowType extends Row>(op: OpType, tableName: DatabaseTableName, rows: RowType[]) {
         switch (op) {
             case OP_CREATE: {
-                this.notifyTableViews(tableName);
+                this.notifyOnRowCreated(tableName, rows);
                 break;
             }
             case OP_DELETE: {
-                this.notifyTableViews(tableName);
+                this.notifyOnRowDeleted(tableName, rows);
                 break;
             }
             case OP_UPDATE: {
-                const rowView = this.getOrCreateRowView(
-                    this.getRowViewsForTable(tableName),
-                    tableName,
-                    row,
-                );
-                rowView.onRowUpdated(row);
+                this.notifyOnRowChanged(tableName, rows);
                 break;
             }
             default:
                 throw new Error(`Unknown database operation type encountered: ${op}`);
+        }
+    }
+
+    private notifyOnRowCreated<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
+        // Fetch row views for the table view to store
+        const rowViews: IDbRowView<RowType>[] = <IDbRowView<RowType>[]>[];
+        const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableName);
+        for (let i = 0; i < rows.length; i++) {
+            const rowView: IDbRowView<RowType> = this.getOrCreateRowView(
+                rowViewMap,
+                tableName,
+                rows[i],
+            );
+            rowViews.push(rowView);
+        }
+
+        // Notify the table views of the created rows
+        const tableViewList: IDbTableView<RowType>[] =
+            this.getTableViewsForTable<RowType>(tableName);
+        for (let i = 0; i < tableViewList.length; i++) {
+            const tableView: IDbTableView<RowType> = tableViewList[i];
+            if (tableView.filter.wouldAffectRows(rows)) {
+                tableViewList[i].onRowsCreated(rowViews);
+            }
+        }
+    }
+
+    private notifyOnRowDeleted<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
+        // Create a list of deleted row ids
+        const deletedRowIds: number[] = [];
+        for (let i = 0; i < rows.length; i++) {
+            deletedRowIds.push(rows[i].id);
+        }
+
+        // Notify the table views of the deleted rows
+        const tableViewList: IDbTableView<RowType>[] =
+            this.getTableViewsForTable<RowType>(tableName);
+        for (let i = 0; i < tableViewList.length; i++) {
+            const tableView: IDbTableView<RowType> = tableViewList[i];
+            if (tableView.filter.wouldAffectRows(rows)) {
+                tableView.onRowsDeleted(deletedRowIds);
+            }
+        }
+    }
+
+    private notifyOnRowChanged<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
+        const rowViews = this.getRowViewsForTable(tableName);
+        for (let i = 0; i < rows.length; i++) {
+            const rowView = rowViews?.get(rows[i].id);
+            rowView?.onRowUpdated(rows[i]);
         }
     }
 
@@ -277,7 +308,7 @@ export class SqliteDb extends Db {
         // Notify tables
         this._tableToTableView.forEach((tableViewList: IDbTableView<Row>[]) => {
             for (let i = 0; i < tableViewList.length; i++) {
-                tableViewList[i].onTableChange();
+                tableViewList[i].onReloadRequired();
             }
         });
     };
@@ -305,14 +336,6 @@ export class SqliteDb extends Db {
             throw e;
         }
     };
-
-    private notifyTableViews<RowType extends Row>(tableName: string) {
-        const tableViewList: IDbTableView<RowType>[] =
-            this.getTableViewsForTable<RowType>(tableName);
-        for (let i = 0; i < tableViewList.length; i++) {
-            tableViewList[i].onTableChange();
-        }
-    }
 
     private getTableViewsForTable<RowType extends Row>(tableName: string): IDbTableView<RowType>[] {
         let tableViewList: IDbTableView<RowType>[] = <IDbTableView<RowType>[]>(
@@ -342,7 +365,7 @@ export class SqliteDb extends Db {
         rowViews: Map<number, IDbRowView<RowType>>,
         tableName: DatabaseTableName,
         row: RowType,
-    ) {
+    ): IDbRowView<RowType> {
         let rowView = rowViews.get(row.id);
         if (!rowView) {
             rowView = new DbRowView<RowType>(<Db>this, tableName, row);

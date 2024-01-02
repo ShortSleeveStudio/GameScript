@@ -1,4 +1,5 @@
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
+import type { Filter } from './db-filter-interface';
 import { type DatabaseTableName, type Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
@@ -13,6 +14,7 @@ import type { IDbRowView } from './db-view-row-interface';
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
     isLoading: Readable<boolean>;
     tableName: DatabaseTableName;
+    filter: Filter<RowType>;
     subscribe(
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
@@ -22,11 +24,10 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     deleteRow(row: RowType): Promise<void>;
     deleteRows(rows: RowType[]): Promise<void>;
     dispose(): void;
-    /**
-     * Change has taken place, the table view must be updated. The _rows will be kept sorted.
-     * NOTE: this is a readable store so we don't have a propagate changes back to the db. :)
-     * TODO: make this more efficient
-     * @internal
-     */
-    onTableChange(): Promise<void>;
+    /**@internal */
+    onRowsDeleted(rows: number[]): Promise<void>;
+    /**@internal */
+    onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void>;
+    /**@internal */
+    onReloadRequired(): Promise<void>;
 }
