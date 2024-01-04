@@ -5,6 +5,9 @@
 import '@lib/api/db/db';
 import '@lib/api/system/window';
 
+// Monaco
+import '@lib/utility/monaco';
+
 // Store
 import '@lib/stores/app/darkmode';
 import '@lib/stores/app/maximized';

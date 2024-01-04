@@ -1,6 +1,6 @@
 import { LS_KEY_DARKMODE } from '@lib/constants/local-storage';
 import { persisted } from '@lib/vendor/svelte-persisted-store';
-import { get, type Writable } from 'svelte/store';
+import { get, writable, type Writable } from 'svelte/store';
 
 // Media match query
 const systemThemeQuery: string = '(prefers-color-scheme: dark)';
@@ -15,6 +15,7 @@ export type Darkmode = (typeof validDarkmodes)[number];
  * Darkmode is a store for the current user darkmode preference.
  */
 export const darkmode: Writable<Darkmode> = persisted(LS_KEY_DARKMODE, validDarkmodes[0]);
+export const isDarkMode: Writable<boolean> = writable<boolean>(true);
 
 // Make sure schema matches, or delete the old value
 if (validDarkmodes.includes(get(darkmode))) {
@@ -52,8 +53,10 @@ function setDarkMode(isDark: boolean) {
     if (isDark) {
         document.documentElement.setAttribute('theme', 'g90');
         document.documentElement.style.colorScheme = 'dark';
+        isDarkMode.set(true);
     } else {
         document.documentElement.setAttribute('theme', 'g10');
         document.documentElement.style.colorScheme = 'light';
+        isDarkMode.set(false);
     }
 }

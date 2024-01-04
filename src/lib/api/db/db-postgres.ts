@@ -1,7 +1,7 @@
 import type { Writable } from 'svelte/store';
 import { Db } from './db-base';
 import type { Filter } from './db-filter-interface';
-import type { DatabaseTableName, Row } from './db-schema';
+import type { DatabaseTableId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -11,36 +11,33 @@ export class PostgresDb extends Db {
         super(isConnected);
     }
     fetchTable<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): IDbTableView<RowType> {
-        throw new Error(`Method not implemented. ${tableName} ${filter}`);
+        throw new Error(`Method not implemented. ${tableId} ${filter}`);
     }
-    releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
-        throw new Error(`Method not implemented. ${tableView}`);
+    releaseTable<RowType extends Row>(tableId: IDbTableView<RowType>): void {
+        throw new Error(`Method not implemented. ${tableId}`);
     }
-    createRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<RowType> {
-        throw new Error(`Method not implemented. ${tableName} ${row}`);
+    createRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<RowType> {
+        throw new Error(`Method not implemented. ${tableId} ${row}`);
     }
-    createRows<RowType extends Row>(
-        tableName: DatabaseTableName,
-        rows: RowType[],
-    ): Promise<RowType[]> {
-        throw new Error(`Method not implemented. ${tableName} ${rows}`);
+    createRows<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]): Promise<RowType[]> {
+        throw new Error(`Method not implemented. ${tableId} ${rows}`);
     }
     fetchRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): Promise<IDbRowView<RowType>[]> {
-        throw new Error(`Method not implemented. ${tableName} ${filter}`);
+        throw new Error(`Method not implemented. ${tableId} ${filter}`);
     }
-    updateRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<void> {
-        throw new Error(`Method not implemented. ${tableName} ${row}`);
+    updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${row}`);
     }
-    deleteRow<RowType extends Row>(tableName: DatabaseTableName, row: RowType): Promise<void> {
-        throw new Error(`Method not implemented. ${tableName} ${row}`);
+    deleteRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${row}`);
     }
-    deleteRows<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]): Promise<void> {
-        throw new Error(`Method not implemented. ${tableName} ${rows}`);
+    deleteRows<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${rows}`);
     }
 }

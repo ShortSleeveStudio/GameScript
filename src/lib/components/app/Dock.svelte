@@ -1,6 +1,12 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { EVENT_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
+    import {
+        EVENT_RESET_LAYOUT,
+        EVENT_SELECTION_REQUEST,
+        EVENT_SHUTDOWN,
+        isCustomEvent,
+        type SelectionRequest,
+    } from '@lib/constants/events';
     import type { ComponentContainer } from '@lib/vendor/golden-layout/ts/container/component-container';
     import { GoldenLayout } from '@lib/vendor/golden-layout/ts/golden-layout';
     import {
@@ -15,6 +21,16 @@
         CONVERSATION_FINDER_LAYOUT,
         DEFAULT_LAYOUT,
         INSPECTOR_LAYOUT,
+        LAYOUT_ID_ACTORS,
+        LAYOUT_ID_BUILD,
+        LAYOUT_ID_CONVERSATION_EDITOR,
+        LAYOUT_ID_CONVERSATION_FINDER,
+        LAYOUT_ID_INSPECTOR,
+        LAYOUT_ID_LOCALES,
+        LAYOUT_ID_LOCALIZATION_EDITOR,
+        LAYOUT_ID_LOCALIZATION_FINDER,
+        LAYOUT_ID_SEARCH,
+        LAYOUT_ID_SETTINGS,
         LOCALES_LAYOUT,
         LOCALIZATION_EDITOR_LAYOUT,
         LOCALIZATION_FINDER_LAYOUT,
@@ -141,67 +157,74 @@
         addEventListener(EVENT_RESET_LAYOUT, (e: Event) => {
             goldenLayout.loadLayout(DEFAULT_LAYOUT);
         });
+        addEventListener(EVENT_SELECTION_REQUEST, (e: Event) => {
+            if (!isCustomEvent(e)) throw new Error('Selection request was missing payload');
+            const selectionRequest = e as CustomEvent<SelectionRequest>;
+            const layoutId = selectionRequest.detail.layoutId;
+            const info: DockableInfo = findDockable(layoutId);
+            info.currentContainer?.focus();
+        });
     });
 </script>
 
 <main id="dock" bind:this={dock}></main>
 <del id="hidden" bind:this={hidden}>
     <Dockable
-        name="actors"
+        name={LAYOUT_ID_ACTORS}
         isVisible={actorsIsVisible}
         layout={layoutReadable}
         layoutConfig={ACTORS_LAYOUT}><Actors /></Dockable
     >
     <Dockable
-        name="build"
+        name={LAYOUT_ID_BUILD}
         isVisible={buildIsVisible}
         layout={layoutReadable}
         layoutConfig={BUILD_LAYOUT}><Build /></Dockable
     >
     <Dockable
-        name="conversation-editor"
+        name={LAYOUT_ID_CONVERSATION_EDITOR}
         isVisible={conversationEditorIsVisible}
         layout={layoutReadable}
         layoutConfig={CONVERSATION_EDITOR_LAYOUT}><ConversationEditor /></Dockable
     >
     <Dockable
-        name="conversation-finder"
+        name={LAYOUT_ID_CONVERSATION_FINDER}
         isVisible={conversationFinderIsVisible}
         layout={layoutReadable}
         layoutConfig={CONVERSATION_FINDER_LAYOUT}><ConversationFinder /></Dockable
     >
     <Dockable
-        name="inspector"
+        name={LAYOUT_ID_INSPECTOR}
         isVisible={inspectorIsVisible}
         layout={layoutReadable}
         layoutConfig={INSPECTOR_LAYOUT}><Inspector /></Dockable
     >
     <Dockable
-        name="locales"
+        name={LAYOUT_ID_LOCALES}
         isVisible={localesIsVisible}
         layout={layoutReadable}
         layoutConfig={LOCALES_LAYOUT}><Locales /></Dockable
     >
     <Dockable
-        name="localization-editor"
+        name={LAYOUT_ID_LOCALIZATION_EDITOR}
         isVisible={localizationEditorIsVisible}
         layout={layoutReadable}
         layoutConfig={LOCALIZATION_EDITOR_LAYOUT}><LocalizationEditor /></Dockable
     >
     <Dockable
-        name="localization-finder"
+        name={LAYOUT_ID_LOCALIZATION_FINDER}
         isVisible={localizationFinderIsVisible}
         layout={layoutReadable}
         layoutConfig={LOCALIZATION_FINDER_LAYOUT}><LocalizationFinder /></Dockable
     >
     <Dockable
-        name="search"
+        name={LAYOUT_ID_SEARCH}
         isVisible={searchIsVisible}
         layout={layoutReadable}
         layoutConfig={SEARCH_LAYOUT}><Search /></Dockable
     >
     <Dockable
-        name="settings"
+        name={LAYOUT_ID_SETTINGS}
         isVisible={settingsIsVisible}
         layout={layoutReadable}
         layoutConfig={SETTINGS_LAYOUT}><Settings /></Dockable

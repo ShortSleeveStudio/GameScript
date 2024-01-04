@@ -1,6 +1,6 @@
 import type { Db } from '@lib/api/db/db-base';
 import type { Filter } from '@lib/api/db/db-filter-interface';
-import type { DatabaseTableName, Row } from '@lib/api/db/db-schema';
+import type { DatabaseTableId, Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 import {
@@ -22,19 +22,19 @@ export interface TableAndRows<RowType extends Row> {
 /**Convenience class to notify if a table or its rows are updated */
 export class TableAndRowStore<RowType extends Row> implements Readable<TableAndRows<RowType>> {
     private _db: Db;
-    private _tableName: DatabaseTableName;
+    private _tableId: DatabaseTableId;
     private _filter: Filter<RowType>;
     private _table: IDbTableView<RowType>;
     private _unsubscribeTable: Unsubscriber;
     private _rowIdToRowUnsubscribe: Map<number, Unsubscriber>;
     private _interalWritable: Writable<TableAndRows<RowType>>;
 
-    constructor(db: Db, tableName: DatabaseTableName, filter: Filter<RowType>) {
+    constructor(db: Db, tableId: DatabaseTableId, filter: Filter<RowType>) {
         this._rowIdToRowUnsubscribe = new Map();
         this._db = db;
-        this._tableName = tableName;
+        this._tableId = tableId;
         this._filter = filter;
-        this._table = this._db.fetchTable(this._tableName, this._filter);
+        this._table = this._db.fetchTable(this._tableId, this._filter);
         this._interalWritable = writable({ table: this._table, rows: [] });
         this._unsubscribeTable = this._table.subscribe(this.onTableChanged);
     }

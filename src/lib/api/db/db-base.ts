@@ -1,7 +1,7 @@
 import type Database from '@tauri-apps/plugin-sql';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import type { DatabaseTableName, Row } from './db-schema';
+import type { DatabaseTableId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -23,10 +23,10 @@ export abstract class Db {
 
     /**
      * Creates a table view.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      */
     abstract fetchTable<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): IDbTableView<RowType>;
 
@@ -40,11 +40,11 @@ export abstract class Db {
      * This creates a single row in the table.
      * Throws an error during failures.
      * Returns the id of the newly created row.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      * @param row The row to create
      */
     abstract createRow<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         row: RowType,
     ): Promise<RowType>;
 
@@ -52,11 +52,11 @@ export abstract class Db {
      * This creates a list of rows in the table.
      * Throws an error during failures.
      * Returns the rows with their id fields populated.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      * @param rows The rows to create
      */
     abstract createRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<RowType[]>;
 
@@ -64,42 +64,36 @@ export abstract class Db {
      * The fetches (all) rows in a table and returns them sorted by id.
      * TODO: filter rows so the data isn't so huge
      * Throws an error during failures.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      */
     abstract fetchRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): Promise<IDbRowView<RowType>[]>;
 
     /**
      * This updates a single row in a table.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      * @param row The row to update
      */
-    abstract updateRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<void>;
+    abstract updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void>;
 
     /**
      * This deletes a single row in the table.
      * Throws an error during failures.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      * @param row The row to delete
      */
-    abstract deleteRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<void>;
+    abstract deleteRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void>;
 
     /**
      * This deletes a list of rows in the table.
      * Throws an error during failures.
-     * @param tableName Name of the table
+     * @param tableId Id of the table
      * @param rows The rows to delete
      */
     abstract deleteRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<void>;
 

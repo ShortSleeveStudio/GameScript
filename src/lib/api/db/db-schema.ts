@@ -9,6 +9,9 @@ export interface Row {
     id: number;
     name: string;
 }
+export interface Annotated {
+    notes: string; // used for developer notes
+}
 
 ///
 /// Tables
@@ -70,7 +73,7 @@ export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 11;
 export const TABLE_ID_NODES: DatabaseTableId = 12;
 export const TABLE_ID_FIELD_TYPES: DatabaseTableId = 13;
 export const TABLE_ID_FIELDS: DatabaseTableId = 14;
-export const TABLE_ID_FIELD_DEFAULTS: DatabaseTableId = 15;
+export const TABLE_ID_DEFAULT_FIELDS: DatabaseTableId = 15;
 
 ///
 /// Auto-Completes
@@ -119,8 +122,9 @@ export interface ProgrammingLanguagePrincipal extends Row {
 ///
 /// Routines
 ///
-export interface Routine extends Row {
+export interface Routine extends Row, Annotated {
     code: string;
+    isDefault: boolean;
 }
 
 ///
@@ -167,24 +171,22 @@ export interface ActorPrincipal extends Row {
 ///
 /// Conversations
 ///
-export interface Conversation extends Row {
+export interface Conversation extends Row, Annotated {
     parent: number; // FK Conversation
     isFolder: boolean;
-    notes: string;
     // UNIQUE(parent, name)
 }
 
 ///
 /// Nodes
 ///
-export interface Node extends Row {
+export interface Node extends Row, Annotated {
     parent: number; // FK Conversation
     actor: number; // FK Actors
     uiText: number; // FK Localizations
     voiceText: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
-    notes: string;
 }
 
 ///

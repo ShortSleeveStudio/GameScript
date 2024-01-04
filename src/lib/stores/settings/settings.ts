@@ -2,6 +2,7 @@ import { DATABASE_TYPE_NAMES, type DatabaseTypeName } from '@lib/api/db/db-types
 import {
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
+    LS_KEY_SETTINGS_DEFAULT_ROUTINE,
 } from '@lib/constants/local-storage';
 import type { FileDetails } from '@lib/utility/file-details';
 import { persisted } from '@lib/vendor/svelte-persisted-store';
@@ -31,5 +32,6 @@ export const dbSqlitePathError: Writable<string> = writable('Invalid database fi
 ///
 
 ///
-/// Scripting Settings
+/// Coding Settings
 ///
+export const defaultRoutine: Writable<number> = persisted(LS_KEY_SETTINGS_DEFAULT_ROUTINE, 0);

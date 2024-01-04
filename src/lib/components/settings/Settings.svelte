@@ -3,7 +3,7 @@
     import { Content, Grid } from 'carbon-components-svelte';
 
     import SettingsDatabase from './SettingsDatabase.svelte';
-    import SettingsConversationEditor from './SettingsConversationEditor.svelte';
+    import SettingsConversations from './SettingsConversations.svelte';
     import SettingsCoding from './SettingsCoding.svelte';
     import SettingsActors from './SettingsActors.svelte';
 </script>
@@ -13,7 +13,7 @@
         <Grid noGutter>
             <SettingsDatabase />
             {#if $dbConnected}
-                <SettingsConversationEditor />
+                <SettingsConversations />
                 <SettingsCoding />
                 <SettingsActors />
             {/if}

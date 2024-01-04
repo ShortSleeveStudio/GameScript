@@ -10,20 +10,25 @@ import {
 } from 'svelte/store';
 import type { Db } from './db-base';
 import type { Filter } from './db-filter-interface';
-import { type DatabaseTableName, type Row } from './db-schema';
+import {
+    DATABASE_TABLE_NAMES,
+    type DatabaseTableId,
+    type DatabaseTableName,
+    type Row,
+} from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _db: Db;
-    private _tableName: DatabaseTableName;
+    private _tableId: DatabaseTableId;
     private _isLoading: IsLoading;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
 
-    constructor(database: Db, tableName: DatabaseTableName, filter: Filter<RowType>) {
+    constructor(database: Db, tableId: DatabaseTableId, filter: Filter<RowType>) {
         this._db = database;
-        this._tableName = tableName;
+        this._tableId = tableId;
         this._filter = filter;
         this._isLoading = new IsLoading();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
@@ -35,8 +40,12 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         return this._isLoading;
     }
 
+    get tableId(): DatabaseTableId {
+        return this._tableId;
+    }
+
     get tableName(): DatabaseTableName {
-        return this._tableName;
+        return DATABASE_TABLE_NAMES[this.tableId];
     }
 
     get filter(): Filter<RowType> {
@@ -53,7 +62,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async createRow(row: RowType): Promise<RowType> {
         this._isLoading.increment();
         try {
-            row = await this._db.createRow<RowType>(this._tableName, row);
+            row = await this._db.createRow<RowType>(this._tableId, row);
         } finally {
             this._isLoading.decrement();
         }
@@ -63,7 +72,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async createRows(rows: RowType[]): Promise<RowType[]> {
         this._isLoading.increment();
         try {
-            rows = await this._db.createRows<RowType>(this._tableName, rows);
+            rows = await this._db.createRows<RowType>(this._tableId, rows);
         } finally {
             this._isLoading.decrement();
         }
@@ -73,7 +82,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async deleteRow(row: RowType): Promise<void> {
         this._isLoading.increment();
         try {
-            await this._db.deleteRow<RowType>(this._tableName, row);
+            await this._db.deleteRow<RowType>(this._tableId, row);
         } finally {
             this._isLoading.decrement();
         }
@@ -82,7 +91,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async deleteRows(rows: RowType[]): Promise<void> {
         this._isLoading.increment();
         try {
-            await this._db.deleteRows<RowType>(this._tableName, rows);
+            await this._db.deleteRows<RowType>(this._tableId, rows);
         } finally {
             this._isLoading.decrement();
         }
@@ -154,7 +163,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async onReloadRequired(): Promise<void> {
         // Load new rows
         const newRowsViews: IDbRowView<RowType>[] = await this._db.fetchRows(
-            this._tableName,
+            this._tableId,
             this._filter,
         );
 

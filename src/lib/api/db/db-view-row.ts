@@ -9,20 +9,20 @@ import {
     type Writable,
 } from 'svelte/store';
 import type { Db } from './db-base';
-import type { DatabaseTableName, Row } from './db-schema';
+import type { DatabaseTableId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */
 export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     private _db: Db;
-    private _tableName: DatabaseTableName;
+    private _tableId: DatabaseTableId;
     private _isLoading: IsLoading;
     private _internalWritable: Writable<RowType>;
     private _columnLoadingMap: Map<string, IsLoading>;
 
-    constructor(database: Db, tableName: DatabaseTableName, row: RowType) {
+    constructor(database: Db, tableId: DatabaseTableId, row: RowType) {
         this._db = database;
-        this._tableName = tableName;
+        this._tableId = tableId;
         this._isLoading = new IsLoading();
         this._internalWritable = writable<RowType>(row);
         this._columnLoadingMap = new Map();
@@ -36,7 +36,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     }
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    get isLoading(): Readable<boolean> {
+    get isLoading(): IsLoading {
         return this._isLoading;
     }
 
@@ -46,7 +46,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
     async updateRow(row: RowType): Promise<void> {
         this._isLoading.increment();
-        await this._db.updateRow(this._tableName, row);
+        await this._db.updateRow(this._tableId, row);
         this._isLoading.decrement();
     }
 
@@ -60,7 +60,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
         const rowVal: RowType = get(this._internalWritable);
         rowVal[columnName] = columnValue;
-        await this._db.updateRow(this._tableName, rowVal);
+        await this._db.updateRow(this._tableId, rowVal);
 
         columnIsLoading.decrement();
         this._isLoading.decrement();

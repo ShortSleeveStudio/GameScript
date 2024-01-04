@@ -1,11 +1,12 @@
+import type { Focusable } from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import type { FileDetails } from '@lib/utility/file-details';
 import { wait } from '@lib/utility/wait';
 import Database, { type QueryResult } from '@tauri-apps/plugin-sql';
-import { type Unsubscriber, type Writable } from 'svelte/store';
+import { get, type Unsubscriber, type Writable } from 'svelte/store';
 import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType } from './db-base';
 import type { Filter } from './db-filter-interface';
-import { type DatabaseTableName, type Row } from './db-schema';
+import { DATABASE_TABLE_NAMES, type DatabaseTableId, type Row } from './db-schema';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -19,66 +20,68 @@ import type { IDbTableView } from './db-view-table-interface';
  * C:\Users\<username>\AppData\Roaming\com.tauri.dev\GameScript.db
  */
 export class SqliteDb extends Db {
-    private _tableToRowView: Map<string, Map<number, IDbRowView<Row>>>;
-    private _tableToTableView: Map<string, IDbTableView<Row>[]>;
+    private _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
+    private _tableToTableView: IDbTableView<Row>[][]; // Lookup table using table id
     private _unsubscribeSqlitePath: Unsubscriber;
     private _unsubscribeDbConnected: Unsubscriber;
     private _sqlitePathStore: Writable<FileDetails>;
     private _dbSqlitePathError: Writable<string>;
     private _notificationManager: NotificationManager;
+    private _focused: Writable<Focusable>;
 
     constructor(
         isConnected: Writable<boolean>,
         sqlitePathStore: Writable<FileDetails>,
         dbSqlitePathError: Writable<string>,
         notificationManager: NotificationManager,
+        focused: Writable<Focusable>,
     ) {
         super(isConnected);
-        this._tableToRowView = new Map();
-        this._tableToTableView = new Map();
+        this._tableToRowView = <Map<number, IDbRowView<Row>>[]>(
+            DATABASE_TABLE_NAMES.map(() => new Map())
+        );
+        this._tableToTableView = <IDbTableView<Row>[][]>DATABASE_TABLE_NAMES.map(() => []);
         this._sqlitePathStore = sqlitePathStore;
         this._dbSqlitePathError = dbSqlitePathError;
         this._notificationManager = notificationManager;
+        this._focused = focused;
         this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
         this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
     }
 
     fetchTable<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): IDbTableView<RowType> {
         // Create view
-        const tableView = new DbTableView<RowType>(<Db>this, tableName, filter);
+        const tableView = new DbTableView<RowType>(<Db>this, tableId, filter);
 
         // Store it in the map
-        this.getTableViewsForTable(tableName).push(tableView);
+        this.getTableViewsForTable(tableId).push(tableView);
 
         // Return
         return tableView;
     }
 
     releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
-        const tableViews: IDbTableView<RowType>[] = this.getTableViewsForTable(tableView.tableName);
+        const tableViews: IDbTableView<RowType>[] = this.getTableViewsForTable(tableView.tableId);
         const indexToRemove: number = tableViews.indexOf(tableView);
         if (indexToRemove > -1) {
             tableViews.splice(indexToRemove, 1);
         }
         // No more table views, remove the row views too
         if (tableViews.length === 0) {
-            this._tableToRowView.delete(tableView.tableName);
+            this._tableToRowView[tableView.tableId] = new Map();
         }
     }
 
-    async createRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<RowType> {
+    async createRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<RowType> {
         this.assertConnected();
-        return (await this.createRows(tableName, [row]))[0];
+        return (await this.createRows(tableId, [row]))[0];
     }
 
     async createRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<RowType[]> {
         this.assertConnected();
@@ -104,7 +107,7 @@ export class SqliteDb extends Db {
 
             // Execute
             const result: QueryResult = await this._db.execute(
-                `INSERT INTO ${tableName} (${propertyNames}) VALUES (${placeHolders});`,
+                `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`,
                 argumentArray,
             );
             this.assertQueryResult(result, 'Failed to create row');
@@ -117,7 +120,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_CREATE, tableName, rows);
+        this.notify<RowType>(OP_CREATE, tableId, rows);
 
         // Return new id
         return rows;
@@ -125,26 +128,26 @@ export class SqliteDb extends Db {
 
     // TODO: add filters and aliases
     async fetchRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): Promise<IDbRowView<RowType>[]> {
         if (!this.isConnected()) return <IDbRowView<RowType>[]>[];
 
         // Fetch rows
         const filterString: string = filter.toString();
-        const query: string = `SELECT * FROM ${tableName} ${
+        const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${
             filterString ? `WHERE ${filterString}` : ''
         } ORDER BY id ASC`;
         const results = await this._db.select<RowType[]>(query);
 
         // Fetch row views
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableName);
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
 
         // Map to row views
         const newRowViews: IDbRowView<RowType>[] = results.map<IDbRowView<RowType>>(
             (result: RowType) => {
                 // Fetched cached row view, or create a new one if it doesn't exist
-                return this.getOrCreateRowView(rowViews, tableName, result);
+                return this.getOrCreateRowView(rowViews, tableId, result);
             },
         );
 
@@ -154,10 +157,7 @@ export class SqliteDb extends Db {
         return newRowViews;
     }
 
-    async updateRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<void> {
+    async updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
         this.assertConnected();
         // Generate query arguments
         let keyValuePairs: string = '';
@@ -174,7 +174,9 @@ export class SqliteDb extends Db {
         argumentArray.push(row.id);
 
         // Execute
-        const query = `UPDATE ${tableName} SET ${keyValuePairs} WHERE id = $${++i};`;
+        const query = `UPDATE ${
+            DATABASE_TABLE_NAMES[tableId]
+        } SET ${keyValuePairs} WHERE id = $${++i};`;
         const result: QueryResult = await this._db.execute(query, argumentArray);
         this.assertQueryResult(result, 'Failed to update row');
 
@@ -182,36 +184,35 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_UPDATE, tableName, [row]);
+        this.notify<RowType>(OP_UPDATE, tableId, [row]);
     }
 
-    async deleteRow<RowType extends Row>(
-        tableName: DatabaseTableName,
-        row: RowType,
-    ): Promise<void> {
+    async deleteRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
         this.assertConnected();
-        await this.deleteRows(tableName, [row]);
+        await this.deleteRows(tableId, [row]);
     }
 
     async deleteRows<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<void> {
         this.assertConnected();
         // Delete
         const result: QueryResult = await this._db.execute(
-            `DELETE FROM ${tableName} WHERE id IN (${rows.map((row) => row.id).join(', ')})`,
+            `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
+                .map((row) => row.id)
+                .join(', ')})`,
         );
         this.assertQueryResult(result, 'Failed to delete row');
 
         // Remove from cache
-        this.removeRowViews(tableName, rows);
+        this.removeRowViews(tableId, rows);
 
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_DELETE, tableName, rows);
+        this.notify<RowType>(OP_DELETE, tableId, rows);
     }
 
     async shutdown(): Promise<void> {
@@ -220,22 +221,19 @@ export class SqliteDb extends Db {
         this._unsubscribeDbConnected();
     }
 
-    // [C|U|D]
-    // TableName
-    // <object>
     // This will look very different for postgres
-    private notify<RowType extends Row>(op: OpType, tableName: DatabaseTableName, rows: RowType[]) {
+    private notify<RowType extends Row>(op: OpType, tableId: DatabaseTableId, rows: RowType[]) {
         switch (op) {
             case OP_CREATE: {
-                this.notifyOnRowCreated(tableName, rows);
+                this.notifyOnRowCreated(tableId, rows);
                 break;
             }
             case OP_DELETE: {
-                this.notifyOnRowDeleted(tableName, rows);
+                this.notifyOnRowDeleted(tableId, rows);
                 break;
             }
             case OP_UPDATE: {
-                this.notifyOnRowChanged(tableName, rows);
+                this.notifyOnRowChanged(tableId, rows);
                 break;
             }
             default:
@@ -243,22 +241,21 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowCreated<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
+    private notifyOnRowCreated<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
         // Fetch row views for the table view to store
         const rowViews: IDbRowView<RowType>[] = <IDbRowView<RowType>[]>[];
-        const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableName);
+        const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
         for (let i = 0; i < rows.length; i++) {
             const rowView: IDbRowView<RowType> = this.getOrCreateRowView(
                 rowViewMap,
-                tableName,
+                tableId,
                 rows[i],
             );
             rowViews.push(rowView);
         }
 
         // Notify the table views of the created rows
-        const tableViewList: IDbTableView<RowType>[] =
-            this.getTableViewsForTable<RowType>(tableName);
+        const tableViewList: IDbTableView<RowType>[] = this.getTableViewsForTable<RowType>(tableId);
         for (let i = 0; i < tableViewList.length; i++) {
             const tableView: IDbTableView<RowType> = tableViewList[i];
             if (tableView.filter.wouldAffectRows(rows)) {
@@ -267,7 +264,7 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowDeleted<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
+    private notifyOnRowDeleted<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
         // Create a list of deleted row ids
         const deletedRowIds: number[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -275,8 +272,7 @@ export class SqliteDb extends Db {
         }
 
         // Notify the table views of the deleted rows
-        const tableViewList: IDbTableView<RowType>[] =
-            this.getTableViewsForTable<RowType>(tableName);
+        const tableViewList: IDbTableView<RowType>[] = this.getTableViewsForTable<RowType>(tableId);
         for (let i = 0; i < tableViewList.length; i++) {
             const tableView: IDbTableView<RowType> = tableViewList[i];
             if (tableView.filter.wouldAffectRows(rows)) {
@@ -285,8 +281,8 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowChanged<RowType extends Row>(tableName: DatabaseTableName, rows: RowType[]) {
-        const rowViews = this.getRowViewsForTable(tableName);
+    private notifyOnRowChanged<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
+        const rowViews = this.getRowViewsForTable(tableId);
         for (let i = 0; i < rows.length; i++) {
             const rowView = rowViews?.get(rows[i].id);
             rowView?.onRowUpdated(rows[i]);
@@ -337,46 +333,50 @@ export class SqliteDb extends Db {
         }
     };
 
-    private getTableViewsForTable<RowType extends Row>(tableName: string): IDbTableView<RowType>[] {
-        let tableViewList: IDbTableView<RowType>[] = <IDbTableView<RowType>[]>(
-            this._tableToTableView.get(tableName)
-        );
-        if (!tableViewList) {
-            tableViewList = [];
-            this._tableToTableView.set(tableName, tableViewList);
-        }
-        return tableViewList;
+    private getTableViewsForTable<RowType extends Row>(
+        tableId: DatabaseTableId,
+    ): IDbTableView<RowType>[] {
+        return <IDbTableView<RowType>[]>this._tableToTableView[tableId];
     }
 
     private getRowViewsForTable<RowType extends Row>(
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
     ): Map<number, IDbRowView<RowType>> {
         let rowViewMap: Map<number, IDbRowView<RowType>> = <Map<number, IDbRowView<RowType>>>(
-            this._tableToRowView.get(tableName)
+            this._tableToRowView[tableId]
         );
         if (!rowViewMap) {
             rowViewMap = new Map();
-            this._tableToRowView.set(tableName, rowViewMap);
+            this._tableToRowView[tableId] = rowViewMap;
         }
         return rowViewMap;
     }
 
     private getOrCreateRowView<RowType extends Row>(
         rowViews: Map<number, IDbRowView<RowType>>,
-        tableName: DatabaseTableName,
+        tableId: DatabaseTableId,
         row: RowType,
     ): IDbRowView<RowType> {
         let rowView = rowViews.get(row.id);
         if (!rowView) {
-            rowView = new DbRowView<RowType>(<Db>this, tableName, row);
+            rowView = new DbRowView<RowType>(<Db>this, tableId, row);
             rowViews.set(row.id, rowView);
         }
         return rowView;
     }
 
-    private removeRowViews<RowType extends Row>(tableName: DatabaseTableName, row: RowType[]) {
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableName);
-        row.forEach((row) => rowViews.delete(row.id));
+    private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]) {
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
+        const focused = get(this._focused);
+        row.forEach((row) => {
+            // Delete from cache
+            rowViews.delete(row.id);
+
+            // Remove from focus if needed
+            if (focused && focused.tableId === tableId) {
+                this._focused.set(undefined);
+            }
+        });
     }
 
     private async initializeSchema(): Promise<void> {

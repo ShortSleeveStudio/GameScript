@@ -12,10 +12,8 @@
         Column,
         Row,
     } from 'carbon-components-svelte';
-    import { onDestroy } from 'svelte';
     import { get, type Readable } from 'svelte/store';
-    import DefaultFieldTypeDropdown from './DefaultFieldTypeDropdown.svelte';
-    import DefaultFieldTypeNameInput from './DefaultFieldTypeNameInput.svelte';
+    import SettingsConversationDefaultFieldTypeDropdown from './SettingsConversationsDefaultFieldTypeDropdown.svelte';
     import { Async, TrashCan } from 'carbon-icons-svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { fade } from 'svelte/transition';
@@ -29,8 +27,7 @@
     } from '@lib/api/db/db-schema';
     import { wait } from '@lib/utility/wait';
     import { conversationDefaultFields } from '@lib/tables/default-fields';
-
-    // export let defaultFieldsNode: IDbRowView<NodeRow>;
+    import RowNameInput from '../common/RowNameInput.svelte';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const TEXT_INPUT_PROMPT = 'Enter a unique field name';
@@ -112,9 +109,9 @@
         <h2>Conversation Editor</h2>
         <DataTable
             size="medium"
-            title="Default Fields"
-            description="These fields will appear in all new conversation nodes.
-            You can also apply these fields across existing nodes in the options menu."
+            title="Custom Properties"
+            description="These properties will appear in all new conversation nodes.
+            You can also apply these properties across pre-existing nodes with the scary red button."
             batchSelection
             bind:selectedRowIds
             {headers}
@@ -127,14 +124,15 @@
             <svelte:fragment slot="cell" let:row let:cell>
                 {#if cell.key === 'name'}
                     <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-                    <DefaultFieldTypeNameInput
+                    <RowNameInput
                         rowView={row}
                         {uniqueNameTracker}
                         inputPlaceholder={TEXT_INPUT_PROMPT}
+                        isInspectorField={false}
                     />
                 {:else if cell.key === 'type'}
                     <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-                    <DefaultFieldTypeDropdown rowView={row} />
+                    <SettingsConversationDefaultFieldTypeDropdown rowView={row} />
                 {/if}
             </svelte:fragment>
 

@@ -1,7 +1,7 @@
 import { Action, type ActionHandler, type ActionUnsubscriber } from './action';
 
 export class UniqueNameTracker {
-    private _event: Action;
+    private _event: Action<void>;
     private _nameMap: Map<string, number>;
 
     constructor() {
@@ -9,11 +9,11 @@ export class UniqueNameTracker {
         this._nameMap = new Map();
     }
 
-    subscribe(handler: ActionHandler): ActionUnsubscriber {
+    subscribe(handler: ActionHandler<void>): ActionUnsubscriber {
         return this._event.register(handler);
     }
 
-    unsubscribe(handler: ActionHandler) {
+    unsubscribe(handler: ActionHandler<void>) {
         this._event.unregister(handler);
     }
 

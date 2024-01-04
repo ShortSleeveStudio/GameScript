@@ -9,38 +9,90 @@
         ToolbarBatchActions,
         ToolbarContent,
     } from 'carbon-components-svelte';
-    import CodingLanguageDropdown from './CodingLanguageDropdown.svelte';
+    import SettingsCodingLanguageDropdown from './SettingsCodingLanguageDropdown.svelte';
     import { TrashCan } from 'carbon-icons-svelte';
     import FocusButton from '../common/FocusButton.svelte';
+    import SettingsCodingDefaultRoutineRadio from './SettingsCodingDefaultRoutineRadio.svelte';
+    import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
+    import RowNameInput from '../common/RowNameInput.svelte';
+    import { defaultRoutines } from '@lib/tables/default-routines';
+    import { Undoable, undoManager } from '@lib/utility/undo-manager';
+    import { TABLE_ID_ROUTINES, type Routine } from '@lib/api/db/db-schema';
+    import { get } from 'svelte/store';
+    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
 
+    const TEXT_INPUT_PROMPT = 'Enter a routine name';
+    const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
+    const focusPayloadRoutine: FocusPayloadRoutine = {
+        uniqueNameTracker: uniqueNameTracker,
+        namePlaceholder: TEXT_INPUT_PROMPT,
+    };
     const headers = [
-        { key: 'name', value: 'Name', minWidth: '50%' },
-        { key: 'isDefault', value: 'Default', minWidth: '50%' },
+        { key: 'name', value: 'Name' },
+        { key: 'isDefault', value: 'Default' },
+        { key: 'focus', empty: true },
     ];
     let selectedRowIds: number[] = [];
+    // TODO: https://svelte-5-preview.vercel.app/status
     let isLoading: boolean = false;
 
-    const rows = [{ id: 0 }, { id: 1 }, { id: 3 }];
-
     async function addRow(): Promise<void> {
-        console.log('add row');
+        let newRoutine: Routine = <Routine>{
+            name: 'New Routine',
+            code: '',
+            isDefault: true,
+        };
+        let newRow: Routine = await defaultRoutines.createRow(newRoutine);
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'Routine creation',
+                async () => {
+                    await defaultRoutines.deleteRow(newRow);
+                },
+                async () => {
+                    newRow = await defaultRoutines.createRow(newRow);
+                },
+            ),
+        );
     }
 
     async function deleteRows(): Promise<void> {
-        console.log('delete rows');
+        let rowsToDelete: Routine[] = [];
+        get(defaultRoutines).forEach((defaultFieldRowView: IDbRowView<Routine>) => {
+            const routine: Routine = get(defaultFieldRowView);
+            if (selectedRowIds.includes(routine.id)) {
+                rowsToDelete.push(routine);
+            }
+        });
         selectedRowIds = [];
+
+        // Delete rows
+        await defaultRoutines.deleteRows(rowsToDelete);
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'Routine deletion',
+                async () => {
+                    rowsToDelete = await defaultRoutines.createRows(rowsToDelete);
+                },
+                async () => {
+                    await defaultRoutines.deleteRows(rowsToDelete);
+                },
+            ),
+        );
     }
 </script>
-
-here
-<FocusButton />
 
 <Row>
     <Column>
         <h2>Coding</h2>
         <p>
             <sup>Programming Language</sup>
-            <CodingLanguageDropdown />
+            <SettingsCodingLanguageDropdown />
         </p>
         <DataTable
             size="medium"
@@ -51,7 +103,7 @@ here
             batchSelection
             bind:selectedRowIds
             {headers}
-            {rows}
+            rows={$defaultRoutines}
         >
             <svelte:fragment slot="cell-header" let:header>
                 {header.value}
@@ -59,9 +111,21 @@ here
 
             <svelte:fragment slot="cell" let:row let:cell>
                 {#if cell.key === 'name'}
-                    name
+                    <!-- TODO: https://svelte-5-preview.vercel.app/status -->
+                    <RowNameInput
+                        rowView={row}
+                        {uniqueNameTracker}
+                        inputPlaceholder={TEXT_INPUT_PROMPT}
+                        isInspectorField={false}
+                    />
                 {:else if cell.key === 'isDefault'}
-                    default
+                    <SettingsCodingDefaultRoutineRadio rowView={row} />
+                {:else if cell.key === 'focus'}
+                    <FocusButton
+                        rowType={TABLE_ID_ROUTINES}
+                        rowView={row}
+                        payload={focusPayloadRoutine}
+                    />
                 {/if}
             </svelte:fragment>
 

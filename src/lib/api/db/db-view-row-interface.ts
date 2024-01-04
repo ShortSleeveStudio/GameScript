@@ -1,3 +1,4 @@
+import type { IsLoading } from '@lib/stores/utility/is-loading';
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
 import type { Row } from './db-schema';
 
@@ -5,7 +6,7 @@ import type { Row } from './db-schema';
 export interface IDbRowView<RowType extends Row> extends Readable<RowType> {
     // Used for DataTable
     id: number;
-    isLoading: Readable<boolean>;
+    isLoading: IsLoading;
     isColumnLoading<K extends keyof RowType>(columnName: K): Readable<boolean>;
     subscribe(
         run: Subscriber<RowType>,

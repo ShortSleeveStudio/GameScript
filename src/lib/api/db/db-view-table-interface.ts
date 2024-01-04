@@ -1,6 +1,6 @@
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import { type DatabaseTableName, type Row } from './db-schema';
+import { type DatabaseTableId, type DatabaseTableName, type Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**
@@ -13,6 +13,7 @@ import type { IDbRowView } from './db-view-row-interface';
  */
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
     isLoading: Readable<boolean>;
+    tableId: DatabaseTableId;
     tableName: DatabaseTableName;
     filter: Filter<RowType>;
     subscribe(

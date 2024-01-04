@@ -3,7 +3,7 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { Dropdown, SkeletonPlaceholder } from 'carbon-components-svelte';
+    import { Dropdown } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import type { Readable } from 'svelte/store';
 
@@ -42,15 +42,11 @@
     }
 </script>
 
-{#if $isLoading}
-    <SkeletonPlaceholder style="height: 2rem; max-height: 2rem; width: 100%;" />
-{:else}
-    <Dropdown
-        size="sm"
-        items={FIELD_TYPE_DROP_DOWN_ITEMS}
-        bind:selectedId={boundValue}
-        disabled={$isApplyingDefaultFields}
-        direction="top"
-        on:select={onSelect}
-    />
-{/if}
+<Dropdown
+    size="sm"
+    items={FIELD_TYPE_DROP_DOWN_ITEMS}
+    bind:selectedId={boundValue}
+    disabled={$isApplyingDefaultFields || $isLoading}
+    direction="top"
+    on:select={onSelect}
+/>

@@ -1,17 +1,19 @@
 <script lang="ts">
-    import type { DefaultField } from '@lib/api/db/db-schema';
+    import type { Row } from '@lib/api/db/db-schema';
     import { type IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { type ActionUnsubscriber } from '@lib/utility/action';
+    import { wasEnterPressed, wasSavePressed } from '@lib/utility/keybinding';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
-    import { SkeletonPlaceholder, TextInput } from 'carbon-components-svelte';
+    import { TextInput } from 'carbon-components-svelte';
     import { onDestroy, onMount } from 'svelte';
     import type { Readable, Unsubscriber } from 'svelte/motion';
 
-    export let rowView: IDbRowView<DefaultField>;
+    export let rowView: IDbRowView<Row>;
     export let inputPlaceholder: string;
     export let uniqueNameTracker: UniqueNameTracker;
+    export let isInspectorField: boolean;
 
     // TODO: https://svelte-5-preview.vercel.app/status
     const isLoading: Readable<boolean> = rowView.isColumnLoading('name');
@@ -27,28 +29,32 @@
         });
 
         // Add name initially (NOTE: order here matters)
-        uniqueNameTracker.addName($rowView.name);
+        if (!isInspectorField) uniqueNameTracker.addName($rowView.name);
 
         // Subscribe to changes in row view
-        rowViewUnsubscriber = rowView.subscribe((row: DefaultField) => {
+        rowViewUnsubscriber = rowView.subscribe((row: Row) => {
             // If the name of this row has changed, we remove it from the map and add the new name
             if (row.name !== currentValue) {
-                uniqueNameTracker.removeName(currentValue);
+                if (!isInspectorField) {
+                    uniqueNameTracker.removeName(currentValue);
+                    uniqueNameTracker.addName(row.name);
+                }
                 boundValue = row.name;
                 currentValue = row.name;
-                uniqueNameTracker.addName(currentValue);
             }
         });
     });
     onDestroy(() => {
-        // Remove deleted field
-        uniqueNameTracker.removeName(currentValue);
+        if (!isInspectorField) {
+            // Unsubscribe to changes in unique name map
+            uniqueNameTrackerUnsubscriber();
+
+            // Remove deleted field
+            uniqueNameTracker.removeName(currentValue);
+        }
 
         // Unsubscribe to row view changes
         rowViewUnsubscriber();
-
-        // Unsubscribe to changes in unique name map
-        uniqueNameTrackerUnsubscriber();
     });
 
     async function syncOnBlur() {
@@ -71,25 +77,21 @@
     }
 
     function onKeyUp(e: KeyboardEvent) {
-        if (e.key == 'Enter') {
+        if (wasSavePressed(e) || wasEnterPressed(e)) {
             (<HTMLElement>e.target).blur();
         }
     }
 </script>
 
-{#if $isLoading}
-    <SkeletonPlaceholder style="height: 2rem; max-height: 2rem; width: 100%;" />
-{:else}
-    <span class="defeat-form-requirement">
-        <TextInput
-            size="sm"
-            invalid={!isUnique}
-            hideLabel
-            disabled={$isApplyingDefaultFields}
-            placeholder={inputPlaceholder}
-            bind:value={boundValue}
-            on:blur={syncOnBlur}
-            on:keyup={onKeyUp}
-        />
-    </span>
-{/if}
+<span class="defeat-form-requirement">
+    <TextInput
+        size="sm"
+        invalid={!isUnique}
+        hideLabel
+        disabled={$isApplyingDefaultFields || $isLoading}
+        placeholder={inputPlaceholder}
+        bind:value={boundValue}
+        on:blur={syncOnBlur}
+        on:keyup={onKeyUp}
+    />
+</span>
