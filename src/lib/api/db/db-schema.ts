@@ -22,6 +22,7 @@ export const TABLE_NAME_TABLES = 'tables';
 export const TABLE_NAME_AUTO_COMPLETES = 'auto_completes';
 export const TABLE_NAME_PROGRAMMING_LANGUAGES = 'programming_languages';
 export const TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL = 'programming_language_principal';
+export const TABLE_NAME_ROUTINE_TYPES = 'routine_types';
 export const TABLE_NAME_ROUTINES = 'routines';
 export const TABLE_NAME_LOCALES = 'locales';
 export const TABLE_NAME_LOCALE_PRINCIPAL = 'locale_principal';
@@ -39,6 +40,7 @@ export const DATABASE_TABLE_NAMES = [
     TABLE_NAME_AUTO_COMPLETES,
     TABLE_NAME_PROGRAMMING_LANGUAGES,
     TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_NAME_ROUTINE_TYPES,
     TABLE_NAME_ROUTINES,
     TABLE_NAME_LOCALES,
     TABLE_NAME_LOCALE_PRINCIPAL,
@@ -62,18 +64,19 @@ export const TABLE_ID_TABLES: DatabaseTableId = 0;
 export const TABLE_ID_AUTO_COMPLETES: DatabaseTableId = 1;
 export const TABLE_ID_PROGRAMMING_LANGUAGES: DatabaseTableId = 2;
 export const TABLE_ID_PROGRAMMING_LANGUAGE_PRINCIPAL: DatabaseTableId = 3;
-export const TABLE_ID_ROUTINES: DatabaseTableId = 4;
-export const TABLE_ID_LOCALES: DatabaseTableId = 5;
-export const TABLE_ID_LOCALE_PRINCIPAL: DatabaseTableId = 6;
-export const TABLE_ID_LOCALIZATION_TABLES: DatabaseTableId = 7;
-export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 8;
-export const TABLE_ID_ACTORS: DatabaseTableId = 9;
-export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 10;
-export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 11;
-export const TABLE_ID_NODES: DatabaseTableId = 12;
-export const TABLE_ID_FIELD_TYPES: DatabaseTableId = 13;
-export const TABLE_ID_FIELDS: DatabaseTableId = 14;
-export const TABLE_ID_DEFAULT_FIELDS: DatabaseTableId = 15;
+export const TABLE_ID_ROUTINE_TYPES: DatabaseTableId = 4;
+export const TABLE_ID_ROUTINES: DatabaseTableId = 5;
+export const TABLE_ID_LOCALES: DatabaseTableId = 6;
+export const TABLE_ID_LOCALE_PRINCIPAL: DatabaseTableId = 7;
+export const TABLE_ID_LOCALIZATION_TABLES: DatabaseTableId = 8;
+export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 9;
+export const TABLE_ID_ACTORS: DatabaseTableId = 10;
+export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 11;
+export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 12;
+export const TABLE_ID_NODES: DatabaseTableId = 13;
+export const TABLE_ID_FIELD_TYPES: DatabaseTableId = 14;
+export const TABLE_ID_FIELDS: DatabaseTableId = 15;
+export const TABLE_ID_DEFAULT_FIELDS: DatabaseTableId = 16;
 
 ///
 /// Auto-Completes
@@ -120,11 +123,39 @@ export interface ProgrammingLanguagePrincipal extends Row {
 }
 
 ///
+/// Routine Types
+///
+export interface RoutineType extends Row {}
+
+export const ROUTINE_TYPE_NAME_USER = 'User';
+export const ROUTINE_TYPE_NAME_IMPORT = 'Import';
+export const ROUTINE_TYPE_NAME_DEFAULT = 'Default';
+export const ROUTINE_TYPE_NAMES = [
+    ROUTINE_TYPE_NAME_USER, // 0
+    ROUTINE_TYPE_NAME_IMPORT, // 1
+    ROUTINE_TYPE_NAME_DEFAULT, // 2
+] as const;
+export const ROUTINE_TYPE_ID_USER: RoutineTypeId = 0;
+export const ROUTINE_TYPE_ID_IMPORTS: RoutineTypeId = 1;
+export const ROUTINE_TYPE_ID_DEFAULT: RoutineTypeId = 2;
+
+/**List of supported Routine types */
+export const ROUTINE_TYPES: RoutineType[] = ROUTINE_TYPE_NAMES.map<RoutineType>(
+    TypeNameToType<RoutineTypeName, RoutineType>,
+);
+
+/**Routine type name type */
+export type RoutineTypeName = (typeof ROUTINE_TYPE_NAMES)[number];
+
+/**Routine type id type */
+export type RoutineTypeId = (typeof ROUTINE_TYPES)[number]['id'];
+
+///
 /// Routines
 ///
 export interface Routine extends Row, Annotated {
     code: string;
-    isDefault: boolean;
+    type: RoutineTypeId;
 }
 
 ///

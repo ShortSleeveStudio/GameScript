@@ -1,146 +1,18 @@
 <script lang="ts">
-    import {
-        Button,
-        Column,
-        DataTable,
-        InlineLoading,
-        Row,
-        Toolbar,
-        ToolbarBatchActions,
-        ToolbarContent,
-    } from 'carbon-components-svelte';
-    import SettingsCodingLanguageDropdown from './SettingsCodingLanguageDropdown.svelte';
-    import { TrashCan } from 'carbon-icons-svelte';
-    import FocusButton from '../common/FocusButton.svelte';
-    import SettingsCodingDefaultRoutineRadio from './SettingsCodingDefaultRoutineRadio.svelte';
-    import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
-    import RowNameInput from '../common/RowNameInput.svelte';
-    import { defaultRoutines } from '@lib/tables/default-routines';
-    import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { TABLE_ID_ROUTINES, type Routine } from '@lib/api/db/db-schema';
-    import { get } from 'svelte/store';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
+    import { Column, Row } from 'carbon-components-svelte';
 
-    const TEXT_INPUT_PROMPT = 'Enter a routine name';
-    const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
-    const focusPayloadRoutine: FocusPayloadRoutine = {
-        uniqueNameTracker: uniqueNameTracker,
-        namePlaceholder: TEXT_INPUT_PROMPT,
-    };
-    const headers = [
-        { key: 'name', value: 'Name' },
-        { key: 'isDefault', value: 'Default' },
-        { key: 'focus', empty: true },
-    ];
-    let selectedRowIds: number[] = [];
-    // TODO: https://svelte-5-preview.vercel.app/status
-    let isLoading: boolean = false;
-
-    async function addRow(): Promise<void> {
-        let newRoutine: Routine = <Routine>{
-            name: 'New Routine',
-            code: '',
-            isDefault: true,
-        };
-        let newRow: Routine = await defaultRoutines.createRow(newRoutine);
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'Routine creation',
-                async () => {
-                    await defaultRoutines.deleteRow(newRow);
-                },
-                async () => {
-                    newRow = await defaultRoutines.createRow(newRow);
-                },
-            ),
-        );
-    }
-
-    async function deleteRows(): Promise<void> {
-        let rowsToDelete: Routine[] = [];
-        get(defaultRoutines).forEach((defaultFieldRowView: IDbRowView<Routine>) => {
-            const routine: Routine = get(defaultFieldRowView);
-            if (selectedRowIds.includes(routine.id)) {
-                rowsToDelete.push(routine);
-            }
-        });
-        selectedRowIds = [];
-
-        // Delete rows
-        await defaultRoutines.deleteRows(rowsToDelete);
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'Routine deletion',
-                async () => {
-                    rowsToDelete = await defaultRoutines.createRows(rowsToDelete);
-                },
-                async () => {
-                    await defaultRoutines.deleteRows(rowsToDelete);
-                },
-            ),
-        );
-    }
+    import SettingsCodingImports from './SettingsCodingImports.svelte';
+    import SettingsCodingAutoComplete from './SettingsCodingAutoComplete.svelte';
+    import SettingsCodingLanguageSelect from './SettingsCodingLanguageSelect.svelte';
+    import SettingsCodingDefaultRoutines from './SettingsCodingDefaultRoutines.svelte';
 </script>
 
 <Row>
     <Column>
         <h2>Coding</h2>
-        <p>
-            <sup>Programming Language</sup>
-            <SettingsCodingLanguageDropdown />
-        </p>
-        <DataTable
-            size="medium"
-            title="Default Routines"
-            description="The routines listed in this table will be available to you in dropdown 
-            menus that allow you to fill in code blocks with pre-written code. If you delete these, 
-            places where they were used will no longer execute any code."
-            batchSelection
-            bind:selectedRowIds
-            {headers}
-            rows={$defaultRoutines}
-        >
-            <svelte:fragment slot="cell-header" let:header>
-                {header.value}
-            </svelte:fragment>
-
-            <svelte:fragment slot="cell" let:row let:cell>
-                {#if cell.key === 'name'}
-                    <!-- TODO: https://svelte-5-preview.vercel.app/status -->
-                    <RowNameInput
-                        rowView={row}
-                        {uniqueNameTracker}
-                        inputPlaceholder={TEXT_INPUT_PROMPT}
-                        isInspectorField={false}
-                    />
-                {:else if cell.key === 'isDefault'}
-                    <SettingsCodingDefaultRoutineRadio rowView={row} />
-                {:else if cell.key === 'focus'}
-                    <FocusButton
-                        rowType={TABLE_ID_ROUTINES}
-                        rowView={row}
-                        payload={focusPayloadRoutine}
-                    />
-                {/if}
-            </svelte:fragment>
-
-            <Toolbar size="sm">
-                <ToolbarBatchActions>
-                    <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
-                </ToolbarBatchActions>
-                <ToolbarContent>
-                    <Button
-                        on:click={addRow}
-                        disabled={isLoading}
-                        icon={isLoading ? InlineLoading : undefined}>Add Routine</Button
-                    >
-                </ToolbarContent>
-            </Toolbar>
-        </DataTable>
+        <SettingsCodingLanguageSelect />
+        <SettingsCodingImports />
+        <SettingsCodingDefaultRoutines />
+        <SettingsCodingAutoComplete />
     </Column>
 </Row>

@@ -3,7 +3,7 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import RowNameInput from '../common/RowNameInput.svelte';
-    import InspectorFieldCode from './InspectorFieldCode.svelte';
+    import RoutineEditor from '../common/RoutineEditor.svelte';
     import InspectorFieldId from './InspectorFieldId.svelte';
     import InspectorFieldNotes from './InspectorFieldNotes.svelte';
 
@@ -29,7 +29,7 @@
 </p>
 <p>
     <sup>Code</sup>
-    <InspectorFieldCode {rowView} />
+    <RoutineEditor {rowView} />
 </p>
 <p>
     <sup>Notes</sup>
