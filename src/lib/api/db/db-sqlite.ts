@@ -25,14 +25,14 @@ export class SqliteDb extends Db {
     private _unsubscribeSqlitePath: Unsubscriber;
     private _unsubscribeDbConnected: Unsubscriber;
     private _sqlitePathStore: Writable<FileDetails>;
-    private _dbSqlitePathError: Writable<string>;
+    private _appInitializationErrors: Writable<Error[]>;
     private _notificationManager: NotificationManager;
     private _focused: Writable<Focusable>;
 
     constructor(
         isConnected: Writable<boolean>,
         sqlitePathStore: Writable<FileDetails>,
-        dbSqlitePathError: Writable<string>,
+        appInitializationError: Writable<Error[]>,
         notificationManager: NotificationManager,
         focused: Writable<Focusable>,
     ) {
@@ -42,7 +42,7 @@ export class SqliteDb extends Db {
         );
         this._tableToTableView = <IDbTableView<Row>[][]>DATABASE_TABLE_NAMES.map(() => []);
         this._sqlitePathStore = sqlitePathStore;
-        this._dbSqlitePathError = dbSqlitePathError;
+        this._appInitializationErrors = appInitializationError;
         this._notificationManager = notificationManager;
         this._focused = focused;
         this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
@@ -327,9 +327,12 @@ export class SqliteDb extends Db {
 
             // Notify connected
             this._isConnected.set(true);
-        } catch (e: unknown) {
-            this._dbSqlitePathError.set(this.extractError(e));
-            throw e;
+        } catch (e) {
+            this.isError(e);
+            // https://svelte-5-preview.vercel.app/status
+            const errors: Error[] = get(this._appInitializationErrors);
+            errors.push(<Error>e);
+            this._appInitializationErrors.set(errors);
         }
     };
 
@@ -395,22 +398,8 @@ export class SqliteDb extends Db {
         }
     }
 
-    private extractError(e: unknown): string {
-        let message: string;
-        switch (typeof e) {
-            case 'string':
-                message = <string>e;
-                break;
-            case 'object':
-                if ('message' in <object>e) {
-                    message = (<Error>e).message;
-                    break;
-                }
-            // @t s-expect-error fallthrough
-            default:
-                message = 'Invalid database file';
-                break;
-        }
-        return message;
+    private isError(value: unknown): asserts value is Error {
+        if (typeof value !== 'object' || !('message' in <object>value))
+            throw new Error('Caught a non-error');
     }
 }

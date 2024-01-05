@@ -23,22 +23,32 @@
 
 <!-- https://svelte-5-preview.vercel.app/status -->
 <!-- For all the casting that needs to be done -->
-<Content>
-    <Grid noGutter>
-        <Row>
-            <Column>
-                {#if inspected}
-                    <!-- Destroy and recreate anytime the focus changes -->
-                    {#key inspected}
-                        {#if inspected.tableId === TABLE_ID_ROUTINES}
-                            <InspectorRoutine
-                                rowView={inspected.rowView}
-                                payload={inspected.payload}
-                            />
-                        {/if}
-                    {/key}
-                {/if}
-            </Column>
-        </Row>
-    </Grid>
-</Content>
+<div class="inspector">
+    <Content>
+        <Grid noGutter>
+            <Row>
+                <Column>
+                    {#if inspected}
+                        <!-- Destroy and recreate anytime the focus changes -->
+                        {#key inspected}
+                            {#if inspected.tableId === TABLE_ID_ROUTINES}
+                                <InspectorRoutine
+                                    rowView={inspected.rowView}
+                                    payload={inspected.payload}
+                                />
+                            {/if}
+                        {/key}
+                    {/if}
+                </Column>
+            </Row>
+        </Grid>
+    </Content>
+</div>
+
+<style>
+    .inspector {
+        /* Textareas don't get any smaller */
+        height: 100%;
+        min-width: calc(35 * 8px);
+    }
+</style>

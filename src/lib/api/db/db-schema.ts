@@ -1,5 +1,6 @@
 import { TypeNameToType } from '@lib/utility/type-helpers';
 import type { DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
+import { languages } from 'monaco-editor';
 
 ///
 /// Rows
@@ -82,9 +83,21 @@ export const TABLE_ID_DEFAULT_FIELDS: DatabaseTableId = 16;
 /// Auto-Completes
 ///
 export interface AutoComplete extends Row {
-    kind: string;
+    kind: number;
     insertion: string;
 }
+export const AUTO_COMPLETE_KINDS: languages.CompletionItemKind[] = [
+    languages.CompletionItemKind.Function,
+    languages.CompletionItemKind.Variable,
+];
+export type AutoCompleteKindId = (typeof ROUTINE_TYPE_NAMES)[number];
+export const AUTO_COMPLETE_KIND_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_KINDS.map(
+    (kind: languages.CompletionItemKind, index: number) =>
+        <DropdownItem>{
+            id: index,
+            text: languages.CompletionItemKind[kind],
+        },
+);
 
 ///
 /// Programming Languages

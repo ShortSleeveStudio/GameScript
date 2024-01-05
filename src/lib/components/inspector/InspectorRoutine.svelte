@@ -6,6 +6,7 @@
     import RoutineEditor from '../common/RoutineEditor.svelte';
     import InspectorFieldId from './InspectorFieldId.svelte';
     import InspectorFieldNotes from './InspectorFieldNotes.svelte';
+    import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
@@ -26,6 +27,10 @@
         uniqueNameTracker={payload.uniqueNameTracker}
         isInspectorField={true}
     />
+</p>
+<p>
+    <sup>Default</sup>
+    <DefaultRoutinesRadio {rowView} />
 </p>
 <p>
     <sup>Code</sup>

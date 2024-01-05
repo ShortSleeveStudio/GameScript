@@ -43,6 +43,7 @@
 
     async function applyDefaultFields(): Promise<void> {
         // TODO: implement me
+        console.log('implement me');
         if ($isApplyingDefaultFields) return;
         applyFieldsProgress = 0;
         $isApplyingDefaultFields = true;

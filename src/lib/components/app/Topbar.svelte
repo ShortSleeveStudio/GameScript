@@ -31,6 +31,7 @@
         settingsIsVisible,
     } from '@lib/stores/app/layout';
     import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
+    import { APP_NAME } from '@lib/constants/app';
 
     let isSideNavOpen = false;
 
@@ -42,7 +43,7 @@
 
 <Header
     data-tauri-drag-region
-    platformName="GameScript"
+    platformName={APP_NAME}
     style="width:100%"
     bind:isSideNavOpen
     persistentHamburgerMenu={true}

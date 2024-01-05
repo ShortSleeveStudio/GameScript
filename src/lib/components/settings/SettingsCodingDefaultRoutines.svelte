@@ -9,7 +9,7 @@
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
     import FocusButton from '../common/FocusButton.svelte';
-    import SettingsCodingDefaultRoutinesRadio from './SettingsCodingDefaultRoutinesRadio.svelte';
+    import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/default-routines';
@@ -22,14 +22,15 @@
     import { get } from 'svelte/store';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
+    import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
 
     const TEXT_INPUT_PROMPT = 'Enter a routine name';
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
-    const focusPayloadRoutine: FocusPayloadRoutine = {
+    const focusPayload: FocusPayloadRoutine = {
         uniqueNameTracker: uniqueNameTracker,
         namePlaceholder: TEXT_INPUT_PROMPT,
     };
-    const headers = [
+    const headers: DataTableHeader[] = [
         { key: 'name', value: 'Name' },
         { key: 'isDefault', value: 'Default' },
         { key: 'focus', empty: true },
@@ -93,8 +94,8 @@
         size="medium"
         title="Default Routines"
         description="The routines listed in this table will be available to you in dropdown 
-    menus that allow you to fill in code blocks with pre-written code. If you delete these, 
-    places where they were used will no longer execute any code."
+        menus that allow you to fill in code blocks with pre-written code. If you delete these, 
+        places where they were used will no longer execute any code."
         batchSelection
         bind:selectedRowIds
         {headers}
@@ -114,13 +115,9 @@
                     isInspectorField={false}
                 />
             {:else if cell.key === 'isDefault'}
-                <SettingsCodingDefaultRoutinesRadio rowView={row} />
+                <DefaultRoutinesRadio rowView={row} />
             {:else if cell.key === 'focus'}
-                <FocusButton
-                    rowType={TABLE_ID_ROUTINES}
-                    rowView={row}
-                    payload={focusPayloadRoutine}
-                />
+                <FocusButton rowType={TABLE_ID_ROUTINES} rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

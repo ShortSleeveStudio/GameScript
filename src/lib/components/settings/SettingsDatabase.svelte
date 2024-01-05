@@ -1,11 +1,14 @@
 <script lang="ts">
+    import { dbSqlitePath, dbType } from '@lib/stores/settings/settings';
     import {
-        dbConnected,
-        dbSqlitePath,
-        dbSqlitePathError,
-        dbType,
-    } from '@lib/stores/settings/settings';
-    import { Dropdown, FileUploaderItem, Button, Tag, Row, Column } from 'carbon-components-svelte';
+        Dropdown,
+        Button,
+        Row,
+        Column,
+        TextInput,
+        OverflowMenu,
+        OverflowMenuItem,
+    } from 'carbon-components-svelte';
     import { writeFile } from '@tauri-apps/plugin-fs';
     import { exists } from '@tauri-apps/plugin-fs';
     import { save, open } from '@tauri-apps/plugin-dialog';
@@ -14,7 +17,7 @@
     import type { FileDetails } from '@lib/utility/file-details';
     import { basename } from '@tauri-apps/api/path';
     import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
-    import { Add } from 'carbon-icons-svelte';
+    import { OverflowMenuVertical } from 'carbon-icons-svelte';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
@@ -68,7 +71,6 @@
             dbPath.path = '';
             return dbPath;
         });
-        dbSqlitePathError.set('');
     }
 </script>
 
@@ -82,52 +84,39 @@
         {#if $dbType === 'SQLite'}
             <p>
                 <sup>Database File</sup>
-                <Button size="small" on:click={sqliteDatabaseDialogOpen}>Open Database</Button>
-                <Button
-                    size="small"
-                    iconDescription="New Database"
-                    on:click={sqliteDatabaseDialogNew}
-                    icon={Add}
-                ></Button>
-                {#if $dbSqlitePath.path}
-                    <div class="button-span">
-                        {#if $dbConnected}
-                            <FileUploaderItem
-                                style="margin-bottom:0px;"
+                <span class="button-set">
+                    <Button size="small" on:click={sqliteDatabaseDialogOpen}>Open Database</Button>
+                    <TextInput
+                        size="sm"
+                        disabled={true}
+                        value={$dbSqlitePath.fileName}
+                        placeholder="Database file..."
+                    />
+                    <OverflowMenu flipped size="sm" style="width: auto;">
+                        <div slot="menu">
+                            <Button
+                                tooltipPosition="left"
+                                iconDescription="Options"
                                 size="small"
-                                name={$dbSqlitePath.fileName}
-                                status="edit"
-                                on:delete={resetConnection}
+                                kind="secondary"
+                                icon={OverflowMenuVertical}
                             />
-                            <Tag type="green">Connected</Tag>
-                        {:else if $dbSqlitePathError}
-                            <FileUploaderItem
-                                invalid
-                                style="margin-bottom:0px;"
-                                size="small"
-                                name={$dbSqlitePath.fileName}
-                                errorSubject={$dbSqlitePathError}
-                                errorBody="Please select a new file."
-                                status="edit"
-                                on:delete={resetConnection}
-                            />
-                        {:else}
-                            <FileUploaderItem
-                                style="margin-bottom:0px;"
-                                size="small"
-                                name={$dbSqlitePath.fileName}
-                                status="uploading"
-                                on:delete={resetConnection}
-                            />
-                        {/if}
-                    </div>
-                {/if}
+                        </div>
+                        <OverflowMenuItem text="New Database" on:click={sqliteDatabaseDialogNew} />
+                        <OverflowMenuItem text="Close Database" danger on:click={resetConnection} />
+                    </OverflowMenu>
+                </span>
             </p>
         {/if}
     </Column>
 </Row>
 
 <style>
+    .overflow-button {
+        background-color: var(--cds-field, #f4f4f4);
+
+        /* background-color: var(--cds-interactive-02, #393939); */
+    }
     .button-span {
         display: flex;
         gap: var(--cds-spacing-03);

@@ -138,6 +138,19 @@ body {
     color: var(--cds-text-primary, #161616);
 }
 
+/* Progress Bar Defeats */
+.defeat-progress-bar-label > .bx--progress-bar__label {
+    margin: 0;
+}
+.defeat-progress-bar-track > .bx--progress-bar__track {
+    background-color: transparent;
+}
+
+/* Button Sets */
+.button-set {
+    display: flex;
+}
+
 /* Monaco Editor */
 .code-editor-disabled {
     opacity: 50%;

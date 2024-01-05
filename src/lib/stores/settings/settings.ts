@@ -1,4 +1,5 @@
 import { DATABASE_TYPE_NAMES, type DatabaseTypeName } from '@lib/api/db/db-types';
+import { APP_NAME } from '@lib/constants/app';
 import {
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
@@ -21,11 +22,9 @@ export const dbType: Writable<DatabaseTypeName> = persisted(
 );
 /**SQLite database file path */
 export const dbSqlitePath: Writable<FileDetails> = persisted(LS_KEY_SETTINGS_DB_SQLITE_PATH, {
-    path: await join(await appDataDir(), 'GameScript.db'),
+    path: await join(await appDataDir(), `${APP_NAME}.db`),
     fileName: 'GameScript.db',
 });
-/**SQLite database file path error */
-export const dbSqlitePathError: Writable<string> = writable('Invalid database file');
 
 ///
 /// Conversation Editor Settings
@@ -35,3 +34,6 @@ export const dbSqlitePathError: Writable<string> = writable('Invalid database fi
 /// Coding Settings
 ///
 export const defaultRoutine: Writable<number> = persisted(LS_KEY_SETTINGS_DEFAULT_ROUTINE, 0);
+
+/**This is used to lock the UI when the auto-complete code scan is happening. */
+export const codeScanInProgress: Writable<boolean> = writable<boolean>(false);
