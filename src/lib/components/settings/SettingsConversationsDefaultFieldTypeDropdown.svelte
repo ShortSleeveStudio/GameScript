@@ -8,19 +8,24 @@
     import type { Readable } from 'svelte/store';
 
     export let rowView: IDbRowView<DefaultField>;
+    let locationInPageFinder: HTMLElement;
 
     // TODO: https://svelte-5-preview.vercel.app/status
     const isLoading: Readable<boolean> = rowView.isColumnLoading('type');
     let boundValue: number = $rowView.type;
     let currentValue: number = $rowView.type;
-    onDestroy(
-        rowView.subscribe((row: DefaultField) => {
-            if (row.type !== currentValue) {
-                boundValue = row.type;
-                currentValue = row.type;
-            }
-        }),
-    );
+    let direction: 'bottom' | 'top' = 'top';
+
+    function recalculateOpenDirection() {
+        const domRect: DOMRect = locationInPageFinder.getBoundingClientRect();
+        let distanceToTop = domRect.top;
+        let distanceToBottom = window.innerHeight - domRect.bottom;
+        if (distanceToBottom >= distanceToTop) {
+            direction = 'bottom';
+        } else {
+            direction = 'top';
+        }
+    }
 
     async function onSelect(): Promise<void> {
         const newValue = boundValue;
@@ -40,13 +45,25 @@
             ),
         );
     }
+
+    onDestroy(
+        rowView.subscribe((row: DefaultField) => {
+            if (row.type !== currentValue) {
+                boundValue = row.type;
+                currentValue = row.type;
+            }
+        }),
+    );
 </script>
 
-<Dropdown
-    size="sm"
-    items={FIELD_TYPE_DROP_DOWN_ITEMS}
-    bind:selectedId={boundValue}
-    disabled={$isApplyingDefaultFields || $isLoading}
-    direction="top"
-    on:select={onSelect}
-/>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div on:mouseenter={recalculateOpenDirection} bind:this={locationInPageFinder}>
+    <Dropdown
+        size="sm"
+        items={FIELD_TYPE_DROP_DOWN_ITEMS}
+        bind:selectedId={boundValue}
+        disabled={$isApplyingDefaultFields || $isLoading}
+        {direction}
+        on:select={onSelect}
+    />
+</div>
