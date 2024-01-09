@@ -18,7 +18,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'Default routine change',
+                'default routine change',
                 async () => {
                     $defaultRoutine = previousIdSelected;
                 },

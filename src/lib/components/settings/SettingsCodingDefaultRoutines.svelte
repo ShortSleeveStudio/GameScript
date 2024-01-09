@@ -23,17 +23,17 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
+    import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
+    import { ROUTINES_PLACEHOLDER_NAME, ROUTINES_UNDO_NAME } from '@lib/constants/settings';
 
-    const TEXT_INPUT_PROMPT = 'Enter a routine name';
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
         uniqueNameTracker: uniqueNameTracker,
-        namePlaceholder: TEXT_INPUT_PROMPT,
     };
     const headers: DataTableHeader[] = [
         { key: 'name', value: 'Name' },
         { key: 'isDefault', value: 'Default' },
-        { key: 'focus', empty: true },
+        { key: 'focus', empty: true, minWidth: FOCUS_BUTTON_WIDTH, width: FOCUS_BUTTON_WIDTH },
     ];
     let selectedRowIds: number[] = [];
     // TODO: https://svelte-5-preview.vercel.app/status
@@ -50,7 +50,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'Routine creation',
+                'routine creation',
                 async () => {
                     await defaultRoutines.deleteRow(newRow);
                 },
@@ -77,7 +77,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'Routine deletion',
+                'routine deletion',
                 async () => {
                     rowsToDelete = await defaultRoutines.createRows(rowsToDelete);
                 },
@@ -110,8 +110,9 @@
                 <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowNameInput
                     rowView={row}
+                    undoText={ROUTINES_UNDO_NAME}
                     {uniqueNameTracker}
-                    inputPlaceholder={TEXT_INPUT_PROMPT}
+                    inputPlaceholder={ROUTINES_PLACEHOLDER_NAME}
                     isInspectorField={false}
                 />
             {:else if cell.key === 'isDefault'}

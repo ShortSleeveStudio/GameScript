@@ -30,7 +30,7 @@
         await rowView.updateColumn('notes', newValue);
         undoManager.register(
             new Undoable(
-                'Notes field change',
+                'notes field change',
                 async () => {
                     await rowView.updateColumn('notes', oldValue);
                 },

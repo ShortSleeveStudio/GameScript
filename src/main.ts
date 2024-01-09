@@ -6,7 +6,7 @@ import '@lib/api/db/db';
 import '@lib/api/system/window';
 
 // Monaco
-import '@lib/utility/monaco';
+import '@lib/monaco/monaco';
 
 // Store
 import '@lib/stores/app/darkmode';

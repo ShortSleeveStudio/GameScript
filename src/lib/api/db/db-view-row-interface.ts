@@ -13,10 +13,7 @@ export interface IDbRowView<RowType extends Row> extends Readable<RowType> {
         invalidate?: Invalidator<RowType> | undefined,
     ): Unsubscriber;
     updateRow(row: RowType): Promise<void>;
-    updateColumn<K extends keyof RowType, T extends RowType[K]>(
-        columnName: K,
-        columnValue: T,
-    ): Promise<void>;
+    updateColumn<K extends keyof RowType>(columnName: K, columnValue: unknown): Promise<void>;
     /**@internal */
     onRowUpdated(newValue: RowType): void;
 }

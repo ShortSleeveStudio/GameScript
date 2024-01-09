@@ -24,5 +24,5 @@
         GameScript thereby allowing you to reference code in your game from routines you write in
         the conversation editor.
     </p>
-    <RoutineEditor {rowView} />
+    <RoutineEditor {rowView} columnName={'code'} />
 </Tile>

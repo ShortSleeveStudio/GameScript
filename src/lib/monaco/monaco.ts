@@ -29,3 +29,11 @@ self.MonacoEnvironment = {
 
 // The indices must match PROGRAMMING_LANGUAGE_NAMES
 export const MONACO_PROGRAMMING_LANGUAGE_NAMES: string[] = ['csharp', 'cpp'];
+
+// Setup custom languages
+// TODO
+// languages.register({
+//     id: LANGUAGE_ID_SNIPPET,
+// });
+// languages.setLanguageConfiguration(LANGUAGE_ID_SNIPPET, snippetConf);
+// languages.setMonarchTokensProvider(LANGUAGE_ID_SNIPPET, snippetLang);

@@ -7,6 +7,7 @@
     import InspectorFieldId from './InspectorFieldId.svelte';
     import InspectorFieldNotes from './InspectorFieldNotes.svelte';
     import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
+    import { ROUTINES_PLACEHOLDER_NAME, ROUTINES_UNDO_NAME } from '@lib/constants/settings';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
@@ -23,7 +24,8 @@
     <sup>Name</sup>
     <RowNameInput
         {rowView}
-        inputPlaceholder={payload.namePlaceholder}
+        undoText={ROUTINES_UNDO_NAME}
+        inputPlaceholder={ROUTINES_PLACEHOLDER_NAME}
         uniqueNameTracker={payload.uniqueNameTracker}
         isInspectorField={true}
     />
@@ -34,7 +36,7 @@
 </p>
 <p>
     <sup>Code</sup>
-    <RoutineEditor {rowView} />
+    <RoutineEditor {rowView} columnName={'code'} />
 </p>
 <p>
     <sup>Notes</sup>

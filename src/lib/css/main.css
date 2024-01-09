@@ -106,15 +106,18 @@ body {
     margin-bottom: var(--cds-layout-02);
 }
 
+.bx--col > p .bx--tooltip__label {
+    margin-bottom: 0.5rem;
+}
+
 .bx--col sup {
     font-size: var(--cds-label-01-font-size, 0.75rem);
     letter-spacing: var(--cds-label-01-letter-spacing, 0.32px);
     display: block;
-    margin-bottom: 0.5rem;
     color: var(--cds-text-02, #525252);
     font-weight: 400;
     line-height: 1rem;
-    vertical-align: baseline;
+    margin-bottom: 0.5rem;
 }
 
 .bx--col > .bx--tile {
@@ -155,3 +158,4 @@ body {
 .code-editor-disabled {
     opacity: 50%;
 }
+

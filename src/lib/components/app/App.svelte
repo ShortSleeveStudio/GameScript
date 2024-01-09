@@ -8,7 +8,13 @@
 
     function toErrorEvent(event: Event | string): Error {
         if (typeof event === 'object' && 'error' in event) {
-            return <Error>(<ErrorEvent>event).error;
+            if (<Error>(<ErrorEvent>event).error) {
+                return <Error>(<ErrorEvent>event).error;
+            } else if ('message' in <ErrorEvent>event) {
+                return new Error((<ErrorEvent>event)['message']);
+            } else {
+                return new Error(`${event}`);
+            }
         } else if (typeof event === 'string') {
             return new Error(event);
         } else {

@@ -110,17 +110,3 @@
         {/if}
     </Column>
 </Row>
-
-<style>
-    .overflow-button {
-        background-color: var(--cds-field, #f4f4f4);
-
-        /* background-color: var(--cds-interactive-02, #393939); */
-    }
-    .button-span {
-        display: flex;
-        gap: var(--cds-spacing-03);
-        align-items: center;
-        margin-top: var(--cds-spacing-03);
-    }
-</style>

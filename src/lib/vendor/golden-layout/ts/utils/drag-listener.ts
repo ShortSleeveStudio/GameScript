@@ -3,12 +3,12 @@ import { EventEmitter } from './event-emitter';
 
 /** @internal */
 export class DragListener extends EventEmitter {
-    private _timeout: ReturnType<typeof setTimeout> | undefined;
+    // private _timeout: ReturnType<typeof setTimeout> | undefined;
     private _allowableTargets: HTMLElement[];
     private _oDocument: Document;
     private _eBody: HTMLElement;
-    private _nDelay: number;
-    private _nDistance: number;
+    // private _nDelay: number;
+    // private _nDistance: number;
     private _nX: number;
     private _nY: number;
     private _nOriginalX: number;
@@ -23,7 +23,7 @@ export class DragListener extends EventEmitter {
     constructor(private _eElement: HTMLElement, extraAllowableChildTargets: HTMLElement[]) {
         super();
 
-        this._timeout = undefined;
+        // this._timeout = undefined;
 
         this._allowableTargets = [_eElement, ...extraAllowableChildTargets];
         this._oDocument = document;
@@ -34,7 +34,9 @@ export class DragListener extends EventEmitter {
          * Do NOT make too short (previous value of 200 was not long enough for my touchpad)
          * Should generally rely on the mouse move to start drag.  Not this delay.
          */
-        this._nDelay = 1800;
+
+        // Disabled this since it's only useful for touch devices and otherwise annoying
+        // this._nDelay = 1800;
 
         /**
          * The distance the mouse needs to be moved to qualify as a drag
@@ -42,7 +44,8 @@ export class DragListener extends EventEmitter {
          * ???
          * Probably somehow needs tuning for different devices
          */
-        this._nDistance = 10;
+        // Disabled this since it's only useful for touch devices and otherwise annoying
+        // this._nDistance = 10;
 
         this._nX = 0;
         this._nY = 0;
@@ -80,17 +83,18 @@ export class DragListener extends EventEmitter {
         this._oDocument.addEventListener('pointerup', this._pointerUpEventListener, { passive: true });
         this._pointerTracking = true;
 
-        this._timeout = setTimeout(
-            () => {
-                try {
-                    this.startDrag()
-                }
-                catch (err) {
-                    console.error(err);
-                    throw err;
-                }
-            }
-            , this._nDelay);
+        this.startDrag();
+        // this._timeout = setTimeout(
+        //     () => {
+        //         try {
+        //             this.startDrag()
+        //         }
+        //         catch (err) {
+        //             console.error(err);
+        //             throw err;
+        //         }
+        //     }
+        //     , this._nDelay);
     }
 
     private onPointerMove(oEvent: PointerEvent) {
@@ -105,12 +109,13 @@ export class DragListener extends EventEmitter {
         this._nY = dragEvent.pageY - this._nOriginalY;
 
         if (this._dragging === false) {
-            if (
-                Math.abs(this._nX) > this._nDistance ||
-                Math.abs(this._nY) > this._nDistance
-            ) {
-                this.startDrag();
-            }
+            // if (
+            //     Math.abs(this._nX) > this._nDistance ||
+            //     Math.abs(this._nY) > this._nDistance
+            // ) {
+            //     this.startDrag();
+            // }
+            this.startDrag();
         }
 
         if (this._dragging) {
@@ -123,10 +128,10 @@ export class DragListener extends EventEmitter {
     }
 
     private processDragStop(dragEvent?: PointerEvent) {
-        if (this._timeout !== undefined) {
-            clearTimeout(this._timeout);
-            this._timeout = undefined;
-        }
+        // if (this._timeout !== undefined) {
+        //     clearTimeout(this._timeout);
+        //     this._timeout = undefined;
+        // }
 
         this.checkRemovePointerTrackingEventListeners();
     
@@ -148,10 +153,10 @@ export class DragListener extends EventEmitter {
     }
 
     private startDrag() {
-        if (this._timeout !== undefined) {
-            clearTimeout(this._timeout);
-            this._timeout = undefined;
-        }
+        // if (this._timeout !== undefined) {
+        //     clearTimeout(this._timeout);
+        //     this._timeout = undefined;
+        // }
         this._dragging = true;
         this._eBody.classList.add(DomConstants.ClassName.Dragging);
         this._eElement.classList.add(DomConstants.ClassName.Dragging);

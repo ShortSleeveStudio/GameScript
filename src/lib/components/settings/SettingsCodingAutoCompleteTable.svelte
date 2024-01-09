@@ -8,7 +8,7 @@
         ToolbarContent,
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
-    import { APP_NAME } from '@lib/constants/app';
+    import { APP_NAME, FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { get, type Readable } from 'svelte/store';
     import { autoCompleteTable } from '@lib/tables/auto-complete';
     import { TABLE_ID_AUTO_COMPLETES, type AutoComplete } from '@lib/api/db/db-schema';
@@ -20,16 +20,23 @@
     import FocusButton from '../common/FocusButton.svelte';
     import type { FocusPayloadAutoComplete } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
+    import RowColumnInput from '../common/RowColumnInput.svelte';
+    import RowColumnText from '../common/RowColumnText.svelte';
+    import {
+        AUTO_COMPLETE_PLACEHOLDER_INSERTION,
+        AUTO_COMPLETE_PLACEHOLDER_LABEL,
+        AUTO_COMPLETE_UNDO_INSERTION,
+        AUTO_COMPLETE_UNDO_LABEL,
+    } from '@lib/constants/settings';
 
-    const TEXT_INPUT_PROMPT = 'Enter a auto-complete label';
     const headers: DataTableHeader[] = [
         { key: 'label', value: 'Label' },
-        { key: 'focus', empty: true },
+        { key: 'insertion', value: 'Text to Insert' },
+        { key: 'focus', empty: true, minWidth: FOCUS_BUTTON_WIDTH, width: FOCUS_BUTTON_WIDTH },
     ];
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadAutoComplete = {
         uniqueNameTracker: uniqueNameTracker,
-        namePlaceholder: TEXT_INPUT_PROMPT,
     };
     let selectedRowIds: number[] = [];
     // TODO: https://svelte-5-preview.vercel.app/status
@@ -38,14 +45,15 @@
     async function addRow(): Promise<void> {
         let newAutoComplete: AutoComplete = <AutoComplete>{
             name: 'NewLabel',
-            kind: languages.CompletionItemKind.Function,
+            icon: languages.CompletionItemKind.Function,
+            rule: languages.CompletionItemInsertTextRule.None,
             insertion: 'NewTextToInsert',
         };
         let newRow: AutoComplete = await autoCompleteTable.createRow(newAutoComplete);
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'Auto-Complete creation',
+                'auto-Complete creation',
                 async () => {
                     await autoCompleteTable.deleteRow(newRow);
                 },
@@ -70,7 +78,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'Auto-complete deletion',
+                'auto-complete deletion',
                 async () => {
                     rowsToDelete = await autoCompleteTable.createRows(rowsToDelete);
                 },
@@ -102,10 +110,13 @@
                 <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowNameInput
                     rowView={row}
+                    undoText={AUTO_COMPLETE_UNDO_LABEL}
                     {uniqueNameTracker}
-                    inputPlaceholder={TEXT_INPUT_PROMPT}
+                    inputPlaceholder={AUTO_COMPLETE_PLACEHOLDER_LABEL}
                     isInspectorField={false}
                 />
+            {:else if cell.key === 'insertion'}
+                <RowColumnText rowView={row} columnName={'insertion'} />
             {:else if cell.key === 'focus'}
                 <FocusButton
                     rowType={TABLE_ID_AUTO_COMPLETES}

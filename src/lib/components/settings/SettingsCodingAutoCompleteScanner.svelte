@@ -1,12 +1,15 @@
 <script lang="ts">
-    import { Button, ProgressBar, TextInput, TooltipIcon } from 'carbon-components-svelte';
-    import { Information, SearchLocate } from 'carbon-icons-svelte';
+    import { Button, ProgressBar, TextInput, Tooltip, TooltipIcon } from 'carbon-components-svelte';
+    import { SearchLocate } from 'carbon-icons-svelte';
     import { open } from '@tauri-apps/plugin-dialog';
     import { codeScanInProgress } from '@lib/stores/settings/settings';
     import { wait } from '@lib/utility/wait';
     import { fade } from 'svelte/transition';
     import { durationFast02 } from '@lib/constants/motion';
 
+    const AUTO_COMPLETE_SCANNER_TOOLTIP_TEXT =
+        'You can scan a directory with code in it to extract all functions for use with auto-complete.';
+    const AUTO_COMPLETE_SCANNER_TOOLTIP_TITLE = 'Auto-Complete Directory Scanner';
     let scanPath: string = '';
     let codeScanProgress: number = 0;
     let progressBarAnimating: boolean = false;
@@ -35,14 +38,9 @@
 </script>
 
 <p class={progressBarAnimating ? 'subtract-progress-bar' : ''}>
-    <sup class="sup-with-tooltip">
-        Auto-Complete Directory Scanner
-        <TooltipIcon
-            tooltipText="You can scan a directory with code in it to extract all functions for use 
-            with auto-complete."
-            icon={Information}
-        />
-    </sup>
+    <Tooltip triggerText={AUTO_COMPLETE_SCANNER_TOOLTIP_TITLE} direction="bottom">
+        <p>{AUTO_COMPLETE_SCANNER_TOOLTIP_TEXT}</p>
+    </Tooltip>
     <span>
         <span class="button-set">
             <Button size="small" disabled={$codeScanInProgress} on:click={openDirectorySelectDialog}
@@ -81,11 +79,6 @@
 </p>
 
 <style>
-    .sup-with-tooltip {
-        display: flex;
-        gap: 5px;
-        align-items: center;
-    }
     .subtract-progress-bar {
         margin-bottom: calc(var(--cds-layout-02) - 0.5rem);
     }

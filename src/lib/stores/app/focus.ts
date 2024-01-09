@@ -20,6 +20,8 @@ export const focused: Writable<Focusable> = writable<Focusable>(undefined);
  * Payloads
  */
 export interface FocusPayloadRoutine extends FocusPayload {
-    namePlaceholder: string;
+    uniqueNameTracker: UniqueNameTracker;
+}
+export interface FocusPayloadAutoComplete extends FocusPayload {
     uniqueNameTracker: UniqueNameTracker;
 }

@@ -9,6 +9,7 @@ export interface Row {
     // This is ignored during serialization for inserts/updates
     id: number;
     name: string;
+    [key: string]: unknown; // helpful for dictionary-style lookups
 }
 export interface Annotated {
     notes: string; // used for developer notes
@@ -83,21 +84,63 @@ export const TABLE_ID_DEFAULT_FIELDS: DatabaseTableId = 16;
 /// Auto-Completes
 ///
 export interface AutoComplete extends Row {
-    kind: number;
+    icon: number;
+    rule: number;
     insertion: string;
 }
-export const AUTO_COMPLETE_KINDS: languages.CompletionItemKind[] = [
+export const AUTO_COMPLETE_ICONS: languages.CompletionItemKind[] = [
     languages.CompletionItemKind.Function,
     languages.CompletionItemKind.Variable,
 ];
-export type AutoCompleteKindId = (typeof ROUTINE_TYPE_NAMES)[number];
-export const AUTO_COMPLETE_KIND_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_KINDS.map(
+export type AutoCompleteIconId = (typeof AUTO_COMPLETE_ICONS)[number];
+export const AUTO_COMPLETE_ICON_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_ICONS.map(
     (kind: languages.CompletionItemKind, index: number) =>
         <DropdownItem>{
             id: index,
             text: languages.CompletionItemKind[kind],
         },
 );
+export const AUTO_COMPLETE_RULES: languages.CompletionItemInsertTextRule[] = [
+    languages.CompletionItemInsertTextRule.None,
+    languages.CompletionItemInsertTextRule.InsertAsSnippet,
+    languages.CompletionItemInsertTextRule.KeepWhitespace,
+];
+export type AutoCompleteRuleId = (typeof AUTO_COMPLETE_RULES)[number];
+export const AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_RULES.map(
+    (rule: languages.CompletionItemInsertTextRule, index: number) =>
+        <DropdownItem>{
+            id: index,
+            text: languages.CompletionItemInsertTextRule[rule].replace(/([a-z])([A-Z])/g, '$1 $2'),
+        },
+);
+/**
+ * A note on icons. The following are unique:
+ * issue,
+ * snippet,
+ * method/function/constructor,
+ * field,
+ * variable,
+ * class,
+ * struct,
+ * interface,
+ * module,
+ * property,
+ * event,
+ * operator,
+ * unit,
+ * value/enum,
+ * constant,
+ * enum memeber,
+ * keyword,
+ * text,
+ * color,
+ * file,
+ * reference,
+ * custom color,
+ * folder,
+ * type parameter,
+ * user
+ */
 
 ///
 /// Programming Languages

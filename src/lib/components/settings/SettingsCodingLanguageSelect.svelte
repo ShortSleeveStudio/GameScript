@@ -44,7 +44,7 @@
         await languagePrincipalRowView.updateColumn('principal', newValue);
         undoManager.register(
             new Undoable(
-                'Set default field type',
+                'set default field type',
                 async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');

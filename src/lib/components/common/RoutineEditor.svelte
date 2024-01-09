@@ -1,21 +1,23 @@
-<script lang="ts">
+<script lang="ts" generics="RowType extends Row">
     import {
         PROGRAMMING_LANGUAGE_ID_CS,
+        type Row,
         type ProgrammingLanguagePrincipal,
-        type Routine,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
-    import { MONACO_PROGRAMMING_LANGUAGE_NAMES } from '@lib/utility/monaco';
+    import { MONACO_PROGRAMMING_LANGUAGE_NAMES } from '@lib/monaco/monaco';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import * as monaco from 'monaco-editor';
     import { onDestroy, onMount } from 'svelte';
     import type { Unsubscriber } from 'svelte/motion';
     import { get } from 'svelte/store';
 
-    export let rowView: IDbRowView<Routine> | undefined;
-    $: onRowViewChanged(rowView); // Used to detect changes in the row view
+    export let languageOverride: string | undefined = undefined;
+    export let columnName: string;
+    export let rowView: IDbRowView<RowType> | undefined;
+    $: onRowViewChanged(rowView); // Used to detect if the rowView passed in is swapped for another
 
     let container: HTMLElement;
     let editor: monaco.editor.IStandaloneCodeEditor;
@@ -54,34 +56,34 @@
         }
     }
 
-    function onRowChanged(newRoutine: Routine) {
-        editor.setValue(newRoutine.code);
+    function onRowChanged(newRoutine: RowType) {
+        editor.setValue(<string>newRoutine[columnName]);
     }
 
     async function onSave() {
         if (!rowView) return;
         const newValue = editor.getValue();
-        const oldValue = get(rowView).code;
+        const oldValue = get(rowView)[columnName];
         if (oldValue === newValue) return;
 
         setEditorDisabled(true);
-        await rowView.updateColumn('code', newValue);
+        await rowView.updateColumn(columnName, newValue);
         setEditorDisabled(false);
 
         undoManager.register(
             new Undoable(
-                'Default field type selection',
+                'default field type selection',
                 async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     setEditorDisabled(true);
-                    await rowView.updateColumn('code', oldValue);
+                    await rowView.updateColumn(columnName, oldValue);
                     setEditorDisabled(false);
                     blurEditor();
                 },
                 async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     setEditorDisabled(true);
-                    await rowView.updateColumn('code', newValue);
+                    await rowView.updateColumn(columnName, newValue);
                     setEditorDisabled(false);
                     blurEditor();
                 },
@@ -97,13 +99,13 @@
         if (!editor) return;
         const model: monaco.editor.ITextModel | null = editor.getModel();
         if (!model) throw new Error('Code editor was not properly initialized');
-        monaco.editor.setModelLanguage(
-            model,
-            MONACO_PROGRAMMING_LANGUAGE_NAMES[principalLanguageRow.principal],
-        );
+        const languageName: string = languageOverride
+            ? languageOverride
+            : MONACO_PROGRAMMING_LANGUAGE_NAMES[principalLanguageRow.principal];
+        monaco.editor.setModelLanguage(model, languageName);
     }
 
-    function onRowViewChanged(row: IDbRowView<Routine> | undefined) {
+    function onRowViewChanged(row: IDbRowView<RowType> | undefined) {
         if (!editor) return;
         if (rowChangeUnsubscribe) rowChangeUnsubscribe();
         if (row) {
@@ -118,14 +120,19 @@
         // Initialize the editor
         let principalLanguageId =
             $languagePrincipalRowView?.principal ?? PROGRAMMING_LANGUAGE_ID_CS;
+        const languageName: string = languageOverride
+            ? languageOverride
+            : MONACO_PROGRAMMING_LANGUAGE_NAMES[principalLanguageId];
+        const quickSuggestionsEnabled: boolean = languageOverride ? false : true;
         const options: monaco.editor.IStandaloneEditorConstructionOptions = {
-            value: rowView ? get(rowView).code : '',
-            language: MONACO_PROGRAMMING_LANGUAGE_NAMES[principalLanguageId],
+            value: rowView ? <string>get(rowView)[columnName] : '',
+            language: languageName,
             theme: $isDarkMode ? 'vs-dark' : 'vs',
             automaticLayout: true,
             contextmenu: false,
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
+            quickSuggestions: quickSuggestionsEnabled,
         };
         editor = monaco.editor.create(container, options);
         // Add save command
@@ -147,18 +154,21 @@
     });
 </script>
 
-<div class="resizable">
-    <div class="code-editor" bind:this={container}></div>
-</div>
+<!-- TODO -->
+<!-- <div class="resizable"> -->
+<div class="code-editor" bind:this={container}></div>
+
+<!-- </div> -->
 
 <style>
     .code-editor {
         width: 100%;
-        height: 100%;
+        /* height: 100%; */
+        height: var(--me-default-height);
     }
-    .resizable {
+    /* .resizable {
         overflow: auto;
         height: var(--me-default-height);
         resize: vertical;
-    }
+    } */
 </style>

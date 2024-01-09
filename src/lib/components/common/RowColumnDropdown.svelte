@@ -1,19 +1,23 @@
-<script lang="ts">
-    import { FIELD_TYPE_DROP_DOWN_ITEMS, type DefaultField } from '@lib/api/db/db-schema';
+<script lang="ts" generics="RowType extends Row">
+    import { type Row } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { isApplyingDefaultFields } from '@lib/stores/app/applying-default-fields';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { Dropdown } from 'carbon-components-svelte';
+    import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
     import { onDestroy } from 'svelte';
     import type { Readable } from 'svelte/store';
 
-    export let rowView: IDbRowView<DefaultField>;
+    export let rowView: IDbRowView<RowType>;
+    export let columnName: string;
+    export let undoText: string;
+    export let isDisabled: boolean;
+    export let dropdownItems: DropdownItem[];
     let locationInPageFinder: HTMLElement;
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isColumnLoading('type');
-    let boundValue: number = $rowView.type;
-    let currentValue: number = $rowView.type;
+    const isLoading: Readable<boolean> = rowView.isColumnLoading(columnName);
+    let boundValue: number = <number>$rowView[columnName];
+    let currentValue: number = <number>$rowView[columnName];
     let direction: 'bottom' | 'top' = 'top';
 
     function recalculateOpenDirection() {
@@ -28,29 +32,29 @@
     }
 
     async function onSelect(): Promise<void> {
-        const newValue = boundValue;
-        const oldValue = currentValue;
+        const newValue: number = boundValue;
+        const oldValue: number = currentValue;
         if (oldValue === newValue) return;
 
-        await rowView.updateColumn('type', newValue);
+        await rowView.updateColumn(columnName, newValue);
         undoManager.register(
             new Undoable(
-                'Set default field type',
+                `${undoText} changed`,
                 async () => {
-                    await rowView.updateColumn('type', oldValue);
+                    await rowView.updateColumn(columnName, oldValue);
                 },
                 async () => {
-                    await rowView.updateColumn('type', newValue);
+                    await rowView.updateColumn(columnName, newValue);
                 },
             ),
         );
     }
 
     onDestroy(
-        rowView.subscribe((row: DefaultField) => {
-            if (row.type !== currentValue) {
-                boundValue = row.type;
-                currentValue = row.type;
+        rowView.subscribe((row: RowType) => {
+            if (row[columnName] !== currentValue) {
+                boundValue = <number>row[columnName];
+                currentValue = <number>row[columnName];
             }
         }),
     );
@@ -60,9 +64,9 @@
 <div on:mouseenter={recalculateOpenDirection} bind:this={locationInPageFinder}>
     <Dropdown
         size="sm"
-        items={FIELD_TYPE_DROP_DOWN_ITEMS}
+        items={dropdownItems}
         bind:selectedId={boundValue}
-        disabled={$isApplyingDefaultFields || $isLoading}
+        disabled={isDisabled || $isLoading}
         {direction}
         on:select={onSelect}
     />

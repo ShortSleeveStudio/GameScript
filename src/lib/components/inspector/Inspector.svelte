@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { TABLE_ID_ROUTINES } from '@lib/api/db/db-schema';
+    import { TABLE_ID_AUTO_COMPLETES, TABLE_ID_ROUTINES } from '@lib/api/db/db-schema';
     import { focused, type Focusable } from '@lib/stores/app/focus';
     import { Column, Content, Grid, Row } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
     import { LAYOUT_ID_INSPECTOR } from '@lib/constants/default-layout';
     import { EVENT_SELECTION_REQUEST, type SelectionRequest } from '@lib/constants/events';
+    import InspectorAutoComplete from './InspectorAutoComplete.svelte';
 
     let inspected: Focusable;
 
@@ -36,6 +37,11 @@
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
+                            {:else if inspected.tableId === TABLE_ID_AUTO_COMPLETES}
+                                <InspectorAutoComplete
+                                    rowView={inspected.rowView}
+                                    payload={inspected.payload}
+                                />
                             {/if}
                         {/key}
                     {/if}
@@ -47,8 +53,8 @@
 
 <style>
     .inspector {
-        /* Textareas don't get any smaller */
+        /* Textareas don't get any smaller also, tooltips don't either */
         height: 100%;
-        min-width: calc(35 * 8px);
+        min-width: calc(45 * 8px);
     }
 </style>

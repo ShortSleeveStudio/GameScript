@@ -52,14 +52,14 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
     async updateColumn<K extends keyof RowType, T extends RowType[K]>(
         columnName: K,
-        columnValue: T,
+        columnValue: unknown,
     ): Promise<void> {
         this._isLoading.increment();
         const columnIsLoading: IsLoading = this.getColumnIsLoading(<string>columnName);
         columnIsLoading.increment();
 
         const rowVal: RowType = get(this._internalWritable);
-        rowVal[columnName] = columnValue;
+        rowVal[columnName] = <T>columnValue;
         await this._db.updateRow(this._tableId, rowVal);
 
         columnIsLoading.decrement();
