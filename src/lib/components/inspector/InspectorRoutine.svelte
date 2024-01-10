@@ -5,14 +5,20 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import RoutineEditor from '../common/RoutineEditor.svelte';
     import InspectorFieldId from './InspectorFieldId.svelte';
-    import InspectorFieldNotes from './InspectorFieldNotes.svelte';
+    import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
+
     import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
-    import { ROUTINES_PLACEHOLDER_NAME, ROUTINES_UNDO_NAME } from '@lib/constants/settings';
+    import {
+        ROUTINES_PLACEHOLDER_NAME,
+        ROUTINES_PLACEHOLDER_NOTES,
+        ROUTINES_UNDO_NAME,
+        ROUTINES_UNDO_NOTES,
+    } from '@lib/constants/settings';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
 
-    const NOTES_PLACEHOLDER: string = 'Developer notes go here...';
+    const NOTES_PLACEHOLDER: string = '';
 </script>
 
 <h2>Routine</h2>
@@ -40,5 +46,10 @@
 </p>
 <p>
     <sup>Notes</sup>
-    <InspectorFieldNotes {rowView} placeholder={NOTES_PLACEHOLDER} />
+    <RowColumnTextArea
+        {rowView}
+        undoText={ROUTINES_UNDO_NOTES}
+        columnName={'notes'}
+        placeholder={ROUTINES_PLACEHOLDER_NOTES}
+    />
 </p>

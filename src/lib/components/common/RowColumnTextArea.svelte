@@ -1,20 +1,22 @@
-<script lang="ts" generics="RowType extends Annotated, Row">
+<script lang="ts" generics="RowType extends Row">
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { Readable } from 'svelte/store';
     import { onDestroy } from 'svelte';
     import { wasSavePressed } from '@lib/utility/keybinding';
-    import { type Annotated } from '@lib/api/db/db-schema';
+    import { type Row } from '@lib/api/db/db-schema';
     import { TextArea } from 'carbon-components-svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 
     // https://svelte-5-preview.vercel.app/status
     export let rowView: IDbRowView<RowType>;
+    export let undoText: string;
+    export let columnName: string;
     export let placeholder: string;
 
     // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isColumnLoading('notes');
-    let boundValue: string = $rowView.notes;
-    let currentValue: string = $rowView.notes;
+    const isLoading: Readable<boolean> = rowView.isColumnLoading(columnName);
+    let boundValue: string = <string>$rowView[columnName];
+    let currentValue: string = <string>$rowView[columnName];
 
     function onKeyUp(e: KeyboardEvent) {
         if (wasSavePressed(e)) {
@@ -27,15 +29,15 @@
         const oldValue = currentValue;
         if (oldValue === newValue) return;
 
-        await rowView.updateColumn('notes', newValue);
+        await rowView.updateColumn(columnName, newValue);
         undoManager.register(
             new Undoable(
-                'notes field change',
+                `${undoText} field change`,
                 async () => {
-                    await rowView.updateColumn('notes', oldValue);
+                    await rowView.updateColumn(columnName, oldValue);
                 },
                 async () => {
-                    await rowView.updateColumn('notes', newValue);
+                    await rowView.updateColumn(columnName, newValue);
                 },
             ),
         );
@@ -44,9 +46,9 @@
     onDestroy(
         rowView.subscribe((row: RowType) => {
             // If the name of this row has changed, we remove it from the map and add the new name
-            if (row.notes !== currentValue) {
-                boundValue = row.notes;
-                currentValue = row.notes;
+            if (row[columnName] !== currentValue) {
+                boundValue = <string>row[columnName];
+                currentValue = <string>row[columnName];
             }
         }),
     );

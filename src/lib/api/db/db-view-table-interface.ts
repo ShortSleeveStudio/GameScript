@@ -24,6 +24,10 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     createRows(rows: RowType[]): Promise<RowType[]>;
     deleteRow(row: RowType): Promise<void>;
     deleteRows(rows: RowType[]): Promise<void>;
+    getRowViewById(id: number): IDbRowView<RowType> | undefined;
+    getRowViewsById(id: number[]): IDbRowView<RowType>[];
+    getRowById(id: number): RowType | undefined;
+    getRowsById(id: number[]): RowType[];
     dispose(): void;
     /**@internal */
     onRowsDeleted(rows: number[]): Promise<void>;

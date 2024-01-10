@@ -5,13 +5,16 @@
     import InspectorFieldId from './InspectorFieldId.svelte';
     import RowNameInput from '../common/RowNameInput.svelte';
     import {
+        AUTO_COMPLETE_PLACEHOLDER_AUTO_COMPLETE,
         AUTO_COMPLETE_PLACEHOLDER_LABEL,
+        AUTO_COMPLETE_UNDO_DOCUMENTATION,
         AUTO_COMPLETE_UNDO_LABEL,
         AUTO_COMPLETE_UNDO_RULE,
     } from '@lib/constants/settings';
     import RowColumnDropdown from '../common/RowColumnDropdown.svelte';
     import { Tooltip } from 'carbon-components-svelte';
     import RoutineEditor from '../common/RoutineEditor.svelte';
+    import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
 
     export let rowView: IDbRowView<AutoComplete>;
     export let payload: FocusPayloadAutoComplete;
@@ -23,7 +26,12 @@
     <InspectorFieldId {rowView} />
 </p>
 <p>
-    <sup>Label</sup>
+    <Tooltip triggerText="Label" align="start" direction="bottom">
+        <p>
+            Labels are what the editor looks for while you type in order to decide if it's time to
+            provide a suggestion.
+        </p>
+    </Tooltip>
     <RowNameInput
         {rowView}
         undoText={AUTO_COMPLETE_UNDO_LABEL}
@@ -68,4 +76,13 @@
 <p>
     <sup>Text to Insert</sup>
     <RoutineEditor {rowView} columnName={'insertion'} languageOverride={'plaintext'} />
+</p>
+<p>
+    <sup>Documentation</sup>
+    <RowColumnTextArea
+        {rowView}
+        undoText={AUTO_COMPLETE_UNDO_DOCUMENTATION}
+        columnName={'documentation'}
+        placeholder={AUTO_COMPLETE_PLACEHOLDER_AUTO_COMPLETE}
+    />
 </p>

@@ -25,11 +25,13 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _isLoading: IsLoading;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
+    private _idToRowMap: Map<number, IDbRowView<RowType>>;
 
     constructor(database: Db, tableId: DatabaseTableId, filter: Filter<RowType>) {
         this._db = database;
         this._tableId = tableId;
         this._filter = filter;
+        this._idToRowMap = new Map();
         this._isLoading = new IsLoading();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
         this.onReloadRequired();
@@ -97,6 +99,37 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         }
     }
 
+    getRowViewById(id: number): IDbRowView<RowType> | undefined {
+        return this._idToRowMap.get(id);
+    }
+
+    getRowViewsById(ids: number[]): IDbRowView<RowType>[] {
+        const rows: IDbRowView<RowType>[] = [];
+        ids.forEach((rowId) => {
+            const rowView: IDbRowView<RowType> | undefined = this.getRowViewById(rowId);
+            if (rowView) {
+                rows.push(rowView);
+            }
+        });
+        return rows;
+    }
+
+    getRowById(id: number): RowType | undefined {
+        const rowView: IDbRowView<RowType> | undefined = this.getRowViewById(id);
+        return rowView ? get(rowView) : undefined;
+    }
+
+    getRowsById(ids: number[]): RowType[] {
+        const rows: RowType[] = [];
+        ids.forEach((rowId) => {
+            const rowView: IDbRowView<RowType> | undefined = this.getRowViewById(rowId);
+            if (rowView) {
+                rows.push(get(rowView));
+            }
+        });
+        return rows;
+    }
+
     dispose(): void {
         this._db.releaseTable(this);
     }
@@ -106,26 +139,29 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         const oldList: IDbRowView<RowType>[] = get(this._internalWritable);
         let oldI = 0;
         let createdI = 0;
+        this._idToRowMap.clear();
         for (; createdI < rows.length && oldI < oldList.length; ) {
             const oldRow: IDbRowView<RowType> = oldList[oldI];
             const newRow: IDbRowView<RowType> = rows[createdI];
 
             // Add new rows, retain old
             if (oldRow.id < newRow.id) {
-                newList.push(oldRow);
+                this.addToListAndMap(oldRow, newList, this._idToRowMap);
                 oldI++;
             } else if (oldRow.id > newRow.id) {
-                newList.push(newRow);
+                this.addToListAndMap(newRow, newList, this._idToRowMap);
                 createdI++;
             } else {
-                newList.push(newRow);
+                this.addToListAndMap(newRow, newList, this._idToRowMap);
                 oldI++;
                 createdI++;
             }
         }
         // Add any remaining rows
-        for (; oldI < oldList.length; oldI++) newList.push(oldList[oldI]);
-        for (; createdI < rows.length; createdI++) newList.push(rows[createdI]);
+        for (; oldI < oldList.length; oldI++)
+            this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
+        for (; createdI < rows.length; createdI++)
+            this.addToListAndMap(rows[createdI], newList, this._idToRowMap);
 
         // Notify
         this._internalWritable.set(newList);
@@ -144,7 +180,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
             // Retain non-deleted rows, skip deleted rows
             if (oldRow.id < deletedRowId) {
-                newList.push(oldList[oldI]);
+                this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
                 oldI++;
             } else if (oldRow.id > deletedRowId) {
                 deletedI++;
@@ -154,7 +190,8 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
             }
         }
         // Add any remaining new rows
-        for (; oldI < oldList.length; oldI++) newList.push(oldList[oldI]);
+        for (; oldI < oldList.length; oldI++)
+            this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
 
         // Notify
         this._internalWritable.set(newList);
@@ -162,12 +199,25 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
     async onReloadRequired(): Promise<void> {
         // Load new rows
-        const newRowsViews: IDbRowView<RowType>[] = await this._db.fetchRows(
+        const newRowViews: IDbRowView<RowType>[] = await this._db.fetchRows(
             this._tableId,
             this._filter,
         );
 
+        // Add to map
+        this._idToRowMap.clear();
+        newRowViews.forEach((rowView) => this._idToRowMap.set(rowView.id, rowView));
+
         // Update store
-        this._internalWritable.set(newRowsViews);
+        this._internalWritable.set(newRowViews);
+    }
+
+    private addToListAndMap(
+        rowView: IDbRowView<RowType>,
+        list: IDbRowView<RowType>[],
+        map: Map<number, IDbRowView<RowType>>,
+    ) {
+        list.push(rowView);
+        map.set(rowView.id, rowView);
     }
 }

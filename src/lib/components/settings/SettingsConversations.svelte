@@ -22,16 +22,18 @@
 <Row>
     <Column>
         <h2>Conversation Editor</h2>
-        <SettingsDefaultFields
-            defaultFields={conversationDefaultFields}
-            isApplyingDefaultFields={isApplyingDefaultFieldsConversations}
-            parentType={TABLE_ID_CONVERSATIONS}
-            {tableTitle}
-            {tableDescription}
-            nameUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME}
-            typeUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_TYPE}
-            namePlaceholderText={CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME}
-            {modalText}
-        />
+        <p>
+            <SettingsDefaultFields
+                defaultFields={conversationDefaultFields}
+                isApplyingDefaultFields={isApplyingDefaultFieldsConversations}
+                parentType={TABLE_ID_CONVERSATIONS}
+                {tableTitle}
+                {tableDescription}
+                nameUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME}
+                typeUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_TYPE}
+                namePlaceholderText={CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME}
+                {modalText}
+            />
+        </p>
     </Column>
 </Row>

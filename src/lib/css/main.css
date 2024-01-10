@@ -1,6 +1,8 @@
 html {
     /* This is below modals and sidenav, but over most everything else */
     --z-index-overlay: 7000;
+    /* This is above carbon buttons/interactive elements, but below overlay and modals */ 
+    --z-index-gl-header: 6500;
 
     --gl-tab-width: 152;
     --gl-tab-height: 24;
@@ -8,6 +10,7 @@ html {
     --gl-tab-placeholder-width: 8px;
 
     --me-default-height: calc(8 * 25px);
+
 }
 
 body {
@@ -158,4 +161,5 @@ body {
 .code-editor-disabled {
     opacity: 50%;
 }
+/* .monaco-editor .suggest-widget { width: 250px !important; } */
 

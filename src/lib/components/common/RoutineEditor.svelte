@@ -133,6 +133,10 @@
             minimap: { enabled: false },
             scrollBeyondLastLine: false,
             quickSuggestions: quickSuggestionsEnabled,
+            wordWrap: 'on',
+            suggest: <monaco.editor.ISuggestOptions>{
+                preview: true,
+            },
         };
         editor = monaco.editor.create(container, options);
         // Add save command

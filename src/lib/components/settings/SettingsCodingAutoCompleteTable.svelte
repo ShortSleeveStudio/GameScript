@@ -20,12 +20,9 @@
     import FocusButton from '../common/FocusButton.svelte';
     import type { FocusPayloadAutoComplete } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
-    import RowColumnInput from '../common/RowColumnInput.svelte';
     import RowColumnText from '../common/RowColumnText.svelte';
     import {
-        AUTO_COMPLETE_PLACEHOLDER_INSERTION,
         AUTO_COMPLETE_PLACEHOLDER_LABEL,
-        AUTO_COMPLETE_UNDO_INSERTION,
         AUTO_COMPLETE_UNDO_LABEL,
     } from '@lib/constants/settings';
 
@@ -48,12 +45,13 @@
             icon: languages.CompletionItemKind.Function,
             rule: languages.CompletionItemInsertTextRule.None,
             insertion: 'NewTextToInsert',
+            documentation: '',
         };
         let newRow: AutoComplete = await autoCompleteTable.createRow(newAutoComplete);
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'auto-Complete creation',
+                'auto-complete creation',
                 async () => {
                     await autoCompleteTable.deleteRow(newRow);
                 },
@@ -65,16 +63,13 @@
     }
 
     async function deleteRows(): Promise<void> {
-        let rowsToDelete: AutoComplete[] = [];
-        get(autoCompleteTable).forEach((defaultFieldRowView: IDbRowView<AutoComplete>) => {
-            const autoComplete: AutoComplete = get(defaultFieldRowView);
-            if (selectedRowIds.includes(autoComplete.id)) {
-                rowsToDelete.push(autoComplete);
-            }
-        });
-        selectedRowIds = [];
+        // Grab rows to delete
+        let rowsToDelete: AutoComplete[] = autoCompleteTable.getRowsById(selectedRowIds);
+        selectedRowIds.length = 0;
+
         // Delete rows
         await autoCompleteTable.deleteRows(rowsToDelete);
+
         // Register undo/redo
         undoManager.register(
             new Undoable(

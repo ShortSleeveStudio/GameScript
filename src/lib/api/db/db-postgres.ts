@@ -1,5 +1,5 @@
 import type { Writable } from 'svelte/store';
-import { Db } from './db-base';
+import { Db, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
 import type { DatabaseTableId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
@@ -9,6 +9,9 @@ import type { IDbTableView } from './db-view-table-interface';
 export class PostgresDb extends Db {
     constructor(isConnected: Writable<boolean>) {
         super(isConnected);
+    }
+    executeTransaction(transaction: Transaction): Promise<void> {
+        throw new Error(`Method not implemented. ${transaction}`);
     }
     fetchTable<RowType extends Row>(
         tableId: DatabaseTableId,

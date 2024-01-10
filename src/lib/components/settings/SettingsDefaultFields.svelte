@@ -85,14 +85,9 @@
     }
 
     async function deleteRows(): Promise<void> {
-        let rowsToDelete: DefaultField[] = [];
-        get(defaultFields).forEach((defaultFieldRowView: IDbRowView<DefaultField>) => {
-            const defaultField: DefaultField = get(defaultFieldRowView);
-            if (selectedRowIds.includes(defaultField.id)) {
-                rowsToDelete.push(defaultField);
-            }
-        });
-        selectedRowIds = [];
+        // Grab rows to delete
+        let rowsToDelete: DefaultField[] = defaultFields.getRowsById(selectedRowIds);
+        selectedRowIds.length = 0;
 
         // Delete rows
         await defaultFields.deleteRows(rowsToDelete);

@@ -17,7 +17,7 @@ import '@lib/utility/keybinding';
 import '@lib/utility/undo-manager';
 
 // Main app
-import 'carbon-components-svelte/css/all.css';
+import '@lib/css/carbon.css'; // This needs to be updated everytime you upgrade the library
 // import 'golden-layout/dist/css/goldenlayout-base.css';
 // import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
 import '@lib/css/golden-layout-base-custom.css';

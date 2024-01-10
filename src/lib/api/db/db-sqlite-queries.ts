@@ -1,3 +1,4 @@
+import { localeIdToColumn } from '@lib/utility/locale';
 import {
     DATABASE_TABLE_NAMES,
     FIELD_TYPES,
@@ -38,10 +39,11 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_TABLES}" (
 const CREATE_TABLE_AUTO_COMPLETES = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_AUTO_COMPLETES}" (
 	"id"	INTEGER,
-	"name"	TEXT NOT NULL,
+	"name"	TEXT,
 	"icon"	INTEGER NOT NULL,
 	"rule"	INTEGER NOT NULL,
-	"insertion"	TEXT NOT NULL,
+	"insertion"	TEXT,
+	"documentation"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;
@@ -82,6 +84,7 @@ const CREATE_TABLE_LOCALES = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
+	"isSystemCreated"	INTEGER NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;
@@ -97,6 +100,7 @@ const CREATE_TABLE_LOCALIZATION_TABLES = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATION_TABLES}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
+	"isSystemCreated"	INTEGER NOT NULL,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;
@@ -104,9 +108,10 @@ const DEFAULT_LOCALE_ID = 0;
 const CREATE_TABLE_LOCALIZATIONS = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATIONS}" (
 	"id"	INTEGER,
-	"name"	TEXT NOT NULL,
+	"name"	TEXT,
 	"parent"	INTEGER NOT NULL,
-	"${DEFAULT_LOCALE_ID}"	TEXT,
+	"isSystemCreated"	INTEGER NOT NULL,
+	"${localeIdToColumn(DEFAULT_LOCALE_ID)}"	TEXT,
 	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_LOCALIZATION_TABLES}",
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
@@ -117,6 +122,7 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_ACTORS}" (
     "name"	TEXT NOT NULL UNIQUE,
     "color"	TEXT NOT NULL,
     "localizedName"	INTEGER,
+	"isSystemCreated"	INTEGER NOT NULL,
     FOREIGN KEY("localizedName") REFERENCES "${TABLE_NAME_LOCALIZATIONS}",
     PRIMARY KEY("id" AUTOINCREMENT)
 );
@@ -277,7 +283,7 @@ COMMIT;
 // Locales
 rowIndex = DEFAULT_LOCALE_ID;
 const INITIALIZE_LOCALES = `
-INSERT OR IGNORE INTO ${TABLE_NAME_LOCALES} (id, name) VALUES (${rowIndex++}, 'en_US');`;
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALES} (id, name, isSystemCreated) VALUES (${rowIndex++}, 'en_US', true);`;
 // Locale Principal
 rowIndex = 0;
 const INITIALIZE_LOCALE_PRINCIPAL = `
@@ -286,18 +292,20 @@ INSERT OR IGNORE INTO ${TABLE_NAME_LOCALE_PRINCIPAL} (id, principal) VALUES (${r
 rowIndex = 0;
 const DEFAULT_LOCALIZATION_TABLE_ID = rowIndex;
 const INITIALIZE_LOCALIZATION_TABLES = `
-INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATION_TABLES} (id, name) VALUES (${rowIndex++}, 'Actors');`;
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATION_TABLES} (id, name, isSystemCreated) VALUES (${rowIndex++}, 'Actors', true);`;
 // Localizations
 rowIndex = 0;
 const DEFAULT_LOCALIZATION_ID = rowIndex;
 const INITIALIZE_LOCALIZATIONS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, name, parent, '${DEFAULT_LOCALE_ID}') VALUES (${rowIndex++}, 'Actors', ${DEFAULT_LOCALIZATION_TABLE_ID}, 'Player');
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, name, parent, isSystemCreated, '${localeIdToColumn(
+    DEFAULT_LOCALE_ID,
+)}') VALUES (${rowIndex++}, 'Actors', ${DEFAULT_LOCALIZATION_TABLE_ID}, true, 'Player');
 `;
 // Actors
 rowIndex = 0;
 const DEFAULT_ACTOR_ID = rowIndex;
 const INITIALIZE_ACTORS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_ACTORS} (id, name, color, localizedName) VALUES (${rowIndex++}, 'Player', '00E0FF', ${DEFAULT_LOCALIZATION_ID});`;
+INSERT OR IGNORE INTO ${TABLE_NAME_ACTORS} (id, name, color, localizedName, isSystemCreated) VALUES (${rowIndex++}, 'Player', '00E0FF', ${DEFAULT_LOCALIZATION_ID}, true);`;
 // Actor Principal
 rowIndex = 0;
 const INITIALIZE_ACTOR_PRINCIPAL = `

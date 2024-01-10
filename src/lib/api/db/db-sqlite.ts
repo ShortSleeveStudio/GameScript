@@ -4,7 +4,7 @@ import type { FileDetails } from '@lib/utility/file-details';
 import { wait } from '@lib/utility/wait';
 import Database, { type QueryResult } from '@tauri-apps/plugin-sql';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
-import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType } from './db-base';
+import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
 import { DATABASE_TABLE_NAMES, type DatabaseTableId, type Row } from './db-schema';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
@@ -47,6 +47,25 @@ export class SqliteDb extends Db {
         this._focused = focused;
         this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
         this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
+    }
+
+    async executeTransaction(transaction: Transaction): Promise<void> {
+        let wasError: boolean = false;
+        try {
+            this._db.execute('BEGIN;');
+            console.log('BEGIN;');
+            await transaction();
+        } catch (err) {
+            wasError = true;
+            console.log('ROLLBACK;');
+            await this._db.execute('ROLLBACK;');
+            throw err;
+        } finally {
+            if (!wasError) {
+                console.log('COMMIT;');
+                this._db.execute('COMMIT;');
+            }
+        }
     }
 
     fetchTable<RowType extends Row>(
@@ -106,10 +125,9 @@ export class SqliteDb extends Db {
             }
 
             // Execute
-            const result: QueryResult = await this._db.execute(
-                `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`,
-                argumentArray,
-            );
+            const query: string = `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`;
+            console.log(query);
+            const result: QueryResult = await this._db.execute(query, argumentArray);
             this.assertQueryResult(result, 'Failed to create row');
 
             // Set row id

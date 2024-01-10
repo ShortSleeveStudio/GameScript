@@ -62,14 +62,9 @@
     }
 
     async function deleteRows(): Promise<void> {
-        let rowsToDelete: Routine[] = [];
-        get(defaultRoutines).forEach((defaultFieldRowView: IDbRowView<Routine>) => {
-            const routine: Routine = get(defaultFieldRowView);
-            if (selectedRowIds.includes(routine.id)) {
-                rowsToDelete.push(routine);
-            }
-        });
-        selectedRowIds = [];
+        // Grab rows to delete
+        let rowsToDelete: Routine[] = defaultRoutines.getRowsById(selectedRowIds);
+        selectedRowIds.length = 0;
 
         // Delete rows
         await defaultRoutines.deleteRows(rowsToDelete);

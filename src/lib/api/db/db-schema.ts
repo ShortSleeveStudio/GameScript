@@ -14,6 +14,9 @@ export interface Row {
 export interface Annotated {
     notes: string; // used for developer notes
 }
+export interface SystemCreatable {
+    isSystemCreated: boolean; // Used when a row is created by the system
+}
 
 ///
 /// Tables
@@ -87,6 +90,7 @@ export interface AutoComplete extends Row {
     icon: number;
     rule: number;
     insertion: string;
+    documentation: string;
 }
 export const AUTO_COMPLETE_ICONS: languages.CompletionItemKind[] = [
     languages.CompletionItemKind.Function,
@@ -107,9 +111,9 @@ export const AUTO_COMPLETE_RULES: languages.CompletionItemInsertTextRule[] = [
 ];
 export type AutoCompleteRuleId = (typeof AUTO_COMPLETE_RULES)[number];
 export const AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_RULES.map(
-    (rule: languages.CompletionItemInsertTextRule, index: number) =>
+    (rule: languages.CompletionItemInsertTextRule) =>
         <DropdownItem>{
-            id: index,
+            id: rule,
             text: languages.CompletionItemInsertTextRule[rule].replace(/([a-z])([A-Z])/g, '$1 $2'),
         },
 );
@@ -183,11 +187,11 @@ export interface ProgrammingLanguagePrincipal extends Row {
 ///
 export interface RoutineType extends Row {}
 
-export const ROUTINE_TYPE_NAME_USER = 'User';
+export const ROUTINE_TYPE_NAME_USER_CREATED = 'User';
 export const ROUTINE_TYPE_NAME_IMPORT = 'Import';
 export const ROUTINE_TYPE_NAME_DEFAULT = 'Default';
 export const ROUTINE_TYPE_NAMES = [
-    ROUTINE_TYPE_NAME_USER, // 0
+    ROUTINE_TYPE_NAME_USER_CREATED, // 0
     ROUTINE_TYPE_NAME_IMPORT, // 1
     ROUTINE_TYPE_NAME_DEFAULT, // 2
 ] as const;
@@ -217,7 +221,7 @@ export interface Routine extends Row, Annotated {
 ///
 /// Locales
 ///
-export interface Locale extends Row {}
+export interface Locale extends Row, SystemCreatable {}
 
 ///
 /// Locale Principal
@@ -229,21 +233,21 @@ export interface LocalePrincipal extends Row {
 ///
 /// Localization Tables
 ///
-export interface LocalizationTable extends Row {}
+export interface LocalizationTable extends Row, SystemCreatable {}
 
 ///
 /// Localization
 ///
-export interface Localization extends Row {
+export interface Localization extends Row, SystemCreatable {
     parent: number; // FK Localization Tables
-    [locale: number]: string | number; // FK Locales -> Localization
+    [locale: string]: unknown; // FK Locales -> Localization
     // 'name' is used for nicknames
 }
 
 ///
 /// Actors
 ///
-export interface Actor extends Row {
+export interface Actor extends Row, Annotated, SystemCreatable {
     color: string;
     localizedName: number; // FK Localization
 }

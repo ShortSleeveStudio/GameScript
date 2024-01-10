@@ -20,16 +20,19 @@
 
 <Row>
     <Column>
-        <SettingsDefaultFields
-            defaultFields={actorDefaultFields}
-            isApplyingDefaultFields={isApplyingDefaultFieldsActors}
-            parentType={TABLE_ID_ACTORS}
-            {tableTitle}
-            {tableDescription}
-            nameUndoText={ACTORS_DEFAULT_FIELDS_UNDO_NAME}
-            typeUndoText={ACTORS_DEFAULT_FIELDS_UNDO_TYPE}
-            namePlaceholderText={ACTORS_DEFAULT_FIELDS_PLACEHOLDER_NAME}
-            {modalText}
-        />
+        <h2>Actors</h2>
+        <p>
+            <SettingsDefaultFields
+                defaultFields={actorDefaultFields}
+                isApplyingDefaultFields={isApplyingDefaultFieldsActors}
+                parentType={TABLE_ID_ACTORS}
+                {tableTitle}
+                {tableDescription}
+                nameUndoText={ACTORS_DEFAULT_FIELDS_UNDO_NAME}
+                typeUndoText={ACTORS_DEFAULT_FIELDS_UNDO_TYPE}
+                namePlaceholderText={ACTORS_DEFAULT_FIELDS_PLACEHOLDER_NAME}
+                {modalText}
+            />
+        </p>
     </Column>
 </Row>

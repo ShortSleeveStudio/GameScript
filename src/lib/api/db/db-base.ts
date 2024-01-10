@@ -12,6 +12,9 @@ export const OP_CREATE: OpType = 0;
 export const OP_DELETE: OpType = 1;
 export const OP_UPDATE: OpType = 2;
 
+// Transaction type
+export type Transaction = () => Promise<void>;
+
 /**The interface all databases must implement */
 export abstract class Db {
     protected _db!: Database; // Will be initialized by children
@@ -20,6 +23,12 @@ export abstract class Db {
     constructor(isConnected: Writable<boolean>) {
         this._isConnected = isConnected;
     }
+
+    /**
+     * Execute a function within a database transaction.
+     * @param transaction A function to execute within a database transaction
+     */
+    abstract executeTransaction(transaction: Transaction): Promise<void>;
 
     /**
      * Creates a table view.
