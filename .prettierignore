@@ -1,13 +1,11 @@
+out
+dist
+LICENSE.md
+tsconfig.json
+tsconfig.*.json
+
 .DS_Store
 node_modules
-/build
-/.svelte-kit
-/package
-.env
-.env.*
-!.env.example
-
-src-tauri/target
 src/lib/vendor
 
 # Ignore files for PNPM, NPM and YARN
