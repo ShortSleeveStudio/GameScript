@@ -13,7 +13,7 @@ export default defineConfig({
         plugins: [svelte()],
         resolve: {
             alias: {
-                '@lib': path.resolve(__dirname, './src/renderer/lib'),
+                '@lib': path.resolve(__dirname, './src/renderer/src/lib'),
             },
         },
     },

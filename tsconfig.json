@@ -4,21 +4,23 @@
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.svelte",
+    "src/renderer/src/**/*.ts",
     "src/preload/*.d.ts"
   ],
   "exclude": [
-    "src/lib/vendor/**"
+    "src/renderer/lib/vendor/**"
   ],
   "compilerOptions": {
     "verbatimModuleSyntax": true,
     "useDefineForClassFields": true,
+    "allowImportingTsExtensions": true,
     "strict": false,
     "allowJs": true,
     "checkJs": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "baseUrl": "./src",
     "paths": {
-      "@lib/*": ["renderer/lib/*"]
+      "@lib/*": ["renderer/src/lib/*"]
     },
     "types": ["vitest/globals"]
   },

@@ -1,16 +1,7 @@
 import { is } from '@electron-toolkit/utils';
-import {
-    BrowserWindow,
-    IpcMainInvokeEvent,
-    OpenDialogOptions,
-    OpenDialogReturnValue,
-    WebContents,
-    app,
-    dialog,
-    ipcMain,
-} from 'electron';
+import { BrowserWindow, app } from 'electron';
 import { join } from 'path';
-import { API_FS_DIALOG_OPEN } from '../common/constants.js';
+import { API_WINDOW_ON_RESIZE } from '../common/constants';
 
 function createWindow(): void {
     // Create the browser window.
@@ -43,6 +34,11 @@ function createWindow(): void {
     } else {
         mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
     }
+
+    // Listen for Window Events
+    mainWindow.on('resize', () => {
+        mainWindow.webContents.send(API_WINDOW_ON_RESIZE);
+    });
 }
 
 // This method will be called when Electron has finished
@@ -97,19 +93,14 @@ app.on('activate', () => {
 /**
  * Dialogs
  */
-ipcMain.handle(
-    API_FS_DIALOG_OPEN,
-    async (
-        event: IpcMainInvokeEvent,
-        payload: OpenDialogOptions,
-    ): Promise<OpenDialogReturnValue> => {
-        const webContents: WebContents = event.sender;
-        const mainWindow: BrowserWindow | null = BrowserWindow.fromWebContents(webContents);
-        if (!mainWindow) throw new Error('Could not locate the main window');
-        return await dialog.showOpenDialog(mainWindow, payload);
-    },
-);
+import './ipc-dialog.ts';
 
-// if (!fs.existsSync(appDataDirectory)) {
-//     fs.mkdirSync(appDataDirectory);
-// }
+/**
+ * FileSystem
+ */
+import './ipc-fs.ts';
+
+/**
+ * Window
+ */
+import './ipc-window.ts';

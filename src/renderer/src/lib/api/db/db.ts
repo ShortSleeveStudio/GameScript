@@ -12,7 +12,7 @@ export let db: Db;
 
 // Initialization
 dbType.subscribe(onDbTypeChange);
-function onDbTypeChange(newDbtype: DatabaseTypeName) {
+function onDbTypeChange(newDbtype: DatabaseTypeName): void {
     // Shutdown old DB instance
     if (db) {
         db.shutdown();

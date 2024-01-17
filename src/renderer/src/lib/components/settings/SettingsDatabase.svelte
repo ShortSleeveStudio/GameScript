@@ -9,11 +9,10 @@
         OverflowMenu,
         OverflowMenuItem,
     } from 'carbon-components-svelte';
-    // import { FILE_DB_EXTENSION_FILTER } from '@lib/constants/file';
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
-    // import type { FileDetails } from '@lib/utility/file-details';
     import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
     import { OverflowMenuVertical } from 'carbon-icons-svelte';
+    import type { DialogResult } from 'main/ipc-dialog';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
@@ -25,43 +24,22 @@
     );
 
     async function sqliteDatabaseDialogNew() {
-        // // Grab file path
-        // let filePath: string | null = await save({
-        //     title: 'Create or Select a Database',
-        //     filters: [FILE_DB_EXTENSION_FILTER],
-        // });
-        // if (!filePath) return;
-        // // Does the file exist
-        // const isExtant = await exists(filePath);
-        // // Touch file
-        // if (!isExtant) {
-        //     // TODO: https://github.com/tauri-apps/plugins-workspace/issues/856
-        //     await writeFile(filePath, new Uint8Array(), {});
-        // }
-        // const baseName: string = await basename(filePath);
-        // $dbSqlitePath = <FileDetails>{
-        //     path: filePath,
-        //     fileName: baseName,
-        // };
+        const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
+        if (saveResult.canceled) return;
+        $dbSqlitePath = saveResult;
     }
 
     async function sqliteDatabaseDialogOpen() {
-        // let file = await open({
-        //     multiple: false,
-        //     directory: false,
-        //     filters: [FILE_DB_EXTENSION_FILTER],
-        // });
-        // if (file && file.path) {
-        //     $dbSqlitePath = <FileDetails>{
-        //         path: file.path,
-        //         fileName: file.name,
-        //     };
-        // }
+        const openResult: DialogResult = await window.api.dialog.sqliteDbOpen();
+        if (openResult.canceled) return;
+        $dbSqlitePath = openResult;
     }
 
     function resetConnection() {
         dbSqlitePath.update((dbPath) => {
-            dbPath.path = '';
+            dbPath.filePath = '';
+            dbPath.fileName = '';
+            dbPath.canceled = false;
             return dbPath;
         });
     }

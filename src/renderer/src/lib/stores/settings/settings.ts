@@ -1,13 +1,11 @@
 import { DATABASE_TYPE_NAMES, type DatabaseTypeName } from '@lib/api/db/db-types';
-import { APP_NAME } from '@lib/constants/app';
 import {
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
 } from '@lib/constants/local-storage';
-import type { FileDetails } from '@lib/utility/file-details';
 import { persisted } from '@lib/vendor/svelte-persisted-store';
-import { appDataDir, join } from '@tauri-apps/api/path';
+import type { DialogResult } from 'main/ipc-dialog';
 import { writable, type Writable } from 'svelte/store';
 
 ///
@@ -21,10 +19,10 @@ export const dbType: Writable<DatabaseTypeName> = persisted(
     DATABASE_TYPE_NAMES[0],
 );
 /**SQLite database file path */
-export const dbSqlitePath: Writable<FileDetails> = persisted(LS_KEY_SETTINGS_DB_SQLITE_PATH, {
-    path: await join(await appDataDir(), `${APP_NAME}.db`),
-    fileName: 'GameScript.db',
-});
+export const dbSqlitePath: Writable<DialogResult> = persisted(
+    LS_KEY_SETTINGS_DB_SQLITE_PATH,
+    <DialogResult>{},
+);
 
 ///
 /// Conversation Editor Settings

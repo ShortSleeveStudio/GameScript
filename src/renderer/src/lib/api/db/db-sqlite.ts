@@ -1,8 +1,7 @@
 import type { Focusable } from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
-import type { FileDetails } from '@lib/utility/file-details';
 import { wait } from '@lib/utility/wait';
-import Database, { type QueryResult } from '@tauri-apps/plugin-sql';
+import type { DialogResult } from 'main/ipc-dialog';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
 import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -24,14 +23,14 @@ export class SqliteDb extends Db {
     private _tableToTableView: IDbTableView<Row>[][]; // Lookup table using table id
     private _unsubscribeSqlitePath: Unsubscriber;
     private _unsubscribeDbConnected: Unsubscriber;
-    private _sqlitePathStore: Writable<FileDetails>;
+    private _sqlitePathStore: Writable<DialogResult>;
     private _appInitializationErrors: Writable<Error[]>;
     private _notificationManager: NotificationManager;
     private _focused: Writable<Focusable>;
 
     constructor(
         isConnected: Writable<boolean>,
-        sqlitePathStore: Writable<FileDetails>,
+        sqlitePathStore: Writable<DialogResult>,
         appInitializationError: Writable<Error[]>,
         notificationManager: NotificationManager,
         focused: Writable<Focusable>,
@@ -327,18 +326,18 @@ export class SqliteDb extends Db {
         });
     };
 
-    private onDbPathChanged = async (fileDetails: FileDetails) => {
+    private onDbPathChanged = async (fileDetails: DialogResult) => {
         // Destroy previous connection
         super.destroyConnection();
 
         // Only attempt to connect if we have a valid path
-        if (!fileDetails || !fileDetails.path) {
+        if (!fileDetails || !fileDetails.filePath) {
             return;
         }
 
         try {
             // Attempt to connect
-            this._db = await Database.load(`sqlite:${fileDetails.path}`);
+            this._db = await Database.load(`sqlite:${fileDetails.filePath}`);
 
             // Ensure schema
             await this.initializeSchema();

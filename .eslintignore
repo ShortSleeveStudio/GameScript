@@ -4,7 +4,7 @@ out
 .gitignore
 
 .DS_Store
-src/lib/vendor
+src/renderer/lib/vendor
 
 # Ignore files for PNPM, NPM and YARN
 pnpm-lock.yaml

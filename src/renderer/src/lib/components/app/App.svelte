@@ -1,5 +1,7 @@
 <script lang="ts">
-    // import Topbar from '@lib/components/app/Topbar.svelte';
+    import type { DialogResult } from 'main/ipc-dialog';
+    import Topbar from '@lib/components/app/Topbar.svelte';
+
     // import Dock from '@lib/components/app/Dock.svelte';
     // import Overlay from '@lib/components/app/Overlay.svelte';
     // import { ToastItem, toastManager } from '@lib/stores/app/toasts';
@@ -41,13 +43,11 @@
     //         }
     //     }),
     // );
-    console.log('MADE IT');
-    window.api.fs.showOpenDialog();
 </script>
 
 <div>test</div>
 
 <!-- <svelte:window on:error|preventDefault|stopPropagation={globalErrorHandler} /> -->
-<!-- <Topbar /> -->
+<Topbar />
 <!-- <Overlay /> -->
 <!-- <Dock /> -->

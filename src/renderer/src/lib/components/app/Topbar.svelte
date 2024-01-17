@@ -15,7 +15,6 @@
     import Minimize from 'carbon-icons-svelte/lib/Minimize.svelte';
     import SubtractLarge from 'carbon-icons-svelte/lib/SubtractLarge.svelte';
     import { maximized } from '@lib/stores/app/maximized';
-    import { mainWindow } from '@lib/api/system/window';
     import { darkmode } from '@lib/stores/app/darkmode';
     import { EVENT_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
     import {
@@ -31,28 +30,28 @@
         settingsIsVisible,
     } from '@lib/stores/app/layout';
     import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
-    import { APP_NAME } from '@lib/constants/app';
 
     let isSideNavOpen = false;
 
-    function shutdown() {
+    function shutdown(): void {
         dispatchEvent(new CustomEvent(EVENT_SHUTDOWN));
-        mainWindow.close();
+        window.api.window.close();
     }
 </script>
 
 <Header
-    data-tauri-drag-region
-    platformName={APP_NAME}
-    style="width:100%"
+    platformName={window.api.constants.APP_NAME}
+    style="width: 100%; -webkit-app-region: drag;"
     bind:isSideNavOpen
     persistentHamburgerMenu={true}
 >
     <HeaderUtilities>
-        <HeaderGlobalAction icon={SubtractLarge} on:click={mainWindow.minimize} />
+        <HeaderGlobalAction icon={SubtractLarge} on:click={window.api.window.minimize} />
         <HeaderGlobalAction
             icon={$maximized ? Minimize : Maximize}
-            on:click={mainWindow.toggleMaximize}
+            on:click={() => {
+                $maximized ? window.api.window.unmaximize() : window.api.window.maximize();
+            }}
         />
         <HeaderGlobalAction icon={Close} on:click={shutdown} />
     </HeaderUtilities>
