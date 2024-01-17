@@ -62,7 +62,7 @@
         <SideNavLink
             text="Throw Error"
             on:click={() => {
-                throw new Error('Parameter is not a number!');
+                throw new Error('Error was thrown!');
             }}
         />
         <SideNavLink

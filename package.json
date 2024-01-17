@@ -21,7 +21,9 @@
         "test": "vitest"
     },
     "dependencies": {
-        "@electron-toolkit/utils": "^3.0.0"
+        "@electron-toolkit/utils": "^3.0.0",
+        "sqlite": "^5.1.1",
+        "sqlite3": "^5.1.7"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config-prettier": "^2.0.0",
@@ -39,6 +41,7 @@
         "eslint": "^8.56.0",
         "eslint-plugin-svelte": "^2.35.1",
         "monaco-editor": "^0.45.0",
+        "mousetrap": "^1.6.5",
         "prettier": "^3.1.1",
         "prettier-plugin-svelte": "^3.1.2",
         "svelte": "^4.2.8",

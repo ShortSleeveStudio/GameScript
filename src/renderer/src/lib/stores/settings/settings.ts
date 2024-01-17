@@ -5,7 +5,7 @@ import {
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
 } from '@lib/constants/local-storage';
 import { persisted } from '@lib/vendor/svelte-persisted-store';
-import type { DialogResult } from 'main/ipc-dialog';
+import type { DialogResult } from 'preload/api-dialog';
 import { writable, type Writable } from 'svelte/store';
 
 ///

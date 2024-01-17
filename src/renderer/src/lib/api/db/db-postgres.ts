@@ -43,4 +43,7 @@ export class PostgresDb extends Db {
     deleteRows<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]): Promise<void> {
         throw new Error(`Method not implemented. ${tableId} ${rows}`);
     }
+    shutdown(): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
 }

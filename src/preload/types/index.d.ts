@@ -1,4 +1,4 @@
-import { API } from './api.ts';
+import { API } from '../api.ts';
 
 declare global {
     interface Window {

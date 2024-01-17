@@ -1,4 +1,3 @@
-import type Database from '@tauri-apps/plugin-sql';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import type { DatabaseTableId, Row } from './db-schema';
@@ -17,7 +16,6 @@ export type Transaction = () => Promise<void>;
 
 /**The interface all databases must implement */
 export abstract class Db {
-    protected _db!: Database; // Will be initialized by children
     protected _isConnected: Writable<boolean>;
 
     constructor(isConnected: Writable<boolean>) {
@@ -109,16 +107,7 @@ export abstract class Db {
     /**
      * Shutdown this database connection.
      */
-    async shutdown(): Promise<void> {
-        await this.destroyConnection();
-    }
-
-    protected async destroyConnection() {
-        this._isConnected.set(false);
-        if (this._db) {
-            await this._db.close();
-        }
-    }
+    abstract shutdown(): Promise<void>;
 
     protected assertQueryResult(result: unknown, errorMessage: string): void {
         if (!result) throw new Error(errorMessage);

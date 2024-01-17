@@ -13,10 +13,11 @@ function createWindow(): void {
         frame: false,
         webPreferences: {
             preload: join(__dirname, '../preload/index.js'),
-            // nodeIntegration: true,
-            // sandbox: false,
+            sandbox: false,
+            contextIsolation: false,
         },
     });
+    mainWindow.webContents.session.enableNetworkEmulation({ offline: true });
 
     // mainWindow.on('ready-to-show', () => {
     //     mainWindow.show();

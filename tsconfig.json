@@ -5,7 +5,9 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.svelte",
     "src/renderer/src/**/*.ts",
-    "src/preload/*.d.ts"
+    "src/common/*.ts",
+    "src/preload/*.d.ts", 
+    "src/preload/types/index.d.ts"
   ],
   "exclude": [
     "src/renderer/lib/vendor/**"
@@ -13,7 +15,6 @@
   "compilerOptions": {
     "verbatimModuleSyntax": true,
     "useDefineForClassFields": true,
-    "allowImportingTsExtensions": true,
     "strict": false,
     "allowJs": true,
     "checkJs": true,

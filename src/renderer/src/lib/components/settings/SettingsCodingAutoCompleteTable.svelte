@@ -8,13 +8,12 @@
         ToolbarContent,
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
-    import { APP_NAME, FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
-    import { get, type Readable } from 'svelte/store';
+    import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
+    import { type Readable } from 'svelte/store';
     import { autoCompleteTable } from '@lib/tables/auto-complete';
     import { TABLE_ID_AUTO_COMPLETES, type AutoComplete } from '@lib/api/db/db-schema';
     import { languages } from 'monaco-editor';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
     import FocusButton from '../common/FocusButton.svelte';
@@ -90,7 +89,7 @@
         size="medium"
         title="Auto-Complete Strings"
         description="This table is populated with auto-complete strings that are made available 
-        anywhere you write code within {APP_NAME}."
+        anywhere you write code within {window.api.constants.APP_NAME}."
         batchSelection
         bind:selectedRowIds
         {headers}

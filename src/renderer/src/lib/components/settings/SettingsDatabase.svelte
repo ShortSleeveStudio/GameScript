@@ -12,7 +12,8 @@
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
     import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
     import { OverflowMenuVertical } from 'carbon-icons-svelte';
-    import type { DialogResult } from 'main/ipc-dialog';
+    import type { DialogResult } from 'preload/api-dialog';
+    import { dialogResultReset } from '@lib/utility/dialog';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
@@ -25,23 +26,18 @@
 
     async function sqliteDatabaseDialogNew() {
         const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
-        if (saveResult.canceled) return;
+        if (saveResult.cancelled) return;
         $dbSqlitePath = saveResult;
     }
 
     async function sqliteDatabaseDialogOpen() {
         const openResult: DialogResult = await window.api.dialog.sqliteDbOpen();
-        if (openResult.canceled) return;
+        if (openResult.cancelled) return;
         $dbSqlitePath = openResult;
     }
 
     function resetConnection() {
-        dbSqlitePath.update((dbPath) => {
-            dbPath.filePath = '';
-            dbPath.fileName = '';
-            dbPath.canceled = false;
-            return dbPath;
-        });
+        dbSqlitePath.update(dialogResultReset);
     }
 </script>
 
@@ -60,7 +56,7 @@
                     <TextInput
                         size="sm"
                         disabled={true}
-                        value={$dbSqlitePath.fileName}
+                        value={$dbSqlitePath.baseName}
                         placeholder="Database file..."
                     />
                     <OverflowMenu flipped size="sm" style="width: auto;">
@@ -74,7 +70,12 @@
                             />
                         </div>
                         <OverflowMenuItem text="New Database" on:click={sqliteDatabaseDialogNew} />
-                        <OverflowMenuItem text="Close Database" danger on:click={resetConnection} />
+                        <OverflowMenuItem
+                            text="Close Database"
+                            danger
+                            on:click={resetConnection}
+                            disabled={$dbSqlitePath.baseName === ''}
+                        />
                     </OverflowMenu>
                 </span>
             </p>

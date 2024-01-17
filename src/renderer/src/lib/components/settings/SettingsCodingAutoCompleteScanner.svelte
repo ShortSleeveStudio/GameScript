@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { Button, ProgressBar, TextInput, Tooltip, TooltipIcon } from 'carbon-components-svelte';
+    import { Button, ProgressBar, TextInput, Tooltip } from 'carbon-components-svelte';
     import { SearchLocate } from 'carbon-icons-svelte';
-    import { open } from '@tauri-apps/plugin-dialog';
     import { codeScanInProgress } from '@lib/stores/settings/settings';
     import { wait } from '@lib/utility/wait';
     import { fade } from 'svelte/transition';
     import { durationFast02 } from '@lib/constants/motion';
+    import type { DialogResult } from 'preload/api-dialog';
 
     const AUTO_COMPLETE_SCANNER_TOOLTIP_TEXT =
         'You can scan a directory with code in it to extract all functions for use with auto-complete.';
@@ -26,13 +26,10 @@
         $codeScanInProgress = false;
     }
 
-    async function openDirectorySelectDialog() {
-        let file: string | null = await open({
-            multiple: false,
-            directory: true,
-        });
-        if (file) {
-            scanPath = file;
+    async function openDirectorySelectDialog(): Promise<void> {
+        const result: DialogResult = await window.api.dialog.autoCompleteOpen();
+        if (!result.cancelled) {
+            scanPath = result.path;
         }
     }
 </script>

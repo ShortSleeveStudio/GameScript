@@ -1,7 +1,9 @@
 import type { Focusable } from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
+import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
-import type { DialogResult } from 'main/ipc-dialog';
+import type { DialogResult } from 'preload/api-dialog';
+import { type Database, type ISqlite } from 'sqlite';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
 import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -19,6 +21,7 @@ import type { IDbTableView } from './db-view-table-interface';
  * C:\Users\<username>\AppData\Roaming\com.tauri.dev\GameScript.db
  */
 export class SqliteDb extends Db {
+    private _db: Database | undefined;
     private _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
     private _tableToTableView: IDbTableView<Row>[][]; // Lookup table using table id
     private _unsubscribeSqlitePath: Unsubscriber;
@@ -50,20 +53,23 @@ export class SqliteDb extends Db {
 
     async executeTransaction(transaction: Transaction): Promise<void> {
         let wasError: boolean = false;
+        const db = this._db.getDatabaseInstance();
         try {
-            this._db.execute('BEGIN;');
+            db.serialize();
+            this._db.exec('BEGIN;');
             console.log('BEGIN;');
             await transaction();
         } catch (err) {
             wasError = true;
             console.log('ROLLBACK;');
-            await this._db.execute('ROLLBACK;');
+            await this._db.exec('ROLLBACK;');
             throw err;
         } finally {
             if (!wasError) {
                 console.log('COMMIT;');
-                this._db.execute('COMMIT;');
+                this._db.exec('COMMIT;');
             }
+            db.parallelize();
         }
     }
 
@@ -125,12 +131,15 @@ export class SqliteDb extends Db {
 
             // Execute
             const query: string = `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`;
-            console.log(query);
-            const result: QueryResult = await this._db.execute(query, argumentArray);
-            this.assertQueryResult(result, 'Failed to create row');
+            let result: ISqlite.RunResult;
+            try {
+                result = await this._db.run(query, argumentArray);
+            } catch (err) {
+                throw new Error(`Failed to create row: ${err}`);
+            }
 
             // Set row id
-            row.id = result.lastInsertId;
+            row.id = result.lastID;
         }
 
         // TODO: REMOVE THIS
@@ -155,7 +164,12 @@ export class SqliteDb extends Db {
         const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${
             filterString ? `WHERE ${filterString}` : ''
         } ORDER BY id ASC`;
-        const results = await this._db.select<RowType[]>(query);
+        let results: RowType[];
+        try {
+            results = await this._db.all(query);
+        } catch (err) {
+            throw new Error(`Failed to fetch rows: ${err}`);
+        }
 
         // Fetch row views
         const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
@@ -194,8 +208,11 @@ export class SqliteDb extends Db {
         const query = `UPDATE ${
             DATABASE_TABLE_NAMES[tableId]
         } SET ${keyValuePairs} WHERE id = $${++i};`;
-        const result: QueryResult = await this._db.execute(query, argumentArray);
-        this.assertQueryResult(result, 'Failed to update row');
+        try {
+            await this._db.run(query, argumentArray);
+        } catch (err) {
+            throw new Error(`Failed to update row: ${err}`);
+        }
 
         // TODO: REMOVE THIS
         await wait(300);
@@ -215,12 +232,15 @@ export class SqliteDb extends Db {
     ): Promise<void> {
         this.assertConnected();
         // Delete
-        const result: QueryResult = await this._db.execute(
-            `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
-                .map((row) => row.id)
-                .join(', ')})`,
-        );
-        this.assertQueryResult(result, 'Failed to delete row');
+        try {
+            await this._db.run(
+                `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
+                    .map((row) => row.id)
+                    .join(', ')})`,
+            );
+        } catch (err) {
+            throw new Error(`Failed to delete row: ${err}`);
+        }
 
         // Remove from cache
         this.removeRowViews(tableId, rows);
@@ -233,13 +253,17 @@ export class SqliteDb extends Db {
     }
 
     async shutdown(): Promise<void> {
-        await super.shutdown();
+        this.destroyConnection();
         this._unsubscribeSqlitePath();
         this._unsubscribeDbConnected();
     }
 
     // This will look very different for postgres
-    private notify<RowType extends Row>(op: OpType, tableId: DatabaseTableId, rows: RowType[]) {
+    private notify<RowType extends Row>(
+        op: OpType,
+        tableId: DatabaseTableId,
+        rows: RowType[],
+    ): void {
         switch (op) {
             case OP_CREATE: {
                 this.notifyOnRowCreated(tableId, rows);
@@ -258,7 +282,10 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowCreated<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
+    private notifyOnRowCreated<RowType extends Row>(
+        tableId: DatabaseTableId,
+        rows: RowType[],
+    ): void {
         // Fetch row views for the table view to store
         const rowViews: IDbRowView<RowType>[] = <IDbRowView<RowType>[]>[];
         const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
@@ -281,7 +308,10 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowDeleted<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
+    private notifyOnRowDeleted<RowType extends Row>(
+        tableId: DatabaseTableId,
+        rows: RowType[],
+    ): void {
         // Create a list of deleted row ids
         const deletedRowIds: number[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -298,7 +328,10 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowChanged<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]) {
+    private notifyOnRowChanged<RowType extends Row>(
+        tableId: DatabaseTableId,
+        rows: RowType[],
+    ): void {
         const rowViews = this.getRowViewsForTable(tableId);
         for (let i = 0; i < rows.length; i++) {
             const rowView = rowViews?.get(rows[i].id);
@@ -306,7 +339,7 @@ export class SqliteDb extends Db {
         }
     }
 
-    private onDbConnectedChanged = (isConnected: boolean) => {
+    private onDbConnectedChanged: (v: boolean) => void = (isConnected) => {
         // Notify user
         if (isConnected) {
             this._notificationManager.showNotification(
@@ -326,18 +359,18 @@ export class SqliteDb extends Db {
         });
     };
 
-    private onDbPathChanged = async (fileDetails: DialogResult) => {
+    private onDbPathChanged: (v: DialogResult) => Promise<void> = async (fileDetails) => {
         // Destroy previous connection
-        super.destroyConnection();
+        await this.destroyConnection();
 
         // Only attempt to connect if we have a valid path
-        if (!fileDetails || !fileDetails.filePath) {
+        if (!fileDetails || !fileDetails.path) {
             return;
         }
 
         try {
             // Attempt to connect
-            this._db = await Database.load(`sqlite:${fileDetails.filePath}`);
+            this._db = await window.api.sqlite.open(fileDetails.fullPath);
 
             // Ensure schema
             await this.initializeSchema();
@@ -345,6 +378,8 @@ export class SqliteDb extends Db {
             // Notify connected
             this._isConnected.set(true);
         } catch (e) {
+            console.log(e);
+            this._sqlitePathStore.update(dialogResultReset);
             this.isError(e);
             // https://svelte-5-preview.vercel.app/status
             const errors: Error[] = get(this._appInitializationErrors);
@@ -385,7 +420,7 @@ export class SqliteDb extends Db {
         return rowView;
     }
 
-    private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]) {
+    private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]): void {
         const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
         const focused = get(this._focused);
         row.forEach((row) => {
@@ -403,20 +438,26 @@ export class SqliteDb extends Db {
         // Ensure tables exist
         for (let i = 0; i < CREATE_TABLE_QUERIES.length; i++) {
             const query = CREATE_TABLE_QUERIES[i];
-            const result: QueryResult | undefined = await this._db.execute(query);
-            if (!result) throw new Error('Failed to create table');
+            await this._db.exec(query);
         }
 
         // Ensure static tables are populated
         for (let i = 0; i < INITIALIZE_TABLE_QUERIES.length; i++) {
             const query = INITIALIZE_TABLE_QUERIES[i];
-            const result: QueryResult | undefined = await this._db?.execute(query);
-            if (!result) throw new Error('Failed to initialize tables');
+            await this._db.exec(query);
         }
     }
 
     private isError(value: unknown): asserts value is Error {
         if (typeof value !== 'object' || !('message' in <object>value))
             throw new Error('Caught a non-error');
+    }
+
+    private async destroyConnection(): Promise<void> {
+        this._isConnected.set(false);
+        if (this._db) {
+            await this._db.close();
+            this._db = undefined;
+        }
     }
 }

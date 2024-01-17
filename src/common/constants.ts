@@ -4,6 +4,7 @@ export const APP_NAME = 'GameScript';
 // Dialog
 export const API_DIALOG_SQLITE_OPEN = '/api/dialog/sqlite-open';
 export const API_DIALOG_SQLITE_SAVE = '/api/dialog/sqlite-save';
+export const API_DIALOG_AUTO_COMPLETE_OPEN = '/api/dialog/auto-complete-open';
 
 // FileSystem
 export const API_FS_APP_DATA_DIRECTORY = '/api/fs/app-data-directory';

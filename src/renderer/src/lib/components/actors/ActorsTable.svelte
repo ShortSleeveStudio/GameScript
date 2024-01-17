@@ -8,8 +8,8 @@
         ToolbarContent,
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
-    import { APP_NAME, FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
-    import { get, type Readable, type Unsubscriber } from 'svelte/store';
+    import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
+    import { get, type Readable } from 'svelte/store';
     import { TABLE_ID_ACTORS, type Actor, type Localization } from '@lib/api/db/db-schema';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import FocusButton from '../common/FocusButton.svelte';
@@ -113,7 +113,8 @@
         size="medium"
         title="Actors"
         description="Actors are the entities that participate in conversations. The initial actor 
-        can be renamed, but not deleted. {APP_NAME} requires at least one actor."
+        can be renamed, but not deleted. {window.api.constants.APP_NAME} requires at least one 
+        actor."
         batchSelection
         bind:selectedRowIds
         nonSelectableRowIds={$actorsTable

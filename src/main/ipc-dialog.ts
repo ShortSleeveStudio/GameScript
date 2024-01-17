@@ -10,17 +10,12 @@ import {
 } from 'electron';
 import path from 'path';
 import { API_DIALOG_SQLITE_OPEN, API_DIALOG_SQLITE_SAVE } from '../common/constants';
+import { DialogResult } from '../preload/api-dialog.js';
 import { windowFromWebContents } from './ipc-common.js';
 
 /**
  * Result object from dialog.
  */
-export interface DialogResult {
-    fileName: string;
-    filePath: string;
-    canceled: boolean;
-}
-
 ipcMain.handle(
     API_DIALOG_SQLITE_OPEN,
     async (event: IpcMainInvokeEvent, payload: OpenDialogOptions): Promise<DialogResult> => {
@@ -28,13 +23,14 @@ ipcMain.handle(
         const result: OpenDialogReturnValue = await dialog.showOpenDialog(mainWindow, payload);
         if (result && (result.canceled || !result.filePaths || result.filePaths.length !== 1)) {
             return <DialogResult>{
-                canceled: result.canceled,
+                cancelled: result.canceled,
             };
         }
         return <DialogResult>{
-            canceled: result.canceled,
-            fileName: path.basename(result.filePaths[0]),
-            filePath: path.dirname(result.filePaths[0]),
+            path: path.dirname(<string>result.filePaths[0]),
+            baseName: path.basename(<string>result.filePaths[0]),
+            fullPath: <string>result.filePaths[0],
+            cancelled: result.canceled,
         };
     },
 );
@@ -45,13 +41,14 @@ ipcMain.handle(
         const result: SaveDialogReturnValue = await dialog.showSaveDialog(mainWindow, payload);
         if (result && (result.canceled || !result.filePath)) {
             return <DialogResult>{
-                canceled: result.canceled,
+                cancelled: result.canceled,
             };
         }
         return <DialogResult>{
-            canceled: result.canceled,
-            fileName: path.basename(<string>result.filePath),
-            filePath: path.dirname(<string>result.filePath),
+            path: path.dirname(<string>result.filePath),
+            baseName: path.basename(<string>result.filePath),
+            fullPath: <string>result.filePath,
+            cancelled: result.canceled,
         };
     },
 );
