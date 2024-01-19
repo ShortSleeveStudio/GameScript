@@ -1,4 +1,5 @@
 import { IsLoading } from '@lib/stores/utility/is-loading';
+import type { DbConnection } from 'preload/api-db';
 import {
     get,
     writable,
@@ -61,39 +62,39 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         return this._internalWritable.subscribe(run, invalidate);
     }
 
-    async createRow(row: RowType): Promise<RowType> {
+    async createRow(row: RowType, connection?: DbConnection): Promise<RowType> {
         this._isLoading.increment();
         try {
-            row = await this._db.createRow<RowType>(this._tableId, row);
+            row = await this._db.createRow<RowType>(this._tableId, row, connection);
         } finally {
             this._isLoading.decrement();
         }
         return row;
     }
 
-    async createRows(rows: RowType[]): Promise<RowType[]> {
+    async createRows(rows: RowType[], connection?: DbConnection): Promise<RowType[]> {
         this._isLoading.increment();
         try {
-            rows = await this._db.createRows<RowType>(this._tableId, rows);
+            rows = await this._db.createRows<RowType>(this._tableId, rows, connection);
         } finally {
             this._isLoading.decrement();
         }
         return rows;
     }
 
-    async deleteRow(row: RowType): Promise<void> {
+    async deleteRow(row: RowType, connection?: DbConnection): Promise<void> {
         this._isLoading.increment();
         try {
-            await this._db.deleteRow<RowType>(this._tableId, row);
+            await this._db.deleteRow<RowType>(this._tableId, row, connection);
         } finally {
             this._isLoading.decrement();
         }
     }
 
-    async deleteRows(rows: RowType[]): Promise<void> {
+    async deleteRows(rows: RowType[], connection?: DbConnection): Promise<void> {
         this._isLoading.increment();
         try {
-            await this._db.deleteRows<RowType>(this._tableId, rows);
+            await this._db.deleteRows<RowType>(this._tableId, rows, connection);
         } finally {
             this._isLoading.decrement();
         }
@@ -216,7 +217,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         rowView: IDbRowView<RowType>,
         list: IDbRowView<RowType>[],
         map: Map<number, IDbRowView<RowType>>,
-    ) {
+    ): void {
         list.push(rowView);
         map.set(rowView.id, rowView);
     }

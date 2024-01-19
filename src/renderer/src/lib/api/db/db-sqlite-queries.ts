@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATIONS}" (
 const CREATE_TABLE_ACTORS = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_ACTORS}" (
     "id"	INTEGER,
-    "name"	TEXT NOT NULL UNIQUE,
+    "name"	TEXT NOT NULL,
     "color"	TEXT NOT NULL,
     "localizedName"	INTEGER,
 	"isSystemCreated"	INTEGER NOT NULL,
@@ -297,9 +297,9 @@ INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATION_TABLES} (id, name, isSystemCreat
 rowIndex = 0;
 const DEFAULT_LOCALIZATION_ID = rowIndex;
 const INITIALIZE_LOCALIZATIONS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, name, parent, isSystemCreated, '${localeIdToColumn(
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, parent, isSystemCreated, '${localeIdToColumn(
     DEFAULT_LOCALE_ID,
-)}') VALUES (${rowIndex++}, 'Actors', ${DEFAULT_LOCALIZATION_TABLE_ID}, true, 'Player');
+)}') VALUES (${rowIndex++}, ${DEFAULT_LOCALIZATION_TABLE_ID}, true, 'Player');
 `;
 // Actors
 rowIndex = 0;

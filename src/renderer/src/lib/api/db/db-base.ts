@@ -1,3 +1,4 @@
+import type { DbConnection } from 'preload/api-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import type { DatabaseTableId, Row } from './db-schema';
@@ -12,7 +13,7 @@ export const OP_DELETE: OpType = 1;
 export const OP_UPDATE: OpType = 2;
 
 // Transaction type
-export type Transaction = () => Promise<void>;
+export type Transaction = (connection: DbConnection) => Promise<void>;
 
 /**The interface all databases must implement */
 export abstract class Db {
@@ -49,10 +50,12 @@ export abstract class Db {
      * Returns the id of the newly created row.
      * @param tableId Id of the table
      * @param row The row to create
+     * @param connection Optional connection to execute with
      */
     abstract createRow<RowType extends Row>(
         tableId: DatabaseTableId,
         row: RowType,
+        connection?: DbConnection,
     ): Promise<RowType>;
 
     /**
@@ -61,47 +64,63 @@ export abstract class Db {
      * Returns the rows with their id fields populated.
      * @param tableId Id of the table
      * @param rows The rows to create
+     * @param connection Optional connection to execute with
      */
     abstract createRows<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
+        connection?: DbConnection,
     ): Promise<RowType[]>;
 
     /**
      * The fetches (all) rows in a table and returns them sorted by id.
-     * TODO: filter rows so the data isn't so huge
      * Throws an error during failures.
      * @param tableId Id of the table
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
      */
     abstract fetchRows<RowType extends Row>(
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
+        connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]>;
 
     /**
      * This updates a single row in a table.
      * @param tableId Id of the table
      * @param row The row to update
+     * @param connection Optional connection to execute with
      */
-    abstract updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void>;
+    abstract updateRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<void>;
 
     /**
      * This deletes a single row in the table.
      * Throws an error during failures.
      * @param tableId Id of the table
      * @param row The row to delete
+     * @param connection Optional connection to execute with
      */
-    abstract deleteRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void>;
+    abstract deleteRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<void>;
 
     /**
      * This deletes a list of rows in the table.
      * Throws an error during failures.
      * @param tableId Id of the table
      * @param rows The rows to delete
+     * @param connection Optional connection to execute with
      */
     abstract deleteRows<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
+        connection?: DbConnection,
     ): Promise<void>;
 
     /**

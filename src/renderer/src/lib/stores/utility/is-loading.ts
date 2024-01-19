@@ -26,11 +26,11 @@ export class IsLoading implements Readable<boolean> {
         return this._internalIsLoading.subscribe(run, invalidate);
     }
 
-    increment() {
+    increment(): void {
         this._internalIsLoading.set(++this._pendingChanges > 0);
     }
 
-    decrement() {
+    decrement(): void {
         this._internalIsLoading.set(--this._pendingChanges > 0);
     }
 }

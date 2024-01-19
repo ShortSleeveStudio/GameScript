@@ -19,8 +19,6 @@
         type Routine,
         ROUTINE_TYPE_ID_DEFAULT,
     } from '@lib/api/db/db-schema';
-    import { get } from 'svelte/store';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';

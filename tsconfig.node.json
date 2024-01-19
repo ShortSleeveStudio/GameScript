@@ -2,11 +2,11 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
   "include": [
     "electron.vite.config.*", 
-    "src/main/*", 
+    "src/main/**/*", 
     "src/common/*.ts",
     "src/preload/*.ts", 
     "src/preload/types/index.d.ts"
-  ],
+, "src/main/ipc-common.ts", "src/main/ipc-dialog.ts", "src/main/ipc-fs.ts", "src/main/ipc-sqlite.ts", "src/main/ipc-window.ts"  ],
   "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node"]

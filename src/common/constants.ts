@@ -17,3 +17,11 @@ export const API_WINDOW_MAXIMIZE = '/api/window/maximize';
 export const API_WINDOW_UNMAXIMIZE = '/api/window/unmaximize';
 export const API_WINDOW_IS_MAXIMIZED = '/api/window/is-maximized';
 export const API_WINDOW_ON_RESIZE = '/api/window/on-resize';
+
+// Sqlite
+export const API_SQLITE_OPEN = '/api/sqlite/open';
+export const API_SQLITE_CLOSE = '/api/sqlite/close';
+export const API_SQLITE_CLOSE_ALL = '/api/sqlite/close-all';
+export const API_SQLITE_RUN = '/api/sqlite/run';
+export const API_SQLITE_ALL = '/api/sqlite/all';
+export const API_SQLITE_EXEC = '/api/sqlite/exec';

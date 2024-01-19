@@ -1,4 +1,5 @@
 import { IsLoading } from '@lib/stores/utility/is-loading';
+import type { DbConnection } from 'preload/api-db';
 import {
     get,
     writable,
@@ -31,7 +32,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         }
     }
 
-    get id() {
+    get id(): number {
         return get(this._internalWritable).id;
     }
 
@@ -44,15 +45,16 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         return this.getColumnIsLoading(<string>columnName);
     }
 
-    async updateRow(row: RowType): Promise<void> {
+    async updateRow(row: RowType, connection?: DbConnection): Promise<void> {
         this._isLoading.increment();
-        await this._db.updateRow(this._tableId, row);
+        await this._db.updateRow(this._tableId, row, connection);
         this._isLoading.decrement();
     }
 
     async updateColumn<K extends keyof RowType, T extends RowType[K]>(
         columnName: K,
         columnValue: unknown,
+        connection?: DbConnection,
     ): Promise<void> {
         this._isLoading.increment();
         const columnIsLoading: IsLoading = this.getColumnIsLoading(<string>columnName);
@@ -60,7 +62,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
         const rowVal: RowType = get(this._internalWritable);
         rowVal[columnName] = <T>columnValue;
-        await this._db.updateRow(this._tableId, rowVal);
+        await this._db.updateRow(this._tableId, rowVal, connection);
 
         columnIsLoading.decrement();
         this._isLoading.decrement();
@@ -77,7 +79,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         this._internalWritable.set(newRow);
     }
 
-    private getColumnIsLoading(columnName: string) {
+    private getColumnIsLoading(columnName: string): IsLoading {
         return <IsLoading>this._columnLoadingMap.get(columnName);
     }
 }

@@ -2,12 +2,14 @@ import Mousetrap from 'mousetrap';
 import { undoManager } from './undo-manager';
 
 // Undo
-Mousetrap.bind(['command+z', 'ctrl+z'], () => {
+Mousetrap.bind(['command+z', 'ctrl+z'], (e) => {
+    e.preventDefault();
     undoManager.undo();
 });
 
 // Redo
-Mousetrap.bind(['command+shift+z', 'ctrl+shift+z'], () => {
+Mousetrap.bind(['command+shift+z', 'ctrl+shift+z'], (e) => {
+    e.preventDefault();
     undoManager.redo();
 });
 

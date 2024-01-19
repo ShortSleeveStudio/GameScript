@@ -13,8 +13,8 @@ function createWindow(): void {
         frame: false,
         webPreferences: {
             preload: join(__dirname, '../preload/index.js'),
-            sandbox: false,
-            contextIsolation: false,
+            // sandbox: false,
+            // contextIsolation: false,
         },
     });
     mainWindow.webContents.session.enableNetworkEmulation({ offline: true });
@@ -92,16 +92,9 @@ app.on('activate', () => {
 // ipcMain.handle('db/select-sqlite', () => 'pong');
 
 /**
- * Dialogs
+ * IPC
  */
-import './ipc-dialog.ts';
-
-/**
- * FileSystem
- */
-import './ipc-fs.ts';
-
-/**
- * Window
- */
-import './ipc-window.ts';
+import './ipc-dialog';
+import './ipc-fs';
+import './ipc-sqlite';
+import './ipc-window';

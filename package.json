@@ -22,14 +22,14 @@
     },
     "dependencies": {
         "@electron-toolkit/utils": "^3.0.0",
-        "sqlite": "^5.1.1",
-        "sqlite3": "^5.1.7"
+        "better-sqlite3": "^9.3.0"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config-prettier": "^2.0.0",
         "@electron-toolkit/eslint-config-ts": "^1.0.1",
         "@electron-toolkit/tsconfig": "^1.0.1",
         "@sveltejs/vite-plugin-svelte": "^3.0.1",
+        "@types/better-sqlite3": "^7.6.8",
         "@types/node": "^18.19.5",
         "carbon-components-svelte": "^0.82.8",
         "carbon-icons-svelte": "^12.4.2",

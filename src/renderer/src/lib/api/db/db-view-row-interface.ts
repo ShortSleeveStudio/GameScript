@@ -1,4 +1,5 @@
 import type { IsLoading } from '@lib/stores/utility/is-loading';
+import type { DbConnection } from 'preload/api-db';
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
 import type { Row } from './db-schema';
 
@@ -12,8 +13,12 @@ export interface IDbRowView<RowType extends Row> extends Readable<RowType> {
         run: Subscriber<RowType>,
         invalidate?: Invalidator<RowType> | undefined,
     ): Unsubscriber;
-    updateRow(row: RowType): Promise<void>;
-    updateColumn<K extends keyof RowType>(columnName: K, columnValue: unknown): Promise<void>;
+    updateRow(row: RowType, connection?: DbConnection): Promise<void>;
+    updateColumn<K extends keyof RowType>(
+        columnName: K,
+        columnValue: unknown,
+        connection?: DbConnection,
+    ): Promise<void>;
     /**@internal */
     onRowUpdated(newValue: RowType): void;
 }

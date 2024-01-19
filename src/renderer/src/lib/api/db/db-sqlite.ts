@@ -2,8 +2,9 @@ import type { Focusable } from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
+import type { DbConnection } from 'preload/api-db';
 import type { DialogResult } from 'preload/api-dialog';
-import { type Database, type ISqlite } from 'sqlite';
+import type { SqliteResult } from 'preload/api-sqlite';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
 import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -21,7 +22,7 @@ import type { IDbTableView } from './db-view-table-interface';
  * C:\Users\<username>\AppData\Roaming\com.tauri.dev\GameScript.db
  */
 export class SqliteDb extends Db {
-    private _db: Database | undefined;
+    private _db: DbConnection | undefined;
     private _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
     private _tableToTableView: IDbTableView<Row>[][]; // Lookup table using table id
     private _unsubscribeSqlitePath: Unsubscriber;
@@ -53,23 +54,23 @@ export class SqliteDb extends Db {
 
     async executeTransaction(transaction: Transaction): Promise<void> {
         let wasError: boolean = false;
-        const db = this._db.getDatabaseInstance();
+        const dbFile: DialogResult = get(this._sqlitePathStore);
+        let conn: DbConnection;
         try {
-            db.serialize();
-            this._db.exec('BEGIN;');
-            console.log('BEGIN;');
-            await transaction();
+            conn = await window.api.sqlite.open(dbFile.fullPath);
+            await window.api.sqlite.exec(conn, 'BEGIN;');
+            await transaction(conn);
         } catch (err) {
             wasError = true;
             console.log('ROLLBACK;');
-            await this._db.exec('ROLLBACK;');
+            await window.api.sqlite.exec(conn, 'ROLLBACK;');
             throw err;
         } finally {
             if (!wasError) {
                 console.log('COMMIT;');
-                this._db.exec('COMMIT;');
+                window.api.sqlite.exec(conn, 'COMMIT;');
             }
-            db.parallelize();
+            await window.api.sqlite.close(conn);
         }
     }
 
@@ -99,14 +100,19 @@ export class SqliteDb extends Db {
         }
     }
 
-    async createRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<RowType> {
+    async createRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<RowType> {
         this.assertConnected();
-        return (await this.createRows(tableId, [row]))[0];
+        return (await this.createRows(tableId, [row], connection))[0];
     }
 
     async createRows<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
+        connection?: DbConnection,
     ): Promise<RowType[]> {
         this.assertConnected();
         for (let i = 0; i < rows.length; i++) {
@@ -117,29 +123,28 @@ export class SqliteDb extends Db {
             let propertyNames: string = '';
             let placeHolders: string = '';
             const argumentArray: unknown[] = [];
-            let index: number = 0;
             for (const prop in row) {
                 if (argumentArray.length >= 1) {
                     propertyNames += ', ';
                     placeHolders += ', ';
                 }
                 propertyNames += prop;
-                placeHolders += '$' + ++index; // starts at 1
+                placeHolders += `?`;
                 const value: unknown = row[prop];
                 argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
             }
 
             // Execute
             const query: string = `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`;
-            let result: ISqlite.RunResult;
+            let result: SqliteResult;
             try {
-                result = await this._db.run(query, argumentArray);
+                result = await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
             } catch (err) {
                 throw new Error(`Failed to create row: ${err}`);
             }
 
             // Set row id
-            row.id = result.lastID;
+            row.id = result.lastInsertRowId;
         }
 
         // TODO: REMOVE THIS
@@ -152,10 +157,10 @@ export class SqliteDb extends Db {
         return rows;
     }
 
-    // TODO: add filters and aliases
     async fetchRows<RowType extends Row>(
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
+        connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]> {
         if (!this.isConnected()) return <IDbRowView<RowType>[]>[];
 
@@ -166,7 +171,7 @@ export class SqliteDb extends Db {
         } ORDER BY id ASC`;
         let results: RowType[];
         try {
-            results = await this._db.all(query);
+            results = await window.api.sqlite.all(connection ?? this._db, query);
         } catch (err) {
             throw new Error(`Failed to fetch rows: ${err}`);
         }
@@ -188,28 +193,29 @@ export class SqliteDb extends Db {
         return newRowViews;
     }
 
-    async updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
+    async updateRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<void> {
         this.assertConnected();
         // Generate query arguments
         let keyValuePairs: string = '';
         const argumentArray: unknown[] = [];
-        let i: number = 0;
         for (const prop in row) {
-            // We never set id for updates
+            // We add id last
             if (prop === 'id') continue;
             if (argumentArray.length >= 1) keyValuePairs += ', ';
-            keyValuePairs += `${prop} = $${++i}`; // start at 1
+            keyValuePairs += `${prop} = ?`;
             const value: unknown = row[prop];
             argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
         }
         argumentArray.push(row.id);
 
         // Execute
-        const query = `UPDATE ${
-            DATABASE_TABLE_NAMES[tableId]
-        } SET ${keyValuePairs} WHERE id = $${++i};`;
+        const query = `UPDATE ${DATABASE_TABLE_NAMES[tableId]} SET ${keyValuePairs} WHERE id = ?;`;
         try {
-            await this._db.run(query, argumentArray);
+            await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
         } catch (err) {
             throw new Error(`Failed to update row: ${err}`);
         }
@@ -221,23 +227,27 @@ export class SqliteDb extends Db {
         this.notify<RowType>(OP_UPDATE, tableId, [row]);
     }
 
-    async deleteRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
+    async deleteRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<void> {
         this.assertConnected();
-        await this.deleteRows(tableId, [row]);
+        await this.deleteRows(tableId, [row], connection);
     }
 
     async deleteRows<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
+        connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
-        // Delete
+        const query: string = `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
+            .map((row) => row.id)
+            .join(', ')})`;
+
         try {
-            await this._db.run(
-                `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
-                    .map((row) => row.id)
-                    .join(', ')})`,
-            );
+            await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
             throw new Error(`Failed to delete row: ${err}`);
         }
@@ -360,11 +370,11 @@ export class SqliteDb extends Db {
     };
 
     private onDbPathChanged: (v: DialogResult) => Promise<void> = async (fileDetails) => {
-        // Destroy previous connection
+        // Destroy previous connection/s
         await this.destroyConnection();
 
         // Only attempt to connect if we have a valid path
-        if (!fileDetails || !fileDetails.path) {
+        if (!fileDetails || !fileDetails.fullPath) {
             return;
         }
 
@@ -378,7 +388,6 @@ export class SqliteDb extends Db {
             // Notify connected
             this._isConnected.set(true);
         } catch (e) {
-            console.log(e);
             this._sqlitePathStore.update(dialogResultReset);
             this.isError(e);
             // https://svelte-5-preview.vercel.app/status
@@ -438,13 +447,13 @@ export class SqliteDb extends Db {
         // Ensure tables exist
         for (let i = 0; i < CREATE_TABLE_QUERIES.length; i++) {
             const query = CREATE_TABLE_QUERIES[i];
-            await this._db.exec(query);
+            await window.api.sqlite.exec(this._db, query);
         }
 
         // Ensure static tables are populated
         for (let i = 0; i < INITIALIZE_TABLE_QUERIES.length; i++) {
             const query = INITIALIZE_TABLE_QUERIES[i];
-            await this._db.exec(query);
+            await window.api.sqlite.exec(this._db, query);
         }
     }
 
@@ -455,9 +464,7 @@ export class SqliteDb extends Db {
 
     private async destroyConnection(): Promise<void> {
         this._isConnected.set(false);
-        if (this._db) {
-            await this._db.close();
-            this._db = undefined;
-        }
+        await window.api.sqlite.closeAll();
+        this._db = undefined;
     }
 }

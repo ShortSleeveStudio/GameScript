@@ -43,11 +43,11 @@ class Scope<RowType extends Row> implements Condition<RowType> {
         this._conditions.push({ execute: condition });
     }
 
-    and() {
+    and(): void {
         this._andOrList.push(true);
     }
 
-    or() {
+    or(): void {
         this._andOrList.push(false);
     }
 

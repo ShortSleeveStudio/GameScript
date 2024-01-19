@@ -5,7 +5,7 @@ import {
     API_WINDOW_MAXIMIZE,
     API_WINDOW_MINIMIZE,
     API_WINDOW_UNMAXIMIZE,
-} from '../common/constants';
+} from '../common/constants.js';
 import { windowFromWebContents } from './ipc-common.js';
 
 ipcMain.handle(API_WINDOW_CLOSE, async (): Promise<void> => {

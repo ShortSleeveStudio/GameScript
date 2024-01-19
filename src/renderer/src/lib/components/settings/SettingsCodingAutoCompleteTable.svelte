@@ -40,10 +40,10 @@
 
     async function addRow(): Promise<void> {
         let newAutoComplete: AutoComplete = <AutoComplete>{
-            name: 'NewLabel',
+            name: 'WalkTo',
             icon: languages.CompletionItemKind.Function,
-            rule: languages.CompletionItemInsertTextRule.None,
-            insertion: 'NewTextToInsert',
+            rule: languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertion: 'WalkTo(${1:actor}, ${2:location});',
             documentation: '',
         };
         let newRow: AutoComplete = await autoCompleteTable.createRow(newAutoComplete);

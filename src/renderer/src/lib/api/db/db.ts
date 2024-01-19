@@ -1,3 +1,4 @@
+import { EVENT_SHUTDOWN } from '@lib/constants/events';
 import { focused } from '@lib/stores/app/focus';
 import { appInitializationErrors } from '@lib/stores/app/initialization-errors';
 import { notificationManager } from '@lib/stores/app/notifications';
@@ -34,3 +35,7 @@ function onDbTypeChange(newDbtype: DatabaseTypeName): void {
             break;
     }
 }
+
+addEventListener(EVENT_SHUTDOWN, () => {
+    db.shutdown();
+});
