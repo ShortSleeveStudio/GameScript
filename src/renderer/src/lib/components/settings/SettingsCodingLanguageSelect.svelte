@@ -1,22 +1,25 @@
 <script lang="ts">
+    import { db } from '@lib/api/db/db';
     import {
         PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS,
         type ProgrammingLanguageId,
         type ProgrammingLanguagePrincipal,
         PROGRAMMING_LANGUAGE_ID_CS,
+        type Row,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { IsLoading } from '@lib/stores/utility/is-loading';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { Dropdown } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import type { Unsubscriber } from 'svelte/motion';
+    import { get } from 'svelte/store';
 
     let boundValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_ID_CS;
     let currentValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_ID_CS;
     let languagePrincipalRowView: IDbRowView<ProgrammingLanguagePrincipal> | undefined;
-    let isRowViewLoading: IsLoading | undefined;
+    const isLoading: IsLoadingStore = new IsLoadingStore();
 
     // TODO
     // https://svelte-5-preview.vercel.app/status
@@ -27,7 +30,6 @@
             (rowViews: IDbRowView<ProgrammingLanguagePrincipal>[]) => {
                 if (rowViews.length === 1) {
                     languagePrincipalRowView = rowViews[0];
-                    isRowViewLoading = languagePrincipalRowView.isLoading;
                     languagePrincipalRowUnsubscriber = languagePrincipalRowView.subscribe(
                         onProgrammingLanguageChanged,
                     );
@@ -35,29 +37,37 @@
             },
         );
 
-    async function onSelect(): Promise<void> {
+    const onSelect: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         if (!languagePrincipalRowView) return;
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
 
-        await languagePrincipalRowView.updateColumn('principal', newValue);
+        // Update row
+        const originalRow = get(languagePrincipalRowView);
+        const newRow = <Row>{ id: originalRow.id };
+        newRow['principal'] = newValue;
+        await db.updateRow(languagePrincipalRowView.tableId, newRow);
+
+        // Register undo/redo
         undoManager.register(
             new Undoable(
                 'set default field type',
-                async () => {
+                isLoading.wrapOperationAsync(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
-                    await languagePrincipalRowView.updateColumn('principal', oldValue);
-                },
-                async () => {
+                    newRow['principal'] = oldValue;
+                    await db.updateRow(languagePrincipalRowView.tableId, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
-                    await languagePrincipalRowView.updateColumn('principal', newValue);
-                },
+                    newRow['principal'] = newValue;
+                    await db.updateRow(languagePrincipalRowView.tableId, newRow);
+                }),
             ),
         );
-    }
+    });
 
     function onProgrammingLanguageChanged(principalLanguageRow: ProgrammingLanguagePrincipal) {
         if (principalLanguageRow.principal !== currentValue) {
@@ -77,7 +87,7 @@
     <Dropdown
         size="sm"
         items={PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS}
-        disabled={!isRowViewLoading || $isRowViewLoading}
+        disabled={$isLoading}
         bind:selectedId={boundValue}
         direction="bottom"
         on:select={onSelect}

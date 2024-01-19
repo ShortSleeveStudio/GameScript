@@ -22,10 +22,13 @@
         type DefaultField,
         FIELD_TYPE_DROP_DOWN_ITEMS,
         type DatabaseTableId,
+        TABLE_ID_DEFAULT_FIELDS,
     } from '@lib/api/db/db-schema';
     import { wait } from '@lib/utility/wait';
     import RowNameInput from '../common/RowNameInput.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
+    import { db } from '@lib/api/db/db';
 
     export let defaultFields: IDbTableView<DefaultField>;
     export let isApplyingDefaultFields: Writable<boolean>;
@@ -45,8 +48,7 @@
     let selectedRowIds: number[] = [];
     let isModalOpen: boolean = false;
     let applyFieldsProgress: number = 0;
-    // TODO: https://svelte-5-preview.vercel.app/status
-    let isLoading: Readable<boolean> = defaultFields.isLoading;
+    let isLoading: IsLoadingStore = new IsLoadingStore();
 
     async function applyDefaultFields(): Promise<void> {
         // TODO: implement me
@@ -62,49 +64,49 @@
         $isApplyingDefaultFields = false;
     }
 
-    async function addRow(): Promise<void> {
+    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         let newDefaultField: DefaultField = <DefaultField>{
             name: 'New Field',
             type: FIELD_TYPE_ID_ACTOR,
             parentType: parentType,
         };
-        let newRow: DefaultField = await defaultFields.createRow(newDefaultField);
+        let newRow: DefaultField = await db.createRow(TABLE_ID_DEFAULT_FIELDS, newDefaultField);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'default field creation',
-                async () => {
-                    await defaultFields.deleteRow(newRow);
-                },
-                async () => {
-                    newRow = await defaultFields.createRow(newRow);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRow(TABLE_ID_DEFAULT_FIELDS, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    newRow = await db.createRow(TABLE_ID_DEFAULT_FIELDS, newRow);
+                }),
             ),
         );
-    }
+    });
 
-    async function deleteRows(): Promise<void> {
+    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Grab rows to delete
         let rowsToDelete: DefaultField[] = defaultFields.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await defaultFields.deleteRows(rowsToDelete);
+        await db.deleteRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'default field deletion',
-                async () => {
-                    rowsToDelete = await defaultFields.createRows(rowsToDelete);
-                },
-                async () => {
-                    await defaultFields.deleteRows(rowsToDelete);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    rowsToDelete = await db.createRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
+                }),
             ),
         );
-    }
+    });
 </script>
 
 <DataTable
@@ -146,7 +148,11 @@
     <Toolbar size="sm">
         {#if !$isApplyingDefaultFields}
             <ToolbarBatchActions>
-                <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
+                <Button
+                    icon={TrashCan}
+                    disabled={$isLoading || $isApplyingDefaultFields}
+                    on:click={deleteRows}>Delete</Button
+                >
             </ToolbarBatchActions>
         {/if}
         <ToolbarContent>

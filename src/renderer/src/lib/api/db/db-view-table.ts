@@ -1,10 +1,7 @@
-import { IsLoading } from '@lib/stores/utility/is-loading';
-import type { DbConnection } from 'preload/api-db';
 import {
     get,
     writable,
     type Invalidator,
-    type Readable,
     type Subscriber,
     type Unsubscriber,
     type Writable,
@@ -23,7 +20,6 @@ import type { IDbTableView } from './db-view-table-interface';
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _db: Db;
     private _tableId: DatabaseTableId;
-    private _isLoading: IsLoading;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
     private _idToRowMap: Map<number, IDbRowView<RowType>>;
@@ -33,14 +29,8 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._tableId = tableId;
         this._filter = filter;
         this._idToRowMap = new Map();
-        this._isLoading = new IsLoading();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
         this.onReloadRequired();
-    }
-
-    // TODO: https://svelte-5-preview.vercel.app/status
-    get isLoading(): Readable<boolean> {
-        return this._isLoading;
     }
 
     get tableId(): DatabaseTableId {
@@ -60,44 +50,6 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
     ): Unsubscriber {
         return this._internalWritable.subscribe(run, invalidate);
-    }
-
-    async createRow(row: RowType, connection?: DbConnection): Promise<RowType> {
-        this._isLoading.increment();
-        try {
-            row = await this._db.createRow<RowType>(this._tableId, row, connection);
-        } finally {
-            this._isLoading.decrement();
-        }
-        return row;
-    }
-
-    async createRows(rows: RowType[], connection?: DbConnection): Promise<RowType[]> {
-        this._isLoading.increment();
-        try {
-            rows = await this._db.createRows<RowType>(this._tableId, rows, connection);
-        } finally {
-            this._isLoading.decrement();
-        }
-        return rows;
-    }
-
-    async deleteRow(row: RowType, connection?: DbConnection): Promise<void> {
-        this._isLoading.increment();
-        try {
-            await this._db.deleteRow<RowType>(this._tableId, row, connection);
-        } finally {
-            this._isLoading.decrement();
-        }
-    }
-
-    async deleteRows(rows: RowType[], connection?: DbConnection): Promise<void> {
-        this._isLoading.increment();
-        try {
-            await this._db.deleteRows<RowType>(this._tableId, rows, connection);
-        } finally {
-            this._isLoading.decrement();
-        }
     }
 
     getRowViewById(id: number): IDbRowView<RowType> | undefined {
@@ -136,66 +88,20 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     }
 
     async onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void> {
-        const newList: IDbRowView<RowType>[] = [];
-        const oldList: IDbRowView<RowType>[] = get(this._internalWritable);
-        let oldI = 0;
-        let createdI = 0;
-        this._idToRowMap.clear();
-        for (; createdI < rows.length && oldI < oldList.length; ) {
-            const oldRow: IDbRowView<RowType> = oldList[oldI];
-            const newRow: IDbRowView<RowType> = rows[createdI];
-
-            // Add new rows, retain old
-            if (oldRow.id < newRow.id) {
-                this.addToListAndMap(oldRow, newList, this._idToRowMap);
-                oldI++;
-            } else if (oldRow.id > newRow.id) {
-                this.addToListAndMap(newRow, newList, this._idToRowMap);
-                createdI++;
-            } else {
-                this.addToListAndMap(newRow, newList, this._idToRowMap);
-                oldI++;
-                createdI++;
-            }
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            this._idToRowMap.set(row.id, rows[i]);
         }
-        // Add any remaining rows
-        for (; oldI < oldList.length; oldI++)
-            this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
-        for (; createdI < rows.length; createdI++)
-            this.addToListAndMap(rows[createdI], newList, this._idToRowMap);
-
-        // Notify
-        this._internalWritable.set(newList);
+        this._internalWritable.set([...this._idToRowMap.values()]);
     }
 
     async onRowsDeleted(rows: number[]): Promise<void> {
-        const newList: IDbRowView<RowType>[] = [];
-        const oldList: IDbRowView<RowType>[] = get(this._internalWritable);
         // Sanity
-        if (rows.length > oldList.length) throw new Error('More rows deleted than exist');
-        let oldI = 0;
-        let deletedI = 0;
-        for (; deletedI < rows.length && oldI < oldList.length; ) {
-            const oldRow: IDbRowView<RowType> = oldList[oldI];
-            const deletedRowId: number = rows[deletedI];
-
-            // Retain non-deleted rows, skip deleted rows
-            if (oldRow.id < deletedRowId) {
-                this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
-                oldI++;
-            } else if (oldRow.id > deletedRowId) {
-                deletedI++;
-            } else {
-                oldI++;
-                deletedI++;
-            }
+        if (rows.length > get(this._internalWritable).length) {
+            throw new Error('More rows deleted than exist');
         }
-        // Add any remaining new rows
-        for (; oldI < oldList.length; oldI++)
-            this.addToListAndMap(oldList[oldI], newList, this._idToRowMap);
-
-        // Notify
-        this._internalWritable.set(newList);
+        for (let i = 0; i < rows.length; i++) this._idToRowMap.delete(rows[i]);
+        this._internalWritable.set([...this._idToRowMap.values()]);
     }
 
     async onReloadRequired(): Promise<void> {
@@ -211,14 +117,5 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
         // Update store
         this._internalWritable.set(newRowViews);
-    }
-
-    private addToListAndMap(
-        rowView: IDbRowView<RowType>,
-        list: IDbRowView<RowType>[],
-        map: Map<number, IDbRowView<RowType>>,
-    ): void {
-        list.push(rowView);
-        map.set(rowView.id, rowView);
     }
 }

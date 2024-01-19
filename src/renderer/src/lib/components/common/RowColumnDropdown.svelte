@@ -1,11 +1,13 @@
 <script lang="ts" generics="RowType extends Row">
+    import { db } from '@lib/api/db/db';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { type Row } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { Dropdown } from 'carbon-components-svelte';
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
     import { onDestroy } from 'svelte';
-    import type { Readable } from 'svelte/store';
+    import { get } from 'svelte/store';
 
     export let rowView: IDbRowView<RowType>;
     export let columnName: string;
@@ -14,8 +16,7 @@
     export let dropdownItems: DropdownItem[];
     let locationInPageFinder: HTMLElement;
 
-    // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isColumnLoading(columnName);
+    const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: number = <number>$rowView[columnName];
     let currentValue: number = <number>$rowView[columnName];
     let direction: 'bottom' | 'top' = 'top';
@@ -31,24 +32,31 @@
         }
     }
 
-    async function onSelect(): Promise<void> {
+    const onSelect: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         const newValue: number = boundValue;
         const oldValue: number = currentValue;
         if (oldValue === newValue) return;
 
-        await rowView.updateColumn(columnName, newValue);
+        // Update column
+        const originalRow = get(rowView);
+        const newRow = <Row>{ id: originalRow.id };
+        newRow[columnName] = newValue;
+        await db.updateRow(rowView.tableId, newRow);
+
         undoManager.register(
             new Undoable(
                 `${undoText} changed`,
-                async () => {
-                    await rowView.updateColumn(columnName, oldValue);
-                },
-                async () => {
-                    await rowView.updateColumn(columnName, newValue);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    newRow[columnName] = oldValue;
+                    await db.updateRow(rowView.tableId, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    newRow[columnName] = newValue;
+                    await db.updateRow(rowView.tableId, newRow);
+                }),
             ),
         );
-    }
+    });
 
     onDestroy(
         rowView.subscribe((row: RowType) => {

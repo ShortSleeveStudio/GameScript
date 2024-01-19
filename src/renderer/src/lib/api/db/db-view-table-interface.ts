@@ -1,4 +1,3 @@
-import type { DbConnection } from 'preload/api-db';
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import { type DatabaseTableId, type DatabaseTableName, type Row } from './db-schema';
@@ -13,7 +12,6 @@ import type { IDbRowView } from './db-view-row-interface';
  * the window remains small.
  */
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
-    isLoading: Readable<boolean>;
     tableId: DatabaseTableId;
     tableName: DatabaseTableName;
     filter: Filter<RowType>;
@@ -21,16 +19,10 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
     ): Unsubscriber;
-
-    createRow(row: RowType, connection?: DbConnection): Promise<RowType>;
-    createRows(rows: RowType[], connection?: DbConnection): Promise<RowType[]>;
-    deleteRow(row: RowType, connection?: DbConnection): Promise<void>;
-    deleteRows(rows: RowType[], connection?: DbConnection): Promise<void>;
     getRowViewById(id: number): IDbRowView<RowType> | undefined;
     getRowViewsById(id: number[]): IDbRowView<RowType>[];
     getRowById(id: number): RowType | undefined;
     getRowsById(id: number[]): RowType[];
-
     dispose(): void;
     /**@internal */
     onRowsDeleted(rows: number[]): Promise<void>;

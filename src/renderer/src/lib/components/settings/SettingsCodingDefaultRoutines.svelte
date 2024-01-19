@@ -23,6 +23,8 @@
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { ROUTINES_PLACEHOLDER_NAME, ROUTINES_UNDO_NAME } from '@lib/constants/settings';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
+    import { db } from '@lib/api/db/db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
@@ -34,52 +36,51 @@
         { key: 'focus', empty: true, minWidth: FOCUS_BUTTON_WIDTH, width: FOCUS_BUTTON_WIDTH },
     ];
     let selectedRowIds: number[] = [];
-    // TODO: https://svelte-5-preview.vercel.app/status
-    let isLoading: boolean = false;
+    let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    async function addRow(): Promise<void> {
+    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         let newRoutine: Routine = <Routine>{
             name: 'New Routine',
             code: '',
             type: ROUTINE_TYPE_ID_DEFAULT,
         };
-        let newRow: Routine = await defaultRoutines.createRow(newRoutine);
+        let newRow: Routine = await db.createRow(TABLE_ID_ROUTINES, newRoutine);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine creation',
-                async () => {
-                    await defaultRoutines.deleteRow(newRow);
-                },
-                async () => {
-                    newRow = await defaultRoutines.createRow(newRow);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRow(TABLE_ID_ROUTINES, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    newRow = await db.createRow(TABLE_ID_ROUTINES, newRow);
+                }),
             ),
         );
-    }
+    });
 
-    async function deleteRows(): Promise<void> {
+    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Grab rows to delete
         let rowsToDelete: Routine[] = defaultRoutines.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await defaultRoutines.deleteRows(rowsToDelete);
+        await db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine deletion',
-                async () => {
-                    rowsToDelete = await defaultRoutines.createRows(rowsToDelete);
-                },
-                async () => {
-                    await defaultRoutines.deleteRows(rowsToDelete);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    rowsToDelete = await db.createRows(TABLE_ID_ROUTINES, rowsToDelete);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete);
+                }),
             ),
         );
-    }
+    });
 </script>
 
 <p>
@@ -117,13 +118,13 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button
                     on:click={addRow}
-                    disabled={isLoading}
-                    icon={isLoading ? InlineLoading : undefined}>Add Routine</Button
+                    disabled={$isLoading}
+                    icon={$isLoading ? InlineLoading : undefined}>Add Routine</Button
                 >
             </ToolbarContent>
         </Toolbar>

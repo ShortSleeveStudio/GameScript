@@ -10,7 +10,12 @@
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { get } from 'svelte/store';
-    import { TABLE_ID_ACTORS, type Actor, type Localization } from '@lib/api/db/db-schema';
+    import {
+        TABLE_ID_ACTORS,
+        type Actor,
+        type Localization,
+        TABLE_ID_LOCALIZATIONS,
+    } from '@lib/api/db/db-schema';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import FocusButton from '../common/FocusButton.svelte';
     import type { FocusPayloadActor } from '@lib/stores/app/focus';
@@ -41,8 +46,6 @@
     ];
     const focusPayload: FocusPayloadActor = {};
     let selectedRowIds: number[] = [];
-    // TODO: https://svelte-5-preview.vercel.app/status
-    // let isLoading: Readable<boolean> = actorsTable.isLoading;
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
     const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
@@ -60,10 +63,11 @@
                 isSystemCreated: true,
             };
             localizationArg[localeIdToColumn(defaultLocaleRowView.id)] = ACTORS_DEFAULT_NAME;
-            localizedName = await actorLocalizations.createRow(localizationArg, conn);
+            localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
 
             // Create Actor
-            newActor = await actorsTable.createRow(
+            newActor = await db.createRow(
+                TABLE_ID_ACTORS,
                 <Actor>{
                     name: ACTORS_DEFAULT_NAME,
                     color: ACTORS_DEFAULT_COLOR,
@@ -80,21 +84,25 @@
                 'actor creation',
                 isLoading.wrapOperationAsync(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await actorsTable.deleteRow(newActor, conn);
-                        await actorLocalizations.deleteRow(localizedName, conn);
+                        await db.deleteRow(TABLE_ID_ACTORS, newActor, conn);
+                        await db.deleteRow(TABLE_ID_LOCALIZATIONS, localizedName, conn);
                     });
                 }),
                 isLoading.wrapOperationAsync(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        localizedName = await actorLocalizations.createRow(localizedName, conn);
-                        newActor = await actorsTable.createRow(newActor, conn);
+                        localizedName = await db.createRow(
+                            TABLE_ID_LOCALIZATIONS,
+                            localizedName,
+                            conn,
+                        );
+                        newActor = await db.createRow(TABLE_ID_ACTORS, newActor, conn);
                     });
                 }),
             ),
         );
     });
 
-    async function deleteRows(): Promise<void> {
+    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Grab actor rows to delete
         let actorsToDelete: Actor[] = actorsTable.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
@@ -108,32 +116,33 @@
 
         // Delete
         await db.executeTransaction(async (conn: DbConnection) => {
-            await actorsTable.deleteRows(actorsToDelete, conn);
-            await actorLocalizations.deleteRows(localizationsToDelete, conn);
+            await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+            await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
         });
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'actor deletion',
-                async () => {
+                isLoading.wrapOperationAsync(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        localizationsToDelete = await actorLocalizations.createRows(
+                        localizationsToDelete = await db.createRows(
+                            TABLE_ID_LOCALIZATIONS,
                             localizationsToDelete,
                             conn,
                         );
-                        actorsToDelete = await actorsTable.createRows(actorsToDelete, conn);
+                        actorsToDelete = await db.createRows(TABLE_ID_ACTORS, actorsToDelete, conn);
                     });
-                },
-                async () => {
+                }),
+                isLoading.wrapOperationAsync(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await actorsTable.deleteRows(actorsToDelete, conn);
-                        await actorLocalizations.deleteRows(localizationsToDelete, conn);
+                        await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+                        await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
                     });
-                },
+                }),
             ),
         );
-    }
+    });
 </script>
 
 <p>
@@ -174,7 +183,7 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button

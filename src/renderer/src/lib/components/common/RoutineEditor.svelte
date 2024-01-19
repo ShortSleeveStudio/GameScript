@@ -1,4 +1,6 @@
 <script lang="ts" generics="RowType extends Row">
+    import { db } from '@lib/api/db/db';
+
     import {
         PROGRAMMING_LANGUAGE_ID_CS,
         type Row,
@@ -25,6 +27,7 @@
     let rowChangeUnsubscribe: Unsubscriber;
     let isDarkModeUnsubscribe: Unsubscriber = isDarkMode.subscribe(onDarkModeChanged);
     let languagePrincipalRowView: IDbRowView<ProgrammingLanguagePrincipal> | undefined;
+
     // TODO
     // https://svelte-5-preview.vercel.app/status
     // These single row tables could be stateful variables of a class
@@ -41,13 +44,13 @@
             },
         );
 
-    function blurEditor() {
+    function blurEditor(): void {
         if (editor.hasTextFocus() && document.activeElement instanceof HTMLElement) {
             document.activeElement.blur();
         }
     }
 
-    function setEditorDisabled(isDisabled: boolean) {
+    function setEditorDisabled(isDisabled: boolean): void {
         editor.updateOptions({ readOnly: isDisabled });
         if (isDisabled) {
             container.classList.add('code-editor-disabled');
@@ -56,18 +59,22 @@
         }
     }
 
-    function onRowChanged(newRoutine: RowType) {
+    function onRowChanged(newRoutine: RowType): void {
         editor.setValue(<string>newRoutine[columnName]);
     }
 
-    async function onSave() {
+    async function onSave(): Promise<void> {
         if (!rowView) return;
         const newValue = editor.getValue();
         const oldValue = get(rowView)[columnName];
         if (oldValue === newValue) return;
 
+        // Update column
+        const originalRow = get(rowView);
+        const newRow = <Row>{ id: originalRow.id };
+        newRow[columnName] = newValue;
         setEditorDisabled(true);
-        await rowView.updateColumn(columnName, newValue);
+        await db.updateRow(rowView.tableId, newRow);
         setEditorDisabled(false);
 
         undoManager.register(
@@ -76,14 +83,16 @@
                 async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     setEditorDisabled(true);
-                    await rowView.updateColumn(columnName, oldValue);
+                    newRow[columnName] = oldValue;
+                    await db.updateRow(rowView.tableId, newRow);
                     setEditorDisabled(false);
                     blurEditor();
                 },
                 async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     setEditorDisabled(true);
-                    await rowView.updateColumn(columnName, newValue);
+                    newRow[columnName] = newValue;
+                    await db.updateRow(rowView.tableId, newRow);
                     setEditorDisabled(false);
                     blurEditor();
                 },
@@ -91,11 +100,13 @@
         );
     }
 
-    function onDarkModeChanged(isDark: boolean) {
+    function onDarkModeChanged(isDark: boolean): void {
         monaco.editor.setTheme(isDark ? 'vs-dark' : 'vs');
     }
 
-    function onProgrammingLanguageChanged(principalLanguageRow: ProgrammingLanguagePrincipal) {
+    function onProgrammingLanguageChanged(
+        principalLanguageRow: ProgrammingLanguagePrincipal,
+    ): void {
         if (!editor) return;
         const model: monaco.editor.ITextModel | null = editor.getModel();
         if (!model) throw new Error('Code editor was not properly initialized');
@@ -105,7 +116,7 @@
         monaco.editor.setModelLanguage(model, languageName);
     }
 
-    function onRowViewChanged(row: IDbRowView<RowType> | undefined) {
+    function onRowViewChanged(row: IDbRowView<RowType> | undefined): void {
         if (!editor) return;
         if (rowChangeUnsubscribe) rowChangeUnsubscribe();
         if (row) {

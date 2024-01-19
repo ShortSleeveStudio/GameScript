@@ -220,11 +220,19 @@ export class SqliteDb extends Db {
             throw new Error(`Failed to update row: ${err}`);
         }
 
+        // Fetch updated row
+        const fetchQuery = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id = ?`;
+        const updatedRow: RowType[] = await window.api.sqlite.all(
+            connection ?? this._db,
+            fetchQuery,
+            [row.id],
+        );
+
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_UPDATE, tableId, [row]);
+        this.notify<RowType>(OP_UPDATE, tableId, updatedRow);
     }
 
     async deleteRow<RowType extends Row>(
@@ -284,7 +292,7 @@ export class SqliteDb extends Db {
                 break;
             }
             case OP_UPDATE: {
-                this.notifyOnRowChanged(tableId, rows);
+                this.notifyOnRowUpdated(tableId, rows);
                 break;
             }
             default:
@@ -338,7 +346,7 @@ export class SqliteDb extends Db {
         }
     }
 
-    private notifyOnRowChanged<RowType extends Row>(
+    private notifyOnRowUpdated<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
     ): void {
@@ -423,7 +431,7 @@ export class SqliteDb extends Db {
     ): IDbRowView<RowType> {
         let rowView = rowViews.get(row.id);
         if (!rowView) {
-            rowView = new DbRowView<RowType>(<Db>this, tableId, row);
+            rowView = new DbRowView<RowType>(tableId, row);
             rowViews.set(row.id, rowView);
         }
         return rowView;

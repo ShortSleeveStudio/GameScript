@@ -9,7 +9,6 @@
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
-    import { type Readable } from 'svelte/store';
     import { autoCompleteTable } from '@lib/tables/auto-complete';
     import { TABLE_ID_AUTO_COMPLETES, type AutoComplete } from '@lib/api/db/db-schema';
     import { languages } from 'monaco-editor';
@@ -24,6 +23,8 @@
         AUTO_COMPLETE_PLACEHOLDER_LABEL,
         AUTO_COMPLETE_UNDO_LABEL,
     } from '@lib/constants/settings';
+    import { db } from '@lib/api/db/db';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 
     const headers: DataTableHeader[] = [
         { key: 'label', value: 'Label' },
@@ -35,10 +36,9 @@
         uniqueNameTracker: uniqueNameTracker,
     };
     let selectedRowIds: number[] = [];
-    // TODO: https://svelte-5-preview.vercel.app/status
-    let isLoading: Readable<boolean> = autoCompleteTable.isLoading;
+    let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    async function addRow(): Promise<void> {
+    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         let newAutoComplete: AutoComplete = <AutoComplete>{
             name: 'WalkTo',
             icon: languages.CompletionItemKind.Function,
@@ -46,42 +46,42 @@
             insertion: 'WalkTo(${1:actor}, ${2:location});',
             documentation: '',
         };
-        let newRow: AutoComplete = await autoCompleteTable.createRow(newAutoComplete);
+        let newRow: AutoComplete = await db.createRow(TABLE_ID_AUTO_COMPLETES, newAutoComplete);
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'auto-complete creation',
-                async () => {
-                    await autoCompleteTable.deleteRow(newRow);
-                },
-                async () => {
-                    newRow = await autoCompleteTable.createRow(newRow);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRow(TABLE_ID_AUTO_COMPLETES, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    newRow = await db.createRow(TABLE_ID_AUTO_COMPLETES, newRow);
+                }),
             ),
         );
-    }
+    });
 
-    async function deleteRows(): Promise<void> {
+    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Grab rows to delete
         let rowsToDelete: AutoComplete[] = autoCompleteTable.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await autoCompleteTable.deleteRows(rowsToDelete);
+        await db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'auto-complete deletion',
-                async () => {
-                    rowsToDelete = await autoCompleteTable.createRows(rowsToDelete);
-                },
-                async () => {
-                    await autoCompleteTable.deleteRows(rowsToDelete);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    rowsToDelete = await db.createRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    await db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
+                }),
             ),
         );
-    }
+    });
 </script>
 
 <p>
@@ -122,7 +122,7 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button

@@ -1,14 +1,16 @@
 <script lang="ts">
+    import { db } from '@lib/api/db/db';
     import type { Row } from '@lib/api/db/db-schema';
     import { type IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { type ActionUnsubscriber } from '@lib/utility/action';
     import { wasEnterPressed, wasSavePressed } from '@lib/utility/keybinding';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { TextInput } from 'carbon-components-svelte';
     import { onDestroy, onMount } from 'svelte';
-    import type { Readable, Unsubscriber } from 'svelte/motion';
-    import type { Writable } from 'svelte/store';
+    import type { Unsubscriber } from 'svelte/motion';
+    import { get, type Writable } from 'svelte/store';
 
     export let rowView: IDbRowView<Row>;
     export let undoText: string;
@@ -17,8 +19,7 @@
     export let uniqueNameTracker: UniqueNameTracker;
     export let isNameLocked: Writable<boolean> | undefined = undefined;
 
-    // TODO: https://svelte-5-preview.vercel.app/status
-    const isLoading: Readable<boolean> = rowView.isColumnLoading('name');
+    const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string = $rowView.name;
     let currentValue: string = $rowView.name;
     let isUnique: boolean = true;
@@ -59,24 +60,31 @@
         rowViewUnsubscriber();
     });
 
-    async function syncOnBlur() {
+    const syncOnBlur: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
 
-        await rowView.updateColumn('name', newValue);
+        // Update column
+        const originalRow = get(rowView);
+        const newRow = <Row>{ id: originalRow.id };
+        newRow.name = newValue;
+        await db.updateRow(rowView.tableId, newRow);
+
         undoManager.register(
             new Undoable(
                 `${undoText} change`,
-                async () => {
-                    await rowView.updateColumn('name', oldValue);
-                },
-                async () => {
-                    await rowView.updateColumn('name', newValue);
-                },
+                isLoading.wrapOperationAsync(async () => {
+                    newRow.name = oldValue;
+                    await db.updateRow(rowView.tableId, newRow);
+                }),
+                isLoading.wrapOperationAsync(async () => {
+                    newRow.name = newValue;
+                    await db.updateRow(rowView.tableId, newRow);
+                }),
             ),
         );
-    }
+    });
 
     function onKeyUp(e: KeyboardEvent) {
         if (wasSavePressed(e) || wasEnterPressed(e)) {
