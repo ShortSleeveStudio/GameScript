@@ -20,6 +20,23 @@ body {
     overflow: hidden;
 }
 
+/* Color Pickers */
+input[type='color'] {
+    border: none;
+    padding: 0;
+}
+
+input[type='color']::-webkit-color-swatch-wrapper {
+    border: none;
+    padding: 4px 4px;
+    background-color: var(--cds-field-01, #f4f4f4);
+}
+
+input[type='color']::-webkit-color-swatch {
+    border: none;
+    padding: 0;
+}
+
 /* This will force dark overlay for the sidenav if needed */
 .bx--side-nav__overlay-active {
     width: 100vw !important;
@@ -162,3 +179,8 @@ body {
 }
 /* .monaco-editor .suggest-widget { width: 250px !important; } */
 
+
+/* Color Picker */
+.color-picker input {
+    color: var(--cds-text-01, #161616) !important;
+}

@@ -40,8 +40,7 @@
         if (oldValue === newValue) return;
 
         // Update column
-        const originalRow = get(rowView);
-        const newRow = <Row>{ id: originalRow.id };
+        const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
         await db.updateRow(rowView.tableId, newRow);
 

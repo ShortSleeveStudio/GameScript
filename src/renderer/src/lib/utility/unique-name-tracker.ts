@@ -10,26 +10,28 @@ export class UniqueNameTracker {
     }
 
     subscribe(handler: ActionHandler<void>): ActionUnsubscriber {
-        return this._event.register(handler);
+        const unsubscriber: ActionUnsubscriber = this._event.register(handler);
+        handler();
+        return unsubscriber;
     }
 
-    unsubscribe(handler: ActionHandler<void>) {
+    unsubscribe(handler: ActionHandler<void>): void {
         this._event.unregister(handler);
     }
 
     addName(name: string): void {
-        if (this._nameMap.has(name)) {
-            this._nameMap.set(name, <number>this._nameMap.get(name) + 1);
-        } else {
-            this._nameMap.set(name, 1);
-        }
+        this.addNameQuiet(name);
         this._event.fire();
     }
 
     removeName(name: string): void {
-        if (this._nameMap.has(name)) {
-            this._nameMap.set(name, Math.max(0, <number>this._nameMap.get(name) - 1));
-        }
+        this.removeNameQuiet(name);
+        this._event.fire();
+    }
+
+    swapName(from: string, to: string): void {
+        this.removeNameQuiet(from);
+        this.addNameQuiet(to);
         this._event.fire();
     }
 
@@ -38,5 +40,24 @@ export class UniqueNameTracker {
             return <number>this._nameMap.get(name) <= 1;
         }
         return true;
+    }
+
+    private addNameQuiet(name: string): void {
+        if (this._nameMap.has(name)) {
+            this._nameMap.set(name, <number>this._nameMap.get(name) + 1);
+        } else {
+            this._nameMap.set(name, 1);
+        }
+    }
+
+    private removeNameQuiet(name: string): void {
+        let count: number | undefined = this._nameMap.get(name);
+        if (count === undefined) return;
+        count--;
+        if (count <= 0) {
+            this._nameMap.delete(name);
+        } else {
+            this._nameMap.set(name, count);
+        }
     }
 }

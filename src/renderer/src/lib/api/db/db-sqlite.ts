@@ -62,12 +62,10 @@ export class SqliteDb extends Db {
             await transaction(conn);
         } catch (err) {
             wasError = true;
-            console.log('ROLLBACK;');
             await window.api.sqlite.exec(conn, 'ROLLBACK;');
             throw err;
         } finally {
             if (!wasError) {
-                console.log('COMMIT;');
                 window.api.sqlite.exec(conn, 'COMMIT;');
             }
             await window.api.sqlite.close(conn);
@@ -220,19 +218,11 @@ export class SqliteDb extends Db {
             throw new Error(`Failed to update row: ${err}`);
         }
 
-        // Fetch updated row
-        const fetchQuery = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id = ?`;
-        const updatedRow: RowType[] = await window.api.sqlite.all(
-            connection ?? this._db,
-            fetchQuery,
-            [row.id],
-        );
-
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        this.notify<RowType>(OP_UPDATE, tableId, updatedRow);
+        this.notify<RowType>(OP_UPDATE, tableId, [row]);
     }
 
     async deleteRow<RowType extends Row>(

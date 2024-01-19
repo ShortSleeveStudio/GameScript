@@ -28,7 +28,7 @@
     onMount(() => {
         // Subscribe to changes in unique name map
         uniqueNameTrackerUnsubscriber = uniqueNameTracker.subscribe(() => {
-            isUnique = uniqueNameTracker.isNameUnique($rowView.name);
+            isUnique = uniqueNameTracker.isNameUnique(get(rowView).name);
         });
 
         // Add name initially (NOTE: order here matters)
@@ -39,8 +39,7 @@
             // If the name of this row has changed, we remove it from the map and add the new name
             if (row.name !== currentValue) {
                 if (!isInspectorField) {
-                    uniqueNameTracker.removeName(currentValue);
-                    uniqueNameTracker.addName(row.name);
+                    uniqueNameTracker.swapName(currentValue, row.name);
                 }
                 boundValue = row.name;
                 currentValue = row.name;
@@ -66,11 +65,11 @@
         if (oldValue === newValue) return;
 
         // Update column
-        const originalRow = get(rowView);
-        const newRow = <Row>{ id: originalRow.id };
+        const newRow = <Row>{ ...get(rowView) };
         newRow.name = newValue;
         await db.updateRow(rowView.tableId, newRow);
 
+        // Register undo/redo
         undoManager.register(
             new Undoable(
                 `${undoText} change`,

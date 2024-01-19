@@ -25,7 +25,7 @@
         ACTORS_DEFAULT_NAME,
         ACTORS_PLACEHOLDER_NAME,
         ACTORS_UNDO_NAME,
-    } from '@lib/constants/actors';
+    } from '@lib/constants/settings';
     import { actorsTable } from '@lib/tables/actors';
     import {
         actorLocalizationTableRowView,
@@ -44,7 +44,9 @@
         { key: 'name', value: 'Name' },
         { key: 'focus', empty: true, minWidth: FOCUS_BUTTON_WIDTH, width: FOCUS_BUTTON_WIDTH },
     ];
-    const focusPayload: FocusPayloadActor = {};
+    const focusPayload: FocusPayloadActor = {
+        uniqueNameTracker: uniqueNameTracker,
+    };
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
@@ -176,8 +178,6 @@
                 />
             {:else if cell.key === 'focus'}
                 <FocusButton rowType={TABLE_ID_ACTORS} rowView={row} payload={focusPayload} />
-            {:else if cell.key === 'isSystemCreated'}
-                yes
             {/if}
         </svelte:fragment>
 

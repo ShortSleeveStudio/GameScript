@@ -25,4 +25,6 @@ export interface FocusPayloadRoutine extends FocusPayload {
 export interface FocusPayloadAutoComplete extends FocusPayload {
     uniqueNameTracker: UniqueNameTracker;
 }
-export interface FocusPayloadActor extends FocusPayload {}
+export interface FocusPayloadActor extends FocusPayload {
+    uniqueNameTracker: UniqueNameTracker;
+}

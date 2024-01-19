@@ -2,7 +2,7 @@
     import { AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS, type AutoComplete } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadAutoComplete } from '@lib/stores/app/focus';
-    import InspectorFieldId from './InspectorFieldId.svelte';
+    import RowColumnId from '../common/RowColumnId.svelte';
     import RowNameInput from '../common/RowNameInput.svelte';
     import {
         AUTO_COMPLETE_PLACEHOLDER_AUTO_COMPLETE,
@@ -23,7 +23,7 @@
 <h2>Auto-Complete</h2>
 <p>
     <sup>ID</sup>
-    <InspectorFieldId {rowView} />
+    <RowColumnId {rowView} />
 </p>
 <p>
     <Tooltip triggerText="Label" align="start" direction="bottom">

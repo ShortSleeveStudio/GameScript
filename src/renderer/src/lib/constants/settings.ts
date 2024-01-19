@@ -19,7 +19,14 @@ export const AUTO_COMPLETE_PLACEHOLDER_LABEL = 'Auto-complete label';
 export const AUTO_COMPLETE_PLACEHOLDER_INSERTION = 'Auto-complete text';
 export const AUTO_COMPLETE_PLACEHOLDER_AUTO_COMPLETE = 'Auto-complete documentation';
 
-/**Actors */
+/**Actors Default Fields */
 export const ACTORS_DEFAULT_FIELDS_UNDO_NAME = 'default field name';
 export const ACTORS_DEFAULT_FIELDS_UNDO_TYPE = 'default field type';
 export const ACTORS_DEFAULT_FIELDS_PLACEHOLDER_NAME = 'Enter a unique field name';
+
+/**Actors */
+export const ACTORS_UNDO_NAME = 'actor name';
+export const ACTORS_UNDO_COLOR = 'actor node color';
+export const ACTORS_PLACEHOLDER_NAME = "Enter the actor's nickname";
+export const ACTORS_DEFAULT_COLOR = '#11856C';
+export const ACTORS_DEFAULT_NAME = 'New Actor';

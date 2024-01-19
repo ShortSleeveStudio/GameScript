@@ -4,7 +4,7 @@
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import RowNameInput from '../common/RowNameInput.svelte';
     import RoutineEditor from '../common/RoutineEditor.svelte';
-    import InspectorFieldId from './InspectorFieldId.svelte';
+    import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
 
     import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
@@ -17,14 +17,12 @@
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
-
-    const NOTES_PLACEHOLDER: string = '';
 </script>
 
 <h2>Routine</h2>
 <p>
     <sup>ID</sup>
-    <InspectorFieldId {rowView} />
+    <RowColumnId {rowView} />
 </p>
 <p>
     <sup>Name</sup>

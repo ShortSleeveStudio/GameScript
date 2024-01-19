@@ -1,3 +1,4 @@
+import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
 import { localeIdToColumn } from '@lib/utility/locale';
 import {
     DATABASE_TABLE_NAMES,
@@ -305,7 +306,7 @@ INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, parent, isSystemCreated, 
 rowIndex = 0;
 const DEFAULT_ACTOR_ID = rowIndex;
 const INITIALIZE_ACTORS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_ACTORS} (id, name, color, localizedName, isSystemCreated) VALUES (${rowIndex++}, 'Player', '00E0FF', ${DEFAULT_LOCALIZATION_ID}, true);`;
+INSERT OR IGNORE INTO ${TABLE_NAME_ACTORS} (id, name, color, localizedName, isSystemCreated) VALUES (${rowIndex++}, 'Player', '${ACTORS_DEFAULT_COLOR}', ${DEFAULT_LOCALIZATION_ID}, true);`;
 // Actor Principal
 rowIndex = 0;
 const INITIALIZE_ACTOR_PRINCIPAL = `

@@ -8,7 +8,7 @@
     export let rowView: IDbRowView<RowType>;
     export let payload: FocusPayload;
 
-    function focusOnRowView() {
+    function focusOnRowView(): void {
         focused.set({ tableId: rowType, rowView: rowView, payload: payload });
     }
 </script>

@@ -1,30 +1,20 @@
-<script lang="ts" generics="RowType extends Row">
+<script lang="ts">
     import { db } from '@lib/api/db/db';
+    import type { Row } from '@lib/api/db/db-schema';
+    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { get } from 'svelte/store';
-    import { onDestroy } from 'svelte';
-    import { wasSavePressed } from '@lib/utility/keybinding';
-    import { type Row } from '@lib/api/db/db-schema';
-    import { TextArea } from 'carbon-components-svelte';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 
-    export let rowView: IDbRowView<RowType>;
+    export let rowView: IDbRowView<Row>;
+    export let columnName: string = 'color';
     export let undoText: string;
-    export let columnName: string;
-    export let placeholder: string;
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string = <string>$rowView[columnName];
     let currentValue: string = <string>$rowView[columnName];
 
-    function onKeyUp(e: KeyboardEvent) {
-        if (wasSavePressed(e)) {
-            (<HTMLElement>e.target).blur();
-        }
-    }
-
-    const syncOnBlur: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    const onColorChanged: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
@@ -49,22 +39,13 @@
             ),
         );
     });
-
-    onDestroy(
-        rowView.subscribe((row: RowType) => {
-            // If the name of this row has changed, we remove it from the map and add the new name
-            if (row[columnName] !== currentValue) {
-                boundValue = <string>row[columnName];
-                currentValue = <string>row[columnName];
-            }
-        }),
-    );
 </script>
 
-<TextArea
-    disabled={$isLoading}
-    {placeholder}
-    bind:value={boundValue}
-    on:blur={syncOnBlur}
-    on:keyup={onKeyUp}
-/>
+<input class="color-picker" on:change={onColorChanged} bind:value={boundValue} type="color" />
+
+<style>
+    .color-picker {
+        height: calc(8 * 4px);
+        width: 100%;
+    }
+</style>
