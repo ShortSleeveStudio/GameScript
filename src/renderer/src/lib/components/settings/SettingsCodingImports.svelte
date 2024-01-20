@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Tile } from 'carbon-components-svelte';
     import RoutineEditor from '../common/RoutineEditor.svelte';
-    import { importRoutines } from '@lib/tables/import-routines';
+    import { importRoutines } from '@lib/tables/routines-imports';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { Routine } from '@lib/api/db/db-schema';
     import { onDestroy } from 'svelte';

@@ -2,7 +2,7 @@
     import { Column, Row } from 'carbon-components-svelte';
     import { isApplyingDefaultFieldsConversations } from '@lib/stores/app/applying-default-fields';
     import { TABLE_ID_CONVERSATIONS } from '@lib/api/db/db-schema';
-    import { conversationDefaultFields } from '@lib/tables/default-fields-conversations';
+    import { conversationDefaultFields } from '@lib/tables/custom-properties-conversations';
     import {
         CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME,
         CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME,

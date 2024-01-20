@@ -27,6 +27,13 @@ export const ACTORS_DEFAULT_FIELDS_PLACEHOLDER_NAME = 'Enter a unique field name
 /**Actors */
 export const ACTORS_UNDO_NAME = 'actor name';
 export const ACTORS_UNDO_COLOR = 'actor node color';
-export const ACTORS_PLACEHOLDER_NAME = "Enter the actor's nickname";
+export const ACTORS_UNDO_LOCALIZED_NAME = 'localized actor name';
+export const ACTORS_PLACEHOLDER_NAME = "Enter the actor's name";
 export const ACTORS_DEFAULT_COLOR = '#11856C';
 export const ACTORS_DEFAULT_NAME = 'New Actor';
+
+/**Localization */
+export const LOCALIZATION_UNDO_NICKNAME = 'localization nickname';
+export const LOCALIZATION_PLACEHOLDER_NICKNAME = 'Enter a nickname';
+export const LOCALIZATION_UNDO_TEXT = 'localized text';
+export const LOCALIZATION_PLACEHOLDER_TEXT = 'Enter localized text';

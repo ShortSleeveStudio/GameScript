@@ -7,7 +7,7 @@
         ACTORS_DEFAULT_FIELDS_UNDO_NAME,
         ACTORS_DEFAULT_FIELDS_UNDO_TYPE,
     } from '@lib/constants/settings';
-    import { actorDefaultFields } from '@lib/tables/default-fields-actors';
+    import { actorDefaultFields } from '@lib/tables/custom-properties-actors';
     import SettingsDefaultFields from './SettingsDefaultFields.svelte';
     const tableTitle = 'Actor Custom Properties';
     const tableDescription = `These properties will appear in all new actors. You can also apply

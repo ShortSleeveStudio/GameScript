@@ -32,8 +32,7 @@
         actorLocalizations,
     } from '@lib/tables/actor-localization';
     import { db } from '@lib/api/db/db';
-    import { defaultLocaleRowView } from '@lib/tables/default-locale';
-    import { localeIdToColumn } from '@lib/utility/locale';
+    import { systemCreatedRoutineRowView } from '@lib/tables/locale-system-created';
     import type { DbConnection } from 'preload/api-db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import RowNameInput from '../common/RowNameInput.svelte';
@@ -55,7 +54,11 @@
         let localizedName: Localization;
         await db.executeTransaction(async (conn: DbConnection) => {
             // Ensure localization table row view exists
-            if (!actorLocalizationTableRowView || !actorLocalizations || !defaultLocaleRowView) {
+            if (
+                !actorLocalizationTableRowView ||
+                !actorLocalizations ||
+                !systemCreatedRoutineRowView
+            ) {
                 throw new Error('No database connection');
             }
 
@@ -64,7 +67,6 @@
                 parent: actorLocalizationTableRowView.id,
                 isSystemCreated: true,
             };
-            localizationArg[localeIdToColumn(defaultLocaleRowView.id)] = ACTORS_DEFAULT_NAME;
             localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
 
             // Create Actor

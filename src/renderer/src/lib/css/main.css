@@ -168,6 +168,23 @@ input[type='color']::-webkit-color-swatch {
     background-color: transparent;
 }
 
+/* Tile */
+.bx--tile > p {
+    font-size: var(--cds-body-long-02-font-size, 1rem);
+    font-weight: var(--cds-body-long-02-font-weight, 400);
+    line-height: var(--cds-body-long-02-line-height, 1.5);
+    letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
+    margin-bottom: var(--cds-layout-02);
+}
+
+.bx--tile .bx--text-input  {
+    background-color: var(--cds-field-02, #ffffff);
+}
+
+.bx--tile .bx--text-area  {
+    background-color: var(--cds-field-02, #ffffff);
+}
+
 /* Button Sets */
 .button-set {
     display: flex;
@@ -178,9 +195,3 @@ input[type='color']::-webkit-color-swatch {
     opacity: 50%;
 }
 /* .monaco-editor .suggest-widget { width: 250px !important; } */
-
-
-/* Color Picker */
-.color-picker input {
-    color: var(--cds-text-01, #161616) !important;
-}

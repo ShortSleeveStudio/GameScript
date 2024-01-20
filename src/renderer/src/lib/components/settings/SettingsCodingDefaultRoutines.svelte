@@ -12,7 +12,7 @@
     import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
-    import { defaultRoutines } from '@lib/tables/default-routines';
+    import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import {
         TABLE_ID_ROUTINES,

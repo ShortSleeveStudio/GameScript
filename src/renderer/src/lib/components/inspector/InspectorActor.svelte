@@ -10,6 +10,7 @@
         ACTORS_UNDO_COLOR,
     } from '@lib/constants/settings';
     import RowColumnColor from '../common/RowColumnColor.svelte';
+    import RowColumnLocalization from '../common/RowColumnLocalization.svelte';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
@@ -33,4 +34,8 @@
 <p>
     <sup>Node Color</sup>
     <RowColumnColor {rowView} undoText={ACTORS_UNDO_COLOR} />
+</p>
+<p>
+    <sup>Localized Name</sup>
+    <RowColumnLocalization {rowView} columnName={'localizedName'} />
 </p>
