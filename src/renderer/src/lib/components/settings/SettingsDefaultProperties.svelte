@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import {
         DataTable,
         Toolbar,
@@ -10,7 +9,7 @@
         Modal,
         ProgressBar,
     } from 'carbon-components-svelte';
-    import { get, type Readable, type Writable } from 'svelte/store';
+    import { type Writable } from 'svelte/store';
     import RowColumnDropdown from '../common/RowColumnDropdown.svelte';
     import { Async, TrashCan } from 'carbon-icons-svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
@@ -18,11 +17,11 @@
     import { durationFast02 } from '@lib/constants/motion';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import {
-        FIELD_TYPE_ID_ACTOR,
-        type DefaultField,
-        FIELD_TYPE_DROP_DOWN_ITEMS,
+        PROPERTY_TYPE_ID_ACTOR,
+        type DefaultProperty,
+        PROPERTY_TYPE_DROP_DOWN_ITEMS,
         type DatabaseTableId,
-        TABLE_ID_DEFAULT_FIELDS,
+        TABLE_ID_DEFAULT_PROPERTIES,
     } from '@lib/api/db/db-schema';
     import { wait } from '@lib/utility/wait';
     import RowNameInput from '../common/RowNameInput.svelte';
@@ -30,8 +29,8 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
 
-    export let defaultFields: IDbTableView<DefaultField>;
-    export let isApplyingDefaultFields: Writable<boolean>;
+    export let defaultProperties: IDbTableView<DefaultProperty>;
+    export let isApplyingDefaultProperties: Writable<boolean>;
     export let parentType: DatabaseTableId;
     export let tableTitle: string;
     export let tableDescription: string;
@@ -47,40 +46,43 @@
     ];
     let selectedRowIds: number[] = [];
     let isModalOpen: boolean = false;
-    let applyFieldsProgress: number = 0;
+    let applyPropertiesProgress: number = 0;
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    async function applyDefaultFields(): Promise<void> {
+    async function applyDefaultProperties(): Promise<void> {
         // TODO: implement me
         console.log('implement me');
-        if ($isApplyingDefaultFields) return;
-        applyFieldsProgress = 0;
-        $isApplyingDefaultFields = true;
+        if ($isApplyingDefaultProperties) return;
+        applyPropertiesProgress = 0;
+        $isApplyingDefaultProperties = true;
         isModalOpen = false;
-        for (; applyFieldsProgress < 100; applyFieldsProgress += 10) {
+        for (; applyPropertiesProgress < 100; applyPropertiesProgress += 10) {
             await wait(300);
         }
         await wait(600);
-        $isApplyingDefaultFields = false;
+        $isApplyingDefaultProperties = false;
     }
 
     const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
-        let newDefaultField: DefaultField = <DefaultField>{
-            name: 'New Field',
-            type: FIELD_TYPE_ID_ACTOR,
+        let newDefaultProperty: DefaultProperty = <DefaultProperty>{
+            name: 'New Property',
+            type: PROPERTY_TYPE_ID_ACTOR,
             parentType: parentType,
         };
-        let newRow: DefaultField = await db.createRow(TABLE_ID_DEFAULT_FIELDS, newDefaultField);
+        let newRow: DefaultProperty = await db.createRow(
+            TABLE_ID_DEFAULT_PROPERTIES,
+            newDefaultProperty,
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'default field creation',
+                'default property creation',
                 isLoading.wrapOperationAsync(async () => {
-                    await db.deleteRow(TABLE_ID_DEFAULT_FIELDS, newRow);
+                    await db.deleteRow(TABLE_ID_DEFAULT_PROPERTIES, newRow);
                 }),
                 isLoading.wrapOperationAsync(async () => {
-                    newRow = await db.createRow(TABLE_ID_DEFAULT_FIELDS, newRow);
+                    newRow = await db.createRow(TABLE_ID_DEFAULT_PROPERTIES, newRow);
                 }),
             ),
         );
@@ -88,21 +90,21 @@
 
     const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Grab rows to delete
-        let rowsToDelete: DefaultField[] = defaultFields.getRowsById(selectedRowIds);
+        let rowsToDelete: DefaultProperty[] = defaultProperties.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await db.deleteRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
+        await db.deleteRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'default field deletion',
+                'default property deletion',
                 isLoading.wrapOperationAsync(async () => {
-                    rowsToDelete = await db.createRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
+                    rowsToDelete = await db.createRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
                 }),
                 isLoading.wrapOperationAsync(async () => {
-                    await db.deleteRows(TABLE_ID_DEFAULT_FIELDS, rowsToDelete);
+                    await db.deleteRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
                 }),
             ),
         );
@@ -116,7 +118,7 @@
     batchSelection
     bind:selectedRowIds
     {headers}
-    rows={$defaultFields}
+    rows={$defaultProperties}
 >
     <svelte:fragment slot="cell-header" let:header>
         {header.value}
@@ -127,18 +129,18 @@
             <!-- TODO: https://svelte-5-preview.vercel.app/status -->
             <RowNameInput
                 rowView={row}
-                isNameLocked={isApplyingDefaultFields}
+                isNameLocked={isApplyingDefaultProperties}
                 undoText={nameUndoText}
                 {uniqueNameTracker}
                 inputPlaceholder={namePlaceholderText}
                 isInspectorField={false}
             />
         {:else if cell.key === 'type'}
-            <!-- TODO: https://svelte-5-preview.vercel.app/status - also nameof<DefaultField>('type') -->
+            <!-- TODO: https://svelte-5-preview.vercel.app/status - also nameof<DefaultProperty>('type') -->
             <RowColumnDropdown
                 rowView={row}
-                dropdownItems={FIELD_TYPE_DROP_DOWN_ITEMS}
-                isDisabled={$isApplyingDefaultFields}
+                dropdownItems={PROPERTY_TYPE_DROP_DOWN_ITEMS}
+                isDisabled={$isApplyingDefaultProperties}
                 undoText={typeUndoText}
                 columnName={'type'}
             />
@@ -146,29 +148,29 @@
     </svelte:fragment>
 
     <Toolbar size="sm">
-        {#if !$isApplyingDefaultFields}
+        {#if !$isApplyingDefaultProperties}
             <ToolbarBatchActions>
                 <Button
                     icon={TrashCan}
-                    disabled={$isLoading || $isApplyingDefaultFields}
+                    disabled={$isLoading || $isApplyingDefaultProperties}
                     on:click={deleteRows}>Delete</Button
                 >
             </ToolbarBatchActions>
         {/if}
         <ToolbarContent>
-            {#if $isApplyingDefaultFields}
+            {#if $isApplyingDefaultProperties}
                 <span style="width: 100%;" transition:fade={{ duration: durationFast02 }}>
                     <ProgressBar
                         kind="indented"
-                        value={applyFieldsProgress}
+                        value={applyPropertiesProgress}
                         max={100}
-                        labelText={applyFieldsProgress < 100 ? 'Applying to All...' : 'Done!'}
+                        labelText={applyPropertiesProgress < 100 ? 'Applying to All...' : 'Done!'}
                     />
                 </span>
             {/if}
             <Button
                 size="small"
-                disabled={$isLoading || $isApplyingDefaultFields}
+                disabled={$isLoading || $isApplyingDefaultProperties}
                 kind="danger-tertiary"
                 iconDescription="Apply to All"
                 tooltipPosition="left"
@@ -177,8 +179,8 @@
             />
             <Button
                 on:click={addRow}
-                disabled={$isLoading || $isApplyingDefaultFields}
-                icon={$isLoading ? InlineLoading : undefined}>Add Field</Button
+                disabled={$isLoading || $isApplyingDefaultProperties}
+                icon={$isLoading ? InlineLoading : undefined}>Add Property</Button
             >
         </ToolbarContent>
     </Toolbar>
@@ -192,7 +194,7 @@
     primaryButtonText="Apply"
     secondaryButtonText="Cancel"
     on:click:button--secondary={() => (isModalOpen = false)}
-    on:submit={applyDefaultFields}
+    on:submit={applyDefaultProperties}
 >
     <p>{modalText}</p>
     <br />

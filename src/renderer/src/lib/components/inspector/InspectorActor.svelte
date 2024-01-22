@@ -39,3 +39,6 @@
     <sup>Localized Name</sup>
     <RowColumnLocalization {rowView} columnName={'localizedName'} />
 </p>
+<p>
+    <sup>Properties</sup>
+</p>

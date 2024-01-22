@@ -1,7 +1,7 @@
-/**Conversation Default Fields */
-export const CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME = 'default field name';
-export const CONVERSATIONS_DEFAULT_FIELDS_UNDO_TYPE = 'default field type';
-export const CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME = 'Enter a unique field name';
+/**Conversation Default Properties */
+export const CONVERSATIONS_DEFAULT_PROPERTY_UNDO_NAME = 'default property name';
+export const CONVERSATIONS_DEFAULT_PROPERTY_UNDO_TYPE = 'default property type';
+export const CONVERSATIONS_DEFAULT_PROPERTY_PLACEHOLDER_NAME = 'Enter a unique property name';
 
 /**Routines */
 export const ROUTINES_UNDO_NAME = 'routine name';
@@ -19,10 +19,10 @@ export const AUTO_COMPLETE_PLACEHOLDER_LABEL = 'Auto-complete label';
 export const AUTO_COMPLETE_PLACEHOLDER_INSERTION = 'Auto-complete text';
 export const AUTO_COMPLETE_PLACEHOLDER_AUTO_COMPLETE = 'Auto-complete documentation';
 
-/**Actors Default Fields */
-export const ACTORS_DEFAULT_FIELDS_UNDO_NAME = 'default field name';
-export const ACTORS_DEFAULT_FIELDS_UNDO_TYPE = 'default field type';
-export const ACTORS_DEFAULT_FIELDS_PLACEHOLDER_NAME = 'Enter a unique field name';
+/**Actors Default Properties */
+export const ACTORS_DEFAULT_PROPERTY_UNDO_NAME = 'default property name';
+export const ACTORS_DEFAULT_PROPERTY_UNDO_TYPE = 'default property type';
+export const ACTORS_DEFAULT_PROPERTY_PLACEHOLDER_NAME = 'Enter a unique property name';
 
 /**Actors */
 export const ACTORS_UNDO_NAME = 'actor name';

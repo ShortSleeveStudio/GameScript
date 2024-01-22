@@ -1,13 +1,19 @@
 module.exports = {
     parserOptions: {
         extraFileExtensions: ['.svelte'],
+        sourceType: 'module',
+        ecmaVersion: 2020,
     },
     extends: [
         'eslint:recommended',
         'plugin:svelte/recommended',
-        '@electron-toolkit/eslint-config-ts/recommended',
-        '@electron-toolkit/eslint-config-prettier',
+        'plugin:@typescript-eslint/recommended',
+        'prettier',
+        // '@electron-toolkit/eslint-config-ts/recommended',
+        // '@electron-toolkit/eslint-config-prettier',
     ],
+    parser: '@typescript-eslint/parser',
+    plugins: ['@typescript-eslint'],
     overrides: [
         {
             files: ['*.svelte'],

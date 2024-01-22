@@ -52,7 +52,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'set default field type',
+                'set default property type',
                 isLoading.wrapOperationAsync(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
@@ -69,7 +69,9 @@
         );
     });
 
-    function onProgrammingLanguageChanged(principalLanguageRow: ProgrammingLanguagePrincipal) {
+    function onProgrammingLanguageChanged(
+        principalLanguageRow: ProgrammingLanguagePrincipal,
+    ): void {
         if (principalLanguageRow.principal !== currentValue) {
             boundValue = principalLanguageRow.principal;
             currentValue = principalLanguageRow.principal;

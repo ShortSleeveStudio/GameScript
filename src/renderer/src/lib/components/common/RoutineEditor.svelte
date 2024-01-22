@@ -78,7 +78,7 @@
 
         undoManager.register(
             new Undoable(
-                'default field type selection',
+                'default property type selection',
                 async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     setEditorDisabled(true);

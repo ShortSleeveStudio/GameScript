@@ -1,21 +1,22 @@
 <script lang="ts">
     import { Column, Row } from 'carbon-components-svelte';
-    import { isApplyingDefaultFieldsConversations } from '@lib/stores/app/applying-default-fields';
+    import { isApplyingDefaultPropertiesConversations } from '@lib/stores/app/applying-default-properties';
     import { TABLE_ID_CONVERSATIONS } from '@lib/api/db/db-schema';
-    import { conversationDefaultFields } from '@lib/tables/custom-properties-conversations';
+    import { conversationDefaultProperties } from '@lib/tables/default-properties-conversations';
     import {
-        CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME,
-        CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME,
-        CONVERSATIONS_DEFAULT_FIELDS_UNDO_TYPE,
+        CONVERSATIONS_DEFAULT_PROPERTY_PLACEHOLDER_NAME,
+        CONVERSATIONS_DEFAULT_PROPERTY_UNDO_NAME,
+        CONVERSATIONS_DEFAULT_PROPERTY_UNDO_TYPE,
     } from '@lib/constants/settings';
-    import SettingsDefaultFields from './SettingsDefaultFields.svelte';
+    import SettingsDefaultProperties from './SettingsDefaultProperties.svelte';
 
-    const tableTitle = 'Conversation Custom Properties';
-    const tableDescription = `These properties will appear in all new conversation nodes. You can 
-                              also apply these properties across pre-existing nodes with the scary 
-                              red button.`;
-    const modalText = `This will go through every conversation node and ensure every default fields 
-                       exists. Any previous default fields that no longer exist will be removed. 
+    const tableTitle = 'Default Properties for Conversations';
+    const tableDescription = `Properties are a way to add arbirary data to new conversation nodes. 
+                              The properties in this table will appear in all new conversation
+                              nodes. You can also apply these properties across pre-existing nodes
+                              with the scary red button.`;
+    const modalText = `This will go through every conversation node and ensure every property
+                       exists. Any previous property that no longer exist will be removed.
                        It's best to do this when no one else is actively editing dialogue.`;
 </script>
 
@@ -23,15 +24,15 @@
     <Column>
         <h2>Conversation Editor</h2>
         <p>
-            <SettingsDefaultFields
-                defaultFields={conversationDefaultFields}
-                isApplyingDefaultFields={isApplyingDefaultFieldsConversations}
+            <SettingsDefaultProperties
+                defaultProperties={conversationDefaultProperties}
+                isApplyingDefaultProperties={isApplyingDefaultPropertiesConversations}
                 parentType={TABLE_ID_CONVERSATIONS}
                 {tableTitle}
                 {tableDescription}
-                nameUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_NAME}
-                typeUndoText={CONVERSATIONS_DEFAULT_FIELDS_UNDO_TYPE}
-                namePlaceholderText={CONVERSATIONS_DEFAULT_FIELDS_PLACEHOLDER_NAME}
+                nameUndoText={CONVERSATIONS_DEFAULT_PROPERTY_UNDO_NAME}
+                typeUndoText={CONVERSATIONS_DEFAULT_PROPERTY_UNDO_TYPE}
+                namePlaceholderText={CONVERSATIONS_DEFAULT_PROPERTY_PLACEHOLDER_NAME}
                 {modalText}
             />
         </p>
