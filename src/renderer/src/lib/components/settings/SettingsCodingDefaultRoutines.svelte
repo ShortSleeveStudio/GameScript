@@ -9,7 +9,6 @@
     } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
     import FocusButton from '../common/FocusButton.svelte';
-    import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
@@ -22,9 +21,14 @@
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
-    import { ROUTINES_PLACEHOLDER_NAME, ROUTINES_UNDO_NAME } from '@lib/constants/settings';
+    import {
+        ROUTINES_PLACEHOLDER_NAME,
+        ROUTINES_UNDO_DEFAULT,
+        ROUTINES_UNDO_NAME,
+    } from '@lib/constants/settings';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
+    import SettingsCodingDefaultRoutinesRadio from './SettingsCodingDefaultRoutinesRadio.svelte';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
@@ -110,7 +114,10 @@
                     isInspectorField={false}
                 />
             {:else if cell.key === 'isDefault'}
-                <DefaultRoutinesRadio rowView={row} />
+                <SettingsCodingDefaultRoutinesRadio
+                    rowView={row}
+                    undoText={ROUTINES_UNDO_DEFAULT}
+                />
             {:else if cell.key === 'focus'}
                 <FocusButton rowType={TABLE_ID_ROUTINES} rowView={row} payload={focusPayload} />
             {/if}

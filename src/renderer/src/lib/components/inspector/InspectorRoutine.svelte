@@ -6,14 +6,14 @@
     import RoutineEditor from '../common/RoutineEditor.svelte';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
-
-    import DefaultRoutinesRadio from '../common/DefaultRoutinesRadio.svelte';
     import {
         ROUTINES_PLACEHOLDER_NAME,
         ROUTINES_PLACEHOLDER_NOTES,
+        ROUTINES_UNDO_DEFAULT,
         ROUTINES_UNDO_NAME,
         ROUTINES_UNDO_NOTES,
     } from '@lib/constants/settings';
+    import SettingsCodingDefaultRoutinesRadio from '../settings/SettingsCodingDefaultRoutinesRadio.svelte';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
@@ -36,7 +36,7 @@
 </p>
 <p>
     <sup>Default</sup>
-    <DefaultRoutinesRadio {rowView} />
+    <SettingsCodingDefaultRoutinesRadio {rowView} undoText={ROUTINES_UNDO_DEFAULT} />
 </p>
 <p>
     <sup>Code</sup>

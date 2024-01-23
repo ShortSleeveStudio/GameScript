@@ -8,6 +8,7 @@ export const ROUTINES_UNDO_NAME = 'routine name';
 export const ROUTINES_UNDO_NOTES = 'routine notes';
 export const ROUTINES_PLACEHOLDER_NAME = 'Enter a routine name';
 export const ROUTINES_PLACEHOLDER_NOTES = 'Developer notes go here...';
+export const ROUTINES_UNDO_DEFAULT = 'default routine';
 
 /**Auto-Complete */
 export const AUTO_COMPLETE_UNDO_RULE = 'auto-complete rule';
@@ -43,3 +44,8 @@ export const PROPERTY_UNDO_TEXT = 'text property';
 export const PROPERTY_PLACEHOLDER_TEXT = 'Enter text';
 export const PROPERTY_UNDO_INTEGER = 'integer property';
 export const PROPERTY_UNDO_BOOL = 'boolean property';
+
+/**Locales */
+export const LOCALE_UNDO_PRIMARY = 'primary locale';
+export const LOCALE_UNDO_NAME = 'locale name';
+export const LOCALE_PLACEHOLDER_NAME = 'Enter locale name';

@@ -7,9 +7,10 @@
     import { onDestroy } from 'svelte';
 
     export let rowView: IDbRowView<Routine>;
+    export let undoText: string;
     let checked: boolean = rowView.id === $defaultRoutine;
 
-    function onRadioChanged(e: Event) {
+    function onRadioChanged(e: Event): void {
         (<HTMLElement>e.target).blur(); // Allows us to undo/redo
         const previousIdSelected: number = $defaultRoutine;
         checked = true;
@@ -18,7 +19,7 @@
         // Register undo/redo
         undoManager.register(
             new Undoable(
-                'default routine change',
+                `${undoText} change`,
                 async () => {
                     $defaultRoutine = previousIdSelected;
                 },
@@ -29,13 +30,12 @@
         );
     }
 
-    function onDefaultRoutineChanged(defaultRoutineId: number) {
+    function onDefaultRoutineChanged(defaultRoutineId: number): void {
         checked = rowView.id === defaultRoutineId;
     }
+    $: onDefaultRoutineChanged($defaultRoutine);
 
-    const unsubscribeDefaultRoutineChanged = defaultRoutine.subscribe(onDefaultRoutineChanged);
     onDestroy(() => {
-        unsubscribeDefaultRoutineChanged();
         if (checked) {
             $defaultRoutine = -1;
         }

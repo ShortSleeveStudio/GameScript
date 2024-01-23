@@ -32,7 +32,7 @@
         actorLocalizations,
     } from '@lib/tables/actor-localization';
     import { db } from '@lib/api/db/db';
-    import { systemCreatedRoutineRowView } from '@lib/tables/locale-system-created';
+    import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { DbConnection } from 'preload/api-db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import RowNameInput from '../common/RowNameInput.svelte';
@@ -57,7 +57,7 @@
             if (
                 !actorLocalizationTableRowView ||
                 !actorLocalizations ||
-                !systemCreatedRoutineRowView
+                !systemCreatedLocaleRowView
             ) {
                 throw new Error('No database connection');
             }

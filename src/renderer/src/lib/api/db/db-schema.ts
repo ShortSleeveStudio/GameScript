@@ -36,6 +36,9 @@ export interface Annotated {
 export interface SystemCreatable {
     isSystemCreated: boolean; // Used when a row is created by the system
 }
+export interface Principaled {
+    principal: number; // FK
+}
 
 ///
 /// Tables
@@ -197,9 +200,7 @@ export const PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS: DropdownItem[] = PROGRAMMING_
 ///
 /// Programming Language Principal
 ///
-export interface ProgrammingLanguagePrincipal extends Row {
-    principal: ProgrammingLanguageId; // FK Programming Languages
-}
+export interface ProgrammingLanguagePrincipal extends Row, Principaled {}
 
 ///
 /// Routine Types
@@ -245,9 +246,7 @@ export interface Locale extends Row, SystemCreatable {}
 ///
 /// Locale Principal
 ///
-export interface LocalePrincipal extends Row {
-    principal: number; // FK Locales
-}
+export interface LocalePrincipal extends Row, Principaled {}
 
 ///
 /// Localization Tables
@@ -275,9 +274,7 @@ export interface Actor extends Row, Annotated, SystemCreatable {
 ///
 /// Actor Principal
 ///
-export interface ActorPrincipal extends Row {
-    principal: number; // FK Actor
-}
+export interface ActorPrincipal extends Row, Principaled {}
 
 ///
 /// Conversations
