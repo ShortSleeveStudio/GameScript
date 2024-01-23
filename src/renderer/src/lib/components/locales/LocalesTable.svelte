@@ -33,14 +33,14 @@
     import { locales } from '@lib/tables/locales';
     import RowColumnRadio from '../common/RowColumnRadio.svelte';
     import { localePrincipalTableView } from '@lib/tables/locale-principal';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { get } from 'svelte/store';
     import type { DbConnection } from 'preload/api-db';
     import { localeIdToColumn } from '@lib/utility/locale';
     import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
+    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
-    const focusPayload: FocusPayloadLocale = {
+    const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
         uniqueNameTracker: uniqueNameTracker,
     };
     const headers: DataTableHeader[] = [
@@ -151,6 +151,7 @@
     localePrincipalTableView.subscribe((rowViews: IDbRowView<LocalePrincipal>[]) => {
         if (rowViews.length === 1) {
             localePrincipalRowView = rowViews[0];
+            focusPayload.localePrincipalRowView = localePrincipalRowView;
         }
     });
 </script>

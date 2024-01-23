@@ -1,4 +1,4 @@
-import type { DatabaseTableId, Row } from '@lib/api/db/db-schema';
+import type { DatabaseTableId, LocalePrincipal, Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
 import { writable, type Writable } from 'svelte/store';
@@ -30,4 +30,5 @@ export interface FocusPayloadActor extends FocusPayload {
 }
 export interface FocusPayloadLocale extends FocusPayload {
     uniqueNameTracker: UniqueNameTracker;
+    localePrincipalRowView: IDbRowView<LocalePrincipal>;
 }
