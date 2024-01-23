@@ -10,8 +10,6 @@ export const conversationEditorIsVisible: Writable<boolean> = writable(false);
 export const conversationFinderIsVisible: Writable<boolean> = writable(false);
 /** Store for if inspector component is visible */
 export const inspectorIsVisible: Writable<boolean> = writable(false);
-/** Store for if locales component is visible */
-export const localesIsVisible: Writable<boolean> = writable(false);
 /** Store for if localization editor component is visible */
 export const localizationEditorIsVisible: Writable<boolean> = writable(false);
 /** Store for if localization finder component is visible */

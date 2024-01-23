@@ -26,12 +26,10 @@
         LAYOUT_ID_CONVERSATION_EDITOR,
         LAYOUT_ID_CONVERSATION_FINDER,
         LAYOUT_ID_INSPECTOR,
-        LAYOUT_ID_LOCALES,
         LAYOUT_ID_LOCALIZATION_EDITOR,
         LAYOUT_ID_LOCALIZATION_FINDER,
         LAYOUT_ID_SEARCH,
         LAYOUT_ID_SETTINGS,
-        LOCALES_LAYOUT,
         LOCALIZATION_EDITOR_LAYOUT,
         LOCALIZATION_FINDER_LAYOUT,
         SEARCH_LAYOUT,
@@ -45,7 +43,6 @@
         conversationEditorIsVisible,
         conversationFinderIsVisible,
         inspectorIsVisible,
-        localesIsVisible,
         localizationEditorIsVisible,
         localizationFinderIsVisible,
         searchIsVisible,
@@ -57,7 +54,6 @@
     import Search from '../search/Search.svelte';
     import LocalizationFinder from '../localization-finder/LocalizationFinder.svelte';
     import LocalizationEditor from '../localization-editor/LocalizationEditor.svelte';
-    import Locales from '../locales/Locales.svelte';
     import ConversationFinder from '../conversation-finder/ConversationFinder.svelte';
     import ConversationEditor from '../conversation-editor/ConversationEditor.svelte';
     import Build from '../build/Build.svelte';
@@ -101,7 +97,7 @@
         };
     }
 
-    function unbindComponentEventListener(container: ComponentContainer) {
+    function unbindComponentEventListener(container: ComponentContainer): void {
         // Grab the component
         const dockable: DockableInfo = container.component as DockableInfo;
 
@@ -198,12 +194,6 @@
         isVisible={inspectorIsVisible}
         layout={layoutReadable}
         layoutConfig={INSPECTOR_LAYOUT}><Inspector /></Dockable
-    >
-    <Dockable
-        name={LAYOUT_ID_LOCALES}
-        isVisible={localesIsVisible}
-        layout={layoutReadable}
-        layoutConfig={LOCALES_LAYOUT}><Locales /></Dockable
     >
     <Dockable
         name={LAYOUT_ID_LOCALIZATION_EDITOR}

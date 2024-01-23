@@ -23,7 +23,6 @@
         conversationEditorIsVisible,
         conversationFinderIsVisible,
         inspectorIsVisible,
-        localesIsVisible,
         localizationEditorIsVisible,
         localizationFinderIsVisible,
         searchIsVisible,
@@ -104,11 +103,6 @@
                 text="Inspector"
                 isSelected={$inspectorIsVisible}
                 on:click={() => ($inspectorIsVisible = !$inspectorIsVisible)}
-            />
-            <SideNavMenuItem
-                text="Locales"
-                isSelected={$localesIsVisible}
-                on:click={() => ($localesIsVisible = !$localesIsVisible)}
             />
             <SideNavMenuItem
                 text="Localization Editor"

@@ -4,6 +4,7 @@
 
     import SettingsDatabase from './SettingsDatabase.svelte';
     import SettingsCoding from './SettingsCoding.svelte';
+    import SettingsLocalization from './SettingsLocalization.svelte';
 </script>
 
 <div class="settings">
@@ -12,6 +13,7 @@
             <SettingsDatabase />
             {#if $dbConnected}
                 <SettingsCoding />
+                <SettingsLocalization />
             {/if}
         </Grid>
     </Content>
