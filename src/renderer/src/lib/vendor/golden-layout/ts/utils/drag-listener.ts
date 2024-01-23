@@ -45,7 +45,7 @@ export class DragListener extends EventEmitter {
          * ???
          * Probably somehow needs tuning for different devices
          */
-        // this._nDistance = 10;
+        this._nDistance = 5;
 
         this._nX = 0;
         this._nY = 0;
@@ -109,9 +109,9 @@ export class DragListener extends EventEmitter {
         this._nY = dragEvent.pageY - this._nOriginalY;
 
         if (this._dragging === false) {
-            // if (Math.abs(this._nX) > this._nDistance || Math.abs(this._nY) > this._nDistance) {
-            this.startDrag();
-            // }
+            if (Math.abs(this._nX) > this._nDistance || Math.abs(this._nY) > this._nDistance) {
+                this.startDrag();
+            }
         }
 
         if (this._dragging) {

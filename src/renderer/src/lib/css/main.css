@@ -132,11 +132,12 @@ input[type='color']::-webkit-color-swatch {
 .bx--col sup {
     font-size: var(--cds-label-01-font-size, 0.75rem);
     letter-spacing: var(--cds-label-01-letter-spacing, 0.32px);
-    display: block;
+    display: inline-block;
     color: var(--cds-text-02, #525252);
     font-weight: 400;
     line-height: 1rem;
     margin-bottom: 0.5rem;
+    vertical-align: baseline;
 }
 
 .bx--col > .bx--tile {
