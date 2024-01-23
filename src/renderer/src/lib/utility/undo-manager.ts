@@ -22,7 +22,7 @@ export class Undoable {
         this._redo = redo;
     }
 
-    get commandString() {
+    get commandString(): string {
         return this._commandString;
     }
 
@@ -53,41 +53,47 @@ export class UndoManager {
         this._dbConnected = isDbConnected;
     }
 
-    get isBusy() {
+    get isBusy(): boolean {
         return this._isBusyUndo || this._isBusyRedo;
     }
 
-    get isBusyUndo() {
+    get isBusyUndo(): boolean {
         return this._isBusyUndo;
     }
 
-    get isBusyRedo() {
+    get isBusyRedo(): boolean {
         return this._isBusyRedo;
     }
 
     async undo(): Promise<void> {
         if (!this.isReady()) return;
-        this._isBusyUndo = true;
-        const undoable: Undoable = <Undoable>this._undoStack.pop();
-        if (undoable) {
-            await undoable.undo();
-            this._redoStack.push(undoable);
+        try {
+            this._isBusyUndo = true;
+            const undoable: Undoable = <Undoable>this._undoStack.at(-1);
+            if (undoable) {
+                await undoable.undo();
+                this._redoStack.push(<Undoable>this._undoStack.pop());
+            }
+        } finally {
+            this._isBusyUndo = false;
         }
-        this._isBusyUndo = false;
     }
 
     async redo(): Promise<void> {
         if (!this.isReady()) return;
-        this._isBusyRedo = true;
-        const undoable: Undoable = <Undoable>this._redoStack.pop();
-        if (undoable) {
-            await undoable.redo();
-            this._undoStack.push(undoable);
+        try {
+            this._isBusyRedo = true;
+            const undoable: Undoable = <Undoable>this._redoStack.at(-1);
+            if (undoable) {
+                await undoable.redo();
+                this._undoStack.push(<Undoable>this._redoStack.pop());
+            }
+        } finally {
+            this._isBusyRedo = false;
         }
-        this._isBusyRedo = false;
     }
 
-    register(undoable: Undoable) {
+    register(undoable: Undoable): void {
         this._undoStack.push(undoable);
         this._redoStack.length = 0;
     }

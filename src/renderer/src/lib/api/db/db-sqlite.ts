@@ -6,9 +6,25 @@ import type { DbConnection } from 'preload/api-db';
 import type { DialogResult } from 'preload/api-dialog';
 import type { SqliteResult } from 'preload/api-sqlite';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
-import { Db, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType, type Transaction } from './db-base';
+import {
+    Db,
+    OP_ALTER,
+    OP_CREATE,
+    OP_DELETE,
+    OP_UPDATE,
+    type OpType,
+    type Transaction,
+} from './db-base';
 import type { Filter } from './db-filter-interface';
-import { DATABASE_TABLE_NAMES, type DatabaseTableId, type Row } from './db-schema';
+import {
+    DATABASE_TABLE_NAMES,
+    FIELD_TYPE_ID_DECIMAL,
+    FIELD_TYPE_ID_INTEGER,
+    FIELD_TYPE_ID_TEXT,
+    type DatabaseTableId,
+    type FieldTypeId,
+    type Row,
+} from './db-schema';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -96,6 +112,57 @@ export class SqliteDb extends Db {
         if (tableViews.length === 0) {
             this._tableToRowView[tableView.tableId] = new Map();
         }
+    }
+
+    async createColumn(
+        tableId: number,
+        name: string,
+        type: FieldTypeId,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        let typeString: string;
+        switch (type) {
+            case FIELD_TYPE_ID_DECIMAL:
+                typeString = 'NUMERIC DEFAULT 0';
+                break;
+            case FIELD_TYPE_ID_INTEGER:
+                typeString = 'INTEGER DEFAULT 0';
+                break;
+            case FIELD_TYPE_ID_TEXT:
+                typeString = 'TEXT';
+                break;
+            default:
+                throw Error(`Unknown column type: ${type}`);
+        }
+        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} ADD COLUMN ${name} ${typeString}`;
+        try {
+            await window.api.sqlite.exec(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to add column: ${err}`);
+        }
+
+        // TODO: REMOVE THIS
+        await wait(300);
+
+        // Notify
+        this.notify(OP_ALTER, tableId);
+    }
+
+    async deleteColumn(tableId: number, name: string, connection?: DbConnection): Promise<void> {
+        this.assertConnected();
+        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} DROP COLUMN ${name}`;
+        try {
+            await window.api.sqlite.exec(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to drop column: ${err}`);
+        }
+
+        // TODO: REMOVE THIS
+        await wait(300);
+
+        // Notify
+        this.notify(OP_ALTER, tableId);
     }
 
     async createRow<RowType extends Row>(
@@ -270,7 +337,7 @@ export class SqliteDb extends Db {
     private notify<RowType extends Row>(
         op: OpType,
         tableId: DatabaseTableId,
-        rows: RowType[],
+        rows?: RowType[],
     ): void {
         switch (op) {
             case OP_CREATE: {
@@ -283,6 +350,10 @@ export class SqliteDb extends Db {
             }
             case OP_UPDATE: {
                 this.notifyOnRowUpdated(tableId, rows);
+                break;
+            }
+            case OP_ALTER: {
+                this.notifyOnTableAltered(tableId);
                 break;
             }
             default:
@@ -344,6 +415,13 @@ export class SqliteDb extends Db {
         for (let i = 0; i < rows.length; i++) {
             const rowView = rowViews?.get(rows[i].id);
             rowView?.onRowUpdated(rows[i]);
+        }
+    }
+
+    private notifyOnTableAltered(tableId: DatabaseTableId): void {
+        const tableViews = this.getTableViewsForTable(tableId);
+        for (let i = 0; i < tableViews.length; i++) {
+            tableViews[i].onReloadRequired();
         }
     }
 

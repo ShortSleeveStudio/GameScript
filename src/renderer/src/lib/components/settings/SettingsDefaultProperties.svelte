@@ -17,10 +17,10 @@
     import { durationFast02 } from '@lib/constants/motion';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import {
-        PROPERTY_TYPE_ID_ACTOR,
-        type DefaultProperty,
         PROPERTY_TYPE_DROP_DOWN_ITEMS,
         type DatabaseTableId,
+        PROPERTY_TYPE_IDS,
+        type DefaultProperty,
         TABLE_ID_DEFAULT_PROPERTIES,
     } from '@lib/api/db/db-schema';
     import { wait } from '@lib/utility/wait';
@@ -64,9 +64,10 @@
     }
 
     const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+        // Create Default Property
         let newDefaultProperty: DefaultProperty = <DefaultProperty>{
             name: 'New Property',
-            type: PROPERTY_TYPE_ID_ACTOR,
+            type: PROPERTY_TYPE_IDS[0],
             parentType: parentType,
         };
         let newRow: DefaultProperty = await db.createRow(

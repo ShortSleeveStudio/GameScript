@@ -1,4 +1,5 @@
 <script lang="ts">
+    // TODO - consider deleting
     import { Column, Row } from 'carbon-components-svelte';
     import { isApplyingDefaultPropertiesConversations } from '@lib/stores/app/applying-default-properties';
     import { TABLE_ID_CONVERSATIONS } from '@lib/api/db/db-schema';

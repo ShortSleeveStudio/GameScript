@@ -69,7 +69,6 @@
         {rowView}
         columnName={'rule'}
         undoText={AUTO_COMPLETE_UNDO_RULE}
-        isDisabled={false}
         dropdownItems={AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS}
     />
 </p>

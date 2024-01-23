@@ -1,7 +1,7 @@
 import type { DbConnection } from 'preload/api-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import type { DatabaseTableId, Row } from './db-schema';
+import type { DatabaseTableId, FieldTypeId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -11,6 +11,7 @@ export type OpType = (typeof OPS)[number];
 export const OP_CREATE: OpType = 0;
 export const OP_DELETE: OpType = 1;
 export const OP_UPDATE: OpType = 2;
+export const OP_ALTER: OpType = 3;
 
 // Transaction type
 export type Transaction = (connection: DbConnection) => Promise<void>;
@@ -43,6 +44,32 @@ export abstract class Db {
      * @param tableView The table view to release
      */
     abstract releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void;
+
+    /**
+     * Add a column to a table.
+     * @param tableId Table to add a column to
+     * @param name Name of the new column
+     * @param type Type of the new column
+     * @param connection Optional connection to execute with
+     */
+    abstract createColumn(
+        tableId: DatabaseTableId,
+        name: string,
+        type: FieldTypeId,
+        connection?: DbConnection,
+    ): Promise<void>;
+
+    /**
+     * Remove a column from a table.
+     * @param tableId Table to remove a column to
+     * @param name Name of the column to delete
+     * @param connection Optional connection to execute with
+     */
+    abstract deleteColumn(
+        tableId: DatabaseTableId,
+        name: string,
+        connection?: DbConnection,
+    ): Promise<void>;
 
     /**
      * This creates a single row in the table.

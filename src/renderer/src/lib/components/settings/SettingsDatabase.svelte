@@ -24,19 +24,19 @@
             },
     );
 
-    async function sqliteDatabaseDialogNew() {
+    async function sqliteDatabaseDialogNew(): Promise<void> {
         const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
         if (saveResult.cancelled) return;
         $dbSqlitePath = saveResult;
     }
 
-    async function sqliteDatabaseDialogOpen() {
+    async function sqliteDatabaseDialogOpen(): Promise<void> {
         const openResult: DialogResult = await window.api.dialog.sqliteDbOpen();
         if (openResult.cancelled) return;
         $dbSqlitePath = openResult;
     }
 
-    function resetConnection() {
+    function resetConnection(): void {
         dbSqlitePath.update(dialogResultReset);
     }
 </script>

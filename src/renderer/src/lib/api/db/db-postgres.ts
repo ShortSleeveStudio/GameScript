@@ -1,7 +1,7 @@
 import type { Writable } from 'svelte/store';
 import { Db, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
-import type { DatabaseTableId, Row } from './db-schema';
+import type { DatabaseTableId, FieldTypeId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -21,6 +21,12 @@ export class PostgresDb extends Db {
     }
     releaseTable<RowType extends Row>(tableId: IDbTableView<RowType>): void {
         throw new Error(`Method not implemented. ${tableId}`);
+    }
+    createColumn(tableId: DatabaseTableId, name: string, type: FieldTypeId): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${name} ${type}`);
+    }
+    deleteColumn(tableId: DatabaseTableId, name: string): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${name}`);
     }
     createRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<RowType> {
         throw new Error(`Method not implemented. ${tableId} ${row}`);

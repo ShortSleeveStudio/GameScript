@@ -12,7 +12,7 @@
     export let rowView: IDbRowView<RowType>;
     export let columnName: string;
     export let undoText: string;
-    export let isDisabled: boolean;
+    export let isDisabled: boolean = false;
     export let dropdownItems: DropdownItem[];
     let locationInPageFinder: HTMLElement;
 
@@ -21,7 +21,7 @@
     let currentValue: number = <number>$rowView[columnName];
     let direction: 'bottom' | 'top' = 'top';
 
-    function recalculateOpenDirection() {
+    function recalculateOpenDirection(): void {
         const domRect: DOMRect = locationInPageFinder.getBoundingClientRect();
         let distanceToTop = domRect.top;
         let distanceToBottom = window.innerHeight - domRect.bottom;

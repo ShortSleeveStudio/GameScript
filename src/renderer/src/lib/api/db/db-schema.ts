@@ -3,6 +3,25 @@ import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropd
 import { languages } from 'monaco-editor';
 
 ///
+/// Database Field Types
+///
+export const FIELD_TYPE_NAMES = [
+    'Decimal', // 0
+    'Integer', // 1
+    'Text', // 2
+] as const;
+export const FIELD_TYPE_ID_DECIMAL: number = 0;
+export const FIELD_TYPE_ID_INTEGER: number = 1;
+export const FIELD_TYPE_ID_TEXT: number = 2;
+export const FIELD_TYPE_IDS = [FIELD_TYPE_ID_DECIMAL, FIELD_TYPE_ID_INTEGER, FIELD_TYPE_ID_TEXT];
+
+/**Field type name type */
+export type FieldTypeName = (typeof FIELD_TYPE_NAMES)[number];
+
+/**Field type id type */
+export type FieldTypeId = (typeof FIELD_TYPE_IDS)[number];
+
+///
 /// Rows
 ///
 export interface Row {
@@ -37,9 +56,9 @@ export const TABLE_NAME_ACTORS = 'actors';
 export const TABLE_NAME_ACTOR_PRINCIPAL = 'actor_principal';
 export const TABLE_NAME_CONVERSATIONS = 'conversations';
 export const TABLE_NAME_NODES = 'nodes';
-export const TABLE_NAME_PROPERTY_TYPES = 'property_types';
-export const TABLE_NAME_PROPERTIES = 'properties';
-export const TABLE_NAME_DEFAULT_PROPERTIES = 'default_properties';
+// export const TABLE_NAME_PROPERTY_TYPES = 'property_types';
+// export const TABLE_NAME_PROPERTIES = 'properties';
+// export const TABLE_NAME_DEFAULT_PROPERTIES = 'default_properties';
 export const DATABASE_TABLE_NAMES = [
     TABLE_NAME_TABLES,
     TABLE_NAME_AUTO_COMPLETES,
@@ -55,9 +74,9 @@ export const DATABASE_TABLE_NAMES = [
     TABLE_NAME_ACTOR_PRINCIPAL,
     TABLE_NAME_CONVERSATIONS,
     TABLE_NAME_NODES,
-    TABLE_NAME_PROPERTY_TYPES,
-    TABLE_NAME_PROPERTIES,
-    TABLE_NAME_DEFAULT_PROPERTIES,
+    // TABLE_NAME_PROPERTY_TYPES,
+    // TABLE_NAME_PROPERTIES,
+    // TABLE_NAME_DEFAULT_PROPERTIES,
 ] as const;
 /**Database name type */
 export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
@@ -79,9 +98,9 @@ export const TABLE_ID_ACTORS: DatabaseTableId = 10;
 export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 11;
 export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 12;
 export const TABLE_ID_NODES: DatabaseTableId = 13;
-export const TABLE_ID_PROPERTY_TYPES: DatabaseTableId = 14;
-export const TABLE_ID_PROPERTIES: DatabaseTableId = 15;
-export const TABLE_ID_DEFAULT_PROPERTIES: DatabaseTableId = 16;
+// export const TABLE_ID_PROPERTY_TYPES: DatabaseTableId = 14;
+// export const TABLE_ID_PROPERTIES: DatabaseTableId = 15;
+// export const TABLE_ID_DEFAULT_PROPERTIES: DatabaseTableId = 16;
 
 ///
 /// Auto-Completes
@@ -234,6 +253,7 @@ export interface LocalePrincipal extends Row {
 /// Localization Tables
 ///
 export interface LocalizationTable extends Row, SystemCreatable {}
+export const ACTOR_LOCALIZATION_TABLE_NAME = 'Actors';
 
 ///
 /// Localization
@@ -280,77 +300,80 @@ export interface Node extends Row, Annotated {
     code: number; // FK Routines
 }
 
-///
-/// Property Types
-///
-export interface PropertyType extends Row {
-    name: PropertyTypeName;
-}
+// ///
+// /// Property Types
+// ///
+// export interface PropertyType extends Row {
+//     name: PropertyTypeName;
+// }
 
-/**Property type name type */
-export const PROPERTY_TYPE_NAMES = [
-    'Actor', // 0
-    'Boolean', // 1
-    'Color', // 2
-    'Decimal', // 3
-    'Integer', // 4
-    'Text', // 5
-    'Routine', // 6
-    'Localized Text', // 7
-] as const;
-export const PROPERTY_TYPE_ID_ACTOR: PropertyTypeId = 0;
-export const PROPERTY_TYPE_ID_BOOLEAN: PropertyTypeId = 1;
-export const PROPERTY_TYPE_ID_COLOR: PropertyTypeId = 2;
-export const PROPERTY_TYPE_ID_DECIMAL: PropertyTypeId = 3;
-export const PROPERTY_TYPE_ID_INTEGER: PropertyTypeId = 4;
-export const PROPERTY_TYPE_ID_TEXT: PropertyTypeId = 5;
-export const PROPERTY_TYPE_ID_ROUTINE: PropertyTypeId = 6;
-export const PROPERTY_TYPE_ID_LOCALIZED_TEXT: PropertyTypeId = 7;
+// /**Property type name type */
+// export const PROPERTY_TYPE_NAMES = [
+//     'Boolean', // 0
+//     'Decimal', // 1
+//     'Integer', // 2
+//     'Text', // 3
+//     'Localized Text', // 4
+// ] as const;
+// export const PROPERTY_TYPE_ID_BOOLEAN: PropertyTypeId = 0;
+// export const PROPERTY_TYPE_ID_DECIMAL: PropertyTypeId = 1;
+// export const PROPERTY_TYPE_ID_INTEGER: PropertyTypeId = 2;
+// export const PROPERTY_TYPE_ID_TEXT: PropertyTypeId = 3;
+// export const PROPERTY_TYPE_ID_LOCALIZED_TEXT: PropertyTypeId = 4;
+// export const PROPERTY_TYPE_IDS = [
+//     PROPERTY_TYPE_ID_BOOLEAN,
+//     PROPERTY_TYPE_ID_DECIMAL,
+//     PROPERTY_TYPE_ID_INTEGER,
+//     PROPERTY_TYPE_ID_TEXT,
+//     PROPERTY_TYPE_ID_LOCALIZED_TEXT,
+// ];
 
-/**List of supported property types */
-export const PROPERTY_TYPES: PropertyType[] = PROPERTY_TYPE_NAMES.map<PropertyType>(
-    TypeNameToType<PropertyTypeName, PropertyType>,
-);
+// /**List of supported property types */
+// export const PROPERTY_TYPES: PropertyType[] = PROPERTY_TYPE_NAMES.map<PropertyType>(
+//     TypeNameToType<PropertyTypeName, PropertyType>,
+// );
 
-/**Property type name type */
-export type PropertyTypeName = (typeof PROPERTY_TYPE_NAMES)[number];
+// /**Property type name type */
+// export type PropertyTypeName = (typeof PROPERTY_TYPE_NAMES)[number];
 
-/**Property type id type */
-export type PropertyTypeId = (typeof PROPERTY_TYPES)[number]['id'];
+// /**Property type id type */
+// export type PropertyTypeId = (typeof PROPERTY_TYPES)[number]['id'];
 
-/**Dropdown items for property types */
-export const PROPERTY_TYPE_DROP_DOWN_ITEMS: DropdownItem[] = PROPERTY_TYPES.map(
-    (propertyType: PropertyType) =>
-        <DropdownItem>{
-            id: propertyType.id,
-            text: propertyType.name,
-        },
-);
+// /**Dropdown items for property types */
+// export const PROPERTY_TYPE_DROP_DOWN_ITEMS: DropdownItem[] = PROPERTY_TYPES.map(
+//     (propertyType: PropertyType) =>
+//         <DropdownItem>{
+//             id: propertyType.id,
+//             text: propertyType.name,
+//         },
+// );
 
 ///
 /// Property
 ///
-export interface Property extends Row {
-    parentActor: number; // FK Actors
-    parentConversation: number; // FK Conversations
-    parentNode: number; // FK Nodes
-    parentType: DatabaseTableId; // FK Tables
-    type: PropertyTypeId; // TK Property Types
-    // The following fields will only be conditionally populated
-    bool: boolean;
-    text: string;
-    color: string;
-    decimal: number;
-    integer: number;
-    routine: number; // FK Routines
-    localizedText: number; // FK Localizations
-    // Unique(parent, name, type)
-}
+// export const PROPERTY_FK_COLUMN_NAME_ACTORS = 'parentActor';
+// export const PROPERTY_FK_COLUMN_NAME_CONVERSATIONS = 'parentConversation';
+// export const PROPERTY_FK_COLUMN_NAME_NODES = 'parentNode';
+// export interface Property extends Row {
+//     defaultId: number; // FK Default Properties
+//     parentActor: number; // FK Actors
+//     parentConversation: number; // FK Conversations
+//     parentNode: number; // FK Nodes
+//     parentType: DatabaseTableId; // FK Tables
+//     type: PropertyTypeId; // TK Property Types
+//     isDefault: boolean;
+//     // The following fields represent the actual data
+//     bool: boolean;
+//     decimal: number;
+//     integer: number;
+//     text: string;
+//     localizedText: number; // FK Localizations
+// }
 
-///
-/// Default Properties
-///
-export interface DefaultProperty extends Row {
-    type: PropertyTypeId; // TK Property Types
-    parentType: DatabaseTableId; // FK Tables
-}
+// ///
+// /// Default Properties
+// ///
+// export interface DefaultProperty extends Row {
+//     type: PropertyTypeId; // TK Property Types
+//     parentType: DatabaseTableId; // FK Tables
+// }

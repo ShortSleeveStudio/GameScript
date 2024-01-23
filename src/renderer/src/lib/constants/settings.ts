@@ -37,3 +37,9 @@ export const LOCALIZATION_UNDO_NICKNAME = 'localization nickname';
 export const LOCALIZATION_PLACEHOLDER_NICKNAME = 'Enter a nickname';
 export const LOCALIZATION_UNDO_TEXT = 'localized text';
 export const LOCALIZATION_PLACEHOLDER_TEXT = 'Enter localized text';
+
+/**Properties */
+export const PROPERTY_UNDO_TEXT = 'text property';
+export const PROPERTY_PLACEHOLDER_TEXT = 'Enter text';
+export const PROPERTY_UNDO_INTEGER = 'integer property';
+export const PROPERTY_UNDO_BOOL = 'boolean property';

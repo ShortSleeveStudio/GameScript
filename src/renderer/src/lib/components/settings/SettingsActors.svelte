@@ -1,4 +1,5 @@
 <script lang="ts">
+    // TODO - consider deleting
     import { Column, Row } from 'carbon-components-svelte';
     import { isApplyingDefaultPropertiesActors } from '@lib/stores/app/applying-default-properties';
     import { TABLE_ID_ACTORS } from '@lib/api/db/db-schema';

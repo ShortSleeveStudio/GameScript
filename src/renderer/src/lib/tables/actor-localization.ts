@@ -1,6 +1,7 @@
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import {
+    ACTOR_LOCALIZATION_TABLE_NAME,
     TABLE_ID_LOCALIZATIONS,
     TABLE_ID_LOCALIZATION_TABLES,
     type Localization,
@@ -12,7 +13,13 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 /**Shared view of the actor localization table.  */
 const actorLocalizationTable: IDbTableView<LocalizationTable> = db.fetchTable(
     TABLE_ID_LOCALIZATION_TABLES,
-    createFilter<LocalizationTable>().where('isSystemCreated').is(true).build(),
+    createFilter<LocalizationTable>()
+        .where('isSystemCreated')
+        .is(true)
+        .and()
+        .where('name')
+        .is(ACTOR_LOCALIZATION_TABLE_NAME)
+        .build(),
 );
 
 export let actorLocalizations: IDbTableView<Localization> | undefined;
