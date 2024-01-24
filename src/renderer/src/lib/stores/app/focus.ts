@@ -32,3 +32,6 @@ export interface FocusPayloadLocale extends FocusPayload {
     uniqueNameTracker: UniqueNameTracker;
     localePrincipalRowView: IDbRowView<LocalePrincipal>;
 }
+export interface FocusPayloadFilter extends FocusPayload {
+    uniqueNameTracker: UniqueNameTracker;
+}

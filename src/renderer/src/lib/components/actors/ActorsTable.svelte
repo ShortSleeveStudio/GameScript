@@ -27,10 +27,7 @@
         ACTORS_UNDO_NAME,
     } from '@lib/constants/settings';
     import { actorsTable } from '@lib/tables/actors';
-    import {
-        actorLocalizationTableRowView,
-        actorLocalizations,
-    } from '@lib/tables/actor-localization';
+    import { actorConversationRowView, actorLocalizations } from '@lib/tables/actor-conversation';
     import { db } from '@lib/api/db/db';
     import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { DbConnection } from 'preload/api-db';
@@ -54,17 +51,13 @@
         let localizedName: Localization;
         await db.executeTransaction(async (conn: DbConnection) => {
             // Ensure localization table row view exists
-            if (
-                !actorLocalizationTableRowView ||
-                !actorLocalizations ||
-                !systemCreatedLocaleRowView
-            ) {
+            if (!actorConversationRowView || !actorLocalizations || !systemCreatedLocaleRowView) {
                 throw new Error('No database connection');
             }
 
             // Create localized name
             const localizationArg = <Localization>{
-                parent: actorLocalizationTableRowView.id,
+                parent: actorConversationRowView.id,
                 isSystemCreated: true,
             };
             localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);

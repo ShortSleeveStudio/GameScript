@@ -1,42 +1,39 @@
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import {
-    ACTOR_LOCALIZATION_TABLE_NAME,
+    ACTOR_CONVERSATION_NAME,
+    TABLE_ID_CONVERSATIONS,
     TABLE_ID_LOCALIZATIONS,
-    TABLE_ID_LOCALIZATION_TABLES,
+    type Conversation,
     type Localization,
-    type LocalizationTable,
 } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 
-/**Shared view of the actor localization table.  */
-const actorLocalizationTable: IDbTableView<LocalizationTable> = db.fetchTable(
-    TABLE_ID_LOCALIZATION_TABLES,
-    createFilter<LocalizationTable>()
+/**Shared view of the actor conversation table. */
+const actorConversationTableView: IDbTableView<Conversation> = db.fetchTable(
+    TABLE_ID_CONVERSATIONS,
+    createFilter<Conversation>()
         .where('isSystemCreated')
         .is(true)
         .and()
         .where('name')
-        .is(ACTOR_LOCALIZATION_TABLE_NAME)
+        .is(ACTOR_CONVERSATION_NAME)
         .build(),
 );
 
 export let actorLocalizations: IDbTableView<Localization> | undefined;
-export let actorLocalizationTableRowView: IDbRowView<LocalizationTable> | undefined;
+export let actorConversationRowView: IDbRowView<Conversation> | undefined;
 
 // TODO
 // https://svelte-5-preview.vercel.app/status
 // These single row tables could be stateful variables of a class
-actorLocalizationTable.subscribe((rowViews: IDbRowView<LocalizationTable>[]) => {
+actorConversationTableView.subscribe((rowViews: IDbRowView<Conversation>[]) => {
     if (rowViews.length === 1) {
-        actorLocalizationTableRowView = rowViews[0];
+        actorConversationRowView = rowViews[0];
         actorLocalizations = db.fetchTable(
             TABLE_ID_LOCALIZATIONS,
-            createFilter<Localization>()
-                .where('parent')
-                .is(actorLocalizationTableRowView.id)
-                .build(),
+            createFilter<Localization>().where('parent').is(actorConversationRowView.id).build(),
         );
     }
 });

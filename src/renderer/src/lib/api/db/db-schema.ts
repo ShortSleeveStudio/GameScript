@@ -51,13 +51,14 @@ export const TABLE_NAME_PROGRAMMING_LANGUAGES = 'programming_languages';
 export const TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL = 'programming_language_principal';
 export const TABLE_NAME_ROUTINE_TYPES = 'routine_types';
 export const TABLE_NAME_ROUTINES = 'routines';
+export const TABLE_NAME_FILTERS = 'filters';
+export const TABLE_NAME_CONVERSATIONS = 'conversations';
 export const TABLE_NAME_LOCALES = 'locales';
 export const TABLE_NAME_LOCALE_PRINCIPAL = 'locale_principal';
-export const TABLE_NAME_LOCALIZATION_TABLES = 'localization_tables';
+// export const TABLE_NAME_LOCALIZATION_TABLES = 'localization_tables';
 export const TABLE_NAME_LOCALIZATIONS = 'localizations';
 export const TABLE_NAME_ACTORS = 'actors';
 export const TABLE_NAME_ACTOR_PRINCIPAL = 'actor_principal';
-export const TABLE_NAME_CONVERSATIONS = 'conversations';
 export const TABLE_NAME_NODES = 'nodes';
 // export const TABLE_NAME_PROPERTY_TYPES = 'property_types';
 // export const TABLE_NAME_PROPERTIES = 'properties';
@@ -69,13 +70,14 @@ export const DATABASE_TABLE_NAMES = [
     TABLE_NAME_PROGRAMMING_LANGUAGE_PRINCIPAL,
     TABLE_NAME_ROUTINE_TYPES,
     TABLE_NAME_ROUTINES,
+    TABLE_NAME_FILTERS,
+    TABLE_NAME_CONVERSATIONS,
     TABLE_NAME_LOCALES,
     TABLE_NAME_LOCALE_PRINCIPAL,
-    TABLE_NAME_LOCALIZATION_TABLES,
+    // TABLE_NAME_LOCALIZATION_TABLES,
     TABLE_NAME_LOCALIZATIONS,
     TABLE_NAME_ACTORS,
     TABLE_NAME_ACTOR_PRINCIPAL,
-    TABLE_NAME_CONVERSATIONS,
     TABLE_NAME_NODES,
     // TABLE_NAME_PROPERTY_TYPES,
     // TABLE_NAME_PROPERTIES,
@@ -93,13 +95,14 @@ export const TABLE_ID_PROGRAMMING_LANGUAGES: DatabaseTableId = 2;
 export const TABLE_ID_PROGRAMMING_LANGUAGE_PRINCIPAL: DatabaseTableId = 3;
 export const TABLE_ID_ROUTINE_TYPES: DatabaseTableId = 4;
 export const TABLE_ID_ROUTINES: DatabaseTableId = 5;
-export const TABLE_ID_LOCALES: DatabaseTableId = 6;
-export const TABLE_ID_LOCALE_PRINCIPAL: DatabaseTableId = 7;
-export const TABLE_ID_LOCALIZATION_TABLES: DatabaseTableId = 8;
-export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 9;
-export const TABLE_ID_ACTORS: DatabaseTableId = 10;
-export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 11;
-export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 12;
+export const TABLE_ID_FILTERS: DatabaseTableId = 6;
+export const TABLE_ID_CONVERSATIONS: DatabaseTableId = 7;
+export const TABLE_ID_LOCALES: DatabaseTableId = 8;
+export const TABLE_ID_LOCALE_PRINCIPAL: DatabaseTableId = 9;
+// export const TABLE_ID_LOCALIZATION_TABLES: DatabaseTableId = 8;
+export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 10;
+export const TABLE_ID_ACTORS: DatabaseTableId = 11;
+export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 12;
 export const TABLE_ID_NODES: DatabaseTableId = 13;
 // export const TABLE_ID_PROPERTY_TYPES: DatabaseTableId = 14;
 // export const TABLE_ID_PROPERTIES: DatabaseTableId = 15;
@@ -239,6 +242,17 @@ export interface Routine extends Row, Annotated {
 }
 
 ///
+/// Conversations
+///
+export interface Filter extends Row, Annotated {}
+
+///
+/// Conversations
+///
+export interface Conversation extends Row, SystemCreatable, Annotated {}
+export const ACTOR_CONVERSATION_NAME = 'Actors';
+
+///
 /// Locales
 ///
 export interface Locale extends Row, SystemCreatable {}
@@ -251,14 +265,13 @@ export interface LocalePrincipal extends Row, Principaled {}
 ///
 /// Localization Tables
 ///
-export interface LocalizationTable extends Row, SystemCreatable {}
-export const ACTOR_LOCALIZATION_TABLE_NAME = 'Actors';
+// export interface LocalizationTable extends Row, SystemCreatable {}
 
 ///
 /// Localization
 ///
 export interface Localization extends Row, SystemCreatable {
-    parent: number; // FK Localization Tables
+    parent: number; // FK Conversations
     [locale: string]: unknown; // FK Locales -> Localization
     // 'name' is used for nicknames
 }
@@ -275,15 +288,6 @@ export interface Actor extends Row, Annotated, SystemCreatable {
 /// Actor Principal
 ///
 export interface ActorPrincipal extends Row, Principaled {}
-
-///
-/// Conversations
-///
-export interface Conversation extends Row, Annotated {
-    parent: number; // FK Conversation
-    isFolder: boolean;
-    // UNIQUE(parent, name)
-}
 
 ///
 /// Nodes

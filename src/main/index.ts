@@ -98,3 +98,11 @@ import './ipc-dialog';
 import './ipc-fs';
 import './ipc-sqlite';
 import './ipc-window';
+
+/**
+ * Unhandled Errors
+ */
+process.on('unhandledRejection', function (reason, promise) {
+    console.log(`Unhandled rejection for promise: ${promise} reason: ${reason}`);
+    app.quit();
+});

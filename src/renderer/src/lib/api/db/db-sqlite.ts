@@ -135,7 +135,7 @@ export class SqliteDb extends Db {
             default:
                 throw Error(`Unknown column type: ${type}`);
         }
-        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} ADD COLUMN ${name} ${typeString}`;
+        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} ADD COLUMN ${name} ${typeString};`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
