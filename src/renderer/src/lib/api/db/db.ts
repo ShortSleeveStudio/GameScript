@@ -3,7 +3,7 @@ import { focused } from '@lib/stores/app/focus';
 import { appInitializationErrors } from '@lib/stores/app/initialization-errors';
 import { notificationManager } from '@lib/stores/app/notifications';
 import { dbConnected, dbSqlitePath, dbType } from '@lib/stores/settings/settings';
-import type { Db } from './db-base';
+import type { Db } from './Db.1';
 import { PostgresDb } from './db-postgres';
 import { SqliteDb } from './db-sqlite';
 import type { DatabaseTypeName } from './db-types';

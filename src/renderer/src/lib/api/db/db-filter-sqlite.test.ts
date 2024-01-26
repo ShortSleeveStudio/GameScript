@@ -7,10 +7,10 @@ test('is', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0');
+    expect(result.toString()).toBe('WHERE type = 0');
     expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_ID_USER })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(false);
 });
@@ -19,10 +19,10 @@ test('is not', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .isNot(ROUTINE_TYPE_ID_USER)
+        .ne(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .build();
-    expect(result.toString()).toBe('WHERE type IS NOT 0');
+    expect(result.toString()).toBe('WHERE type != 0');
     expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_ID_USER })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(true);
 });
@@ -119,10 +119,10 @@ test('multiple conditions', () => {
         .gt(0)
         .and()
         .column('type')
-        .is(0)
+        .eq(0)
         .endWhere()
         .build();
-    expect(result.toString()).toBe('WHERE id IN (44, 100, 99, 0) AND id > 0 AND type IS 0');
+    expect(result.toString()).toBe('WHERE id IN (44, 100, 99, 0) AND id > 0 AND type = 0');
     expect(result.wouldAffectRow(<Routine>{ id: 99, type: 0 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 0, type: 0 })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ id: 2, type: 0 })).toBe(false);
@@ -146,19 +146,19 @@ test('scope', () => {
         .or()
         .openScope()
         .column('id')
-        .is(40)
+        .eq(40)
         .or()
         .column('id')
-        .is(99)
+        .eq(99)
         .closeScope()
         .closeScope()
         .and()
         .column('type')
-        .is(0)
+        .eq(0)
         .endWhere()
         .build();
     expect(result.toString()).toBe(
-        'WHERE id IN (44, 100, 101, 99, 0) AND ( ( id >= 100 AND id <= 102 ) OR ( id IS 40 OR id IS 99 ) ) AND type IS 0',
+        'WHERE id IN (44, 100, 101, 99, 0) AND ( ( id >= 100 AND id <= 102 ) OR ( id = 40 OR id = 99 ) ) AND type = 0',
     );
     expect(result.wouldAffectRow(<Routine>{ id: 99, type: 0 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 100, type: 0 })).toBe(true);
@@ -170,86 +170,86 @@ test('limit', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .limit(5)
         .limit(10)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 LIMIT 10');
+    expect(result.toString()).toBe('WHERE type = 0 LIMIT 10');
 });
 
 test('offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .offset(5)
         .offset(10)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 OFFSET 10');
+    expect(result.toString()).toBe('WHERE type = 0 OFFSET 10');
 });
 
 test('limit offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .offset(5)
         .offset(10)
         .limit(5)
         .limit(10)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 LIMIT 10 OFFSET 10');
+    expect(result.toString()).toBe('WHERE type = 0 LIMIT 10 OFFSET 10');
 });
 
 test('orderBy ASC', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .orderBy('type', ASC)
         .orderBy('type', DESC)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 ORDER BY type DESC');
+    expect(result.toString()).toBe('WHERE type = 0 ORDER BY type DESC');
 });
 
 test('orderBy DESC', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('type', ASC)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 ORDER BY type ASC');
+    expect(result.toString()).toBe('WHERE type = 0 ORDER BY type ASC');
 });
 
 test('mulitple orderBy', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('ID', ASC)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 ORDER BY type DESC, ID ASC');
+    expect(result.toString()).toBe('WHERE type = 0 ORDER BY type DESC, ID ASC');
 });
 
 test('orderBy and limit and offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_ID_USER)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('ID', ASC)
         .limit(10)
         .offset(10)
         .build();
-    expect(result.toString()).toBe('WHERE type IS 0 ORDER BY type DESC, ID ASC LIMIT 10 OFFSET 10');
+    expect(result.toString()).toBe('WHERE type = 0 ORDER BY type DESC, ID ASC LIMIT 10 OFFSET 10');
 });

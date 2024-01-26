@@ -7,7 +7,7 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 /**Shared view of the system created locale.  */
 const systemCreatedLocaleTableView: IDbTableView<Locale> = db.fetchTable(
     TABLE_ID_LOCALES,
-    createFilter<Locale>().where().column('isSystemCreated').is(true).endWhere().build(),
+    createFilter<Locale>().where().column('isSystemCreated').eq(true).endWhere().build(),
 );
 
 export let systemCreatedLocaleRowView: IDbRowView<Locale>;

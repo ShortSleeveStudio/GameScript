@@ -101,24 +101,24 @@ export class FilterBuilderSqlite<RowType extends Row>
         this._scope = new Scope<RowType>(undefined);
         this._order = new Map();
     }
-    is(value: FilterColumnType): FilterBuilderSqlite<RowType> {
+    eq(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
         this._scope.addCondition((row: RowType): boolean => {
             return row[currentWhere] === value;
         });
 
         const formattedValue: string = this.formatValue(value);
-        this._filter += ` IS ${formattedValue}`;
+        this._filter += ` = ${formattedValue}`;
         return this;
     }
-    isNot(value: FilterColumnType): FilterBuilderSqlite<RowType> {
+    ne(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
         this._scope.addCondition((row: RowType): boolean => {
             return row[currentWhere] !== value;
         });
 
         const formattedValue: string = this.formatValue(value);
-        this._filter += ` IS NOT ${formattedValue}`;
+        this._filter += ` != ${formattedValue}`;
         return this;
     }
     like(value: string): FilterBuilderSqlite<RowType> {

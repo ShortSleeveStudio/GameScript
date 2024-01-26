@@ -19,7 +19,7 @@
             createFilter<Localization>()
                 .where()
                 .column('id')
-                .is(<number>$rowView[columnName])
+                .eq(<number>$rowView[columnName])
                 .endWhere()
                 .build(),
         );

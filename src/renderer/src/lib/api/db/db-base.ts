@@ -1,8 +1,14 @@
 import type { DbConnection } from 'preload/api-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import type { DatabaseTableId, FieldTypeId, Row } from './db-schema';
+import {
+    DATABASE_TABLE_NAMES,
+    type DatabaseTableId,
+    type FieldTypeId,
+    type Row,
+} from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
+import { DbTableView } from './db-view-table';
 import type { IDbTableView } from './db-view-table-interface';
 
 // Operation types
@@ -18,6 +24,17 @@ export type Transaction = (connection: DbConnection) => Promise<void>;
 
 /**The interface all databases must implement */
 export abstract class Db {
+    protected static _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
+    protected static _tableToTableView: Map<number, IDbTableView<Row>>[]; // Lookup table using table id
+    static {
+        Db._tableToRowView = <Map<number, IDbRowView<Row>>[]>(
+            DATABASE_TABLE_NAMES.map(() => new Map())
+        );
+        Db._tableToTableView = <Map<number, IDbTableView<Row>>[]>(
+            DATABASE_TABLE_NAMES.map(() => new Map())
+        );
+    }
+
     protected _isConnected: Writable<boolean>;
 
     constructor(isConnected: Writable<boolean>) {
@@ -25,25 +42,53 @@ export abstract class Db {
     }
 
     /**
-     * Execute a function within a database transaction.
-     * @param transaction A function to execute within a database transaction
-     */
-    abstract executeTransaction(transaction: Transaction): Promise<void>;
-
-    /**
      * Creates a table view.
      * @param tableId Id of the table
      */
-    abstract fetchTable<RowType extends Row>(
+    fetchTable<RowType extends Row>(
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
-    ): IDbTableView<RowType>;
+    ): IDbTableView<RowType> {
+        // Create view
+        const tableView = new DbTableView<RowType>(tableId, filter, this._isConnected);
+
+        // Store it in the map
+        this.getTableViewsForTable(tableId).set(tableView.viewId, tableView);
+
+        // Return
+        return tableView;
+    }
 
     /**
      * Disposes of a single table view
      * @param tableView The table view to release
      */
-    abstract releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void;
+    releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
+        // Delete table view from registry
+        const tableViewMap: Map<number, IDbTableView<RowType>> = this.getTableViewsForTable(
+            tableView.tableId,
+        );
+        tableViewMap.delete(tableView.viewId);
+
+        // Remove table view as owner of row views, potentially flushing cached row views
+        const viewsToRemove: number[] = [];
+        const rowViews: Map<number, IDbRowView<Row>> = this.getRowViewsForTable(tableView.tableId);
+        for (const rowView of rowViews.values()) {
+            rowView.ownerRemove(tableView.viewId);
+            if (rowView.ownerCount() === 0) {
+                viewsToRemove.push(rowView.id);
+            }
+        }
+
+        // Flush row views without owners
+        for (let i = 0; i < viewsToRemove.length; i++) rowViews.delete(viewsToRemove[i]);
+    }
+
+    /**
+     * Execute a function within a database transaction.
+     * @param transaction A function to execute within a database transaction
+     */
+    abstract executeTransaction(transaction: Transaction): Promise<void>;
 
     /**
      * Add a column to a table.
@@ -157,6 +202,25 @@ export abstract class Db {
      * Shutdown this database connection.
      */
     abstract shutdown(): Promise<void>;
+
+    protected getTableViewsForTable<RowType extends Row>(
+        tableId: DatabaseTableId,
+    ): Map<number, IDbTableView<RowType>> {
+        return <Map<number, IDbTableView<RowType>>>Db._tableToTableView[tableId];
+    }
+
+    protected getRowViewsForTable<RowType extends Row>(
+        tableId: DatabaseTableId,
+    ): Map<number, IDbRowView<RowType>> {
+        let rowViewMap: Map<number, IDbRowView<RowType>> = <Map<number, IDbRowView<RowType>>>(
+            Db._tableToRowView[tableId]
+        );
+        if (!rowViewMap) {
+            rowViewMap = new Map();
+            Db._tableToRowView[tableId] = rowViewMap;
+        }
+        return rowViewMap;
+    }
 
     protected assertQueryResult(result: unknown, errorMessage: string): void {
         if (!result) throw new Error(errorMessage);

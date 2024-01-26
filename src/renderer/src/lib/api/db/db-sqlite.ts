@@ -29,7 +29,6 @@ import {
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
-import { DbTableView } from './db-view-table';
 import type { IDbTableView } from './db-view-table-interface';
 
 /**Used to queue notifications when needed. */
@@ -47,8 +46,6 @@ interface DbNotification {
  */
 export class SqliteDb extends Db {
     private _db: DbConnection | undefined;
-    private _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
-    private _tableToTableView: Map<number, IDbTableView<Row>>[]; // Lookup table using table id
     private _unsubscribeSqlitePath: Unsubscriber;
     private _unsubscribeDbConnected: Unsubscriber;
     private _sqlitePathStore: Writable<DialogResult>;
@@ -65,12 +62,7 @@ export class SqliteDb extends Db {
         focused: Writable<Focusable>,
     ) {
         super(isConnected);
-        this._tableToRowView = <Map<number, IDbRowView<Row>>[]>(
-            DATABASE_TABLE_NAMES.map(() => new Map())
-        );
-        this._tableToTableView = <Map<number, IDbTableView<Row>>[]>(
-            DATABASE_TABLE_NAMES.map(() => new Map())
-        );
+
         this._sqlitePathStore = sqlitePathStore;
         this._appInitializationErrors = appInitializationError;
         this._notificationManager = notificationManager;
@@ -109,41 +101,6 @@ export class SqliteDb extends Db {
             await window.api.sqlite.close(conn);
             this._transactionNotifications.length = 0;
         }
-    }
-
-    fetchTable<RowType extends Row>(
-        tableId: DatabaseTableId,
-        filter: Filter<RowType>,
-    ): IDbTableView<RowType> {
-        // Create view
-        const tableView = new DbTableView<RowType>(<Db>this, tableId, filter, this._isConnected);
-
-        // Store it in the map
-        this.getTableViewsForTable(tableId).set(tableView.viewId, tableView);
-
-        // Return
-        return tableView;
-    }
-
-    releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
-        // Delete table view from registry
-        const tableViewMap: Map<number, IDbTableView<RowType>> = this.getTableViewsForTable(
-            tableView.tableId,
-        );
-        tableViewMap.delete(tableView.viewId);
-
-        // Remove table view as owner of row views, potentially flushing cached row views
-        const viewsToRemove: number[] = [];
-        const rowViews: Map<number, IDbRowView<Row>> = this._tableToRowView[tableView.tableId];
-        for (const rowView of rowViews.values()) {
-            rowView.ownerRemove(tableView.viewId);
-            if (rowView.ownerCount() === 0) {
-                viewsToRemove.push(rowView.id);
-            }
-        }
-
-        // Flush row views without owners
-        for (let i = 0; i < viewsToRemove.length; i++) rowViews.delete(viewsToRemove[i]);
     }
 
     async createColumn(
@@ -293,7 +250,7 @@ export class SqliteDb extends Db {
         }
 
         // Map to row views
-        const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
+        const rowViewMap: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
         for (let i = 0; i < results.length; i++) {
             const row: RowType = results[i];
             let rowView = rowViewMap.get(row.id);
@@ -387,7 +344,7 @@ export class SqliteDb extends Db {
         console.log('REFRESH CALLED');
         this.fetchRowsInternal(
             tableId,
-            createFilter().where().column('id').is(row.id).endWhere().build(),
+            createFilter().where().column('id').eq(row.id).endWhere().build(),
         );
     }
 
@@ -431,7 +388,7 @@ export class SqliteDb extends Db {
         tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<void> {
-        const tableViews = this.getTableViewsForTable<RowType>(tableId);
+        const tableViews = super.getTableViewsForTable<RowType>(tableId);
         for (const tableView of tableViews.values()) {
             if (tableView.filter.wouldAffectRows(rows)) {
                 tableView.onReloadRequired();
@@ -449,7 +406,7 @@ export class SqliteDb extends Db {
     }
 
     private async notifyOnTableAltered(tableId: DatabaseTableId): Promise<void> {
-        const tableViews = this.getTableViewsForTable(tableId);
+        const tableViews = super.getTableViewsForTable(tableId);
         for (const tableView of tableViews.values()) {
             tableView.onReloadRequired();
         }
@@ -468,7 +425,7 @@ export class SqliteDb extends Db {
         }
 
         // Notify tables
-        this._tableToTableView.forEach((tableViewMap: Map<number, IDbTableView<Row>>) => {
+        Db._tableToTableView.forEach((tableViewMap: Map<number, IDbTableView<Row>>) => {
             for (const tableView of tableViewMap.values()) {
                 tableView.onReloadRequired();
             }
@@ -503,27 +460,8 @@ export class SqliteDb extends Db {
         }
     };
 
-    private getTableViewsForTable<RowType extends Row>(
-        tableId: DatabaseTableId,
-    ): Map<number, IDbTableView<RowType>> {
-        return <Map<number, IDbTableView<RowType>>>this._tableToTableView[tableId];
-    }
-
-    private getRowViewsForTable<RowType extends Row>(
-        tableId: DatabaseTableId,
-    ): Map<number, IDbRowView<RowType>> {
-        let rowViewMap: Map<number, IDbRowView<RowType>> = <Map<number, IDbRowView<RowType>>>(
-            this._tableToRowView[tableId]
-        );
-        if (!rowViewMap) {
-            rowViewMap = new Map();
-            this._tableToRowView[tableId] = rowViewMap;
-        }
-        return rowViewMap;
-    }
-
     private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]): void {
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
+        const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
         const focused = get(this._focused);
         row.forEach((row) => {
             // Delete from cache

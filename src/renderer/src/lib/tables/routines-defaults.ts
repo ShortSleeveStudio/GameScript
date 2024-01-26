@@ -10,7 +10,7 @@ export const defaultRoutines: IDbTableView<Routine> = db.fetchTable(
     createFilter<Routine>()
         .where()
         .column('type')
-        .is(ROUTINE_TYPE_ID_DEFAULT)
+        .eq(ROUTINE_TYPE_ID_DEFAULT)
         .endWhere()
         .orderBy('id', ASC)
         .build(),

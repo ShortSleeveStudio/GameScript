@@ -17,7 +17,7 @@ const actorConversationTableView: IDbTableView<Conversation> = db.fetchTable(
     createFilter<Conversation>()
         .where()
         .column('id')
-        .is(ACTOR_CONVERSATION_ID)
+        .eq(ACTOR_CONVERSATION_ID)
         .endWhere()
         .orderBy('id', ASC)
         .build(),
@@ -37,7 +37,7 @@ actorConversationTableView.subscribe((rowViews: IDbRowView<Conversation>[]) => {
             createFilter<Localization>()
                 .where()
                 .column('parent')
-                .is(actorConversationRowView.id)
+                .eq(actorConversationRowView.id)
                 .endWhere()
                 .orderBy('id', ASC)
                 .build(),

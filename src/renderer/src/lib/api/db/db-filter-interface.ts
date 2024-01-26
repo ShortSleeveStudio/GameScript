@@ -24,8 +24,8 @@ export type WhereColumnOrOpenScope<RowType extends Row> = {
     openScope(): WhereColumnOrOpenScope<RowType>;
 };
 export type WherePredicate<RowType extends Row> = {
-    is(value: FilterColumnType): WhereAndOrCloseScopeEnd<RowType>;
-    isNot(value: FilterColumnType): WhereAndOrCloseScopeEnd<RowType>;
+    eq(value: FilterColumnType): WhereAndOrCloseScopeEnd<RowType>;
+    ne(value: FilterColumnType): WhereAndOrCloseScopeEnd<RowType>;
     like(value: string): WhereAndOrCloseScopeEnd<RowType>;
     notLike(value: string): WhereAndOrCloseScopeEnd<RowType>;
     lt(value: FilterColumnType): WhereAndOrCloseScopeEnd<RowType>;

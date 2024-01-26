@@ -7,7 +7,7 @@ import {
     type Unsubscriber,
     type Writable,
 } from 'svelte/store';
-import type { Db } from './db-base';
+import { db } from './db';
 import type { Filter } from './db-filter-interface';
 import {
     DATABASE_TABLE_NAMES,
@@ -20,7 +20,6 @@ import type { IDbTableView } from './db-view-table-interface';
 
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private static nextId = 0;
-    private _db: Db;
     private _viewId: number;
     private _tableId: DatabaseTableId;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
@@ -28,13 +27,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _idToRowMap: Map<number, IDbRowView<RowType>>;
     private _isConnected: Readable<boolean>;
 
-    constructor(
-        database: Db,
-        tableId: DatabaseTableId,
-        filter: Filter<RowType>,
-        isConnected: Readable<boolean>,
-    ) {
-        this._db = database;
+    constructor(tableId: DatabaseTableId, filter: Filter<RowType>, isConnected: Readable<boolean>) {
         this._viewId = DbTableView.nextId++;
         this._tableId = tableId;
         this._filter = filter;
@@ -109,12 +102,12 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     }
 
     dispose(): void {
-        this._db.releaseTable(this);
+        db.releaseTable(this);
     }
 
     async onReloadRequired(): Promise<void> {
         // Load new rows
-        const newRowViews: IDbRowView<RowType>[] = await this._db.fetchRows(
+        const newRowViews: IDbRowView<RowType>[] = await db.fetchRows(
             this,
             this._tableId,
             this._filter,
