@@ -112,23 +112,6 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._db.releaseTable(this);
     }
 
-    async onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void> {
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            this._idToRowMap.set(row.id, rows[i]);
-        }
-        this._internalWritable.set([...this._idToRowMap.values()]);
-    }
-
-    async onRowsDeleted(rows: number[]): Promise<void> {
-        // Sanity
-        if (rows.length > get(this._internalWritable).length) {
-            throw new Error('More rows deleted than exist');
-        }
-        for (let i = 0; i < rows.length; i++) this._idToRowMap.delete(rows[i]);
-        this._internalWritable.set([...this._idToRowMap.values()]);
-    }
-
     async onReloadRequired(): Promise<void> {
         // Load new rows
         const newRowViews: IDbRowView<RowType>[] = await this._db.fetchRows(

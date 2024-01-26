@@ -431,7 +431,6 @@ export class SqliteDb extends Db {
         tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<void> {
-        console.log('LIFECYCLE');
         const tableViews = this.getTableViewsForTable<RowType>(tableId);
         for (const tableView of tableViews.values()) {
             if (tableView.filter.wouldAffectRows(rows)) {
@@ -450,57 +449,11 @@ export class SqliteDb extends Db {
     }
 
     private async notifyOnTableAltered(tableId: DatabaseTableId): Promise<void> {
-        console.log('ALTERED');
         const tableViews = this.getTableViewsForTable(tableId);
         for (const tableView of tableViews.values()) {
             tableView.onReloadRequired();
         }
     }
-
-    // TODO: I'm not sure the commented code is a good idea given how conversation finder works
-    // private async notifyOnRowCreated<RowType extends Row>(
-    //     tableId: DatabaseTableId,
-    //     rows: RowType[],
-    // ): Promise<void> {
-    // // Fetch row views for the table view to store
-    // const rowViews: IDbRowView<RowType>[] = <IDbRowView<RowType>[]>[];
-    // const rowViewMap: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
-    // for (let i = 0; i < rows.length; i++) {
-    //     const rowView: IDbRowView<RowType> = this.getOrCreateRowView(
-    //         rowViewMap,
-    //         tableId,
-    //         rows[i],
-    //     );
-    //     rowViews.push(rowView);
-    // }
-
-    // // Notify the table views of the created rows
-    // const tableViewList: IDbTableView<RowType>[] = this.getTableViewsForTable<RowType>(tableId);
-    // for (let i = 0; i < tableViewList.length; i++) {
-    //     const tableView: IDbTableView<RowType> = tableViewList[i];
-    //     if (tableView.filter.wouldAffectRows(rows)) {
-    //         tableViewList[i].onRowsCreated(rowViews);
-    //     }
-    // }
-    // }
-    // private async notifyOnRowDeleted<RowType extends Row>(
-    //     tableId: DatabaseTableId,
-    //     rows: RowType[],
-    // ): Promise<void> {
-    // // Create a list of deleted row ids
-    // const deletedRowIds: number[] = [];
-    // for (let i = 0; i < rows.length; i++) {
-    //     deletedRowIds.push(rows[i].id);
-    // }
-    // // Notify the table views of the deleted rows
-    // const tableViewList: IDbTableView<RowType>[] = this.getTableViewsForTable<RowType>(tableId);
-    // for (let i = 0; i < tableViewList.length; i++) {
-    //     const tableView: IDbTableView<RowType> = tableViewList[i];
-    //     if (tableView.filter.wouldAffectRows(rows)) {
-    //         tableView.onRowsDeleted(deletedRowIds);
-    //     }
-    // }
-    // }
 
     private onDbConnectedChanged: (v: boolean) => void = (isConnected) => {
         // Notify user
