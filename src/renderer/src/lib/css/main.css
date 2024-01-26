@@ -204,7 +204,7 @@ input[type='color']::-webkit-color-swatch {
     --ag-background-color: var(--cds-layer, #f4f4f4); 
     --ag-foreground-color: var(--cds-text-secondary, #525252);
     --ag-header-background-color: var(--cds-layer-accent, #e0e0e0);
-    --ag-header-foreground-color: var(--cds-text-primary, #161616);;
+    --ag-header-foreground-color: var(--cds-text-primary, #161616);
 
     --ag-font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
 
@@ -213,6 +213,8 @@ input[type='color']::-webkit-color-swatch {
     --ag-wrapper-border-radius: 0px;
 
     --ag-header-height: 40px;
+
+    --ag-control-panel-background-color: var(--cds-layer-accent, #e0e0e0);
 }
 
 .grid-cell-editor-text {

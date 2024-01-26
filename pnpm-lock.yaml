@@ -14,14 +14,26 @@ dependencies:
 
 devDependencies:
   '@ag-grid-community/core':
-    specifier: ^31.0.2
-    version: 31.0.2
+    specifier: ^31.0.3
+    version: 31.0.3
   '@ag-grid-community/infinite-row-model':
-    specifier: ^31.0.2
-    version: 31.0.2
+    specifier: ^31.0.3
+    version: 31.0.3
   '@ag-grid-community/styles':
-    specifier: ^31.0.2
-    version: 31.0.2
+    specifier: ^31.0.3
+    version: 31.0.3
+  '@ag-grid-enterprise/column-tool-panel':
+    specifier: ^31.0.3
+    version: 31.0.3
+  '@ag-grid-enterprise/core':
+    specifier: ^31.0.3
+    version: 31.0.3
+  '@ag-grid-enterprise/filter-tool-panel':
+    specifier: ^31.0.3
+    version: 31.0.3
+  '@ag-grid-enterprise/side-bar':
+    specifier: ^31.0.3
+    version: 31.0.3
   '@electron-toolkit/eslint-config-prettier':
     specifier: ^2.0.0
     version: 2.0.0(eslint@8.56.0)(prettier@3.1.1)
@@ -109,18 +121,55 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /@ag-grid-community/core@31.0.2:
-    resolution: {integrity: sha512-iAKQgS5GXJ85ib8aPfrIMWPVUrrSzPV7neii6nZitVS4zoqEYx7ommMi7viUmSMjUAwPF0QE5TbExBiDB3hSmA==}
+  /@ag-grid-community/core@31.0.3:
+    resolution: {integrity: sha512-xZEMMIp3zyLsFXg3p1xF62bhd5v2Sl5L3wou+GOdfNVHDLCN8TyPCXLpPgMzP4lHVsEQ6zLIxYTN+X3Vo8xBYQ==}
     dev: true
 
-  /@ag-grid-community/infinite-row-model@31.0.2:
-    resolution: {integrity: sha512-Za9nDwOmRn48wxZJnBrSMwr8SxpJCPrjx9qIraxgNTODp4Sxg8VT8qxY9HdpAmFITsJzeYq7Lj8hwHS6taB94g==}
+  /@ag-grid-community/infinite-row-model@31.0.3:
+    resolution: {integrity: sha512-xf4P1/i7hWA9DuOik/TeA2PSpk+UduPIlAWKptxqiZN/xZoi+Yp9v/RuFMB/0/6dxt6oySSCq2oFy6GYGKdy2A==}
     dependencies:
-      '@ag-grid-community/core': 31.0.2
+      '@ag-grid-community/core': 31.0.3
     dev: true
 
-  /@ag-grid-community/styles@31.0.2:
-    resolution: {integrity: sha512-VDn8Uxy+H2J9W+KKprQiBU+kAuoCb+uVHKqvYwKbQDsdlVp67PzpqaBz/gdtLk1Pa3xUp68cxCr1Q8y1GPkUcA==}
+  /@ag-grid-community/styles@31.0.3:
+    resolution: {integrity: sha512-nHqPey0RWAyRARY/cPQbXaENKHt4C7de/uX3bhci539a6ykmATh/GPbYk+f/d+ajedCPe+sjlRqRWBRrR6nfcQ==}
+    dev: true
+
+  /@ag-grid-enterprise/column-tool-panel@31.0.3:
+    resolution: {integrity: sha512-ISw0CXkmRlCw504M9YjeQikb4UrIi+Qtq4u2TtbtTUfkDiras79gsmeV2blkvlHmBi6jxpJNtyg1I2kqDZvkBQ==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.3
+      '@ag-grid-enterprise/core': 31.0.3
+      '@ag-grid-enterprise/row-grouping': 31.0.3
+      '@ag-grid-enterprise/side-bar': 31.0.3
+    dev: true
+
+  /@ag-grid-enterprise/core@31.0.3:
+    resolution: {integrity: sha512-I4P6XHjC8F8JH5UeqIMA4ivq1t1sASoykUzoS6GFmcmR5YOpmsLhDxo1dyD30lB8LCDQJ1zqVxFTnfCBB25y2w==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.3
+    dev: true
+
+  /@ag-grid-enterprise/filter-tool-panel@31.0.3:
+    resolution: {integrity: sha512-Mk+dv/hbcbYtuGUMaS3+m0z+x0eD4mvFtSpgjsGs63LLePINY5W89v13BWuLDfTmIVVPr9GDQ2x3aCvEHcollA==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.3
+      '@ag-grid-enterprise/core': 31.0.3
+      '@ag-grid-enterprise/side-bar': 31.0.3
+    dev: true
+
+  /@ag-grid-enterprise/row-grouping@31.0.3:
+    resolution: {integrity: sha512-R4TDzA37/vQNu0175DZADn0I4/zhSr4gWW+f5VJGTC70vvmzXpS+b4JRFFlCRTygSxLYPp3XSS7ktikYy29Nug==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.3
+      '@ag-grid-enterprise/core': 31.0.3
+    dev: true
+
+  /@ag-grid-enterprise/side-bar@31.0.3:
+    resolution: {integrity: sha512-2N4Ur+MUPYsd5QUZfKSBoZnu+OFZS8RUcDeX41RtR1fdQkIqSZXT+RxkQKl97JbuM8HIVKFFJDSHDyx9q/Bc7g==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.3
+      '@ag-grid-enterprise/core': 31.0.3
     dev: true
 
   /@ampproject/remapping@2.2.1:
@@ -3830,7 +3879,6 @@ packages:
 
   /string_decoder@1.3.0:
     resolution: {integrity: sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA==}
-    requiresBuild: true
     dependencies:
       safe-buffer: 5.2.1
     dev: false

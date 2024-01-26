@@ -5,6 +5,8 @@
         type GridOptions,
         type IDatasource,
         GridApi,
+        type ToolPanelDef,
+        type ColumnState,
     } from '@ag-grid-community/core';
     import { type Filter } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
@@ -19,12 +21,16 @@
     import { onDestroy, onMount } from 'svelte';
     import { get } from 'svelte/store';
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
+    import { EVENT_SHUTDOWN } from '@lib/constants/events';
+    import { LS_KEY_FINDER_LAYOUT } from '@lib/constants/local-storage';
 
     let api: GridApi;
     let finderElement: HTMLElement;
     let tableWatcher: TableWatcher<Filter>;
+    let loadLayoutRequested: boolean = false;
 
     const datasource: IDatasource = new FinderDatasource();
+    const columnIdSet: Set<string> = new Set();
     let columnDefs: ColDef[] = [];
 
     const staticColumns: ColDef[] = [
@@ -45,6 +51,24 @@
         },
     ];
 
+    function loadLayout(): void {
+        const savedStateString: string | null = localStorage.getItem(LS_KEY_FINDER_LAYOUT);
+        if (savedStateString) {
+            const savedState: ColumnState[] = JSON.parse(
+                localStorage.getItem(LS_KEY_FINDER_LAYOUT),
+            );
+            // Remove any missing columns
+            const sanitizedSavedState: ColumnState[] = [];
+            for (let i = 0; i < savedState.length; i++) {
+                const state: ColumnState = savedState[i];
+                if (columnIdSet.has(state.colId)) {
+                    sanitizedSavedState.push(state);
+                }
+            }
+            api.applyColumnState({ state: sanitizedSavedState });
+        }
+    }
+
     function getGridApi(): GridApi {
         return api;
     }
@@ -54,17 +78,24 @@
         const filterRowViews: IDbRowView<Filter>[] = get(filters);
 
         // Purge old columns
+        columnIdSet.clear();
         columnDefs.length = 0;
 
         // Add static columns
-        columnDefs.push.apply(columnDefs, staticColumns);
+        for (let i = 0; i < staticColumns.length; i++) {
+            const staticColumn: ColDef = staticColumns[i];
+            columnIdSet.add(staticColumn.colId);
+            columnDefs.push(staticColumn);
+        }
 
         // Add filters
         for (let i = 0; i < filterRowViews.length; i++) {
-            const filter = get(filterRowViews[i]);
+            const filter: Filter = get(filterRowViews[i]);
+            const colId: string = filterIdToColumn(filter.id);
+            columnIdSet.add(colId);
             columnDefs.push({
                 headerName: filter.name,
-                colId: filterIdToColumn(filter.id),
+                colId: colId,
                 cellEditor: GridCellEditorText,
                 cellRenderer: GridCellRenderer,
             });
@@ -72,6 +103,13 @@
 
         // Set new column defs
         api?.setGridOption('columnDefs', columnDefs);
+
+        // Check if we need to load layout
+        if (loadLayoutRequested) {
+            console.log('LOADING LAYOUT');
+            loadLayout();
+            loadLayoutRequested = false;
+        }
 
         // Update column width
         api?.autoSizeAllColumns();
@@ -88,6 +126,26 @@
                 suppressMovable: true,
                 sortable: true,
                 editable: true,
+                enableValue: false,
+                enableRowGroup: false,
+                enablePivot: false,
+            },
+            sideBar: {
+                toolPanels: [
+                    <ToolPanelDef>{
+                        id: 'columns',
+                        labelDefault: 'Columns',
+                        labelKey: 'columns',
+                        iconKey: 'columns',
+                        toolPanel: 'agColumnsToolPanel',
+                        toolPanelParams: {
+                            suppressRowGroups: true,
+                            suppressValues: true,
+                            suppressPivots: true,
+                            suppressPivotMode: true,
+                        },
+                    },
+                ],
             },
             autoSizeStrategy: {
                 type: 'fitCellContents',
@@ -108,6 +166,15 @@
         // Create table watcher
         tableWatcher = new TableWatcher(filters);
         tableWatcher.subscribe(onFiltersChanged);
+
+        // Load Layout
+        loadLayoutRequested = true;
+
+        // Event Listeners
+        addEventListener(EVENT_SHUTDOWN, () => {
+            const savedState: ColumnState[] = api.getColumnState();
+            localStorage.setItem(LS_KEY_FINDER_LAYOUT, JSON.stringify(savedState));
+        });
     });
     onDestroy(() => {
         tableWatcher.dispose();

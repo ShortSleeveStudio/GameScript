@@ -35,7 +35,7 @@
         SEARCH_LAYOUT,
         SETTINGS_LAYOUT,
     } from '../../constants/default-layout';
-    import { LS_KEY_LAYOUT } from '@lib/constants/local-storage';
+    import { LS_KEY_DOCK_LAYOUT } from '@lib/constants/local-storage';
     import { ToastItem, toastManager } from '@lib/stores/app/toasts';
     import {
         actorsIsVisible,
@@ -112,7 +112,7 @@
 
     function loadLayoutConfig(): LayoutConfig {
         let config: LayoutConfig = DEFAULT_LAYOUT;
-        const previousLayoutJson = localStorage.getItem(LS_KEY_LAYOUT);
+        const previousLayoutJson = localStorage.getItem(LS_KEY_DOCK_LAYOUT);
         if (previousLayoutJson) {
             try {
                 const previousLayout: ResolvedLayoutConfig = JSON.parse(previousLayoutJson);
@@ -148,7 +148,7 @@
 
         // Event listeners
         addEventListener(EVENT_SHUTDOWN, (e: Event) => {
-            localStorage.setItem(LS_KEY_LAYOUT, JSON.stringify(goldenLayout.saveLayout()));
+            localStorage.setItem(LS_KEY_DOCK_LAYOUT, JSON.stringify(goldenLayout.saveLayout()));
         });
         addEventListener(EVENT_RESET_LAYOUT, (e: Event) => {
             goldenLayout.loadLayout(DEFAULT_LAYOUT);
