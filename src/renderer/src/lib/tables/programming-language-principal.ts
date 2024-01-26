@@ -1,5 +1,6 @@
 import { db } from '@lib/api/db/db';
-import { createEmptyFilter } from '@lib/api/db/db-filter';
+import { createFilter } from '@lib/api/db/db-filter';
+import { ASC } from '@lib/api/db/db-filter-interface';
 import {
     TABLE_ID_PROGRAMMING_LANGUAGE_PRINCIPAL,
     type ProgrammingLanguagePrincipal,
@@ -10,5 +11,5 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 export const programmingLanguagePrincipalTable: IDbTableView<ProgrammingLanguagePrincipal> =
     db.fetchTable(
         TABLE_ID_PROGRAMMING_LANGUAGE_PRINCIPAL,
-        createEmptyFilter<ProgrammingLanguagePrincipal>(),
+        createFilter<ProgrammingLanguagePrincipal>().orderBy('id', ASC).build(),
     );

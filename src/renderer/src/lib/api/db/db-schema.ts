@@ -1,6 +1,5 @@
 import { TypeNameToType } from '@lib/utility/type-helpers';
 import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropdown.svelte';
-import { languages } from 'monaco-editor';
 
 ///
 /// Database Field Types
@@ -117,31 +116,7 @@ export interface AutoComplete extends Row {
     insertion: string;
     documentation: string;
 }
-export const AUTO_COMPLETE_ICONS: languages.CompletionItemKind[] = [
-    languages.CompletionItemKind.Function,
-    languages.CompletionItemKind.Variable,
-];
-export type AutoCompleteIconId = (typeof AUTO_COMPLETE_ICONS)[number];
-export const AUTO_COMPLETE_ICON_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_ICONS.map(
-    (kind: languages.CompletionItemKind, index: number) =>
-        <DropdownItem>{
-            id: index,
-            text: languages.CompletionItemKind[kind],
-        },
-);
-export const AUTO_COMPLETE_RULES: languages.CompletionItemInsertTextRule[] = [
-    languages.CompletionItemInsertTextRule.None,
-    languages.CompletionItemInsertTextRule.InsertAsSnippet,
-    languages.CompletionItemInsertTextRule.KeepWhitespace,
-];
-export type AutoCompleteRuleId = (typeof AUTO_COMPLETE_RULES)[number];
-export const AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS: DropdownItem[] = AUTO_COMPLETE_RULES.map(
-    (rule: languages.CompletionItemInsertTextRule) =>
-        <DropdownItem>{
-            id: rule,
-            text: languages.CompletionItemInsertTextRule[rule].replace(/([a-z])([A-Z])/g, '$1 $2'),
-        },
-);
+
 /**
  * A note on icons. The following are unique:
  * issue,
@@ -250,6 +225,7 @@ export interface Filter extends Row, Annotated {}
 /// Conversations
 ///
 export interface Conversation extends Row, SystemCreatable, Annotated {}
+export const ACTOR_CONVERSATION_ID = 0;
 export const ACTOR_CONVERSATION_NAME = 'Actors';
 
 ///
@@ -272,7 +248,6 @@ export interface LocalePrincipal extends Row, Principaled {}
 ///
 export interface Localization extends Row, SystemCreatable {
     parent: number; // FK Conversations
-    [locale: string]: unknown; // FK Locales -> Localization
     // 'name' is used for nicknames
 }
 

@@ -28,7 +28,7 @@
     let languagePrincipalTableUnsubscriber: Unsubscriber | undefined =
         programmingLanguagePrincipalTable.subscribe(
             (rowViews: IDbRowView<ProgrammingLanguagePrincipal>[]) => {
-                if (rowViews.length === 1) {
+                if (rowViews.length === 1 && languagePrincipalRowView !== rowViews[0]) {
                     languagePrincipalRowView = rowViews[0];
                     languagePrincipalRowUnsubscriber = languagePrincipalRowView.subscribe(
                         onProgrammingLanguageChanged,
@@ -44,7 +44,7 @@
         if (oldValue === newValue) return;
 
         // Update row
-        const originalRow = get(languagePrincipalRowView);
+        const originalRow = { ...get(languagePrincipalRowView) };
         const newRow = <Row>{ id: originalRow.id };
         newRow['principal'] = newValue;
         await db.updateRow(languagePrincipalRowView.tableId, newRow);

@@ -149,7 +149,7 @@
     // These single row tables could be stateful variables of a class
     let localePrincipalRowView: IDbRowView<LocalePrincipal>;
     localePrincipalTableView.subscribe((rowViews: IDbRowView<LocalePrincipal>[]) => {
-        if (rowViews.length === 1) {
+        if (rowViews.length === 1 && localePrincipalRowView !== rowViews[0]) {
             localePrincipalRowView = rowViews[0];
             focusPayload.localePrincipalRowView = localePrincipalRowView;
         }

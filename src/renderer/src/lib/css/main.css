@@ -4,11 +4,13 @@ html {
     /* This is above carbon buttons/interactive elements, but below overlay and modals */ 
     --z-index-gl-header: 6500;
 
+    /* Golden Layout */
     --gl-tab-width: 152;
     --gl-tab-height: 24;
     --gl-dropdown-arrow-size: 6px;
     --gl-tab-placeholder-width: 8px;
 
+    /* Monaco Editor */
     --me-default-height: calc(8 * 25px);
 }
 
@@ -196,3 +198,30 @@ input[type='color']::-webkit-color-swatch {
     opacity: 50%;
 }
 /* .monaco-editor .suggest-widget { width: 250px !important; } */
+
+/* Grid */
+.ag-theme-custom {
+    --ag-background-color: var(--cds-layer, #f4f4f4); 
+    --ag-foreground-color: var(--cds-text-secondary, #525252);
+    --ag-header-background-color: var(--cds-layer-accent, #e0e0e0);
+    --ag-header-foreground-color: var(--cds-text-primary, #161616);;
+
+    --ag-font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+
+    --ag-row-hover-color: var(--cds-hover-ui);
+
+    --ag-wrapper-border-radius: 0px;
+
+    --ag-header-height: 40px;
+}
+
+.grid-cell-editor-text {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    padding: 0 1rem;
+    font-size: var(--cds-body-short-01-font-size, 0.875rem);
+    font-weight: var(--cds-body-short-01-font-weight, 400);
+    line-height: var(--cds-body-short-01-line-height, 1.28572);
+    letter-spacing: var(--cds-body-short-01-letter-spacing, 0.16px);
+}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS, type AutoComplete } from '@lib/api/db/db-schema';
+    import { type AutoComplete } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadAutoComplete } from '@lib/stores/app/focus';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -15,6 +15,7 @@
     import { Tooltip } from 'carbon-components-svelte';
     import RoutineEditor from '../common/RoutineEditor.svelte';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
+    import { AUTO_COMPLETE_RULE_DROP_DOWN_ITEMS } from '@lib/monaco/monaco-constants';
 
     export let rowView: IDbRowView<AutoComplete>;
     export let payload: FocusPayloadAutoComplete;

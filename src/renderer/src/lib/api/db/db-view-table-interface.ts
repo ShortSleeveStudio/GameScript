@@ -12,6 +12,7 @@ import type { IDbRowView } from './db-view-row-interface';
  * the window remains small.
  */
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
+    viewId: number;
     tableId: DatabaseTableId;
     tableName: DatabaseTableName;
     filter: Filter<RowType>;
@@ -25,9 +26,9 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     getRowsById(id: number[]): RowType[];
     dispose(): void;
     /**@internal */
-    onRowsDeleted(rows: number[]): Promise<void>;
+    onRowsDeleted(rows: number[]): Promise<void>; // TODO
     /**@internal */
-    onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void>;
+    onRowsCreated(rows: IDbRowView<RowType>[]): Promise<void>; // TODO
     /**@internal */
     onReloadRequired(): Promise<void>;
 }

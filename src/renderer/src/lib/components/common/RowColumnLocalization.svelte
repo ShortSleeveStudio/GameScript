@@ -17,8 +17,10 @@
         localizationTableView = db.fetchTable(
             TABLE_ID_LOCALIZATIONS,
             createFilter<Localization>()
-                .where('id')
+                .where()
+                .column('id')
                 .is(<number>$rowView[columnName])
+                .endWhere()
                 .build(),
         );
     });

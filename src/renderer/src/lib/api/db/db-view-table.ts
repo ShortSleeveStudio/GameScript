@@ -2,6 +2,7 @@ import {
     get,
     writable,
     type Invalidator,
+    type Readable,
     type Subscriber,
     type Unsubscriber,
     type Writable,
@@ -18,19 +19,33 @@ import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
+    private static nextId = 0;
     private _db: Db;
+    private _viewId: number;
     private _tableId: DatabaseTableId;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
     private _idToRowMap: Map<number, IDbRowView<RowType>>;
+    private _isConnected: Readable<boolean>;
 
-    constructor(database: Db, tableId: DatabaseTableId, filter: Filter<RowType>) {
+    constructor(
+        database: Db,
+        tableId: DatabaseTableId,
+        filter: Filter<RowType>,
+        isConnected: Readable<boolean>,
+    ) {
         this._db = database;
+        this._viewId = DbTableView.nextId++;
         this._tableId = tableId;
         this._filter = filter;
         this._idToRowMap = new Map();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
-        this.onReloadRequired();
+        this._isConnected = isConnected;
+        if (get(this._isConnected)) this.onReloadRequired();
+    }
+
+    get viewId(): number {
+        return this._viewId;
     }
 
     get tableId(): DatabaseTableId {
@@ -43,6 +58,16 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
     get filter(): Filter<RowType> {
         return this._filter;
+    }
+
+    set filter(filter: Filter<RowType>) {
+        if (this._filter.equals(filter)) {
+            console.log('FILTER WAS EQUAL, SKIPPING SET');
+            return;
+        }
+
+        this._filter = filter;
+        this.onReloadRequired();
     }
 
     subscribe(
@@ -107,6 +132,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     async onReloadRequired(): Promise<void> {
         // Load new rows
         const newRowViews: IDbRowView<RowType>[] = await this._db.fetchRows(
+            this,
             this._tableId,
             this._filter,
         );

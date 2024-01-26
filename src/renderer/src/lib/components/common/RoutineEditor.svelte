@@ -24,6 +24,7 @@
     let container: HTMLElement;
     let editor: monaco.editor.IStandaloneCodeEditor;
     let didBlurUnsubscribe: monaco.IDisposable;
+    let didFocusUnsubscribe: monaco.IDisposable;
     let rowChangeUnsubscribe: Unsubscriber;
     let isDarkModeUnsubscribe: Unsubscriber = isDarkMode.subscribe(onDarkModeChanged);
     let languagePrincipalRowView: IDbRowView<ProgrammingLanguagePrincipal> | undefined;
@@ -35,7 +36,7 @@
     let languagePrincipalTableUnsubscriber: Unsubscriber | undefined =
         programmingLanguagePrincipalTable.subscribe(
             (rowViews: IDbRowView<ProgrammingLanguagePrincipal>[]) => {
-                if (rowViews.length === 1) {
+                if (rowViews.length === 1 && languagePrincipalRowView !== rowViews[0]) {
                     languagePrincipalRowView = rowViews[0];
                     languagePrincipalRowUnsubscriber = languagePrincipalRowView.subscribe(
                         onProgrammingLanguageChanged,
@@ -59,12 +60,26 @@
         }
     }
 
+    function setHandleScroll(shouldHandle: boolean): void {
+        editor.updateOptions({
+            scrollbar: {
+                handleMouseWheel: shouldHandle,
+            },
+        });
+    }
+
     function onRowChanged(newRoutine: RowType): void {
         editor.setValue(<string>newRoutine[columnName]);
     }
 
-    async function onSave(): Promise<void> {
+    async function onEditorFocus(): Promise<void> {
         if (!rowView) return;
+        setHandleScroll(true);
+    }
+
+    async function onEditorBlur(): Promise<void> {
+        if (!rowView) return;
+        setHandleScroll(false);
         const newValue = editor.getValue();
         const oldValue = get(rowView)[columnName];
         if (oldValue === newValue) return;
@@ -147,20 +162,25 @@
             suggest: <monaco.editor.ISuggestOptions>{
                 preview: true,
             },
+            scrollbar: {
+                handleMouseWheel: false,
+            },
         };
         editor = monaco.editor.create(container, options);
         // Add save command
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, blurEditor);
         // Blur Callback
-        didBlurUnsubscribe = editor.onDidBlurEditorWidget(onSave);
+        didBlurUnsubscribe = editor.onDidBlurEditorWidget(onEditorBlur);
+        didFocusUnsubscribe = editor.onDidFocusEditorWidget(onEditorFocus);
         // Row Change Callback
         onRowViewChanged(rowView);
     });
 
     onDestroy(() => {
-        editor.dispose();
-        didBlurUnsubscribe.dispose();
-        isDarkModeUnsubscribe();
+        if (editor) editor.dispose();
+        if (didBlurUnsubscribe) didBlurUnsubscribe.dispose();
+        if (didFocusUnsubscribe) didFocusUnsubscribe.dispose();
+        if (isDarkModeUnsubscribe) isDarkModeUnsubscribe();
         if (rowChangeUnsubscribe) rowChangeUnsubscribe();
         if (languagePrincipalRowUnsubscriber) languagePrincipalRowUnsubscriber();
         if (languagePrincipalRowUnsubscriber) languagePrincipalRowUnsubscriber();

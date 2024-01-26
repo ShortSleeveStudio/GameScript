@@ -1,6 +1,7 @@
 import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
 import { localeIdToColumn } from '@lib/utility/locale';
 import {
+    ACTOR_CONVERSATION_ID,
     ACTOR_CONVERSATION_NAME,
     DATABASE_TABLE_NAMES,
     PROGRAMMING_LANGUAGE_NAMES,
@@ -284,8 +285,6 @@ INSERT OR IGNORE INTO ${TABLE_NAME_ROUTINES} (id, name, code, type) VALUES (${ro
 COMMIT;
 `;
 // Conversations
-rowIndex = 0;
-const ACTOR_CONVERSATION_ID = rowIndex;
 const INITIALIZE_CONVERSATIONS = `
 INSERT OR IGNORE INTO ${TABLE_NAME_CONVERSATIONS} (id, name, isSystemCreated) VALUES (${ACTOR_CONVERSATION_ID}, '${ACTOR_CONVERSATION_NAME}', true);`;
 // Locales

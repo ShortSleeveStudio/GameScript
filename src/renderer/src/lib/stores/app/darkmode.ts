@@ -48,7 +48,7 @@ darkmode.subscribe((darkmodeValue: Darkmode) => {
     }
 });
 
-function setDarkMode(isDark: boolean) {
+function setDarkMode(isDark: boolean): void {
     // "white" | "g10" | "g80" | "g90" | "g100"
     if (isDark) {
         document.documentElement.setAttribute('theme', 'g90');

@@ -13,6 +13,15 @@ dependencies:
     version: 9.3.0
 
 devDependencies:
+  '@ag-grid-community/core':
+    specifier: ^31.0.2
+    version: 31.0.2
+  '@ag-grid-community/infinite-row-model':
+    specifier: ^31.0.2
+    version: 31.0.2
+  '@ag-grid-community/styles':
+    specifier: ^31.0.2
+    version: 31.0.2
   '@electron-toolkit/eslint-config-prettier':
     specifier: ^2.0.0
     version: 2.0.0(eslint@8.56.0)(prettier@3.1.1)
@@ -98,6 +107,20 @@ packages:
   /@aashutoshrathi/word-wrap@1.2.6:
     resolution: {integrity: sha512-1Yjs2SvM8TflER/OD3cOjhWWOZb58A2t7wpE2S9XfBYTiIl+XFhQG2bjy4Pu1I+EAlCNUzRDYDdFwFYUKvXcIA==}
     engines: {node: '>=0.10.0'}
+    dev: true
+
+  /@ag-grid-community/core@31.0.2:
+    resolution: {integrity: sha512-iAKQgS5GXJ85ib8aPfrIMWPVUrrSzPV7neii6nZitVS4zoqEYx7ommMi7viUmSMjUAwPF0QE5TbExBiDB3hSmA==}
+    dev: true
+
+  /@ag-grid-community/infinite-row-model@31.0.2:
+    resolution: {integrity: sha512-Za9nDwOmRn48wxZJnBrSMwr8SxpJCPrjx9qIraxgNTODp4Sxg8VT8qxY9HdpAmFITsJzeYq7Lj8hwHS6taB94g==}
+    dependencies:
+      '@ag-grid-community/core': 31.0.2
+    dev: true
+
+  /@ag-grid-community/styles@31.0.2:
+    resolution: {integrity: sha512-VDn8Uxy+H2J9W+KKprQiBU+kAuoCb+uVHKqvYwKbQDsdlVp67PzpqaBz/gdtLk1Pa3xUp68cxCr1Q8y1GPkUcA==}
     dev: true
 
   /@ampproject/remapping@2.2.1:

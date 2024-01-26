@@ -19,6 +19,10 @@ export class Action<T> {
         this._handlers.delete(handler);
     }
 
+    unregisterAll(): void {
+        this._handlers.clear();
+    }
+
     fire(value: T): void {
         this._handlers.forEach((handler: ActionHandler<T>) => handler(value));
     }

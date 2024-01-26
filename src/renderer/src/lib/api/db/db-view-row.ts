@@ -11,10 +11,12 @@ import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */
 export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
+    private _owners: Set<number>;
     private _tableId: DatabaseTableId;
     private _internalWritable: Writable<RowType>;
 
     constructor(tableId: DatabaseTableId, row: RowType) {
+        this._owners = new Set();
         this._tableId = tableId;
         this._internalWritable = writable<RowType>(row);
     }
@@ -36,5 +38,14 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
     onRowUpdated(newRow: RowType): void {
         this._internalWritable.set(newRow);
+    }
+    ownerCount(): number {
+        return this._owners.size;
+    }
+    ownerAdd(ownerId: number): void {
+        this._owners.add(ownerId);
+    }
+    ownerRemove(ownerId: number): void {
+        this._owners.delete(ownerId);
     }
 }

@@ -85,7 +85,7 @@
         );
     });
 
-    function onKeyUp(e: KeyboardEvent) {
+    function onKeyUp(e: KeyboardEvent): void {
         if (wasSavePressed(e) || wasEnterPressed(e)) {
             (<HTMLElement>e.target).blur();
         }

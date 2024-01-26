@@ -1,7 +1,8 @@
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
+import { ASC } from '@lib/api/db/db-filter-interface';
 import {
-    ACTOR_CONVERSATION_NAME,
+    ACTOR_CONVERSATION_ID,
     TABLE_ID_CONVERSATIONS,
     TABLE_ID_LOCALIZATIONS,
     type Conversation,
@@ -14,11 +15,11 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 const actorConversationTableView: IDbTableView<Conversation> = db.fetchTable(
     TABLE_ID_CONVERSATIONS,
     createFilter<Conversation>()
-        .where('isSystemCreated')
-        .is(true)
-        .and()
-        .where('name')
-        .is(ACTOR_CONVERSATION_NAME)
+        .where()
+        .column('id')
+        .is(ACTOR_CONVERSATION_ID)
+        .endWhere()
+        .orderBy('id', ASC)
         .build(),
 );
 
@@ -29,11 +30,17 @@ export let actorConversationRowView: IDbRowView<Conversation> | undefined;
 // https://svelte-5-preview.vercel.app/status
 // These single row tables could be stateful variables of a class
 actorConversationTableView.subscribe((rowViews: IDbRowView<Conversation>[]) => {
-    if (rowViews.length === 1) {
+    if (rowViews.length === 1 && actorConversationRowView !== rowViews[0]) {
         actorConversationRowView = rowViews[0];
         actorLocalizations = db.fetchTable(
             TABLE_ID_LOCALIZATIONS,
-            createFilter<Localization>().where('parent').is(actorConversationRowView.id).build(),
+            createFilter<Localization>()
+                .where()
+                .column('parent')
+                .is(actorConversationRowView.id)
+                .endWhere()
+                .orderBy('id', ASC)
+                .build(),
         );
     }
 });

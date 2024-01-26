@@ -15,6 +15,11 @@ import '@lib/stores/app/maximized';
 import '@lib/utility/keybinding';
 import '@lib/utility/undo-manager';
 
+// Grid
+import '@ag-grid-community/styles/ag-grid.css';
+import '@ag-grid-community/styles/ag-theme-quartz.css';
+import '@lib/grid/grid-initialization';
+
 // Main app
 import '@lib/css/carbon.css'; // This needs to be updated everytime you upgrade the library
 import '@lib/css/main.css';

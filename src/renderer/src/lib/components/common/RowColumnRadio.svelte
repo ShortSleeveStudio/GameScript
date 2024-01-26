@@ -26,7 +26,7 @@
     }
 
     const onRadioChangedAsync: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
-        const originalRow: RowType = get(principalStore);
+        const originalRow: RowType = { ...get(principalStore) };
         const newRow: RowType = { ...get(principalStore) };
         newRow.principal = rowView.id;
         await db.updateRow(principalStore.tableId, newRow);

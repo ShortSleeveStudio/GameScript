@@ -7,7 +7,7 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 /**Shared view of the system created locale.  */
 const systemCreatedLocaleTableView: IDbTableView<Locale> = db.fetchTable(
     TABLE_ID_LOCALES,
-    createFilter<Locale>().where('isSystemCreated').is(true).build(),
+    createFilter<Locale>().where().column('isSystemCreated').is(true).endWhere().build(),
 );
 
 export let systemCreatedLocaleRowView: IDbRowView<Locale>;
@@ -16,7 +16,7 @@ export let systemCreatedLocaleRowView: IDbRowView<Locale>;
 // https://svelte-5-preview.vercel.app/status
 // These single row tables could be stateful variables of a class
 systemCreatedLocaleTableView.subscribe((rowViews: IDbRowView<Locale>[]) => {
-    if (rowViews.length === 1) {
+    if (rowViews.length === 1 && systemCreatedLocaleRowView !== rowViews[0]) {
         systemCreatedLocaleRowView = rowViews[0];
     }
 });
