@@ -7,6 +7,8 @@
         GridApi,
         type ToolPanelDef,
         type ColumnState,
+        type ITextFilterParams,
+        type INumberFilterParams,
     } from '@ag-grid-community/core';
     import { type Filter } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
@@ -33,6 +35,23 @@
     const columnIdSet: Set<string> = new Set();
     let columnDefs: ColDef[] = [];
 
+    const numberFilterParams: INumberFilterParams = {
+        filterOptions: [
+            'equals',
+            'notEqual',
+            'lessThan',
+            'lessThanOrEqual',
+            'greaterThan',
+            'greaterThanOrEqual',
+        ],
+        // maxNumConditions: 3,
+    };
+
+    const textFilterParams: ITextFilterParams = {
+        filterOptions: ['equals', 'notEqual', 'contains', 'notContains', 'startsWith', 'endsWith'],
+        // maxNumConditions: 4,
+    };
+
     const staticColumns: ColDef[] = [
         {
             pinned: 'left',
@@ -42,12 +61,16 @@
             cellRenderer: GridCellRenderer,
             type: 'nonEditableColumn',
             width: 72, // Min before the sort arrow overlaps
+            filter: 'agNumberColumnFilter',
+            filterParams: numberFilterParams,
         },
         {
             headerName: 'Name',
             colId: 'name',
+            filter: 'agTextColumnFilter',
             cellEditor: GridCellEditorText,
             cellRenderer: GridCellRenderer,
+            filterParams: textFilterParams,
         },
     ];
 
@@ -98,6 +121,8 @@
                 colId: colId,
                 cellEditor: GridCellEditorText,
                 cellRenderer: GridCellRenderer,
+                // filter: 'agTextColumnFilter',
+                // filterParams: textFilterParams,
             });
         }
 
@@ -106,7 +131,6 @@
 
         // Check if we need to load layout
         if (loadLayoutRequested) {
-            console.log('LOADING LAYOUT');
             loadLayout();
             loadLayoutRequested = false;
         }
@@ -132,6 +156,7 @@
             },
             sideBar: {
                 toolPanels: [
+                    'filters',
                     <ToolPanelDef>{
                         id: 'columns',
                         labelDefault: 'Columns',

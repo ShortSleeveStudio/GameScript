@@ -206,6 +206,9 @@ input[type='color']::-webkit-color-swatch {
     --ag-header-background-color: var(--cds-layer-accent, #e0e0e0);
     --ag-header-foreground-color: var(--cds-text-primary, #161616);
 
+
+    --ag-range-selection-border-color: var(--cds-focus);
+
     --ag-font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
 
     --ag-row-hover-color: var(--cds-hover-ui);
