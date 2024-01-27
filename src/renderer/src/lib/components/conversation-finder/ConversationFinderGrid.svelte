@@ -121,8 +121,8 @@
                 colId: colId,
                 cellEditor: GridCellEditorText,
                 cellRenderer: GridCellRenderer,
-                // filter: 'agTextColumnFilter',
-                // filterParams: textFilterParams,
+                filter: 'agTextColumnFilter',
+                filterParams: textFilterParams,
             });
         }
 

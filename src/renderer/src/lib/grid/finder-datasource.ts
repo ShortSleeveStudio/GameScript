@@ -23,6 +23,7 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 import { type Unsubscriber } from 'svelte/store';
 import type { FinderContext } from './finder-context';
 
+// TODO: remove logging
 export class FinderDatasource implements IDatasource {
     private _firstLoad: boolean;
     private _context: FinderContext;
@@ -120,7 +121,6 @@ export class FinderDatasource implements IDatasource {
         } else {
             filter = filterBuilder.build();
         }
-        console.log(filter.toString());
 
         // Set context
         if (!this._context) this._context = <FinderContext>params.context;

@@ -10,9 +10,7 @@
         FILTER_UNDO_NOTES,
     } from '@lib/constants/settings';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
-    import SettingsConversationsFiltersOptions from '../settings/SettingsConversationsFiltersOptions.svelte';
     import type { Filter } from '@lib/api/db/db-schema';
-    import { Tooltip } from 'carbon-components-svelte';
 
     export let rowView: IDbRowView<Filter>;
     export let payload: FocusPayloadFilter;
@@ -41,18 +39,4 @@
         columnName={'notes'}
         placeholder={FILTER_PLACEHOLDER_NOTES}
     />
-</p>
-<p>
-    <Tooltip
-        class="tooltip-z-index-override"
-        triggerText="Options"
-        align="start"
-        direction="bottom"
-    >
-        <p>
-            These options will be available in a dropdown menu for each filter column in the
-            conversation finder. Uniqueness is enforced here.
-        </p>
-    </Tooltip>
-    <SettingsConversationsFiltersOptions {rowView} />
 </p>
