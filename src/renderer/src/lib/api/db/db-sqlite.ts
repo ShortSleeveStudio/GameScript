@@ -341,7 +341,6 @@ export class SqliteDb extends Db {
     }
 
     private async refreshRow<RowType extends Row>(tableId: number, row: RowType): Promise<void> {
-        console.log('REFRESH CALLED');
         this.fetchRowsInternal(
             tableId,
             createFilter().where().column('id').eq(row.id).endWhere().build(),

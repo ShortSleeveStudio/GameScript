@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_FILTERS}" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL,
 	"notes"	TEXT,
+	"options"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
 `;

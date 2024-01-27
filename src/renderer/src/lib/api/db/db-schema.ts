@@ -217,9 +217,11 @@ export interface Routine extends Row, Annotated {
 }
 
 ///
-/// Conversations
+/// Filters
 ///
-export interface Filter extends Row, Annotated {}
+export interface Filter extends Row, Annotated {
+    options: string;
+}
 
 ///
 /// Conversations

@@ -188,6 +188,11 @@ input[type='color']::-webkit-color-swatch {
     background-color: var(--cds-field-02, #ffffff);
 }
 
+/* Override tooltip z-index so it goes above table headers */
+.tooltip-z-index-override {
+    z-index: 2 !important;
+}
+
 /* Button Sets */
 .button-set {
     display: flex;

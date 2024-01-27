@@ -2,6 +2,7 @@
     import {
         TABLE_ID_ACTORS,
         TABLE_ID_AUTO_COMPLETES,
+        TABLE_ID_FILTERS,
         TABLE_ID_LOCALES,
         TABLE_ID_ROUTINES,
     } from '@lib/api/db/db-schema';
@@ -14,6 +15,7 @@
     import InspectorAutoComplete from './InspectorAutoComplete.svelte';
     import InspectorActor from './InspectorActor.svelte';
     import InspectorLocale from './InspectorLocale.svelte';
+    import InspectorFilter from './InspectorFilter.svelte';
 
     let inspected: Focusable;
 
@@ -56,6 +58,11 @@
                                 />
                             {:else if inspected.tableId === TABLE_ID_LOCALES}
                                 <InspectorLocale
+                                    rowView={inspected.rowView}
+                                    payload={inspected.payload}
+                                />
+                            {:else if inspected.tableId === TABLE_ID_FILTERS}
+                                <InspectorFilter
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />

@@ -153,7 +153,7 @@
                     isInspectorField={false}
                 />
             {:else if cell.key === 'focus'}
-                <FocusButton rowType={TABLE_ID_LOCALES} rowView={row} payload={focusPayload} />
+                <FocusButton rowType={TABLE_ID_FILTERS} rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

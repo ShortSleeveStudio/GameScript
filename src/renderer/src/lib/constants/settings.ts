@@ -49,3 +49,11 @@ export const PROPERTY_UNDO_BOOL = 'boolean property';
 export const LOCALE_UNDO_PRIMARY = 'primary locale';
 export const LOCALE_UNDO_NAME = 'locale name';
 export const LOCALE_PLACEHOLDER_NAME = 'Enter locale name';
+
+/**Filters */
+export const FILTER_UNDO_NAME = 'filter name';
+export const FILTER_PLACEHOLDER_NAME = 'Enter filter name';
+export const FILTER_UNDO_NOTES = 'filter notes';
+export const FILTER_PLACEHOLDER_NOTES = 'Developer notes go here...';
+export const FILTER_UNDO_OPTION = 'option';
+export const FILTER_PLACEHOLDER_OPTION = 'Enter an option';
