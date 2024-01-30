@@ -147,16 +147,16 @@ export abstract class Db {
     /**
      * This fetches (all) rows in a table and returns them sorted by id.
      * Throws an error during failures.
-     * @param fetcher The table view fetching the rows
      * @param tableId Id of the table
      * @param filter Filter for the query
+     * @param fetcher The table view fetching the rows
      * @param connection Optional connection to execute with
      * @internal
      */
     abstract fetchRows<RowType extends Row>(
-        fetcher: IDbTableView<RowType>,
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
+        fetcher?: IDbTableView<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]>;
 

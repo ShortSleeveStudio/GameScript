@@ -98,13 +98,15 @@ export class FilterBuilderSqlite<RowType extends Row>
     constructor() {
         this._scopeDepth = 0;
         this._filter = '';
+        this._limit = undefined;
+        this._offset = undefined;
         this._scope = new Scope<RowType>(undefined);
         this._order = new Map();
     }
     eq(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
         this._scope.addCondition((row: RowType): boolean => {
-            return row[currentWhere] === value;
+            return this.castUnacceptableType(row[currentWhere]) === value;
         });
 
         const formattedValue: string = this.formatValue(value);
@@ -114,7 +116,7 @@ export class FilterBuilderSqlite<RowType extends Row>
     ne(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
         this._scope.addCondition((row: RowType): boolean => {
-            return row[currentWhere] !== value;
+            return this.castUnacceptableType(row[currentWhere]) !== value;
         });
 
         const formattedValue: string = this.formatValue(value);
@@ -274,8 +276,8 @@ export class FilterBuilderSqlite<RowType extends Row>
                 this._filter += ` ${<string>key} ${value}`;
             }
         }
-        if (this._limit) this._filter += ` LIMIT ${this._limit}`;
-        if (this._offset) this._filter += ` OFFSET ${this._offset}`;
+        if (this._limit !== undefined) this._filter += ` LIMIT ${this._limit}`;
+        if (this._offset !== undefined) this._filter += ` OFFSET ${this._offset}`;
         this._filter = this._filter.trim();
         return this;
     }
@@ -302,7 +304,7 @@ export class FilterBuilderSqlite<RowType extends Row>
         return this._offset;
     }
     getLimit(): number {
-        return this._offset;
+        return this._limit;
     }
 
     private formatValue(value: FilterColumnType): string {
@@ -314,5 +316,13 @@ export class FilterBuilderSqlite<RowType extends Row>
         } else {
             return `${value}`;
         }
+    }
+
+    private castUnacceptableType(value: unknown): unknown {
+        const type: string = typeof value;
+        if (type === 'boolean') {
+            value = value ? 1 : 0;
+        }
+        return value;
     }
 }

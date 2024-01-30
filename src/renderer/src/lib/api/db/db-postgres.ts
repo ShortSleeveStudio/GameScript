@@ -35,11 +35,10 @@ export class PostgresDb extends Db {
         throw new Error(`Method not implemented. ${tableId} ${rows}`);
     }
     fetchRows<RowType extends Row>(
-        fetcher: IDbTableView<RowType>,
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
     ): Promise<IDbRowView<RowType>[]> {
-        throw new Error(`Method not implemented. ${fetcher} ${tableId} ${filter}`);
+        throw new Error(`Method not implemented. ${tableId} ${filter}`);
     }
     refreshRow<RowType extends Row>(tableId: number, row: RowType): Promise<IDbRowView<RowType>> {
         throw new Error(`Method not implemented. ${tableId} ${row}`);

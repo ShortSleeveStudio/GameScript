@@ -34,7 +34,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._idToRowMap = new Map();
         this._internalWritable = writable<IDbRowView<RowType>[]>([]);
         this._isConnected = isConnected;
-        if (get(this._isConnected)) this.onReloadRequired();
+        this.onReloadRequired();
     }
 
     get viewId(): number {
@@ -106,11 +106,14 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     }
 
     async onReloadRequired(): Promise<void> {
+        // Only if connected
+        if (!get(this._isConnected)) return;
+
         // Load new rows
         const newRowViews: IDbRowView<RowType>[] = await db.fetchRows(
-            this,
             this._tableId,
             this._filter,
+            this,
         );
 
         // Add to map

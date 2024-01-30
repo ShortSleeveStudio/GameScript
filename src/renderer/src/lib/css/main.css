@@ -211,6 +211,14 @@ input[type='color']::-webkit-color-swatch {
     --ag-header-background-color: var(--cds-layer-accent, #e0e0e0);
     --ag-header-foreground-color: var(--cds-text-primary, #161616);
 
+    /* --ag-input-focus-border-color: var(--cds-text-primary, #161616); */
+    --ag-input-focus-box-shadow: none;
+
+    /* --ag-checkbox-border-radius: 0px; */
+    --ag-checkbox-checked-color: var(--cds-text-primary, #161616);
+    /* --ag-checkbox-unchecked-color: var(--cds-icon-01, #161616); */
+    /* --ag-checkbox-unchecked-color: red;  */
+
 
     --ag-range-selection-border-color: var(--cds-focus);
 

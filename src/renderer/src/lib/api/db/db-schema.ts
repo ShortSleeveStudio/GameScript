@@ -38,6 +38,9 @@ export interface SystemCreatable {
 export interface Principaled {
     principal: number; // FK
 }
+export interface Deletable {
+    isDeleted: boolean;
+}
 
 ///
 /// Tables
@@ -224,7 +227,7 @@ export interface Filter extends Row, Annotated {}
 ///
 /// Conversations
 ///
-export interface Conversation extends Row, SystemCreatable, Annotated {}
+export interface Conversation extends Row, SystemCreatable, Annotated, Deletable {}
 export const ACTOR_CONVERSATION_ID = 0;
 export const ACTOR_CONVERSATION_NAME = 'Actors';
 

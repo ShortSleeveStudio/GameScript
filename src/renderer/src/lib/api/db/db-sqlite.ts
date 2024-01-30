@@ -212,32 +212,14 @@ export class SqliteDb extends Db {
     }
 
     async fetchRows<RowType extends Row>(
-        fetcher: IDbTableView<RowType>,
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
+        fetcher?: IDbTableView<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]> {
-        const rowViews: IDbRowView<RowType>[] = [];
-        await this.fetchRowsInternal(
-            tableId,
-            filter,
-            (rowView: IDbRowView<RowType>) => {
-                rowView.ownerAdd(fetcher.viewId);
-                rowViews.push(rowView);
-            },
-            connection,
-        );
-        return rowViews;
-    }
-
-    private async fetchRowsInternal<RowType extends Row>(
-        tableId: DatabaseTableId,
-        filter: Filter<RowType>,
-        handler?: (rowView: IDbRowView<RowType>) => void,
-        connection?: DbConnection,
-    ): Promise<void> {
         this.assertConnected();
         // Fetch rows
+        const rowViews: IDbRowView<RowType>[] = [];
         const filterString: string = filter.toString();
         const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${
             filterString ? filterString : ''
@@ -261,8 +243,12 @@ export class SqliteDb extends Db {
                 // Update the row just in case (there should never be variation)
                 rowView.onRowUpdated(row);
             }
-            if (handler) handler(rowView);
+            // There won't be a fetcher if this isn't being called by a table view
+            if (fetcher) rowView.ownerAdd(fetcher.viewId);
+            rowViews.push(rowView);
         }
+
+        return rowViews;
     }
 
     async updateRow<RowType extends Row>(
@@ -321,7 +307,7 @@ export class SqliteDb extends Db {
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
-            throw new Error(`Failed to delete row: ${err}`);
+            throw new Error(`Failed to delete rows: ${err}`);
         }
 
         // Remove from cache
@@ -338,13 +324,6 @@ export class SqliteDb extends Db {
         this.destroyConnection();
         this._unsubscribeSqlitePath();
         this._unsubscribeDbConnected();
-    }
-
-    private async refreshRow<RowType extends Row>(tableId: number, row: RowType): Promise<void> {
-        this.fetchRowsInternal(
-            tableId,
-            createFilter().where().column('id').eq(row.id).endWhere().build(),
-        );
     }
 
     // This will look very different for postgres
@@ -400,7 +379,10 @@ export class SqliteDb extends Db {
         rows: RowType[],
     ): Promise<void> {
         for (let i = 0; i < rows.length; i++) {
-            await this.refreshRow(tableId, rows[i]);
+            await this.fetchRows(
+                tableId,
+                createFilter().where().column('id').eq(rows[i].id).endWhere().build(),
+            );
         }
     }
 

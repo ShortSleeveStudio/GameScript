@@ -25,7 +25,6 @@ import type { FinderContext } from './finder-context';
 
 // TODO: remove logging
 export class FinderDatasource implements IDatasource {
-    private _firstLoad: boolean;
     private _context: FinderContext;
     private _tableView: IDbTableView<Conversation> | undefined;
     private _unsubscriber: Unsubscriber;
@@ -133,13 +132,16 @@ export class FinderDatasource implements IDatasource {
         // Create or update table view
         if (!this._tableView) {
             console.log('SETTING TABLE');
-            this._firstLoad = true; // order matters, this must come before the table set
             this._tableView = db.fetchTable<Conversation>(TABLE_ID_CONVERSATIONS, filter);
             this._unsubscriber = this._tableView.subscribe(this.onTableChanged);
         } else {
-            console.log('SETTING FILTER');
+            console.log('UPDATING TABLE');
+
             // Update the filter
             this._tableView.filter = filter;
+
+            // Request refresh
+            this._tableView.onReloadRequired();
         }
     }
 
@@ -195,15 +197,7 @@ export class FinderDatasource implements IDatasource {
     private onTableChanged: (rowViews: IDbRowView<Conversation>[]) => void = (
         rowViews: IDbRowView<Conversation>[],
     ) => {
-        // Ignore the first call, always in response to subscription, unless there's data
-        if (this._firstLoad) {
-            console.log('FIRST LOAD');
-            this._firstLoad = false;
-            if (rowViews.length === 0) {
-                console.log('SKIPPING FIRST CALLBACK');
-                return;
-            }
-        }
+        console.log('TABLE CHANGED');
 
         // Second call will almost always represent the data loading in, so we call the callback
         // Subsequent calls will be updates and require the cache to be refreshed

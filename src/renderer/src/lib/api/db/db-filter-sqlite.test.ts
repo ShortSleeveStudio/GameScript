@@ -1,9 +1,9 @@
 import { createFilter } from '@lib/api/db/db-filter';
-import { ROUTINE_TYPE_ID_USER, type Routine } from '@lib/api/db/db-schema';
+import { ROUTINE_TYPE_ID_USER, type Conversation, type Routine } from '@lib/api/db/db-schema';
 import { expect, test } from 'vitest';
 import { ASC, DESC } from './db-filter-interface';
 
-test('is', () => {
+test('eq', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
@@ -15,7 +15,19 @@ test('is', () => {
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(false);
 });
 
-test('is not', () => {
+test('eq boolean number', () => {
+    const result = createFilter<Conversation>()
+        .where()
+        .column('isDeleted')
+        .eq(1)
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE isDeleted = 1');
+    expect(result.wouldAffectRow(<Conversation>{ isDeleted: true })).toBe(true);
+    expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(false);
+});
+
+test('ne', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
@@ -25,6 +37,18 @@ test('is not', () => {
     expect(result.toString()).toBe('WHERE type != 0');
     expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_ID_USER })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(true);
+});
+
+test('ne boolean number', () => {
+    const result = createFilter<Conversation>()
+        .where()
+        .column('isDeleted')
+        .ne(1)
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE isDeleted != 1');
+    expect(result.wouldAffectRow(<Conversation>{ isDeleted: true })).toBe(false);
+    expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(true);
 });
 
 test('like', () => {
@@ -178,6 +202,28 @@ test('limit', () => {
     expect(result.toString()).toBe('WHERE type = 0 LIMIT 10');
 });
 
+test('limit 0', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_ID_USER)
+        .endWhere()
+        .limit(0)
+        .build();
+    expect(result.toString()).toBe('WHERE type = 0 LIMIT 0');
+});
+
+test('getLimit', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_ID_USER)
+        .endWhere()
+        .limit(5)
+        .build();
+    expect(result.getLimit()).toBe(5);
+});
+
 test('offset', () => {
     const result = createFilter<Routine>()
         .where()
@@ -188,6 +234,28 @@ test('offset', () => {
         .offset(10)
         .build();
     expect(result.toString()).toBe('WHERE type = 0 OFFSET 10');
+});
+
+test('getOffset', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_ID_USER)
+        .endWhere()
+        .offset(5)
+        .build();
+    expect(result.getOffset()).toBe(5);
+});
+
+test('offset 0', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_ID_USER)
+        .endWhere()
+        .offset(0)
+        .build();
+    expect(result.toString()).toBe('WHERE type = 0 OFFSET 0');
 });
 
 test('limit offset', () => {
