@@ -2,7 +2,7 @@ import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import { ASC } from '@lib/api/db/db-filter-interface';
 import {
-    ACTOR_CONVERSATION_ID,
+    ACTORS_CONVERSATION_ID,
     TABLE_ID_CONVERSATIONS,
     TABLE_ID_LOCALIZATIONS,
     type Conversation,
@@ -17,7 +17,7 @@ const actorConversationTableView: IDbTableView<Conversation> = db.fetchTable(
     createFilter<Conversation>()
         .where()
         .column('id')
-        .eq(ACTOR_CONVERSATION_ID)
+        .eq(ACTORS_CONVERSATION_ID)
         .endWhere()
         .orderBy('id', ASC)
         .build(),

@@ -2,6 +2,7 @@
     import {
         TABLE_ID_ACTORS,
         TABLE_ID_AUTO_COMPLETES,
+        TABLE_ID_CONVERSATIONS,
         TABLE_ID_FILTERS,
         TABLE_ID_LOCALES,
         TABLE_ID_ROUTINES,
@@ -17,6 +18,7 @@
     import InspectorLocale from './InspectorLocale.svelte';
     import InspectorFilter from './InspectorFilter.svelte';
     import { dbConnected } from '@lib/stores/settings/settings';
+    import InspectorConversation from './InspectorConversation.svelte';
 
     let inspected: Focusable;
 
@@ -67,6 +69,8 @@
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
+                            {:else if inspected.tableId === TABLE_ID_CONVERSATIONS}
+                                <InspectorConversation rowView={inspected.rowView} />
                             {/if}
                         {/key}
                     {/if}

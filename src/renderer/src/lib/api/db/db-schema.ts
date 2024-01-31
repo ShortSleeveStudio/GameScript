@@ -228,8 +228,8 @@ export interface Filter extends Row, Annotated {}
 /// Conversations
 ///
 export interface Conversation extends Row, SystemCreatable, Annotated, Deletable {}
-export const ACTOR_CONVERSATION_ID = 0;
-export const ACTOR_CONVERSATION_NAME = 'Actors';
+export const ACTORS_CONVERSATION_ID = 0;
+export const ACTORS_CONVERSATION_NAME = 'Actors';
 
 ///
 /// Locales

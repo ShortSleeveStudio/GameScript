@@ -57,3 +57,7 @@ export const FILTER_UNDO_NOTES = 'filter notes';
 export const FILTER_PLACEHOLDER_NOTES = 'Developer notes go here...';
 export const FILTER_UNDO_OPTION = 'option';
 export const FILTER_PLACEHOLDER_OPTION = 'Enter an option';
+
+/**Conversations */
+export const CONVERSATION_UNDO_NOTES = 'conversation notes';
+export const CONVERSATION_PLACEHOLDER_NOTES = 'Developer notes go here...';

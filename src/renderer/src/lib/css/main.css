@@ -193,13 +193,6 @@ input[type='color']::-webkit-color-swatch {
     z-index: 2 !important;
 }
 
-/* Overflow menu z-index bump */
-/* .bx--overflow-menu-options  */
-/* .overflow-menu-index-bump > .bx--overflow-menu-options   {
-    z-index: 10000 !important;
-    background-color: red;
-} */
-
 /* Button Sets */
 .button-set {
     display: flex;

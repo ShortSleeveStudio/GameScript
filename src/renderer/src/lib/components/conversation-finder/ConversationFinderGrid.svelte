@@ -12,6 +12,7 @@
         type IRowNode,
         type FilterModel,
         type NumberFilterModel,
+        type RowClickedEvent,
     } from '@ag-grid-community/core';
     import {
         TABLE_ID_CONVERSATIONS,
@@ -21,6 +22,7 @@
         type Node,
         TABLE_ID_LOCALIZATIONS,
         type Localization,
+        type Row,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
@@ -44,6 +46,7 @@
     import { createFilter } from '@lib/api/db/db-filter';
     import { GRID_CACHE_BLOCK_SIZE, GRID_CACHE_MAX_BLOCKS } from '@lib/constants/grid';
     import { type GridContext } from '@lib/grid/grid-context';
+    import { focused, type Focus } from '@lib/stores/app/focus';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
     const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
@@ -264,6 +267,11 @@
         selectedRows = <IDbRowView<Conversation>[]>api.getSelectedRows();
     }
 
+    function onRowClicked(event: RowClickedEvent<IDbRowView<Conversation>, GridContext>): void {
+        const rowView: IDbRowView<Row> = event.data;
+        focused.set(<Focus>{ tableId: TABLE_ID_CONVERSATIONS, rowView: rowView });
+    }
+
     function onFiltersChanged(): void {
         // Grab filters
         const filterRowViews: IDbRowView<Filter>[] = get(filters);
@@ -323,6 +331,7 @@
             rowSelection: 'multiple',
             suppressRowClickSelection: true,
             onSelectionChanged: onSelectionChanged,
+            onRowClicked: onRowClicked,
             isRowSelectable: (params: IRowNode<IDbRowView<Conversation>>) => {
                 return !!params.data && !get(params.data).isSystemCreated;
             },

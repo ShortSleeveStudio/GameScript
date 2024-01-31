@@ -1,8 +1,8 @@
 import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
 import { localeIdToColumn } from '@lib/utility/locale';
 import {
-    ACTOR_CONVERSATION_ID,
-    ACTOR_CONVERSATION_NAME,
+    ACTORS_CONVERSATION_ID,
+    ACTORS_CONVERSATION_NAME,
     DATABASE_TABLE_NAMES,
     PROGRAMMING_LANGUAGE_NAMES,
     ROUTINE_TYPES,
@@ -287,7 +287,7 @@ COMMIT;
 `;
 // Conversations
 const INITIALIZE_CONVERSATIONS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_CONVERSATIONS} (id, name, isSystemCreated, isDeleted) VALUES (${ACTOR_CONVERSATION_ID}, '${ACTOR_CONVERSATION_NAME}', true, false);`;
+INSERT OR IGNORE INTO ${TABLE_NAME_CONVERSATIONS} (id, name, isSystemCreated, isDeleted) VALUES (${ACTORS_CONVERSATION_ID}, '${ACTORS_CONVERSATION_NAME}', true, false);`;
 // Locales
 rowIndex = DEFAULT_LOCALE_ID;
 const INITIALIZE_LOCALES = `
@@ -307,7 +307,7 @@ const DEFAULT_LOCALIZATION_ID = rowIndex;
 const INITIALIZE_LOCALIZATIONS = `
 INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, parent, isSystemCreated, '${localeIdToColumn(
     DEFAULT_LOCALE_ID,
-)}') VALUES (${rowIndex++}, ${ACTOR_CONVERSATION_ID}, true, 'Player');
+)}') VALUES (${rowIndex++}, ${ACTORS_CONVERSATION_ID}, true, 'Player');
 `;
 // Actors
 rowIndex = 0;
