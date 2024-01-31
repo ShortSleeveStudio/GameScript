@@ -16,6 +16,7 @@
     import InspectorActor from './InspectorActor.svelte';
     import InspectorLocale from './InspectorLocale.svelte';
     import InspectorFilter from './InspectorFilter.svelte';
+    import { dbConnected } from '@lib/stores/settings/settings';
 
     let inspected: Focusable;
 
@@ -38,7 +39,7 @@
         <Grid noGutter>
             <Row>
                 <Column>
-                    {#if inspected}
+                    {#if $dbConnected && inspected}
                         <!-- Destroy and recreate anytime the focus changes -->
                         {#key inspected}
                             {#if inspected.tableId === TABLE_ID_ROUTINES}

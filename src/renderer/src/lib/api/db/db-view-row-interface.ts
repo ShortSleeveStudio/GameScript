@@ -10,12 +10,4 @@ export interface IDbRowView<RowType extends Row> extends Readable<RowType> {
         run: Subscriber<RowType>,
         invalidate?: Invalidator<RowType> | undefined,
     ): Unsubscriber;
-    /**@internal */
-    onRowUpdated(newValue: RowType): void;
-    /**@internal */
-    ownerCount(): number;
-    /**@internal */
-    ownerAdd(ownerId: number): void;
-    /**@internal */
-    ownerRemove(ownerId: number): void;
 }

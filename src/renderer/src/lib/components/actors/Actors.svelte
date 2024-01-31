@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Column, Content, Grid, Row } from 'carbon-components-svelte';
     import ActorsTable from './ActorsTable.svelte';
+    import { dbConnected } from '@lib/stores/settings/settings';
 </script>
 
 <div class="actors">
@@ -8,7 +9,9 @@
         <Grid noGutter>
             <Row>
                 <Column>
-                    <ActorsTable />
+                    {#if $dbConnected}
+                        <ActorsTable />
+                    {/if}
                 </Column>
             </Row>
         </Grid>

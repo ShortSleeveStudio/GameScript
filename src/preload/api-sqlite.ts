@@ -4,6 +4,7 @@ import {
     API_SQLITE_CLOSE,
     API_SQLITE_CLOSE_ALL,
     API_SQLITE_EXEC,
+    API_SQLITE_GET,
     API_SQLITE_OPEN,
     API_SQLITE_RUN,
 } from '../common/constants';
@@ -20,6 +21,7 @@ export interface SqliteApi {
     closeAll(): Promise<void>;
     run(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<SqliteResult>;
     all<T = unknown[]>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
+    get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
 }
 
@@ -38,6 +40,9 @@ export const sqliteApi: SqliteApi = {
     },
     all: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
         return await ipcRenderer.invoke(API_SQLITE_ALL, connection, query, bindValues);
+    },
+    get: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
+        return await ipcRenderer.invoke(API_SQLITE_GET, connection, query, bindValues);
     },
     exec: async (connection: DbConnection, query: string) => {
         await ipcRenderer.invoke(API_SQLITE_EXEC, connection, query);

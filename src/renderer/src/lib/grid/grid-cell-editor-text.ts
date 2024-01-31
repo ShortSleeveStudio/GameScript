@@ -4,9 +4,9 @@ import { DATABASE_TABLE_NAMES, type Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import { get } from 'svelte/store';
-import type { FinderContext } from './finder-context';
+import type { GridContext } from './grid-context';
 
-export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, string, FinderContext> {
+export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, string, GridContext> {
     private _rowView: IDbRowView<Row>;
     private _columnName: string;
     private _element: HTMLInputElement;
@@ -48,9 +48,7 @@ export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, stri
         if (this._element) this._element.remove();
         if (this._rowView) this._rowView = undefined;
     }
-    init(
-        params: ICellEditorParams<IDbRowView<Row>, string, FinderContext>,
-    ): void | AgPromise<void> {
+    init(params: ICellEditorParams<IDbRowView<Row>, string, GridContext>): void | AgPromise<void> {
         this._rowView = params.data;
         this._columnName = params.colDef.colId;
         this._element = document.createElement('input');

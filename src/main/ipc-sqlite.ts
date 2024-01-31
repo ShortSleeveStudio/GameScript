@@ -5,6 +5,7 @@ import {
     API_SQLITE_CLOSE,
     API_SQLITE_CLOSE_ALL,
     API_SQLITE_EXEC,
+    API_SQLITE_GET,
     API_SQLITE_OPEN,
     API_SQLITE_RUN,
 } from '../common/constants';
@@ -89,6 +90,26 @@ ipcMain.handle(
             const statement: Statement = connection.prepare(query);
             const results: unknown[] = bindValues ? statement.all(...bindValues) : statement.all();
             resolve(results);
+        });
+    },
+);
+ipcMain.handle(
+    API_SQLITE_GET,
+    async (
+        _: IpcMainInvokeEvent,
+        connectionId: DbConnection,
+        query: string,
+        bindValues?: unknown[],
+    ): Promise<unknown> => {
+        return new Promise((resolve, reject) => {
+            const connection: Db = <Db>connectionMap.get(connectionId.id);
+            if (!connection) {
+                reject();
+                return;
+            }
+            const statement: Statement = connection.prepare(query);
+            const result: unknown = bindValues ? statement.get(...bindValues) : statement.get();
+            resolve(result);
         });
     },
 );

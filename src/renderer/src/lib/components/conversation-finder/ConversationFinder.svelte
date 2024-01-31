@@ -2,7 +2,7 @@
     import { Content, Grid, Column, Row } from 'carbon-components-svelte';
     import {} from 'carbon-components-svelte';
     import ConversationFinderGrid from './ConversationFinderGrid.svelte';
-    // import ConversationFinderTable from './ConversationFinderTable.svelte';
+    import { dbConnected } from '@lib/stores/settings/settings';
 </script>
 
 <div class="conversation-finder">
@@ -10,8 +10,9 @@
         <Grid noGutter style="height: 100%">
             <Row style="height: 100%">
                 <Column style="height: 100%">
-                    <ConversationFinderGrid />
-                    <!-- <ConversationFinderTable /> -->
+                    {#if $dbConnected}
+                        <ConversationFinderGrid />
+                    {/if}
                 </Column>
             </Row>
         </Grid>

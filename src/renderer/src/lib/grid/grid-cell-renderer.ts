@@ -2,7 +2,7 @@ import type { AgPromise, ICellRendererComp, ICellRendererParams } from '@ag-grid
 import type { Conversation } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { Unsubscriber } from 'svelte/store';
-import type { FinderContext } from './finder-context';
+import type { GridContext } from './grid-context';
 
 /**Reactive cell renderer for the finder */
 export class GridCellRenderer implements ICellRendererComp {
@@ -11,7 +11,7 @@ export class GridCellRenderer implements ICellRendererComp {
     private _columnName: string;
     private _rowUnsubscriber: Unsubscriber;
 
-    refresh(params: ICellRendererParams<IDbRowView<Conversation>, string, FinderContext>): boolean {
+    refresh(params: ICellRendererParams<IDbRowView<Conversation>, string, GridContext>): boolean {
         this.attemptSubscription(params);
         return true;
     }
@@ -23,7 +23,7 @@ export class GridCellRenderer implements ICellRendererComp {
         if (this._element) this._element.remove();
     }
     init(
-        params: ICellRendererParams<IDbRowView<Conversation>, string, FinderContext>,
+        params: ICellRendererParams<IDbRowView<Conversation>, string, GridContext>,
     ): void | AgPromise<void> {
         this._columnName = params.colDef.colId;
         this._text = document.createTextNode('');
@@ -33,7 +33,7 @@ export class GridCellRenderer implements ICellRendererComp {
     }
 
     private attemptSubscription(
-        params: ICellRendererParams<IDbRowView<Conversation>, string, FinderContext>,
+        params: ICellRendererParams<IDbRowView<Conversation>, string, GridContext>,
     ): void {
         if (this._rowUnsubscriber) this._rowUnsubscriber();
         if (params.data) {

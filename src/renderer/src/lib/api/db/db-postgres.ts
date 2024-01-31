@@ -3,7 +3,6 @@ import { Db, type Transaction } from './db-base';
 import type { Filter } from './db-filter-interface';
 import type { DatabaseTableId, FieldTypeId, Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
-import type { IDbTableView } from './db-view-table-interface';
 
 /**PostgreSQL database implementation */
 export class PostgresDb extends Db {
@@ -12,15 +11,6 @@ export class PostgresDb extends Db {
     }
     executeTransaction(transaction: Transaction): Promise<void> {
         throw new Error(`Method not implemented. ${transaction}`);
-    }
-    fetchTable<RowType extends Row>(
-        tableId: DatabaseTableId,
-        filter: Filter<RowType>,
-    ): IDbTableView<RowType> {
-        throw new Error(`Method not implemented. ${tableId} ${filter}`);
-    }
-    releaseTable<RowType extends Row>(tableId: IDbTableView<RowType>): void {
-        throw new Error(`Method not implemented. ${tableId}`);
     }
     createColumn(tableId: DatabaseTableId, name: string, type: FieldTypeId): Promise<void> {
         throw new Error(`Method not implemented. ${tableId} ${name} ${type}`);
@@ -33,6 +23,15 @@ export class PostgresDb extends Db {
     }
     createRows<RowType extends Row>(tableId: DatabaseTableId, rows: RowType[]): Promise<RowType[]> {
         throw new Error(`Method not implemented. ${tableId} ${rows}`);
+    }
+    fetchRowCount<RowType extends Row>(tableId: number, filter: Filter<RowType>): Promise<number> {
+        throw new Error(`Method not implemented. ${tableId} ${filter}`);
+    }
+    fetchRowsRaw<RowType extends Row>(
+        tableId: number,
+        filter: Filter<RowType>,
+    ): Promise<RowType[]> {
+        throw new Error(`Method not implemented. ${tableId} ${filter}`);
     }
     fetchRows<RowType extends Row>(
         tableId: DatabaseTableId,

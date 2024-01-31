@@ -29,7 +29,7 @@ import {
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
-import type { IDbTableView } from './db-view-table-interface';
+import type { DbTableView } from './db-view-table';
 
 /**Used to queue notifications when needed. */
 interface DbNotification {
@@ -211,40 +211,65 @@ export class SqliteDb extends Db {
         return rows;
     }
 
-    async fetchRows<RowType extends Row>(
+    async fetchRowCount<RowType extends Row>(
+        tableId: number,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<number> {
+        const query: string = `SELECT COUNT(*) as count FROM ${
+            DATABASE_TABLE_NAMES[tableId]
+        } ${filter.whereClause()}`;
+        let result: number = 0;
+        try {
+            const resultObj = await window.api.sqlite.get(connection ?? this._db, query);
+            result = resultObj['count'];
+        } catch (err) {
+            throw new Error(`Failed to fetch row count: ${err}`);
+        }
+        return result;
+    }
+
+    async fetchRowsRaw<RowType extends Row>(
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
-        fetcher?: IDbTableView<RowType>,
         connection?: DbConnection,
-    ): Promise<IDbRowView<RowType>[]> {
+    ): Promise<RowType[]> {
         this.assertConnected();
         // Fetch rows
-        const rowViews: IDbRowView<RowType>[] = [];
-        const filterString: string = filter.toString();
-        const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${
-            filterString ? filterString : ''
-        }`;
+        const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${filter.toString()}`;
         let results: RowType[];
         try {
             results = await window.api.sqlite.all(connection ?? this._db, query);
         } catch (err) {
             throw new Error(`Failed to fetch rows: ${err}`);
         }
+        return results;
+    }
+
+    async fetchRows<RowType extends Row>(
+        tableId: DatabaseTableId,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<IDbRowView<RowType>[]> {
+        this.assertConnected();
+        // Fetch rows
+        const rowViews: IDbRowView<RowType>[] = [];
+        const results: RowType[] = await this.fetchRowsRaw(tableId, filter, connection);
 
         // Map to row views
-        const rowViewMap: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
+        const rowViewMap: Map<number, DbRowView<RowType>> = super.getRowViewsForTable(tableId);
         for (let i = 0; i < results.length; i++) {
             const row: RowType = results[i];
             let rowView = rowViewMap.get(row.id);
             if (!rowView) {
-                rowView = new DbRowView<RowType>(tableId, row);
+                rowView = new DbRowView<RowType>(tableId, row, () =>
+                    super.destroyRowView(tableId, row.id),
+                );
                 rowViewMap.set(row.id, rowView);
             } else {
                 // Update the row just in case (there should never be variation)
                 rowView.onRowUpdated(row);
             }
-            // There won't be a fetcher if this isn't being called by a table view
-            if (fetcher) rowView.ownerAdd(fetcher.viewId);
             rowViews.push(rowView);
         }
 
@@ -369,7 +394,7 @@ export class SqliteDb extends Db {
         const tableViews = super.getTableViewsForTable<RowType>(tableId);
         for (const tableView of tableViews.values()) {
             if (tableView.filter.wouldAffectRows(rows)) {
-                tableView.onReloadRequired();
+                (<DbTableView<RowType>>tableView).onReloadRequired();
             }
         }
     }
@@ -379,6 +404,7 @@ export class SqliteDb extends Db {
         rows: RowType[],
     ): Promise<void> {
         for (let i = 0; i < rows.length; i++) {
+            // This will update the cached rows
             await this.fetchRows(
                 tableId,
                 createFilter().where().column('id').eq(rows[i].id).endWhere().build(),
@@ -406,7 +432,7 @@ export class SqliteDb extends Db {
         }
 
         // Notify tables
-        Db._tableToTableView.forEach((tableViewMap: Map<number, IDbTableView<Row>>) => {
+        Db._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
             for (const tableView of tableViewMap.values()) {
                 tableView.onReloadRequired();
             }

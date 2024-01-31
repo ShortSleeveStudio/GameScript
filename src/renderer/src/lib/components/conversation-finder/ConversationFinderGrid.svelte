@@ -24,8 +24,7 @@
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
-    import type { FinderContext } from '@lib/grid/finder-context';
-    import { FinderDatasource } from '@lib/grid/finder-datasource';
+    import { GridDatasource } from '@lib/grid/grid-datasource';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { filters } from '@lib/tables/filters';
@@ -43,22 +42,16 @@
     import { Reset, TrashCan } from 'carbon-icons-svelte';
     import type { DbConnection } from 'preload/api-db';
     import { createFilter } from '@lib/api/db/db-filter';
+    import { GRID_CACHE_BLOCK_SIZE, GRID_CACHE_MAX_BLOCKS } from '@lib/constants/grid';
+    import { type GridContext } from '@lib/grid/grid-context';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
-    const datasource: IDatasource = new FinderDatasource();
+    const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
     const columnIdSet: Set<string> = new Set();
-
-    let api: GridApi;
-    let finderElement: HTMLElement;
-    let tableWatcher: TableWatcher<Filter>;
-    let loadLayoutRequested: boolean = false;
-    let isDeletedVisible: boolean = false;
-    let isModalOpen: boolean = false;
-
-    let columnDefs: ColDef[] = [];
-    let selectedRows: IDbRowView<Conversation>[] = [];
-    let isLoading: IsLoadingStore = new IsLoadingStore();
-
+    const textFilterParams: ITextFilterParams = {
+        filterOptions: ['equals', 'notEqual', 'contains', 'notContains', 'startsWith', 'endsWith'],
+        // maxNumConditions: 4,
+    };
     const numberFilterParams: INumberFilterParams = {
         filterOptions: [
             'equals',
@@ -70,12 +63,6 @@
         ],
         // maxNumConditions: 3,
     };
-
-    const textFilterParams: ITextFilterParams = {
-        filterOptions: ['equals', 'notEqual', 'contains', 'notContains', 'startsWith', 'endsWith'],
-        // maxNumConditions: 4,
-    };
-
     const staticColumns: ColDef[] = [
         {
             pinned: 'left',
@@ -83,7 +70,7 @@
             colId: 'id',
             resizable: false,
             cellRenderer: GridCellRenderer,
-            type: 'nonEditableColumn',
+            editable: false,
             // width: 72, // Min before the sort arrow overlaps
             filter: 'agNumberColumnFilter',
             filterParams: numberFilterParams,
@@ -107,6 +94,16 @@
             suppressColumnsToolPanel: true,
         },
     ];
+
+    let api: GridApi;
+    let finderElement: HTMLElement;
+    let tableWatcher: TableWatcher<Filter>;
+    let loadLayoutRequested: boolean = false;
+    let isDeletedVisible: boolean = false;
+    let isModalOpen: boolean = false;
+    let columnDefs: ColDef[] = [...staticColumns];
+    let selectedRows: IDbRowView<Conversation>[] = [];
+    let isLoading: IsLoadingStore = new IsLoadingStore();
 
     function loadLayout(): void {
         const savedStateString: string | null = localStorage.getItem(LS_KEY_FINDER_LAYOUT);
@@ -172,31 +169,8 @@
             for (let i = 0; i < selectedConversations.length; i++) {
                 const conversationToDelete: Conversation = selectedConversations[i];
 
-                // Delete conversations
-                await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
-
-                // Delete nodes
-                const nodes: IDbRowView<Node>[] = await db.fetchRows<Node>(
-                    TABLE_ID_NODES,
-                    createFilter()
-                        .where()
-                        .column('parent')
-                        .eq(conversationToDelete.id)
-                        .endWhere()
-                        .build(),
-                    undefined,
-                    conn,
-                );
-                if (nodes.length > 0) {
-                    await db.deleteRows(
-                        TABLE_ID_NODES,
-                        nodes.map((node) => get(node)),
-                        conn,
-                    );
-                }
-
                 // Delete localizations
-                const localizations: IDbRowView<Localization>[] = await db.fetchRows<Localization>(
+                const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
                     TABLE_ID_LOCALIZATIONS,
                     createFilter()
                         .where()
@@ -204,16 +178,29 @@
                         .eq(conversationToDelete.id)
                         .endWhere()
                         .build(),
-                    undefined,
                     conn,
                 );
                 if (localizations.length > 0) {
-                    await db.deleteRows(
-                        TABLE_ID_LOCALIZATIONS,
-                        localizations.map((localization) => get(localization)),
-                        conn,
-                    );
+                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
                 }
+
+                // Delete nodes
+                const nodes: Node[] = await db.fetchRowsRaw<Node>(
+                    TABLE_ID_NODES,
+                    createFilter()
+                        .where()
+                        .column('parent')
+                        .eq(conversationToDelete.id)
+                        .endWhere()
+                        .build(),
+                    conn,
+                );
+                if (nodes.length > 0) {
+                    await db.deleteRows(TABLE_ID_NODES, nodes, conn);
+                }
+
+                // Delete conversations
+                await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
             }
         });
 
@@ -262,19 +249,6 @@
         api.deselectAll();
     }
 
-    // function isDeletedVisible(): boolean {
-    //     const model: FilterModel = api.getFilterModel();
-    //     let currentValue: boolean;
-    //     if (IS_DELETED_COLUMN in model) {
-    //         currentValue =
-    //             (<NumberFilterModel>model[IS_DELETED_COLUMN]).filter === 1 ? true : false;
-    //     } else {
-    //         // Assume we are showing deleted
-    //         currentValue = true;
-    //     }
-    //     return currentValue;
-    // }
-
     function showIsDeleted(shouldShow: boolean): void {
         const model: FilterModel = api.getFilterModel();
         model[IS_DELETED_COLUMN] = <NumberFilterModel>{
@@ -293,6 +267,7 @@
     function onFiltersChanged(): void {
         // Grab filters
         const filterRowViews: IDbRowView<Filter>[] = get(filters);
+        if (filterRowViews.length === 0) return;
 
         // Purge old columns
         columnIdSet.clear();
@@ -333,9 +308,16 @@
         api?.autoSizeAllColumns();
     }
 
+    const onShutdown: () => void = () => {
+        if (!api) return;
+        const savedState: ColumnState[] = api.getColumnState();
+        localStorage.setItem(LS_KEY_FINDER_LAYOUT, JSON.stringify(savedState));
+    };
+
     onMount(() => {
+        // Create grid options
         const gridOptions: GridOptions = <GridOptions>{
-            context: <FinderContext>{ getGridApi: getGridApi },
+            context: <GridContext>{ getGridApi: getGridApi },
             rowModelType: 'infinite',
             columnDefs: columnDefs,
             rowSelection: 'multiple',
@@ -372,16 +354,13 @@
                     },
                 ],
             },
+            cacheBlockSize: GRID_CACHE_BLOCK_SIZE,
+            maxBlocksInCache: GRID_CACHE_MAX_BLOCKS,
             autoSizeStrategy: {
                 type: 'fitCellContents',
             },
             stopEditingWhenCellsLoseFocus: true,
             datasource: datasource,
-            columnTypes: {
-                nonEditableColumn: {
-                    editable: false,
-                },
-            },
         };
         api = createGrid(finderElement, gridOptions);
 
@@ -396,13 +375,17 @@
         showIsDeleted(false);
 
         // Event Listeners
-        addEventListener(EVENT_SHUTDOWN, () => {
-            const savedState: ColumnState[] = api.getColumnState();
-            localStorage.setItem(LS_KEY_FINDER_LAYOUT, JSON.stringify(savedState));
-        });
+        addEventListener(EVENT_SHUTDOWN, onShutdown);
     });
     onDestroy(() => {
-        tableWatcher.dispose();
+        // Remove event listener
+        removeEventListener(EVENT_SHUTDOWN, onShutdown);
+
+        // Dispose of table watcher
+        tableWatcher?.dispose();
+
+        // Destroy table
+        api?.destroy();
     });
 </script>
 

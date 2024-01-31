@@ -16,6 +16,7 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     tableId: DatabaseTableId;
     tableName: DatabaseTableName;
     filter: Filter<RowType>;
+    rowCount: number;
     subscribe(
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,
@@ -24,7 +25,4 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     getRowViewsById(id: number[]): IDbRowView<RowType>[];
     getRowById(id: number): RowType | undefined;
     getRowsById(id: number[]): RowType[];
-    dispose(): void;
-    /**@internal */
-    onReloadRequired(): Promise<void>;
 }

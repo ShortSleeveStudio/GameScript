@@ -88,6 +88,7 @@ export class FilterBuilderSqlite<RowType extends Row>
         Filter<RowType>
 {
     private _filter: string;
+    private _whereClause: string;
     private _scopeDepth: number;
     private _currentWhere!: keyof RowType;
     private _scope: Scope<RowType>;
@@ -267,6 +268,7 @@ export class FilterBuilderSqlite<RowType extends Row>
         if (this._scopeDepth > 0) {
             throw new Error(`Open scope never closed. Depth: ${this._scopeDepth}`);
         }
+        this._whereClause = this._filter.slice().trim();
         if (this._order.size > 0) {
             this._filter += ` ORDER BY`;
             let isFirst: boolean = true;
@@ -280,6 +282,10 @@ export class FilterBuilderSqlite<RowType extends Row>
         if (this._offset !== undefined) this._filter += ` OFFSET ${this._offset}`;
         this._filter = this._filter.trim();
         return this;
+    }
+
+    whereClause(): string {
+        return this._whereClause;
     }
 
     wouldAffectRow(row: RowType): boolean {

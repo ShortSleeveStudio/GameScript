@@ -19,7 +19,7 @@
 <section
     aria-label="data table toolbar"
     class="bx--table-toolbar bx--table-toolbar--small"
-    style:z-index={1}
+    style:z-index={3}
     style:overflow="visible"
 >
     {#if !isOverflowOpen}

@@ -24,4 +24,5 @@ export const API_SQLITE_CLOSE = '/api/sqlite/close';
 export const API_SQLITE_CLOSE_ALL = '/api/sqlite/close-all';
 export const API_SQLITE_RUN = '/api/sqlite/run';
 export const API_SQLITE_ALL = '/api/sqlite/all';
+export const API_SQLITE_GET = '/api/sqlite/get';
 export const API_SQLITE_EXEC = '/api/sqlite/exec';

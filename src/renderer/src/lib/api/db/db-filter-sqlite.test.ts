@@ -321,3 +321,16 @@ test('orderBy and limit and offset', () => {
         .build();
     expect(result.toString()).toBe('WHERE type = 0 ORDER BY type DESC, ID ASC LIMIT 10 OFFSET 10');
 });
+
+test('eq', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_ID_USER)
+        .endWhere()
+        .limit(100)
+        .offset(0)
+        .build();
+    expect(result.toString()).toBe('WHERE type = 0 LIMIT 100 OFFSET 0');
+    expect(result.whereClause()).toBe('WHERE type = 0');
+});

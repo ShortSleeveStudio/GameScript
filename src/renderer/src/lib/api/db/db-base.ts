@@ -7,6 +7,7 @@ import {
     type FieldTypeId,
     type Row,
 } from './db-schema';
+import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
 import type { IDbTableView } from './db-view-table-interface';
@@ -22,15 +23,18 @@ export const OP_ALTER: OpType = 3;
 // Transaction type
 export type Transaction = (connection: DbConnection) => Promise<void>;
 
+// Row view destructor
+export type RowViewDestructor = () => void;
+
 /**The interface all databases must implement */
 export abstract class Db {
-    protected static _tableToRowView: Map<number, IDbRowView<Row>>[]; // Lookup table using table id
-    protected static _tableToTableView: Map<number, IDbTableView<Row>>[]; // Lookup table using table id
+    protected static _tableToRowView: Map<number, DbRowView<Row>>[]; // Lookup table using table id
+    protected static _tableToTableView: Map<number, DbTableView<Row>>[]; // Lookup table using table id
     static {
-        Db._tableToRowView = <Map<number, IDbRowView<Row>>[]>(
+        Db._tableToRowView = <Map<number, DbRowView<Row>>[]>(
             DATABASE_TABLE_NAMES.map(() => new Map())
         );
-        Db._tableToTableView = <Map<number, IDbTableView<Row>>[]>(
+        Db._tableToTableView = <Map<number, DbTableView<Row>>[]>(
             DATABASE_TABLE_NAMES.map(() => new Map())
         );
     }
@@ -70,18 +74,13 @@ export abstract class Db {
         );
         tableViewMap.delete(tableView.viewId);
 
-        // Remove table view as owner of row views, potentially flushing cached row views
-        const viewsToRemove: number[] = [];
-        const rowViews: Map<number, IDbRowView<Row>> = this.getRowViewsForTable(tableView.tableId);
-        for (const rowView of rowViews.values()) {
-            rowView.ownerRemove(tableView.viewId);
-            if (rowView.ownerCount() === 0) {
-                viewsToRemove.push(rowView.id);
-            }
-        }
+        // Dispose of table
+        (<DbTableView<RowType>>tableView).dispose();
+    }
 
-        // Flush row views without owners
-        for (let i = 0; i < viewsToRemove.length; i++) rowViews.delete(viewsToRemove[i]);
+    protected destroyRowView<RowType extends Row>(tableId: DatabaseTableId, rowId: number): void {
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
+        rowViews.delete(rowId);
     }
 
     /**
@@ -145,18 +144,40 @@ export abstract class Db {
     ): Promise<RowType[]>;
 
     /**
+     * Fetch the total number of rows in a given table.
+     * @param tableId Id of the table
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
+     */
+    abstract fetchRowCount<RowType extends Row>(
+        tableId: DatabaseTableId,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<number>;
+
+    /**
+     * Fetch raw rows that won't be used by a table view or updated when changes happen.
+     * @param tableId Id of the table
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
+     */
+    abstract fetchRowsRaw<RowType extends Row>(
+        tableId: DatabaseTableId,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<RowType[]>;
+
+    /**
      * This fetches (all) rows in a table and returns them sorted by id.
      * Throws an error during failures.
      * @param tableId Id of the table
      * @param filter Filter for the query
-     * @param fetcher The table view fetching the rows
      * @param connection Optional connection to execute with
      * @internal
      */
     abstract fetchRows<RowType extends Row>(
         tableId: DatabaseTableId,
         filter: Filter<RowType>,
-        fetcher?: IDbTableView<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]>;
 
@@ -205,14 +226,14 @@ export abstract class Db {
 
     protected getTableViewsForTable<RowType extends Row>(
         tableId: DatabaseTableId,
-    ): Map<number, IDbTableView<RowType>> {
-        return <Map<number, IDbTableView<RowType>>>Db._tableToTableView[tableId];
+    ): Map<number, DbTableView<RowType>> {
+        return <Map<number, DbTableView<RowType>>>Db._tableToTableView[tableId];
     }
 
     protected getRowViewsForTable<RowType extends Row>(
         tableId: DatabaseTableId,
-    ): Map<number, IDbRowView<RowType>> {
-        let rowViewMap: Map<number, IDbRowView<RowType>> = <Map<number, IDbRowView<RowType>>>(
+    ): Map<number, DbRowView<RowType>> {
+        let rowViewMap: Map<number, DbRowView<RowType>> = <Map<number, DbRowView<RowType>>>(
             Db._tableToRowView[tableId]
         );
         if (!rowViewMap) {

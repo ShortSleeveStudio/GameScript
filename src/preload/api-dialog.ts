@@ -4,7 +4,6 @@ import {
     API_DIALOG_SQLITE_OPEN,
     API_DIALOG_SQLITE_SAVE,
 } from '../common/constants';
-import { fsApi } from './api-filesystem';
 
 export interface DialogResult {
     path: string;
@@ -23,7 +22,6 @@ export const dialogApi: DialogApi = {
     sqliteDbOpen: async () => {
         return await ipcRenderer.invoke(API_DIALOG_SQLITE_OPEN, <OpenDialogOptions>{
             title: 'Select a Database File',
-            defaultPath: await fsApi.getAppDataDirectory(),
             buttonLabel: 'Open Database',
             filters: [{ extensions: ['.db'] }],
             properties: ['openFile'],
@@ -32,7 +30,6 @@ export const dialogApi: DialogApi = {
     sqliteDbSave: async () => {
         return await ipcRenderer.invoke(API_DIALOG_SQLITE_SAVE, <SaveDialogOptions>{
             title: 'Create a New Database File',
-            defaultPath: await fsApi.getDefaultSqliteFile(),
             buttonLabel: 'Create Database',
             filters: [{ extensions: ['.db'] }],
         });

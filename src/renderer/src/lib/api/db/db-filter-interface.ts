@@ -51,6 +51,7 @@ export type OrderLimitOffsetBuild<RowType extends Row> = {
 /**This doesn't expose any functionality, but it used to pass to the database table view methods */
 export interface Filter<RowType extends Row> {
     toString(): string;
+    whereClause(): string;
     wouldAffectRow(row: RowType): boolean;
     wouldAffectRows(rows: RowType[]): boolean;
     equals(other: Filter<RowType>): boolean;
