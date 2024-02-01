@@ -254,3 +254,30 @@ input[type='color']::-webkit-color-swatch {
     line-height: var(--cds-body-short-01-line-height, 1.28572);
     letter-spacing: var(--cds-body-short-01-letter-spacing, 0.16px);
 }
+
+/* Svelte Flow */
+.svelte-flow {
+    /* Minimap */
+    --xy-minimap-background-color-default: var(--cds-ui-01, #f4f4f4);
+    --xy-minimap-mask-background-color-default: var(--cds-ui-background);
+    --xy-minimap-node-background-color-default:var(--cds-layer-accent, #e0e0e0) ;
+
+    /* Controls */
+    --xy-controls-button-background-color-default: var(--cds-layer-accent, #e0e0e0);
+    --xy-controls-button-color-default: var(--cds-ui-04, #f4f4f4);
+    --xy-controls-button-border-color-default:var(--cds-ui-04, #f4f4f4) ;
+
+    /* Background */
+    --xy-background-color-default: var(--cds-ui-01, #f4f4f4);
+
+    /* Nodes */
+    --xy-node-background-color-default: var(--cds-layer-accent, #e0e0e0);
+    --xy-node-boxshadow-selected-default: 0 0 0 0.5px var(--cds-ui-04, #8d8d8d);
+    --xy-node-border-default: 1px solid var(--cds-ui-04, #8d8d8d);
+    --xy-node-color-default: var(--cds-text-01, #161616);
+
+    /* Edges */
+    --xy-edge-label-background-color-default: transparent;
+    --xy-edge-stroke-default: var(--cds-ui-04, #f4f4f4);
+    --xy-edge-label-color-default: var(--cds-text-01, #161616);
+}

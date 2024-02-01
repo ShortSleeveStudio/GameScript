@@ -38,6 +38,7 @@
         "@sveltejs/vite-plugin-svelte": "^3.0.1",
         "@types/better-sqlite3": "^7.6.8",
         "@types/node": "^18.19.5",
+        "@xyflow/svelte": "^0.0.35",
         "carbon-components-svelte": "^0.82.8",
         "carbon-icons-svelte": "^12.4.2",
         "carbon-pictograms-svelte": "^12.9.2",

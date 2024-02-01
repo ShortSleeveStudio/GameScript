@@ -62,6 +62,7 @@ export const TABLE_NAME_LOCALIZATIONS = 'localizations';
 export const TABLE_NAME_ACTORS = 'actors';
 export const TABLE_NAME_ACTOR_PRINCIPAL = 'actor_principal';
 export const TABLE_NAME_NODES = 'nodes';
+export const TABLE_NAME_EDGES = 'edges';
 // export const TABLE_NAME_PROPERTY_TYPES = 'property_types';
 // export const TABLE_NAME_PROPERTIES = 'properties';
 // export const TABLE_NAME_DEFAULT_PROPERTIES = 'default_properties';
@@ -81,6 +82,7 @@ export const DATABASE_TABLE_NAMES = [
     TABLE_NAME_ACTORS,
     TABLE_NAME_ACTOR_PRINCIPAL,
     TABLE_NAME_NODES,
+    TABLE_NAME_EDGES,
     // TABLE_NAME_PROPERTY_TYPES,
     // TABLE_NAME_PROPERTIES,
     // TABLE_NAME_DEFAULT_PROPERTIES,
@@ -106,6 +108,7 @@ export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 10;
 export const TABLE_ID_ACTORS: DatabaseTableId = 11;
 export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 12;
 export const TABLE_ID_NODES: DatabaseTableId = 13;
+export const TABLE_ID_EGDES: DatabaseTableId = 14;
 // export const TABLE_ID_PROPERTY_TYPES: DatabaseTableId = 14;
 // export const TABLE_ID_PROPERTIES: DatabaseTableId = 15;
 // export const TABLE_ID_DEFAULT_PROPERTIES: DatabaseTableId = 16;
@@ -275,6 +278,23 @@ export interface Node extends Row, Annotated {
     voiceText: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
+
+    // Graph Stuff
+    type: string;
+    positionX: number;
+    positionY: number;
+}
+
+///
+/// Edges
+///
+export interface Edge extends Row, Annotated {
+    parent: number; // FK Conversations
+
+    // Graph Stuff
+    type: string;
+    source: number;
+    target: number;
 }
 
 // ///
