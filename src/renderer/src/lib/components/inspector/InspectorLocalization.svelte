@@ -15,9 +15,13 @@
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
     import { localeIdToColumn } from '@lib/utility/locale';
 
+    export let showTitle: boolean = false;
     export let rowView: IDbRowView<Localization>;
 </script>
 
+{#if showTitle}
+    <h2>Localization</h2>
+{/if}
 <p>
     <Tooltip triggerText="Localization ID" align="start" direction="bottom">
         <p>This is the unique id used to look up localized text at runtime.</p>

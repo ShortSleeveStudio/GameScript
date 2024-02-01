@@ -9,7 +9,7 @@
     <Content style="height: 100%">
         <Grid noGutter style="height: 100%">
             <Row style="height: 100%">
-                <Column style="height: 100%">
+                <Column>
                     {#if $dbConnected}
                         <ConversationFinderGrid />
                     {/if}
@@ -22,6 +22,6 @@
 <style>
     .conversation-finder {
         height: 100%;
-        /* min-width: calc(60px * 8); */
+        min-width: calc(52px * 8);
     }
 </style>

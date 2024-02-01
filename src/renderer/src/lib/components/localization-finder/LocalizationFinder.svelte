@@ -1,1 +1,0 @@
-<div>Localization Finder</div>

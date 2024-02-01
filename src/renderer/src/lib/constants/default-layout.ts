@@ -19,7 +19,6 @@ export const LAYOUT_ID_CONVERSATION_EDITOR: string = 'conversation-editor';
 export const LAYOUT_ID_CONVERSATION_FINDER: string = 'conversation-finder';
 export const LAYOUT_ID_INSPECTOR: string = 'inspector';
 export const LAYOUT_ID_LOCALIZATION_EDITOR: string = 'localization-editor';
-export const LAYOUT_ID_LOCALIZATION_FINDER: string = 'localization-finder';
 export const LAYOUT_ID_SEARCH: string = 'search';
 export const LAYOUT_ID_SETTINGS: string = 'settings';
 export const LAYOUT_IDS = [
@@ -29,7 +28,6 @@ export const LAYOUT_IDS = [
     LAYOUT_ID_CONVERSATION_FINDER,
     LAYOUT_ID_INSPECTOR,
     LAYOUT_ID_LOCALIZATION_EDITOR,
-    LAYOUT_ID_LOCALIZATION_FINDER,
     LAYOUT_ID_SEARCH,
     LAYOUT_ID_SETTINGS,
 ] as const;
@@ -78,13 +76,6 @@ export const LOCALIZATION_EDITOR_LAYOUT: ComponentItemConfig = {
     type: 'component',
     componentType: 'localization-editor',
 };
-export const LOCALIZATION_FINDER_LAYOUT: ComponentItemConfig = {
-    id: LAYOUT_ID_LOCALIZATION_FINDER,
-    title: 'Localization Finder',
-    header: HEADER_CONFIG,
-    type: 'component',
-    componentType: 'localization-finder',
-};
 export const SEARCH_LAYOUT: ComponentItemConfig = {
     id: LAYOUT_ID_SEARCH,
     title: 'Search',
@@ -106,7 +97,7 @@ const ROOT: RootItemConfig = {
         {
             size: '23%',
             type: 'stack',
-            content: [CONVERSATION_FINDER_LAYOUT, LOCALIZATION_FINDER_LAYOUT, ACTORS_LAYOUT],
+            content: [CONVERSATION_FINDER_LAYOUT, ACTORS_LAYOUT],
         },
         {
             size: '50%',

@@ -16,7 +16,7 @@
     import SubtractLarge from 'carbon-icons-svelte/lib/SubtractLarge.svelte';
     import { maximized } from '@lib/stores/app/maximized';
     import { darkmode } from '@lib/stores/app/darkmode';
-    import { EVENT_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
+    import { EVENT_DOCK_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
     import {
         actorsIsVisible,
         buildIsVisible,
@@ -24,7 +24,6 @@
         conversationFinderIsVisible,
         inspectorIsVisible,
         localizationEditorIsVisible,
-        localizationFinderIsVisible,
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
@@ -75,7 +74,7 @@
         <SideNavMenu text="Layout">
             <SideNavMenuItem
                 text="Load Default Layout"
-                on:click={() => dispatchEvent(new CustomEvent(EVENT_RESET_LAYOUT))}
+                on:click={() => dispatchEvent(new CustomEvent(EVENT_DOCK_RESET_LAYOUT))}
             />
             <SideNavDivider />
             <SideNavMenuItem
@@ -108,11 +107,6 @@
                 text="Localization Editor"
                 isSelected={$localizationEditorIsVisible}
                 on:click={() => ($localizationEditorIsVisible = !$localizationEditorIsVisible)}
-            />
-            <SideNavMenuItem
-                text="Localization Finder"
-                isSelected={$localizationFinderIsVisible}
-                on:click={() => ($localizationFinderIsVisible = !$localizationFinderIsVisible)}
             />
             <SideNavMenuItem
                 text="Search"

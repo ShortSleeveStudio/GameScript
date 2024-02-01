@@ -12,8 +12,6 @@ export const conversationFinderIsVisible: Writable<boolean> = writable(false);
 export const inspectorIsVisible: Writable<boolean> = writable(false);
 /** Store for if localization editor component is visible */
 export const localizationEditorIsVisible: Writable<boolean> = writable(false);
-/** Store for if localization finder component is visible */
-export const localizationFinderIsVisible: Writable<boolean> = writable(false);
 /** Store for if search component is visible */
 export const searchIsVisible: Writable<boolean> = writable(false);
 /** Store for if settings component is visible */

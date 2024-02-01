@@ -5,6 +5,7 @@
         TABLE_ID_CONVERSATIONS,
         TABLE_ID_FILTERS,
         TABLE_ID_LOCALES,
+        TABLE_ID_LOCALIZATIONS,
         TABLE_ID_ROUTINES,
     } from '@lib/api/db/db-schema';
     import { focused, type Focusable } from '@lib/stores/app/focus';
@@ -12,21 +13,22 @@
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
     import { LAYOUT_ID_INSPECTOR } from '@lib/constants/default-layout';
-    import { EVENT_SELECTION_REQUEST, type SelectionRequest } from '@lib/constants/events';
+    import { EVENT_DOCK_SELECTION_REQUEST, type DockSelectionRequest } from '@lib/constants/events';
     import InspectorAutoComplete from './InspectorAutoComplete.svelte';
     import InspectorActor from './InspectorActor.svelte';
     import InspectorLocale from './InspectorLocale.svelte';
     import InspectorFilter from './InspectorFilter.svelte';
     import { dbConnected } from '@lib/stores/settings/settings';
     import InspectorConversation from './InspectorConversation.svelte';
+    import InspectorLocalization from './InspectorLocalization.svelte';
 
     let inspected: Focusable;
 
     function onFocusChanged(focus: Focusable): void {
         inspected = focus;
         dispatchEvent(
-            new CustomEvent(EVENT_SELECTION_REQUEST, {
-                detail: <SelectionRequest>{ layoutId: LAYOUT_ID_INSPECTOR },
+            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
+                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_INSPECTOR },
             }),
         );
     }
@@ -71,6 +73,11 @@
                                 />
                             {:else if inspected.tableId === TABLE_ID_CONVERSATIONS}
                                 <InspectorConversation rowView={inspected.rowView} />
+                            {:else if inspected.tableId === TABLE_ID_LOCALIZATIONS}
+                                <InspectorLocalization
+                                    rowView={inspected.rowView}
+                                    showTitle={true}
+                                />
                             {/if}
                         {/key}
                     {/if}

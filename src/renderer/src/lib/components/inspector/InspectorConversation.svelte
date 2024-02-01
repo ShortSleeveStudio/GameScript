@@ -7,6 +7,7 @@
         CONVERSATION_PLACEHOLDER_NOTES,
         CONVERSATION_UNDO_NOTES,
     } from '@lib/constants/settings';
+    import LocalizationFilterButton from '../common/LocalizationFilterButton.svelte';
 
     export let rowView: IDbRowView<Conversation>;
 </script>
@@ -24,4 +25,8 @@
         columnName={'notes'}
         placeholder={CONVERSATION_PLACEHOLDER_NOTES}
     />
+</p>
+<p>
+    <sup>Localizations</sup>
+    <LocalizationFilterButton {rowView} />
 </p>

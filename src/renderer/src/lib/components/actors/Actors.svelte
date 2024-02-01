@@ -21,6 +21,6 @@
 <style>
     .actors {
         height: 100%;
-        min-width: calc(70px * 8);
+        min-width: calc(52px * 8);
     }
 </style>

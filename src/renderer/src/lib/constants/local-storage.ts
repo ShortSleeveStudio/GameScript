@@ -11,3 +11,6 @@ export const LS_KEY_SETTINGS_DEFAULT_ROUTINE: string = 'settings-coding-default-
 
 // Finder
 export const LS_KEY_FINDER_LAYOUT = 'layout-finder';
+
+// Localization
+export const LS_KEY_LOCALIZATION = 'layout-localization';

@@ -27,13 +27,12 @@
         ACTORS_UNDO_NAME,
     } from '@lib/constants/settings';
     import { actorsTable } from '@lib/tables/actors';
-    import { actorConversationRowView, actorLocalizations } from '@lib/tables/actor-conversation';
     import { db } from '@lib/api/db/db';
-    import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { DbConnection } from 'preload/api-db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
+    import { createFilter } from '@lib/api/db/db-filter';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [
@@ -50,14 +49,9 @@
         let newActor: Actor;
         let localizedName: Localization;
         await db.executeTransaction(async (conn: DbConnection) => {
-            // Ensure localization table row view exists
-            if (!actorConversationRowView || !actorLocalizations || !systemCreatedLocaleRowView) {
-                throw new Error('No database connection');
-            }
-
             // Create localized name
             const localizationArg = <Localization>{
-                parent: actorConversationRowView.id,
+                parent: null,
                 isSystemCreated: true,
             };
             localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
@@ -105,15 +99,19 @@
         selectedRowIds.length = 0;
 
         // Grab localized names
-        let localizationsToDelete: Localization[] = [];
-        for (let i = 0; i < actorsToDelete.length; i++) {
-            const localization = actorLocalizations.getRowById(actorsToDelete[i].localizedName);
-            localizationsToDelete.push(localization);
-        }
+        const localizationIdsToDelete: number[] = actorsToDelete.map(
+            (actor) => actor.localizedName,
+        );
 
         // Delete
+        let localizationsToDelete: Localization[];
         await db.executeTransaction(async (conn: DbConnection) => {
             await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+            localizationsToDelete = await db.fetchRowsRaw<Localization>(
+                TABLE_ID_LOCALIZATIONS,
+                createFilter().where().column('id').in(localizationIdsToDelete).endWhere().build(),
+                conn,
+            );
             await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
         });
 
@@ -123,12 +121,8 @@
                 'actor deletion',
                 isLoading.wrapOperationAsync(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        localizationsToDelete = await db.createRows(
-                            TABLE_ID_LOCALIZATIONS,
-                            localizationsToDelete,
-                            conn,
-                        );
-                        actorsToDelete = await db.createRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+                        await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+                        await db.createRows(TABLE_ID_ACTORS, actorsToDelete, conn);
                     });
                 }),
                 isLoading.wrapOperationAsync(async () => {

@@ -6,25 +6,25 @@ import { type Unsubscriber } from 'svelte/store';
 
 /**Convenience class to notify if a table or its rows are updated */
 export class TableWatcher<RowType extends Row> {
-    private _action: Action<void>;
+    private _action: Action<IDbTableView<RowType>>;
     private _table: IDbTableView<RowType>;
     private _unsubscribeTable: Unsubscriber;
     private _rowIdToRowUnsubscribe: Map<number, Unsubscriber>;
 
     constructor(table: IDbTableView<RowType>) {
         this._table = table;
-        this._action = new Action<void>();
+        this._action = new Action<IDbTableView<RowType>>();
         this._rowIdToRowUnsubscribe = new Map();
         this._unsubscribeTable = this._table.subscribe(this.onTableChanged);
     }
 
-    subscribe(handler: ActionHandler<void>): ActionUnsubscriber {
+    subscribe(handler: ActionHandler<IDbTableView<RowType>>): ActionUnsubscriber {
         const unsubscriber: ActionUnsubscriber = this._action.register(handler);
-        handler();
+        handler(this._table);
         return unsubscriber;
     }
 
-    unsubscribe(handler: ActionHandler<void>): void {
+    unsubscribe(handler: ActionHandler<IDbTableView<RowType>>): void {
         this._action.unregister(handler);
     }
 
@@ -64,6 +64,6 @@ export class TableWatcher<RowType extends Row> {
     };
 
     private notify: () => void = () => {
-        this._action.fire();
+        this._action.fire(this._table);
     };
 }

@@ -1,8 +1,6 @@
 import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
 import { localeIdToColumn } from '@lib/utility/locale';
 import {
-    ACTORS_CONVERSATION_ID,
-    ACTORS_CONVERSATION_NAME,
     DATABASE_TABLE_NAMES,
     PROGRAMMING_LANGUAGE_NAMES,
     ROUTINE_TYPES,
@@ -126,7 +124,7 @@ const CREATE_TABLE_LOCALIZATIONS = `
 CREATE TABLE IF NOT EXISTS "${TABLE_NAME_LOCALIZATIONS}" (
 	"id"	INTEGER,
 	"name"	TEXT,
-	"parent"	INTEGER NOT NULL,
+	"parent"	INTEGER,
 	"isSystemCreated"	INTEGER NOT NULL,
 	"${localeIdToColumn(DEFAULT_LOCALE_ID)}"	TEXT,
 	FOREIGN KEY("parent") REFERENCES "${TABLE_NAME_CONVERSATIONS}",
@@ -286,8 +284,6 @@ INSERT OR IGNORE INTO ${TABLE_NAME_ROUTINES} (id, name, code, type) VALUES (${ro
 COMMIT;
 `;
 // Conversations
-const INITIALIZE_CONVERSATIONS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_CONVERSATIONS} (id, name, isSystemCreated, isDeleted) VALUES (${ACTORS_CONVERSATION_ID}, '${ACTORS_CONVERSATION_NAME}', true, false);`;
 // Locales
 rowIndex = DEFAULT_LOCALE_ID;
 const INITIALIZE_LOCALES = `
@@ -305,10 +301,9 @@ INSERT OR IGNORE INTO ${TABLE_NAME_LOCALE_PRINCIPAL} (id, principal) VALUES (${r
 rowIndex = 0;
 const DEFAULT_LOCALIZATION_ID = rowIndex;
 const INITIALIZE_LOCALIZATIONS = `
-INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, parent, isSystemCreated, '${localeIdToColumn(
+INSERT OR IGNORE INTO ${TABLE_NAME_LOCALIZATIONS} (id, parent, isSystemCreated, name, '${localeIdToColumn(
     DEFAULT_LOCALE_ID,
-)}') VALUES (${rowIndex++}, ${ACTORS_CONVERSATION_ID}, true, 'Player');
-`;
+)}') VALUES (${rowIndex++}, NULL, true, 'Player Name', 'Player');`;
 // Actors
 rowIndex = 0;
 const DEFAULT_ACTOR_ID = rowIndex;
@@ -334,7 +329,7 @@ export const INITIALIZE_TABLE_QUERIES = [
     INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     INITIALIZE_ROUTINE_TYPES,
     INITIALIZE_ROUTINES,
-    INITIALIZE_CONVERSATIONS,
+    // INITIALIZE_CONVERSATIONS,
     INITIALIZE_LOCALES,
     INITIALIZE_LOCALE_PRINCIPAL,
     // INITIALIZE_LOCALIZATION_TABLES,

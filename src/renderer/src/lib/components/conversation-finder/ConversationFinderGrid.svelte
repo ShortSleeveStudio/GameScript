@@ -7,8 +7,6 @@
         GridApi,
         type ToolPanelDef,
         type ColumnState,
-        type ITextFilterParams,
-        type INumberFilterParams,
         type IRowNode,
         type FilterModel,
         type NumberFilterModel,
@@ -28,44 +26,44 @@
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
-    import { isDarkMode } from '@lib/stores/app/darkmode';
     import { filters } from '@lib/tables/filters';
     import { filterIdToColumn } from '@lib/utility/filters';
-    import { Button, InlineLoading, Tile, OverflowMenuItem, Modal } from 'carbon-components-svelte';
+    import { Button, InlineLoading, OverflowMenuItem, Modal } from 'carbon-components-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { get } from 'svelte/store';
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
-    import { EVENT_SHUTDOWN } from '@lib/constants/events';
+    import {
+        EVENT_SHUTDOWN,
+        type DockSelectionChanged,
+        EVENT_DOCK_SELECTION_CHANGED,
+    } from '@lib/constants/events';
     import { LS_KEY_FINDER_LAYOUT } from '@lib/constants/local-storage';
-    import ConversationFinderToolbar from './ConversationFinderToolbar.svelte';
     import { db } from '@lib/api/db/db';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { Reset, TrashCan } from 'carbon-icons-svelte';
     import type { DbConnection } from 'preload/api-db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { GRID_CACHE_BLOCK_SIZE, GRID_CACHE_MAX_BLOCKS } from '@lib/constants/grid';
+    import {
+        GRID_CACHE_BLOCK_SIZE,
+        GRID_CACHE_MAX_BLOCKS,
+        GRID_FILTER_PARAMS_TEXT,
+        GRID_FILTER_PARAMS_NUMBER,
+        loadGridLayout,
+        getCopyOfSelectedAndDeselect,
+    } from '@lib/constants/grid';
     import { type GridContext } from '@lib/grid/grid-context';
     import { focused, type Focus } from '@lib/stores/app/focus';
+    import GridToolbar from '../common/GridToolbar.svelte';
+    import GridContainer from '../common/GridContainer.svelte';
+    import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
+    import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
-    const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
+
     const columnIdSet: Set<string> = new Set();
-    const textFilterParams: ITextFilterParams = {
-        filterOptions: ['equals', 'notEqual', 'contains', 'notContains', 'startsWith', 'endsWith'],
-        // maxNumConditions: 4,
-    };
-    const numberFilterParams: INumberFilterParams = {
-        filterOptions: [
-            'equals',
-            'notEqual',
-            'lessThan',
-            'lessThanOrEqual',
-            'greaterThan',
-            'greaterThanOrEqual',
-        ],
-        // maxNumConditions: 3,
-    };
+    const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
+
     const staticColumns: ColDef[] = [
         {
             pinned: 'left',
@@ -74,9 +72,8 @@
             resizable: false,
             cellRenderer: GridCellRenderer,
             editable: false,
-            // width: 72, // Min before the sort arrow overlaps
             filter: 'agNumberColumnFilter',
-            filterParams: numberFilterParams,
+            filterParams: GRID_FILTER_PARAMS_NUMBER,
             checkboxSelection: true,
         },
         {
@@ -85,7 +82,7 @@
             filter: 'agTextColumnFilter',
             cellEditor: GridCellEditorText,
             cellRenderer: GridCellRenderer,
-            filterParams: textFilterParams,
+            filterParams: GRID_FILTER_PARAMS_TEXT,
         },
         {
             headerName: 'Is Deleted',
@@ -99,7 +96,7 @@
     ];
 
     let api: GridApi;
-    let finderElement: HTMLElement;
+    let gridElement: HTMLElement;
     let tableWatcher: TableWatcher<Filter>;
     let loadLayoutRequested: boolean = false;
     let isDeletedVisible: boolean = false;
@@ -108,34 +105,8 @@
     let selectedRows: IDbRowView<Conversation>[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    function loadLayout(): void {
-        const savedStateString: string | null = localStorage.getItem(LS_KEY_FINDER_LAYOUT);
-        if (savedStateString) {
-            const savedState: ColumnState[] = JSON.parse(
-                localStorage.getItem(LS_KEY_FINDER_LAYOUT),
-            );
-            // Remove any missing columns
-            const sanitizedSavedState: ColumnState[] = [];
-            for (let i = 0; i < savedState.length; i++) {
-                const state: ColumnState = savedState[i];
-                if (columnIdSet.has(state.colId)) {
-                    sanitizedSavedState.push(state);
-                }
-            }
-            api.applyColumnState({ state: sanitizedSavedState });
-        }
-    }
-
     function getGridApi(): GridApi {
         return api;
-    }
-
-    function getCopyOfSelectedAndDeselect(): Conversation[] {
-        const selectedConversations: Conversation[] = selectedRows.map(
-            (rowView) => <Conversation>{ ...get(rowView) },
-        );
-        api.deselectAll();
-        return selectedConversations;
     }
 
     const onCreate: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
@@ -165,7 +136,10 @@
 
     const onDeleteForever: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Find conversations to delete
-        const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect();
+        const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect(
+            api,
+            selectedRows,
+        );
 
         // Delete all selected conversations and their associated localizations/nodes
         await db.executeTransaction(async (conn: DbConnection) => {
@@ -212,7 +186,10 @@
 
     const onDeleteOrRestore: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
         // Find conversations to delete
-        const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect();
+        const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect(
+            api,
+            selectedRows,
+        );
 
         // Capture whether this is a restore or a delete
         const isRestore: boolean = isDeletedVisible;
@@ -248,7 +225,7 @@
         api.refreshInfiniteCache();
     }
 
-    function onCancelConversation(): void {
+    function onCancel(): void {
         api.deselectAll();
     }
 
@@ -272,10 +249,10 @@
         focused.set(<Focus>{ tableId: TABLE_ID_CONVERSATIONS, rowView: rowView });
     }
 
-    function onFiltersChanged(): void {
-        // Grab filters
-        const filterRowViews: IDbRowView<Filter>[] = get(filters);
-        if (filterRowViews.length === 0) return;
+    function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {
+        // Grab row views
+        const rowViews: IDbRowView<RowType>[] = get(tableView);
+        if (rowViews.length === 0) return;
 
         // Purge old columns
         columnIdSet.clear();
@@ -288,18 +265,18 @@
             columnDefs.push(staticColumn);
         }
 
-        // Add filters
-        for (let i = 0; i < filterRowViews.length; i++) {
-            const filter: Filter = get(filterRowViews[i]);
-            const colId: string = filterIdToColumn(filter.id);
+        // Add dynamic columns
+        for (let i = 0; i < rowViews.length; i++) {
+            const row: RowType = get(rowViews[i]);
+            const colId: string = filterIdToColumn(row.id);
             columnIdSet.add(colId);
             columnDefs.push({
-                headerName: filter.name,
+                headerName: row.name,
                 colId: colId,
                 cellEditor: GridCellEditorText,
                 cellRenderer: GridCellRenderer,
                 filter: 'agTextColumnFilter',
-                filterParams: textFilterParams,
+                filterParams: GRID_FILTER_PARAMS_TEXT,
             });
         }
 
@@ -308,13 +285,21 @@
 
         // Check if we need to load layout
         if (loadLayoutRequested) {
-            loadLayout();
+            loadGridLayout(api, LS_KEY_FINDER_LAYOUT, columnIdSet);
             loadLayoutRequested = false;
         }
 
         // Update column width
         api?.autoSizeAllColumns();
     }
+
+    const onDockFocusChanged: (e: CustomEvent<DockSelectionChanged>) => void = (
+        e: CustomEvent<DockSelectionChanged>,
+    ) => {
+        if (e.detail.layoutId === LAYOUT_ID_CONVERSATION_FINDER) {
+            api?.autoSizeAllColumns();
+        }
+    };
 
     const onShutdown: () => void = () => {
         if (!api) return;
@@ -336,14 +321,13 @@
                 return !!params.data && !get(params.data).isSystemCreated;
             },
             defaultColDef: {
-                // flex: 1,
-                // resizable: false,
                 suppressMovable: true,
                 sortable: true,
                 editable: true,
                 enableValue: false,
                 enableRowGroup: false,
                 enablePivot: false,
+                flex: 2,
             },
             sideBar: {
                 toolPanels: [
@@ -371,7 +355,7 @@
             stopEditingWhenCellsLoseFocus: true,
             datasource: datasource,
         };
-        api = createGrid(finderElement, gridOptions);
+        api = createGrid(gridElement, gridOptions);
 
         // Create table watcher
         tableWatcher = new TableWatcher(filters);
@@ -385,10 +369,12 @@
 
         // Event Listeners
         addEventListener(EVENT_SHUTDOWN, onShutdown);
+        addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
     });
     onDestroy(() => {
         // Remove event listener
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
+        removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
 
         // Dispose of table watcher
         tableWatcher?.dispose();
@@ -398,19 +384,14 @@
     });
 </script>
 
-<div class="container">
-    <Tile style="margin-bottom: 0px;">
-        <h4 class="table-title">Conversations</h4>
-        <p class="table-header">
-            Conversations are containers for localized text and conversation nodes.
-        </p>
-    </Tile>
-
-    <div class="table-toolbar">
-        <ConversationFinderToolbar
-            elementsSelected={selectedRows.length}
-            on:cancel={onCancelConversation}
-        >
+<GridContainer
+    title="Conversations"
+    header="Conversations are containers for conversation nodes.
+            Conversation IDs are also used to group localized text."
+    bind:gridElement
+>
+    <svelte:fragment slot="toolbar">
+        <GridToolbar elementsSelected={selectedRows.length} on:cancel={onCancel}>
             <svelte:fragment slot="overflow">
                 <OverflowMenuItem
                     text="{isDeletedVisible ? 'Hide' : 'Show'} Deleted"
@@ -442,16 +423,9 @@
                     >
                 {/if}
             </span>
-        </ConversationFinderToolbar>
-    </div>
-    <span
-        id="finder"
-        class={$isDarkMode
-            ? 'ag-theme-quartz-dark ag-theme-custom'
-            : 'ag-theme-quartz ag-theme-custom'}
-        bind:this={finderElement}
-    ></span>
-</div>
+        </GridToolbar>
+    </svelte:fragment>
+</GridContainer>
 
 <Modal
     size="sm"
@@ -463,40 +437,8 @@
     on:click:button--secondary={() => (isModalOpen = false)}
     on:submit={onDeleteForever}
 >
-    <p>Deleting these conversations cannot be undone.</p>
+    <p>
+        Deleting these conversations cannot be undone and you will lose all associated nodes and
+        localizations.
+    </p>
 </Modal>
-
-<style>
-    .container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        justify-content: flex-start;
-        align-items: stretch;
-    }
-    .container > * {
-        flex-grow: 1;
-    }
-    .table-title {
-        font-size: var(--cds-productive-heading-03-font-size, 1.25rem);
-        font-weight: var(--cds-productive-heading-03-font-weight, 400);
-        line-height: var(--cds-productive-heading-03-line-height, 1.4);
-        letter-spacing: var(--cds-productive-heading-03-letter-spacing, 0);
-        color: var(--cds-text-primary, #161616);
-    }
-    .table-header {
-        font-size: var(--cds-body-short-01-font-size, 0.875rem);
-        font-weight: var(--cds-body-short-01-font-weight, 400);
-        line-height: var(--cds-body-short-01-line-height, 1.28572);
-        letter-spacing: var(--cds-body-short-01-letter-spacing, 0.16px);
-        color: var(--cds-text-secondary, #525252);
-        margin-bottom: 0px;
-    }
-    .table-toolbar {
-        display: flex;
-        justify-content: flex-end;
-        height: 2rem;
-        flex-grow: 0;
-        background-color: var(--cds-ui-01, #f4f4f4);
-    }
-</style>

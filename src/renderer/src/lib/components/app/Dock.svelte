@@ -1,11 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import {
-        EVENT_RESET_LAYOUT,
-        EVENT_SELECTION_REQUEST,
+        EVENT_DOCK_RESET_LAYOUT,
+        EVENT_DOCK_SELECTION_REQUEST,
         EVENT_SHUTDOWN,
         isCustomEvent,
-        type SelectionRequest,
+        type DockSelectionRequest,
+        EVENT_DOCK_SELECTION_CHANGED,
+        type DockSelectionChanged,
     } from '@lib/constants/events';
     import type { ComponentContainer } from '@lib/vendor/golden-layout/ts/container/component-container';
     import { GoldenLayout } from '@lib/vendor/golden-layout/ts/golden-layout';
@@ -27,11 +29,9 @@
         LAYOUT_ID_CONVERSATION_FINDER,
         LAYOUT_ID_INSPECTOR,
         LAYOUT_ID_LOCALIZATION_EDITOR,
-        LAYOUT_ID_LOCALIZATION_FINDER,
         LAYOUT_ID_SEARCH,
         LAYOUT_ID_SETTINGS,
         LOCALIZATION_EDITOR_LAYOUT,
-        LOCALIZATION_FINDER_LAYOUT,
         SEARCH_LAYOUT,
         SETTINGS_LAYOUT,
     } from '../../constants/default-layout';
@@ -44,7 +44,6 @@
         conversationFinderIsVisible,
         inspectorIsVisible,
         localizationEditorIsVisible,
-        localizationFinderIsVisible,
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
@@ -52,13 +51,14 @@
     import Dockable, { findDockable, type DockableInfo } from './Dockable.svelte';
     import Settings from '../settings/Settings.svelte';
     import Search from '../search/Search.svelte';
-    import LocalizationFinder from '../localization-finder/LocalizationFinder.svelte';
     import LocalizationEditor from '../localization-editor/LocalizationEditor.svelte';
     import ConversationFinder from '../conversation-finder/ConversationFinder.svelte';
     import ConversationEditor from '../conversation-editor/ConversationEditor.svelte';
     import Build from '../build/Build.svelte';
     import Actors from '../actors/Actors.svelte';
     import Inspector from '../inspector/Inspector.svelte';
+    import { EventEmitter } from '@lib/vendor/golden-layout/ts/utils/event-emitter';
+    import type { ComponentItem } from '@lib/vendor/golden-layout/ts/items/component-item';
 
     // Containers
     let dock: HTMLElement;
@@ -145,17 +145,25 @@
 
         // Load previous layout if possible, otherwise load default
         goldenLayout.loadLayout(loadLayoutConfig());
-
+        goldenLayout.addEventListener('focus', (e: EventEmitter.BubblingEvent) => {
+            const layoutId: string = (<ComponentItem>e.target).id;
+            if (!layoutId) return;
+            dispatchEvent(
+                new CustomEvent(EVENT_DOCK_SELECTION_CHANGED, {
+                    detail: <DockSelectionChanged>{ layoutId: layoutId },
+                }),
+            );
+        });
         // Event listeners
-        addEventListener(EVENT_SHUTDOWN, (e: Event) => {
+        addEventListener(EVENT_SHUTDOWN, () => {
             localStorage.setItem(LS_KEY_DOCK_LAYOUT, JSON.stringify(goldenLayout.saveLayout()));
         });
-        addEventListener(EVENT_RESET_LAYOUT, (e: Event) => {
+        addEventListener(EVENT_DOCK_RESET_LAYOUT, () => {
             goldenLayout.loadLayout(DEFAULT_LAYOUT);
         });
-        addEventListener(EVENT_SELECTION_REQUEST, (e: Event) => {
+        addEventListener(EVENT_DOCK_SELECTION_REQUEST, (e: Event) => {
             if (!isCustomEvent(e)) throw new Error('Selection request was missing payload');
-            const selectionRequest = e as CustomEvent<SelectionRequest>;
+            const selectionRequest = e as CustomEvent<DockSelectionRequest>;
             const layoutId = selectionRequest.detail.layoutId;
             const info: DockableInfo = findDockable(layoutId);
             info.currentContainer?.focus();
@@ -200,12 +208,6 @@
         isVisible={localizationEditorIsVisible}
         layout={layoutReadable}
         layoutConfig={LOCALIZATION_EDITOR_LAYOUT}><LocalizationEditor /></Dockable
-    >
-    <Dockable
-        name={LAYOUT_ID_LOCALIZATION_FINDER}
-        isVisible={localizationFinderIsVisible}
-        layout={layoutReadable}
-        layoutConfig={LOCALIZATION_FINDER_LAYOUT}><LocalizationFinder /></Dockable
     >
     <Dockable
         name={LAYOUT_ID_SEARCH}
