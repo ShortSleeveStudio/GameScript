@@ -14,3 +14,12 @@ export const LS_KEY_FINDER_LAYOUT = 'layout-finder';
 
 // Localization
 export const LS_KEY_LOCALIZATION = 'layout-localization';
+
+// Conversation Editor
+export const LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX = 'layout-conversation-';
+export function conversationIdToViewportKey(conversationId: number): string {
+    return LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX + conversationId;
+}
+export function isConversationViewportKey(key: string): boolean {
+    return key && key.startsWith(LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX);
+}

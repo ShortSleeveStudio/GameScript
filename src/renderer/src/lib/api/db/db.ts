@@ -1,5 +1,5 @@
 import { EVENT_SHUTDOWN } from '@lib/constants/events';
-import { focused } from '@lib/stores/app/focus';
+import { focusManager } from '@lib/stores/app/focus';
 import { appInitializationErrors } from '@lib/stores/app/initialization-errors';
 import { notificationManager } from '@lib/stores/app/notifications';
 import { dbConnected, dbSqlitePath, dbType } from '@lib/stores/settings/settings';
@@ -27,7 +27,7 @@ function onDbTypeChange(newDbtype: DatabaseTypeName): void {
                 dbSqlitePath,
                 appInitializationErrors,
                 notificationManager,
-                focused,
+                focusManager,
             );
             break;
         case 'PostgreSQL':

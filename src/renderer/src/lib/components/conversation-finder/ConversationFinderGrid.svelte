@@ -53,7 +53,7 @@
         getCopyOfSelectedAndDeselect,
     } from '@lib/constants/grid';
     import { type GridContext } from '@lib/grid/grid-context';
-    import { focused, type Focus } from '@lib/stores/app/focus';
+    import { focusManager, type FocusData, type Focus } from '@lib/stores/app/focus';
     import GridToolbar from '../common/GridToolbar.svelte';
     import GridContainer from '../common/GridContainer.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
@@ -216,8 +216,13 @@
         shouldDelete: boolean,
     ): Promise<void> {
         await db.executeTransaction(async (conn: DbConnection) => {
+            const focused: Focus = focusManager.get(TABLE_ID_CONVERSATIONS);
             for (let i = 0; i < conversationsToDelete.length; i++) {
                 const conversationToDelete = conversationsToDelete[i];
+                if (shouldDelete && focused && focused.rowView.id === conversationToDelete.id) {
+                    // Blur focus if necessary
+                    focusManager.blur(TABLE_ID_CONVERSATIONS);
+                }
                 conversationToDelete.isDeleted = shouldDelete;
                 await db.updateRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
             }
@@ -246,7 +251,7 @@
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Conversation>, GridContext>): void {
         const rowView: IDbRowView<Row> = event.data;
-        focused.set(<Focus>{ tableId: TABLE_ID_CONVERSATIONS, rowView: rowView });
+        focusManager.focus(<FocusData>{ tableId: TABLE_ID_CONVERSATIONS, rowView: rowView });
     }
 
     function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {

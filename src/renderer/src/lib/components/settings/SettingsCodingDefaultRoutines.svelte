@@ -47,6 +47,7 @@
             name: 'New Routine',
             code: '',
             type: ROUTINE_TYPE_ID_DEFAULT,
+            isSystemCreated: false,
         };
         let newRow: Routine = await db.createRow(TABLE_ID_ROUTINES, newRoutine);
 

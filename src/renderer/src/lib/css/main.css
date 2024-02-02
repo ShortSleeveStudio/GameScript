@@ -269,6 +269,7 @@ input[type='color']::-webkit-color-swatch {
 
     /* Background */
     --xy-background-color-default: var(--cds-ui-01, #f4f4f4);
+    --xy-background-pattern-dot-color-default: var(--cds-ui-04, #8d8d8d);
 
     /* Nodes */
     --xy-node-background-color-default: var(--cds-layer-accent, #e0e0e0);
@@ -280,4 +281,17 @@ input[type='color']::-webkit-color-swatch {
     --xy-edge-label-background-color-default: transparent;
     --xy-edge-stroke-default: var(--cds-ui-04, #f4f4f4);
     --xy-edge-label-color-default: var(--cds-text-01, #161616);
+}
+
+.svelte-flow__node {
+    font-weight: var(--cds-body-long-02-font-weight, 400);
+    line-height: var(--cds-body-long-02-line-height, 1.5);
+    letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+}
+.svelte-flow__edge {
+    font-weight: var(--cds-body-long-02-font-weight, 400);
+    line-height: var(--cds-body-long-02-line-height, 1.5);
+    letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
 }

@@ -8,7 +8,7 @@
         TABLE_ID_LOCALIZATIONS,
         TABLE_ID_ROUTINES,
     } from '@lib/api/db/db-schema';
-    import { focused, type Focusable } from '@lib/stores/app/focus';
+    import { type Focus, focusManager } from '@lib/stores/app/focus';
     import { Column, Content, Grid, Row } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
@@ -22,18 +22,17 @@
     import InspectorConversation from './InspectorConversation.svelte';
     import InspectorLocalization from './InspectorLocalization.svelte';
 
-    let inspected: Focusable;
+    let inspected: Focus;
 
-    function onFocusChanged(focus: Focusable): void {
-        inspected = focus;
+    function onFocusChanged(): void {
+        inspected = focusManager.get();
         dispatchEvent(
             new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
                 detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_INSPECTOR },
             }),
         );
     }
-
-    onDestroy(focused.subscribe(onFocusChanged));
+    onDestroy(focusManager.subscribe(onFocusChanged));
 </script>
 
 <!-- https://svelte-5-preview.vercel.app/status -->

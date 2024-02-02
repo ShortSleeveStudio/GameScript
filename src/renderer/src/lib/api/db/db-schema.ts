@@ -217,7 +217,7 @@ export type RoutineTypeId = (typeof ROUTINE_TYPES)[number]['id'];
 ///
 /// Routines
 ///
-export interface Routine extends Row, Annotated {
+export interface Routine extends Row, Annotated, SystemCreatable {
     code: string;
     type: RoutineTypeId;
 }
@@ -271,6 +271,7 @@ export interface ActorPrincipal extends Row, Principaled {}
 ///
 /// Nodes
 ///
+export type NodeType = 'dialogue' | 'root';
 export interface Node extends Row, Annotated {
     parent: number; // FK Conversation
     actor: number; // FK Actors
@@ -280,7 +281,7 @@ export interface Node extends Row, Annotated {
     code: number; // FK Routines
 
     // Graph Stuff
-    type: string;
+    type: NodeType;
     positionX: number;
     positionY: number;
 }
@@ -288,11 +289,12 @@ export interface Node extends Row, Annotated {
 ///
 /// Edges
 ///
+export type EdgeType = 'default' | 'smoothstep' | 'step';
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations
 
     // Graph Stuff
-    type: string;
+    type: EdgeType;
     source: number;
     target: number;
 }

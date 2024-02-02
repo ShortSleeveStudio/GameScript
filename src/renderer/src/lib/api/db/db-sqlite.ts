@@ -1,4 +1,4 @@
-import type { Focusable } from '@lib/stores/app/focus';
+import type { Focus, FocusManager } from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
@@ -51,7 +51,7 @@ export class SqliteDb extends Db {
     private _sqlitePathStore: Writable<DialogResult>;
     private _appInitializationErrors: Writable<Error[]>;
     private _notificationManager: NotificationManager;
-    private _focused: Writable<Focusable>;
+    private _focusManager: FocusManager;
     private _transactionNotifications: DbNotification[];
 
     constructor(
@@ -59,14 +59,14 @@ export class SqliteDb extends Db {
         sqlitePathStore: Writable<DialogResult>,
         appInitializationError: Writable<Error[]>,
         notificationManager: NotificationManager,
-        focused: Writable<Focusable>,
+        focusManager: FocusManager,
     ) {
         super(isConnected);
 
         this._sqlitePathStore = sqlitePathStore;
         this._appInitializationErrors = appInitializationError;
         this._notificationManager = notificationManager;
-        this._focused = focused;
+        this._focusManager = focusManager;
         this._transactionNotifications = [];
         this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
         this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
@@ -469,14 +469,14 @@ export class SqliteDb extends Db {
 
     private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]): void {
         const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
-        const focused = get(this._focused);
+        const focused: Focus = this._focusManager.get(tableId);
         row.forEach((row) => {
             // Delete from cache
             rowViews.delete(row.id);
 
             // Remove from focus if needed
             if (focused && focused.tableId === tableId) {
-                this._focused.set(undefined);
+                this._focusManager.blur(tableId);
             }
         });
     }

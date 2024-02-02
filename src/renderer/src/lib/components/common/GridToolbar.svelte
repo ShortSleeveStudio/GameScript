@@ -25,11 +25,11 @@
     {#if !isOverflowOpen}
         <div class="bx--batch-actions {elementsSelected > 0 ? CLASS_BATCH_ACTIONS_ACTIVE : ''}">
             <div class="bx--batch-summary">
-                <p class="bx--batch-summary__para">
+                <p class="bx--batch-summary__para no-wrap">
                     <span>{elementsSelected} item{elementsSelected > 1 ? 's' : ''} selected</span>
                 </p>
             </div>
-            <div class="bx--action-list">
+            <div class="bx--action-list no-wrap">
                 <slot name="delete-restore" />
                 <button
                     type="button"
@@ -59,3 +59,9 @@
         </span>
     </div>
 </section>
+
+<style>
+    .no-wrap {
+        text-wrap: nowrap;
+    }
+</style>

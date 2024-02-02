@@ -29,7 +29,6 @@
         type NumberFilterModel,
         type FilterModel,
         type EditableCallbackParams,
-        type CellClassParams,
     } from '@ag-grid-community/core';
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
@@ -40,7 +39,7 @@
     import { localeIdToColumn } from '@lib/utility/locale';
     import { onDestroy, onMount } from 'svelte';
     import type { GridContext } from '@lib/grid/grid-context';
-    import { focused, type Focus } from '@lib/stores/app/focus';
+    import { focusManager, type FocusData } from '@lib/stores/app/focus';
     import { locales } from '@lib/tables/locales';
     import {
         EVENT_LOCALIZATIONS_FILTER_BY_PARENT,
@@ -124,7 +123,7 @@
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Localization>, GridContext>): void {
         const rowView: IDbRowView<Row> = event.data;
-        focused.set(<Focus>{ tableId: TABLE_ID_LOCALIZATIONS, rowView: rowView });
+        focusManager.focus(<FocusData>{ tableId: TABLE_ID_LOCALIZATIONS, rowView: rowView });
     }
 
     function onCancel(): void {
