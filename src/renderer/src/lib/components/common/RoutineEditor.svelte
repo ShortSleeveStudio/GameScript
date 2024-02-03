@@ -1,4 +1,6 @@
 <script lang="ts" generics="RowType extends Row">
+    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
+
     import { db } from '@lib/api/db/db';
 
     import {
@@ -19,8 +21,10 @@
     export let languageOverride: string | undefined = undefined;
     export let columnName: string;
     export let rowView: IDbRowView<RowType> | undefined;
+    export let disabled: boolean = false;
     $: onRowViewChanged(rowView); // Used to detect if the rowView passed in is swapped for another
 
+    const isLoading: IsLoadingStore = new IsLoadingStore();
     let container: HTMLElement;
     let editor: monaco.editor.IStandaloneCodeEditor;
     let didBlurUnsubscribe: monaco.IDisposable;
@@ -28,6 +32,11 @@
     let rowChangeUnsubscribe: Unsubscriber;
     let isDarkModeUnsubscribe: Unsubscriber = isDarkMode.subscribe(onDarkModeChanged);
     let languagePrincipalRowView: IDbRowView<ProgrammingLanguagePrincipal> | undefined;
+    let internallyDisabled: boolean = false;
+    let disabledState: boolean = false;
+    $: {
+        if (editor) setEditorDisabled($isLoading || internallyDisabled || disabled);
+    }
 
     // TODO
     // https://svelte-5-preview.vercel.app/status
@@ -52,12 +61,14 @@
     }
 
     function setEditorDisabled(isDisabled: boolean): void {
+        if (!editor || isDisabled === disabledState) return;
         editor.updateOptions({ readOnly: isDisabled });
         if (isDisabled) {
             container.classList.add('code-editor-disabled');
         } else {
             container.classList.remove('code-editor-disabled');
         }
+        disabledState = isDisabled;
     }
 
     function setHandleScroll(shouldHandle: boolean): void {
@@ -87,29 +98,23 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        setEditorDisabled(true);
-        await db.updateRow(rowView.tableId, newRow);
-        setEditorDisabled(false);
+        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
 
         undoManager.register(
             new Undoable(
                 'default property type selection',
-                async () => {
+                isLoading.wrapFunction(async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
-                    setEditorDisabled(true);
                     newRow[columnName] = oldValue;
                     await db.updateRow(rowView.tableId, newRow);
-                    setEditorDisabled(false);
                     blurEditor();
-                },
-                async () => {
+                }),
+                isLoading.wrapFunction(async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
-                    setEditorDisabled(true);
                     newRow[columnName] = newValue;
                     await db.updateRow(rowView.tableId, newRow);
-                    setEditorDisabled(false);
                     blurEditor();
-                },
+                }),
             ),
         );
     }
@@ -134,10 +139,10 @@
         if (!editor) return;
         if (rowChangeUnsubscribe) rowChangeUnsubscribe();
         if (row) {
-            setEditorDisabled(false);
+            internallyDisabled = false;
             rowChangeUnsubscribe = row.subscribe(onRowChanged);
         } else {
-            setEditorDisabled(true);
+            internallyDisabled = true;
         }
     }
 

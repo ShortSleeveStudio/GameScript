@@ -54,7 +54,6 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         if (this._owners.size === 0) {
             console.log('CLEANING UP ROW: ' + this.id);
             this._destructor();
-            this._internalWritable.set(<RowType>{});
         }
     }
 }

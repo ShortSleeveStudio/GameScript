@@ -32,7 +32,7 @@
         }
     }
 
-    const onSelect: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onSelect(): Promise<void> {
         const newValue: number = boundValue;
         const oldValue: number = currentValue;
         if (oldValue === newValue) return;
@@ -40,22 +40,22 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await db.updateRow(rowView.tableId, newRow);
+        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
 
         undoManager.register(
             new Undoable(
                 `${undoText} changed`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = oldValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = newValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
             ),
         );
-    });
+    }
 
     onDestroy(
         rowView.subscribe((row: RowType) => {

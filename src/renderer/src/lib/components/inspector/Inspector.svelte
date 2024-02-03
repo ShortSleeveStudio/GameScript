@@ -6,6 +6,7 @@
         TABLE_ID_FILTERS,
         TABLE_ID_LOCALES,
         TABLE_ID_LOCALIZATIONS,
+        TABLE_ID_NODES,
         TABLE_ID_ROUTINES,
     } from '@lib/api/db/db-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
@@ -21,6 +22,7 @@
     import { dbConnected } from '@lib/stores/settings/settings';
     import InspectorConversation from './InspectorConversation.svelte';
     import InspectorLocalization from './InspectorLocalization.svelte';
+    import InspectorNode from './InspectorNode.svelte';
 
     let inspected: Focus;
 
@@ -77,6 +79,8 @@
                                     rowView={inspected.rowView}
                                     showTitle={true}
                                 />
+                            {:else if inspected.tableId === TABLE_ID_NODES}
+                                <InspectorNode rowView={inspected.rowView} />
                             {/if}
                         {/key}
                     {/if}

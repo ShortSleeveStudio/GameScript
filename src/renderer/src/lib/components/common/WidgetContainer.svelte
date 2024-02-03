@@ -1,8 +1,6 @@
 <script lang="ts">
     import { Tile } from 'carbon-components-svelte';
-    import { isDarkMode } from '@lib/stores/app/darkmode';
 
-    export let gridElement: HTMLElement;
     export let title: string;
     export let header: string;
 </script>
@@ -10,25 +8,24 @@
 <div class="container">
     <Tile style="margin-bottom: 0px;">
         {#if title}
-            <h4 class="table-title">{title}</h4>
+            <h4 class="container-title">{title}</h4>
         {/if}
         {#if header}
-            <p class="table-header">
+            <p class="container-header">
                 {header}
             </p>
         {/if}
     </Tile>
     {#if $$slots.toolbar}
-        <div class="table-toolbar">
+        <div class="container-toolbar">
             <slot name="toolbar" />
         </div>
     {/if}
-    <span
-        class={$isDarkMode
-            ? 'ag-theme-quartz-dark ag-theme-custom'
-            : 'ag-theme-quartz ag-theme-custom'}
-        bind:this={gridElement}
-    ></span>
+    {#if $$slots.widget}
+        <div class="container-widget">
+            <slot name="widget" />
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -42,14 +39,14 @@
     .container > * {
         flex-grow: 1;
     }
-    .table-title {
+    .container-title {
         font-size: var(--cds-productive-heading-03-font-size, 1.25rem);
         font-weight: var(--cds-productive-heading-03-font-weight, 400);
         line-height: var(--cds-productive-heading-03-line-height, 1.4);
         letter-spacing: var(--cds-productive-heading-03-letter-spacing, 0);
         color: var(--cds-text-primary, #161616);
     }
-    .table-header {
+    .container-header {
         font-size: var(--cds-body-short-01-font-size, 0.875rem);
         font-weight: var(--cds-body-short-01-font-weight, 400);
         line-height: var(--cds-body-short-01-line-height, 1.28572);
@@ -57,11 +54,14 @@
         color: var(--cds-text-secondary, #525252);
         margin-bottom: 0px;
     }
-    .table-toolbar {
+    .container-toolbar {
         display: flex;
         justify-content: flex-end;
         height: 2rem;
         flex-grow: 0;
         background-color: var(--cds-ui-01, #f4f4f4);
+    }
+    .container-widget {
+        flex-grow: 1;
     }
 </style>

@@ -63,7 +63,7 @@
     <div class="node-body">
         <NodeDialogueText localization={voiceText} />
     </div>
-    <div class="node-color" style:background-color={$actor.color}></div>
+    <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
     <Handle type="target" position={Position.Left} />
     <Handle type="source" position={Position.Right} />
 </div>

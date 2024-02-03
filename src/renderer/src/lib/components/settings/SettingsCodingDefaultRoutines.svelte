@@ -42,50 +42,52 @@
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         let newRoutine: Routine = <Routine>{
             name: 'New Routine',
             code: '',
             type: ROUTINE_TYPE_ID_DEFAULT,
             isSystemCreated: false,
         };
-        let newRow: Routine = await db.createRow(TABLE_ID_ROUTINES, newRoutine);
+        let newRow: Routine = await isLoading.wrapPromise(
+            db.createRow(TABLE_ID_ROUTINES, newRoutine),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRow(TABLE_ID_ROUTINES, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow = await db.createRow(TABLE_ID_ROUTINES, newRow);
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab rows to delete
         let rowsToDelete: Routine[] = defaultRoutines.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete);
+        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     rowsToDelete = await db.createRows(TABLE_ID_ROUTINES, rowsToDelete);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete);
                 }),
             ),
         );
-    });
+    }
 </script>
 
 <p>

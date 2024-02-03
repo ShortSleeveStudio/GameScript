@@ -63,53 +63,52 @@
         $isApplyingDefaultProperties = false;
     }
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         // Create Default Property
         let newDefaultProperty: DefaultProperty = <DefaultProperty>{
             name: 'New Property',
             type: PROPERTY_TYPE_IDS[0],
             parentType: parentType,
         };
-        let newRow: DefaultProperty = await db.createRow(
-            TABLE_ID_DEFAULT_PROPERTIES,
-            newDefaultProperty,
+        let newRow: DefaultProperty = await isLoading.wrapPromise(
+            db.createRow(TABLE_ID_DEFAULT_PROPERTIES, newDefaultProperty),
         );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'default property creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRow(TABLE_ID_DEFAULT_PROPERTIES, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow = await db.createRow(TABLE_ID_DEFAULT_PROPERTIES, newRow);
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab rows to delete
         let rowsToDelete: DefaultProperty[] = defaultProperties.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await db.deleteRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
+        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'default property deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     rowsToDelete = await db.createRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRows(TABLE_ID_DEFAULT_PROPERTIES, rowsToDelete);
                 }),
             ),
         );
-    });
+    }
 </script>
 
 <DataTable

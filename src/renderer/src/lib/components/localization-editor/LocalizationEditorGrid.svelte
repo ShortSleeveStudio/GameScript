@@ -6,7 +6,6 @@
         getCopyOfSelectedAndDeselect,
         loadGridLayout,
     } from '@lib/constants/grid';
-    import GridContainer from '../common/GridContainer.svelte';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
     import {
@@ -56,6 +55,8 @@
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { GridCellEditorConversationId } from '@lib/grid/grid-cell-editor-conversation-id';
     import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
+    import WidgetContainer from '../common/WidgetContainer.svelte';
+    import { isDarkMode } from '@lib/stores/app/darkmode';
     const CONVERSATION_ID_COLUMN: string = 'parent';
     const columnIdSet: Set<string> = new Set();
     const datasource: IDatasource = new GridDatasource<Localization>(TABLE_ID_LOCALIZATIONS);
@@ -130,7 +131,7 @@
         api.deselectAll();
     }
 
-    const onCreate: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onCreate(): Promise<void> {
         let newLocalization: Localization = <Localization>{
             name: '',
             isSystemCreated: false,
@@ -138,42 +139,44 @@
         };
 
         // Create localization
-        let newRow: Localization = await db.createRow(TABLE_ID_LOCALIZATIONS, newLocalization);
+        let newRow: Localization = await isLoading.wrapPromise(
+            db.createRow(TABLE_ID_LOCALIZATIONS, newLocalization),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'localization creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRow(TABLE_ID_LOCALIZATIONS, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow = await db.createRow(TABLE_ID_LOCALIZATIONS, newRow);
                 }),
             ),
         );
-    });
+    }
 
-    const onDelete: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onDelete(): Promise<void> {
         // Find localizations to delete
         const selected: Localization[] = getCopyOfSelectedAndDeselect(api, selectedRows);
 
         // Delete localizations
-        await db.deleteRows(TABLE_ID_LOCALIZATIONS, selected);
+        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_LOCALIZATIONS, selected));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'conversation deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.createRows(TABLE_ID_LOCALIZATIONS, selected);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRows(TABLE_ID_LOCALIZATIONS, selected);
                 }),
             ),
         );
-    });
+    }
 
     function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {
         // Grab row views
@@ -324,12 +327,11 @@
     });
 </script>
 
-<GridContainer
+<WidgetContainer
     title="Localizations"
     header="This is a list of all localized text. It is possible to associate localizations you
             create with arbitrary conversations by changing the conversation ID. This feature is 
             for organizational purposes only."
-    bind:gridElement
 >
     <svelte:fragment slot="toolbar">
         <GridToolbar elementsSelected={selectedRows.length} on:cancel={onCancel}>
@@ -346,4 +348,12 @@
             </span>
         </GridToolbar>
     </svelte:fragment>
-</GridContainer>
+    <svelte:fragment slot="widget">
+        <span
+            class={$isDarkMode
+                ? 'ag-theme-quartz-dark ag-theme-custom'
+                : 'ag-theme-quartz ag-theme-custom'}
+            bind:this={gridElement}
+        ></span>
+    </svelte:fragment>
+</WidgetContainer>

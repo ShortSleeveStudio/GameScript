@@ -37,7 +37,7 @@
             },
         );
 
-    const onSelect: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onSelect(): Promise<void> {
         if (!languagePrincipalRowView) return;
         const newValue = boundValue;
         const oldValue = currentValue;
@@ -47,19 +47,19 @@
         const originalRow = { ...get(languagePrincipalRowView) };
         const newRow = <Row>{ id: originalRow.id };
         newRow['principal'] = newValue;
-        await db.updateRow(languagePrincipalRowView.tableId, newRow);
+        await isLoading.wrapPromise(db.updateRow(languagePrincipalRowView.tableId, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'set default property type',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
                     newRow['principal'] = oldValue;
                     await db.updateRow(languagePrincipalRowView.tableId, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
                     newRow['principal'] = newValue;
@@ -67,7 +67,7 @@
                 }),
             ),
         );
-    });
+    }
 
     function onProgrammingLanguageChanged(
         principalLanguageRow: ProgrammingLanguagePrincipal,

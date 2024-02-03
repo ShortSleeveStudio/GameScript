@@ -38,7 +38,7 @@
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         let newAutoComplete: AutoComplete = <AutoComplete>{
             name: 'WalkTo',
             icon: languages.CompletionItemKind.Function,
@@ -46,42 +46,45 @@
             insertion: 'WalkTo(${1:actor}, ${2:location});',
             documentation: '',
         };
-        let newRow: AutoComplete = await db.createRow(TABLE_ID_AUTO_COMPLETES, newAutoComplete);
+        let newRow: AutoComplete = await isLoading.wrapPromise(
+            db.createRow(TABLE_ID_AUTO_COMPLETES, newAutoComplete),
+        );
+
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'auto-complete creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRow(TABLE_ID_AUTO_COMPLETES, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow = await db.createRow(TABLE_ID_AUTO_COMPLETES, newRow);
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab rows to delete
         let rowsToDelete: AutoComplete[] = autoCompleteTable.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
-        await db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
+        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'auto-complete deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     rowsToDelete = await db.createRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
                 }),
             ),
         );
-    });
+    }
 </script>
 
 <p>

@@ -24,7 +24,7 @@
         }
     }
 
-    const syncOnBlur: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function syncOnBlur(): Promise<void> {
         if (isInteger) boundValue = Math.round(boundValue);
         const newValue = boundValue;
         const oldValue = currentValue;
@@ -33,23 +33,23 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await db.updateRow(rowView.tableId, newRow);
+        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `${undoText} change`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = oldValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = newValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
             ),
         );
-    });
+    }
 
     onDestroy(
         rowView.subscribe((row: Row) => {

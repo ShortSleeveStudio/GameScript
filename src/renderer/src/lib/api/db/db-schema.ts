@@ -275,10 +275,11 @@ export type NodeType = 'dialogue' | 'root';
 export interface Node extends Row, Annotated {
     parent: number; // FK Conversation
     actor: number; // FK Actors
-    uiText: number; // FK Localizations
     voiceText: number; // FK Localizations
+    uiText: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
+    codeOverride: number | null; // FK Routines
 
     // Graph Stuff
     type: NodeType;

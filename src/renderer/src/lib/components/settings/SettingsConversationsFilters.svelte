@@ -62,58 +62,62 @@
         await db.deleteRow(TABLE_ID_FILTERS, toDelete, conn);
     }
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         let newFilter: Filter = <Filter>{
             name: 'New Filter',
         };
 
         // Create filter
-        await db.executeTransaction(async (conn: DbConnection) => {
-            await createFilter(newFilter, conn);
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                await createFilter(newFilter, conn);
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `filter creation`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await deleteFilter(newFilter, conn);
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         newFilter = await createFilter(newFilter, conn);
                     });
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab rows to delete
         let rowsToDelete: Filter[] = filters.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete Rows
-        await db.executeTransaction(async (conn: DbConnection) => {
-            for (let i = 0; i < rowsToDelete.length; i++) {
-                await deleteFilter(rowsToDelete[i], conn);
-            }
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                for (let i = 0; i < rowsToDelete.length; i++) {
+                    await deleteFilter(rowsToDelete[i], conn);
+                }
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'filter deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         for (let i = 0; i < rowsToDelete.length; i++) {
                             await createFilter(rowsToDelete[i], conn);
                         }
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         for (let i = 0; i < rowsToDelete.length; i++) {
                             await deleteFilter(rowsToDelete[i], conn);
@@ -122,7 +126,7 @@
                 }),
             ),
         );
-    });
+    }
 </script>
 
 <p>

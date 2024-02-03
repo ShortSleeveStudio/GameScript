@@ -68,7 +68,7 @@
     async function deleteLocale(toDelete: Locale, conn: DbConnection): Promise<void> {
         // If this is primary, switch to another
         if (get(localePrincipalRowView).principal === toDelete.id) {
-            db.updateRow(
+            await db.updateRow(
                 TABLE_ID_LOCALE_PRINCIPAL,
                 <LocalePrincipal>{ id: 0, principal: get(systemCreatedLocaleRowView).id },
                 conn,
@@ -82,58 +82,62 @@
         await db.deleteRow(TABLE_ID_LOCALES, toDelete, conn);
     }
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         let newLocale: Locale = <Locale>{
             name: 'New Locale',
             isSystemCreated: false,
         };
 
-        await db.executeTransaction(async (conn: DbConnection) => {
-            newLocale = await createLocale(newLocale, conn);
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                newLocale = await createLocale(newLocale, conn);
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `locale creation`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await deleteLocale(newLocale, conn);
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         newLocale = await createLocale(newLocale, conn);
                     });
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab rows to delete
         let rowsToDelete: Locale[] = locales.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete Rows
-        await db.executeTransaction(async (conn: DbConnection) => {
-            for (let i = 0; i < rowsToDelete.length; i++) {
-                await deleteLocale(rowsToDelete[i], conn);
-            }
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                for (let i = 0; i < rowsToDelete.length; i++) {
+                    await deleteLocale(rowsToDelete[i], conn);
+                }
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'locale deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         for (let i = 0; i < rowsToDelete.length; i++) {
                             await createLocale(rowsToDelete[i], conn);
                         }
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         for (let i = 0; i < rowsToDelete.length; i++) {
                             await deleteLocale(rowsToDelete[i], conn);
@@ -142,7 +146,7 @@
                 }),
             ),
         );
-    });
+    }
 
     // TODO
     // https://svelte-5-preview.vercel.app/status

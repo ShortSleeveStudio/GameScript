@@ -10,6 +10,9 @@
 
     export let rowView: IDbRowView<Row>;
     export let columnName: string;
+    export let showTitle: boolean = false;
+    export let showId: boolean = true;
+    export let showNickname: boolean = true;
 
     let localizationTableView: IDbTableView<Localization>;
 
@@ -34,7 +37,12 @@
 {#if localizationTableView}
     <Tile>
         {#each $localizationTableView as localizationRowView (localizationRowView.id)}
-            <InspectorLocalization rowView={localizationRowView} />
+            <InspectorLocalization
+                rowView={localizationRowView}
+                {showTitle}
+                {showId}
+                {showNickname}
+            />
         {/each}
     </Tile>
 {/if}

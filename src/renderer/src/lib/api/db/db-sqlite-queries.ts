@@ -161,6 +161,7 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_NODES}" (
 	"voiceText"	INTEGER NOT NULL,
 	"condition"	INTEGER NOT NULL,
 	"code"	INTEGER NOT NULL,
+	"codeOverride"	INTEGER,
 	"notes"	TEXT,
 	"type"	TEXT NOT NULL,
 	"positionX"	NUMERIC NOT NULL,

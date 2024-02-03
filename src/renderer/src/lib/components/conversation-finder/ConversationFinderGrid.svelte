@@ -55,9 +55,10 @@
     import { type GridContext } from '@lib/grid/grid-context';
     import { focusManager, type FocusData, type Focus } from '@lib/stores/app/focus';
     import GridToolbar from '../common/GridToolbar.svelte';
-    import GridContainer from '../common/GridContainer.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
+    import WidgetContainer from '../common/WidgetContainer.svelte';
+    import { isDarkMode } from '@lib/stores/app/darkmode';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
 
@@ -109,7 +110,7 @@
         return api;
     }
 
-    const onCreate: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onCreate(): Promise<void> {
         let newConversation: Conversation = <Conversation>{
             name: 'New Conversation',
             isSystemCreated: false,
@@ -118,23 +119,25 @@
         };
 
         // Create converation
-        let newRow: Conversation = await db.createRow(TABLE_ID_CONVERSATIONS, newConversation);
+        let newRow: Conversation = await isLoading.wrapPromise(
+            db.createRow(TABLE_ID_CONVERSATIONS, newConversation),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'conversation creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.deleteRow(TABLE_ID_CONVERSATIONS, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow = await db.createRow(TABLE_ID_CONVERSATIONS, newRow);
                 }),
             ),
         );
-    });
+    }
 
-    const onDeleteForever: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onDeleteForever(): Promise<void> {
         // Find conversations to delete
         const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect(
             api,
@@ -142,49 +145,51 @@
         );
 
         // Delete all selected conversations and their associated localizations/nodes
-        await db.executeTransaction(async (conn: DbConnection) => {
-            for (let i = 0; i < selectedConversations.length; i++) {
-                const conversationToDelete: Conversation = selectedConversations[i];
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                for (let i = 0; i < selectedConversations.length; i++) {
+                    const conversationToDelete: Conversation = selectedConversations[i];
 
-                // Delete localizations
-                const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
-                    TABLE_ID_LOCALIZATIONS,
-                    createFilter()
-                        .where()
-                        .column('parent')
-                        .eq(conversationToDelete.id)
-                        .endWhere()
-                        .build(),
-                    conn,
-                );
-                if (localizations.length > 0) {
-                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
+                    // Delete localizations
+                    const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
+                        TABLE_ID_LOCALIZATIONS,
+                        createFilter()
+                            .where()
+                            .column('parent')
+                            .eq(conversationToDelete.id)
+                            .endWhere()
+                            .build(),
+                        conn,
+                    );
+                    if (localizations.length > 0) {
+                        await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
+                    }
+
+                    // Delete nodes
+                    const nodes: Node[] = await db.fetchRowsRaw<Node>(
+                        TABLE_ID_NODES,
+                        createFilter()
+                            .where()
+                            .column('parent')
+                            .eq(conversationToDelete.id)
+                            .endWhere()
+                            .build(),
+                        conn,
+                    );
+                    if (nodes.length > 0) {
+                        await db.deleteRows(TABLE_ID_NODES, nodes, conn);
+                    }
+
+                    // Delete conversations
+                    await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
                 }
-
-                // Delete nodes
-                const nodes: Node[] = await db.fetchRowsRaw<Node>(
-                    TABLE_ID_NODES,
-                    createFilter()
-                        .where()
-                        .column('parent')
-                        .eq(conversationToDelete.id)
-                        .endWhere()
-                        .build(),
-                    conn,
-                );
-                if (nodes.length > 0) {
-                    await db.deleteRows(TABLE_ID_NODES, nodes, conn);
-                }
-
-                // Delete conversations
-                await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
-            }
-        });
+            }),
+        );
 
         isModalOpen = false;
-    });
+    }
 
-    const onDeleteOrRestore: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onDeleteOrRestore(): Promise<void> {
         // Find conversations to delete
         const selectedConversations: Conversation[] = getCopyOfSelectedAndDeselect(
             api,
@@ -195,21 +200,21 @@
         const isRestore: boolean = isDeletedVisible;
 
         // Delete conversations
-        await markRowsDeleted(selectedConversations, !isRestore);
+        await isLoading.wrapPromise(markRowsDeleted(selectedConversations, !isRestore));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `conversation ${isRestore ? 'restoration' : 'deletion'}`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await markRowsDeleted(selectedConversations, isRestore);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await markRowsDeleted(selectedConversations, !isRestore);
                 }),
             ),
         );
-    });
+    }
 
     async function markRowsDeleted(
         conversationsToDelete: Conversation[],
@@ -389,11 +394,10 @@
     });
 </script>
 
-<GridContainer
+<WidgetContainer
     title="Conversations"
     header="Conversations are containers for conversation nodes.
-            Conversation IDs are also used to group localized text."
-    bind:gridElement
+        Conversation IDs are also used to group localized text."
 >
     <svelte:fragment slot="toolbar">
         <GridToolbar elementsSelected={selectedRows.length} on:cancel={onCancel}>
@@ -430,7 +434,15 @@
             </span>
         </GridToolbar>
     </svelte:fragment>
-</GridContainer>
+    <svelte:fragment slot="widget">
+        <span
+            class={$isDarkMode
+                ? 'ag-theme-quartz-dark ag-theme-custom'
+                : 'ag-theme-quartz ag-theme-custom'}
+            bind:this={gridElement}
+        ></span>
+    </svelte:fragment>
+</WidgetContainer>
 
 <Modal
     size="sm"

@@ -45,41 +45,43 @@
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    const addRow: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function addRow(): Promise<void> {
         let newActor: Actor;
         let localizedName: Localization;
-        await db.executeTransaction(async (conn: DbConnection) => {
-            // Create localized name
-            const localizationArg = <Localization>{
-                parent: null,
-                isSystemCreated: true,
-            };
-            localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                // Create localized name
+                const localizationArg = <Localization>{
+                    parent: null,
+                    isSystemCreated: true,
+                };
+                localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
 
-            // Create Actor
-            newActor = await db.createRow(
-                TABLE_ID_ACTORS,
-                <Actor>{
-                    name: ACTORS_DEFAULT_NAME,
-                    color: ACTORS_DEFAULT_COLOR,
-                    localizedName: localizedName.id,
-                    isSystemCreated: false,
-                },
-                conn,
-            );
-        });
+                // Create Actor
+                newActor = await db.createRow(
+                    TABLE_ID_ACTORS,
+                    <Actor>{
+                        name: ACTORS_DEFAULT_NAME,
+                        color: ACTORS_DEFAULT_COLOR,
+                        localizedName: localizedName.id,
+                        isSystemCreated: false,
+                    },
+                    conn,
+                );
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'actor creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await db.deleteRow(TABLE_ID_ACTORS, newActor, conn);
                         await db.deleteRow(TABLE_ID_LOCALIZATIONS, localizedName, conn);
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         localizedName = await db.createRow(
                             TABLE_ID_LOCALIZATIONS,
@@ -91,9 +93,9 @@
                 }),
             ),
         );
-    });
+    }
 
-    const deleteRows: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function deleteRows(): Promise<void> {
         // Grab actor rows to delete
         let actorsToDelete: Actor[] = actorsTable.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
@@ -105,27 +107,34 @@
 
         // Delete
         let localizationsToDelete: Localization[];
-        await db.executeTransaction(async (conn: DbConnection) => {
-            await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
-            localizationsToDelete = await db.fetchRowsRaw<Localization>(
-                TABLE_ID_LOCALIZATIONS,
-                createFilter().where().column('id').in(localizationIdsToDelete).endWhere().build(),
-                conn,
-            );
-            await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+                localizationsToDelete = await db.fetchRowsRaw<Localization>(
+                    TABLE_ID_LOCALIZATIONS,
+                    createFilter()
+                        .where()
+                        .column('id')
+                        .in(localizationIdsToDelete)
+                        .endWhere()
+                        .build(),
+                    conn,
+                );
+                await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'actor deletion',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
                         await db.createRows(TABLE_ID_ACTORS, actorsToDelete, conn);
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
                         await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
@@ -133,7 +142,7 @@
                 }),
             ),
         );
-    });
+    }
 </script>
 
 <p>

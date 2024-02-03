@@ -179,6 +179,9 @@ input[type='color']::-webkit-color-swatch {
     letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
     margin-bottom: var(--cds-layout-02);
 }
+.bx--tile > p:last-child {
+    margin-bottom: 0px;
+}
 
 .bx--tile .bx--text-input  {
     background-color: var(--cds-field-02, #ffffff);
@@ -191,6 +194,17 @@ input[type='color']::-webkit-color-swatch {
 /* Override tooltip z-index so it goes above table headers */
 .tooltip-z-index-override {
     z-index: 2 !important;
+}
+
+/* Accordion */
+.accordion-padding-defeat > .bx--accordion__content {
+    padding: 0px;
+    padding-top:  var(--cds-layout-02);
+    /* border-top: 1px solid var(--cds-ui-03, #e0e0e0); */
+}
+
+.bx--accordion__content > p {
+    margin-bottom: var(--cds-layout-02);
 }
 
 /* Button Sets */

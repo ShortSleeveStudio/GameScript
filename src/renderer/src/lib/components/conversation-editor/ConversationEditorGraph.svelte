@@ -89,7 +89,6 @@
         'node-dialogue': NodeDialogue,
     };
 
-    let focused: Focus;
     let unsubscriberFocus: ActionUnsubscriber;
     let unsubscriberNode: Unsubscriber;
     let unsubscriberEdge: Unsubscriber;
@@ -99,6 +98,8 @@
     let edgeViews: IDbTableView<Edge>;
     let localizations: IDbTableView<Localization>;
     let isLoading: IsLoadingStore = new IsLoadingStore();
+    let focused: Focus;
+    $: focusedRowView = focused ? focused.rowView : undefined;
 
     function loadViewport(): void {
         if (focused && focused.rowView) {
@@ -118,6 +119,14 @@
         }
     }
 
+    function onNodeClick(
+        event: CustomEvent<{ event: MouseEvent | TouchEvent; node: FlowNode }>,
+    ): void {
+        const node: FlowNode = event.detail.node;
+        const data: NodeData = node.data;
+        focusManager.focus({ tableId: TABLE_ID_NODES, rowView: data.rowView });
+    }
+
     function onNodeViewsChanged(rowViews: IDbRowView<Node>[]): void {
         nodes.set(
             rowViews.map((rowView: IDbRowView<Node>) => {
@@ -135,7 +144,7 @@
         );
     }
 
-    const createNode: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function createNode(): Promise<void> {
         if (!focused) return;
 
         let uiText: Localization;
@@ -143,69 +152,71 @@
         let condition: Routine;
         let code: Routine;
         let node: Node;
-        await db.executeTransaction(async (conn: DbConnection) => {
-            // Create uiText
-            uiText = await db.createRow(
-                TABLE_ID_LOCALIZATIONS,
-                <Localization>{
-                    parent: focused.rowView.id,
-                    isSystemCreated: true,
-                },
-                conn,
-            );
-            // Create voiceText
-            voiceText = await db.createRow(
-                TABLE_ID_LOCALIZATIONS,
-                <Localization>{
-                    parent: focused.rowView.id,
-                    isSystemCreated: true,
-                },
-                conn,
-            );
-            // Create condition
-            condition = await db.createRow(
-                TABLE_ID_ROUTINES,
-                <Routine>{
-                    code: '',
-                    type: ROUTINE_TYPE_ID_USER,
-                    isSystemCreated: true,
-                },
-                conn,
-            );
-            // Create code
-            code = await db.createRow(
-                TABLE_ID_ROUTINES,
-                <Routine>{
-                    code: '',
-                    type: ROUTINE_TYPE_ID_USER,
-                    isSystemCreated: true,
-                },
-                conn,
-            );
-            // Create Node
-            node = await db.createRow(
-                TABLE_ID_NODES,
-                <Node>{
-                    parent: focused.rowView.id,
-                    actor: 0,
-                    uiText: uiText.id,
-                    voiceText: voiceText.id,
-                    condition: condition.id,
-                    code: code.id,
-                    // Graph Stuff
-                    type: 'dialogue',
-                    positionX: 0,
-                    positionY: 0,
-                },
-                conn,
-            );
-        });
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                // Create uiText
+                uiText = await db.createRow(
+                    TABLE_ID_LOCALIZATIONS,
+                    <Localization>{
+                        parent: focused.rowView.id,
+                        isSystemCreated: true,
+                    },
+                    conn,
+                );
+                // Create voiceText
+                voiceText = await db.createRow(
+                    TABLE_ID_LOCALIZATIONS,
+                    <Localization>{
+                        parent: focused.rowView.id,
+                        isSystemCreated: true,
+                    },
+                    conn,
+                );
+                // Create condition
+                condition = await db.createRow(
+                    TABLE_ID_ROUTINES,
+                    <Routine>{
+                        code: '',
+                        type: ROUTINE_TYPE_ID_USER,
+                        isSystemCreated: true,
+                    },
+                    conn,
+                );
+                // Create code
+                code = await db.createRow(
+                    TABLE_ID_ROUTINES,
+                    <Routine>{
+                        code: '',
+                        type: ROUTINE_TYPE_ID_USER,
+                        isSystemCreated: true,
+                    },
+                    conn,
+                );
+                // Create Node
+                node = await db.createRow(
+                    TABLE_ID_NODES,
+                    <Node>{
+                        parent: focused.rowView.id,
+                        actor: 0,
+                        uiText: uiText.id,
+                        voiceText: voiceText.id,
+                        condition: condition.id,
+                        code: code.id,
+                        // Graph Stuff
+                        type: 'dialogue',
+                        positionX: 0,
+                        positionY: 0,
+                    },
+                    conn,
+                );
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'node creation',
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await db.deleteRow(TABLE_ID_NODES, node, conn);
                         await db.deleteRow(TABLE_ID_ROUTINES, code, conn);
@@ -214,7 +225,7 @@
                         await db.deleteRow(TABLE_ID_LOCALIZATIONS, uiText, conn);
                     });
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         await db.createRow(TABLE_ID_LOCALIZATIONS, uiText, conn);
                         await db.createRow(TABLE_ID_LOCALIZATIONS, voiceText, conn);
@@ -225,7 +236,7 @@
                 }),
             ),
         );
-    });
+    }
 
     function onEdgeViewsChanged(newEdgeViews: IDbRowView<Edge>[]): void {}
 
@@ -315,25 +326,40 @@
     });
 </script>
 
-<Button disabled={!focused} on:click={createNode}>Create Node</Button>
 <div class="graph-container">
-    <SvelteFlow
-        {viewport}
-        {nodes}
-        {edges}
-        {snapGrid}
-        {nodeTypes}
-        proOptions={{ hideAttribution: true }}
-    >
-        <Controls />
-        <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
-        <MiniMap />
-    </SvelteFlow>
+    <div class="graph-title-bar">
+        <h4>{focusedRowView ? $focusedRowView.name : 'Please seleect a conversation'}</h4>
+        <Button size="small" disabled={!focused || $isLoading} on:click={createNode}
+            >Create Node</Button
+        >
+    </div>
+    <div class="graph-editor">
+        <SvelteFlow
+            {viewport}
+            {nodes}
+            {edges}
+            {snapGrid}
+            {nodeTypes}
+            proOptions={{ hideAttribution: true }}
+            on:nodeclick={onNodeClick}
+        >
+            <Controls />
+            <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
+            <MiniMap />
+        </SvelteFlow>
+    </div>
 </div>
 
 <style>
     .graph-container {
         height: 100%;
         width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .graph-title-bar {
+    }
+    .graph-editor {
+        flex-grow: 1;
     }
 </style>

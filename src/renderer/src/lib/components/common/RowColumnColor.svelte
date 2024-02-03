@@ -14,7 +14,7 @@
     let boundValue: string = <string>$rowView[columnName];
     let currentValue: string = <string>$rowView[columnName];
 
-    const onColorChanged: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function onColorChanged(): Promise<void> {
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
@@ -22,26 +22,33 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await db.updateRow(rowView.tableId, newRow);
+        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `${undoText} change`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = oldValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow[columnName] = newValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
             ),
         );
-    });
+    }
 </script>
 
-<input class="color-picker" on:change={onColorChanged} bind:value={boundValue} type="color" />
+<input
+    style:opacity={$isLoading ? '50%' : '100%'}
+    class="color-picker"
+    disabled={$isLoading}
+    on:change={onColorChanged}
+    bind:value={boundValue}
+    type="color"
+/>
 
 <style>
     .color-picker {

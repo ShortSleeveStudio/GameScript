@@ -43,9 +43,12 @@ export class FocusManager {
     }
 
     focus(focus: FocusData): void {
+        const isNewFocus: boolean =
+            focus.tableId !== this._focused ||
+            this._tableIdToLastFocus[this._focused].rowView !== focus.rowView;
         this._focused = focus.tableId;
         this._tableIdToLastFocus[focus.tableId] = focus;
-        this._action.fire();
+        if (isNewFocus) this._action.fire();
     }
 
     blur(tableId?: DatabaseTableId): void {

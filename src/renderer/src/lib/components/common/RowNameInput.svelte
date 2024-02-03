@@ -59,7 +59,7 @@
         rowViewUnsubscriber();
     });
 
-    const syncOnBlur: () => Promise<void> = isLoading.wrapOperationAsync(async () => {
+    async function syncOnBlur(): Promise<void> {
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
@@ -67,23 +67,23 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow.name = newValue;
-        await db.updateRow(rowView.tableId, newRow);
+        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `${undoText} change`,
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow.name = oldValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
-                isLoading.wrapOperationAsync(async () => {
+                isLoading.wrapFunction(async () => {
                     newRow.name = newValue;
                     await db.updateRow(rowView.tableId, newRow);
                 }),
             ),
         );
-    });
+    }
 
     function onKeyUp(e: KeyboardEvent): void {
         if (wasSavePressed(e) || wasEnterPressed(e)) {

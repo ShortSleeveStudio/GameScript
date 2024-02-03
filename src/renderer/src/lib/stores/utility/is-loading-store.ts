@@ -26,22 +26,20 @@ export class IsLoadingStore implements Readable<boolean> {
         return this._internalIsLoading.subscribe(run, invalidate);
     }
 
-    wrapOperationAsync(operation: () => Promise<void>): () => Promise<void> {
+    async wrapPromise<T>(promise: Promise<T>): Promise<T> {
+        try {
+            this.increment();
+            return await promise;
+        } finally {
+            this.decrement();
+        }
+    }
+
+    wrapFunction(operation: () => Promise<void>): () => Promise<void> {
         return async () => {
             try {
                 this.increment();
                 await operation();
-            } finally {
-                this.decrement();
-            }
-        };
-    }
-
-    wrapOperationSync(operation: () => void): () => void {
-        return () => {
-            try {
-                this.increment();
-                operation();
             } finally {
                 this.decrement();
             }
