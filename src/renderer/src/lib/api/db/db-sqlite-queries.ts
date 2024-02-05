@@ -181,6 +181,7 @@ CREATE TABLE IF NOT EXISTS "${TABLE_NAME_EDGES}" (
 	"name"	TEXT,
 	"parent"	INTEGER NOT NULL,
 	"notes"	TEXT,
+	"priority"	INTEGER,
 	"type"	TEXT NOT NULL,
 	"source"	INTEGER NOT NULL,
 	"target"	INTEGER NOT NULL,

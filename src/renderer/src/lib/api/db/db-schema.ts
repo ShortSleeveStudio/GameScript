@@ -293,6 +293,7 @@ export interface Node extends Row, Annotated {
 export type EdgeType = 'default' | 'smoothstep' | 'step';
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations
+    priority: number;
 
     // Graph Stuff
     type: EdgeType;
