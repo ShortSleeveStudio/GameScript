@@ -24,6 +24,8 @@ export class Action<T> {
     }
 
     fire(value: T): void {
-        this._handlers.forEach((handler: ActionHandler<T>) => handler(value));
+        this._handlers.forEach((handler: ActionHandler<T>) => {
+            handler(value);
+        });
     }
 }

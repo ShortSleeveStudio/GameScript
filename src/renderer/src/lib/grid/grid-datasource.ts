@@ -66,7 +66,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
 
         // Build filter
         const filter: Filter<RowType> = this.buildFilter(params);
-        console.log('FILTER: ' + filter.toString());
+        // console.log('FILTER: ' + filter.toString());
 
         // Store callback
         const capturedRequestIndex: number = this._requests.length;
@@ -88,7 +88,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
             // Update from backend
             if (request === undefined) {
                 // Backend update
-                console.log('BACKEND UPDATE');
+                // console.log('BACKEND UPDATE');
                 this._refreshRequested = true;
                 this._context.getGridApi().refreshInfiniteCache();
             }
@@ -101,9 +101,9 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
             else {
                 const sliceStart: number = request.startRow - this._currentOffset;
                 const sliceEnd: number = request.endRow - this._currentOffset;
-                console.log(
-                    `FRONTEND UPDATE START[${request.startRow}] END[${request.endRow}] ROWCOUNT[${this._tableView.rowCount}]`,
-                );
+                // console.log(
+                //     `FRONTEND UPDATE START[${request.startRow}] END[${request.endRow}] ROWCOUNT[${this._tableView.rowCount}]`,
+                // );
                 request.successCallback(
                     rowViews.slice(sliceStart, sliceEnd),
                     this._tableView.rowCount,
@@ -119,7 +119,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         // Recreate table
         if (this._tableView) {
             if (this._refreshRequested) {
-                console.log('REFRESH');
+                // console.log('REFRESH');
                 this._refreshRequested = false;
                 updateHandler(get(this._tableView), capturedRequestIndex);
                 return;
@@ -129,7 +129,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
                 currentRequest.oldTable = this._tableView;
             }
         }
-        console.log('CREATE TABLE');
+        // console.log('CREATE TABLE');
         currentRequest.isSubscribeUpdateCalled = false;
         this._tableView = db.fetchTable<RowType>(this._tableId, filter);
         this._tableViewUnsubscriber = this._tableView.subscribe(updateHandler);

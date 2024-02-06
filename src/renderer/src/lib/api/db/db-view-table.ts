@@ -23,6 +23,7 @@ import type { IDbTableView } from './db-view-table-interface';
 export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private static nextId = 0;
     private _viewId: number;
+    private _isInitialized: boolean;
     private _tableId: DatabaseTableId;
     private _internalWritable: Writable<DbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
@@ -33,6 +34,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
     constructor(tableId: DatabaseTableId, filter: Filter<RowType>, isConnected: Readable<boolean>) {
         this._viewId = DbTableView.nextId++;
+        this._isInitialized = false;
         this._tableId = tableId;
         this._filter = filter;
         this._idToRowMap = new Map();
@@ -41,6 +43,10 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._totalRowCount = 0;
         this._isDisposed = false;
         this.onReloadRequired();
+    }
+
+    get isInitialized(): boolean {
+        return this._isInitialized;
     }
 
     get viewId(): number {
@@ -64,10 +70,6 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     }
 
     set filter(filter: Filter<RowType>) {
-        // if (this._filter.equals(filter)) {
-        //     console.log('FILTER WAS EQUAL, SKIPPING SET');
-        //     return;
-        // }
         this._filter = filter;
         this.onReloadRequired();
     }
@@ -108,6 +110,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
     dispose(): void {
         this._isDisposed = true;
+        this._isInitialized = false;
         this.onReloadRequired();
     }
 
@@ -144,6 +147,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
 
         // Update store
         this._totalRowCount = newRowCount;
+        this._isInitialized = true;
         this._internalWritable.set(newRowViews);
     }
 }

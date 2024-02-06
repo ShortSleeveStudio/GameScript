@@ -11,6 +11,7 @@
     import { db } from '@lib/api/db/db';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { Tooltip } from 'carbon-components-svelte';
+    import RowColumnActor from '../common/RowColumnActor.svelte';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -52,6 +53,10 @@
 <p>
     <sup>Conversation ID</sup>
     <RowColumnId {rowView} columnName={'parent'} />
+</p>
+<p>
+    <sup>Actor</sup>
+    <RowColumnActor {rowView} columnName={'actor'} />
 </p>
 <p>
     <Tooltip triggerText="Voice Text" align="start" direction="bottom">

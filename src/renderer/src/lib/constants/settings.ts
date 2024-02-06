@@ -61,6 +61,8 @@ export const FILTER_PLACEHOLDER_OPTION = 'Enter an option';
 /**Conversations */
 export const CONVERSATION_UNDO_NOTES = 'conversation notes';
 export const CONVERSATION_PLACEHOLDER_NOTES = 'Developer notes go here...';
+export const CONVERSATION_UNDO_NAME = 'conversation name';
+export const CONVERSATION_PLACEHOLDER_NAME = 'Enter conversation name';
 
 /**Nodes */
 export const NODE_UNDO_VOICE_TEXT = 'voice text';

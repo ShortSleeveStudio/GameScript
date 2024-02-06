@@ -17,6 +17,7 @@ export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<R
     tableName: DatabaseTableName;
     filter: Filter<RowType>;
     rowCount: number;
+    isInitialized: boolean;
     subscribe(
         run: Subscriber<IDbRowView<RowType>[]>,
         invalidate?: Invalidator<IDbRowView<RowType>[]> | undefined,

@@ -25,6 +25,7 @@
         TABLE_ID_ROUTINES,
         ROUTINE_TYPE_ID_USER,
         type Routine,
+        type NodeType,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -43,11 +44,26 @@
     import type { NodeData } from '@lib/graph/node-data';
     import { ASC } from '@lib/api/db/db-filter-interface';
     import { wait } from '@lib/utility/wait';
+    import { TableWatcher } from '@lib/stores/utility/table-watcher';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
+    interface GraphFunctions {
+        localObjectStore: Writable<LocalObject[]>;
+        creatorRemote: (localObject: LocalObject) => Promise<RemoteObject>;
+        updatorRemote: (
+            localObject: LocalObject,
+            remoteObject: IDbRowView<RemoteObject>,
+        ) => Promise<void>;
+        deletorRemote: (remoteObject: RemoteObject) => Promise<void>;
+        creatorLocal: (remoteObject: IDbRowView<RemoteObject>) => LocalObject;
+        updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => void;
+        isInteractionActive: () => boolean;
+    }
 
-    const NEW_GRAPH_OBJECT_ID_PREFIX: string = 'x';
+    const MIN_ZOOM: number = 0.1;
+    const UPDATE_COOLOFF_MILLIS: number = 300;
+    const NEW_GRAPH_OBJECT_ID_PREFIX: string = 'xy';
     const NODE_TYPE_DIALOGUE = 'dialogue';
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
@@ -61,19 +77,43 @@
     let unsubscriberFocus: ActionUnsubscriber;
     let unsubscriberNode: Unsubscriber;
     let unsubscriberEdge: Unsubscriber;
-    let unsubscriberNodeView: Unsubscriber;
-    let unsubscriberEdgeView: Unsubscriber;
+    let tableWatcherNode: TableWatcher<Node>;
+    let tableWatcherEdge: TableWatcher<Edge>;
+    let unsubscriberLocalizationView: Unsubscriber;
     let nodeViews: IDbTableView<Node>;
     let edgeViews: IDbTableView<Edge>;
-    let localizations: IDbTableView<Localization>;
+    let localizationViews: IDbTableView<Localization>;
     let reconciliationInProgress: boolean = false;
     let pendingReconciliationNodeRemote: boolean = false;
     let pendingReconciliationNodeLocal: boolean = false;
     let pendingReconciliationEdgeLocal: boolean = false;
     let pendingReconciliationEdgeRemote: boolean = false;
     let isLoading: IsLoadingStore = new IsLoadingStore();
+    let nextNodeIndex: number = 0;
+    let isConversationInitialized: boolean = false;
+    let ignoreLocalUpdate: boolean = false;
+    let lastUpdateRequestTime: number;
     let focused: Focus;
     $: focusedRowView = focused ? focused.rowView : undefined;
+
+    const graphFunctionsNodes: GraphFunctions = {
+        localObjectStore: nodes,
+        creatorRemote: nodeCreateRemote,
+        updatorRemote: nodeUpdateRemote,
+        deletorRemote: nodeDeleteRemote,
+        creatorLocal: nodeCreateLocal,
+        updatorLocal: nodeUpdateLocal,
+        isInteractionActive: isNodeDragging,
+    };
+    const graphFunctionsEdges: GraphFunctions = {
+        localObjectStore: edges,
+        creatorRemote: edgeCreateRemote,
+        updatorRemote: edgeUpdateRemote,
+        deletorRemote: edgeDeleteRemote,
+        creatorLocal: edgeCreateLocal,
+        updatorLocal: edgeUpdateLocal,
+        isInteractionActive: () => false,
+    };
 
     function loadViewport(): void {
         if (focused && focused.rowView) {
@@ -102,13 +142,26 @@
     }
 
     // TODO
-    function onClickCreate(): void {
-        nodeCreateRemote();
+    function onClickCreateRemote(): void {
+        nodeCreateRemote(<FlowNode>{
+            type: NODE_TYPE_DIALOGUE,
+            position: { x: 0, y: 0 },
+        });
     }
 
-    async function nodeCreateRemote(local?: FlowNode): Promise<void> {
-        if (!focused) return;
+    function onClickCreateLocal(): void {
+        nodes.update((localNodes: FlowNode[]) => {
+            localNodes.push(<FlowNode>{
+                id: `${NEW_GRAPH_OBJECT_ID_PREFIX}-${nextNodeIndex++}`,
+                type: NODE_TYPE_DIALOGUE,
+                position: { x: 0, y: 0 },
+            });
+            return localNodes;
+        });
+    }
+    // TODO
 
+    async function nodeCreateRemote(local: FlowNode): Promise<Node> {
         let uiText: Localization;
         let voiceText: Localization;
         let condition: Routine;
@@ -155,18 +208,6 @@
                     conn,
                 );
                 // Create Node
-                let nodeType: string;
-                let posX: number;
-                let posY: number;
-                if (local) {
-                    nodeType = local.type;
-                    posX = local.position.x;
-                    posY = local.position.y;
-                } else {
-                    nodeType = NODE_TYPE_DIALOGUE;
-                    posX = 0;
-                    posY = 0;
-                }
                 node = await db.createRow(
                     TABLE_ID_NODES,
                     <Node>{
@@ -177,9 +218,9 @@
                         condition: condition.id,
                         code: code.id,
                         // Graph Stuff
-                        type: nodeType,
-                        positionX: posX,
-                        positionY: posY,
+                        type: local.type,
+                        positionX: local.position.x,
+                        positionY: local.position.y,
                     },
                     conn,
                 );
@@ -210,24 +251,121 @@
                 }),
             ),
         );
+
+        return node;
     }
 
-    async function nodeUpdateRemote(local: FlowEdge, remote: Edge): Promise<void> {}
-    async function nodeDeleteRemote(remote: Edge): Promise<void> {}
-    function nodeCreateLocal(remote: Edge): FlowNode {}
-    function nodeUpdateLocal(local: FlowEdge, remote: Edge): void {}
-    async function edgeCreateRemote(local?: FlowEdge): Promise<void> {}
-    async function edgeUpdateRemote(local: FlowEdge, remote: Edge): Promise<void> {}
-    async function edgeDeleteRemote(remote: Edge): Promise<void> {}
-    function edgeCreateLocal(remote: Edge): FlowEdge {}
-    function edgeUpdateLocal(local: FlowEdge, remote: Edge): void {}
+    async function nodeUpdateRemote(local: FlowNode, remoteView: IDbRowView<Node>): Promise<void> {
+        // Make sure the row view is set
+        const remote: Node = get(remoteView);
+        if (!local.data) {
+            local.data = <NodeData>{
+                rowView: remoteView,
+                localizations: localizationViews,
+            };
+        }
 
-    async function runReconciliation<Local extends LocalObject, Remote extends RemoteObject>(
-        isLocalOrigin: boolean,
-        isForNodes: boolean,
-    ): Promise<void> {
-        // If a reconciliation is already in progress, wait until it finishes
-        if (reconciliationInProgress) {
+        // Skip equality
+        if (nodeIsEqual(local, remote)) return;
+
+        // Update node
+        const oldNode: Node = <Node>{ ...remote };
+        const newNode: Node = <Node>{ ...remote };
+        newNode.type = <NodeType>local.type;
+        newNode.positionX = local.position.x;
+        newNode.positionY = local.position.y;
+        await isLoading.wrapPromise(db.updateRow(TABLE_ID_NODES, newNode));
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'node update',
+                isLoading.wrapFunction(async () => {
+                    await db.updateRow(TABLE_ID_NODES, oldNode);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.updateRow(TABLE_ID_NODES, newNode);
+                }),
+            ),
+        );
+    }
+
+    async function nodeDeleteRemote(remote: Node): Promise<void> {
+        // Detete node
+        const nodeToDelete: Node = <Node>{ ...remote };
+        await isLoading.wrapPromise(db.deleteRow(TABLE_ID_NODES, nodeToDelete));
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'node update',
+                isLoading.wrapFunction(async () => {
+                    await db.createRow(TABLE_ID_NODES, nodeToDelete);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.deleteRow(TABLE_ID_NODES, nodeToDelete);
+                }),
+            ),
+        );
+    }
+
+    function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
+        const remoteNode: Node = get(remote);
+        return <FlowNode>{
+            id: remote.id.toString(),
+            type: remoteNode.type,
+            position: { x: remoteNode.positionX, y: remoteNode.positionY },
+            data: <NodeData>{
+                rowView: remote,
+                localizations: localizationViews,
+            },
+        };
+    }
+
+    function nodeUpdateLocal(local: FlowNode, remoteView: IDbRowView<Node>): void {
+        // Skip equality
+        const remote: Node = get(remoteView);
+        if (nodeIsEqual(local, remote)) return;
+        local.type = remote.type;
+        local.position.x = remote.positionX;
+        local.position.y = remote.positionY;
+    }
+
+    function nodeIsEqual(local: FlowNode, remote: Node): boolean {
+        return (
+            local.type === remote.type &&
+            local.position.x === remote.positionX &&
+            local.position.y === remote.positionY
+        );
+    }
+
+    function isNodeDragging(): boolean {
+        const flowNodes: FlowNode[] = get(nodes);
+        for (let i = 0; i < flowNodes.length; i++) {
+            if (flowNodes[i].dragging) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    async function edgeCreateRemote(local: FlowEdge): Promise<Edge> {}
+    async function edgeUpdateRemote(local: FlowEdge, remote: IDbRowView<Edge>): Promise<void> {}
+    async function edgeDeleteRemote(remote: Edge): Promise<void> {}
+    function edgeCreateLocal(remote: IDbRowView<Edge>): FlowEdge {}
+    function edgeUpdateLocal(local: FlowEdge, remote: IDbRowView<Edge>): void {}
+    function edgeIsEqual(local: FlowEdge, remote: Edge): boolean {
+        return (
+            local.type === remote.type &&
+            local.source === remote.source.toString() &&
+            local.target === remote.target.toString()
+        );
+    }
+
+    async function runReconciliation(isLocalOrigin: boolean, isForNodes: boolean): Promise<void> {
+        // If a reconciliation is already in progress or the conversation isn't initialized, wait
+        lastUpdateRequestTime = Date.now();
+        if (reconciliationInProgress || !isConversationInitialized) {
             if (isForNodes) {
                 if (isLocalOrigin) {
                     pendingReconciliationNodeLocal = true;
@@ -243,59 +381,85 @@
             }
             return;
         }
-
         reconciliationInProgress = true;
-        let localObjectStore: Writable<Local[]>;
-        let localObjects: Local[];
-        let remoteObjects: IDbRowView<Remote>[];
-        let creatorRemote: (localObject: Local) => Promise<void>;
-        let updatorRemote: (localObject: Local, remoteObject: Remote) => Promise<void>;
-        let deletorRemote: (remoteObject: Remote) => Promise<void>;
-        let creatorLocal: (remoteObject: Remote) => Local;
-        let updatorLocal: (localObject: Local, remoteObject: Remote) => void;
+
+        let graphFunctions: GraphFunctions;
+        let localWritable: Writable<LocalObject[]>;
+        let remoteWritable: IDbTableView<RemoteObject>;
         if (isForNodes) {
-            localObjectStore = <Writable<Local[]>>nodes;
-            localObjects = <Local[]>get(nodes);
-            remoteObjects = <IDbRowView<Remote>[]>get(nodeViews);
-            creatorRemote = <(localObject: Local) => Promise<void>>nodeCreateRemote;
-            updatorRemote = <(localObject: Local, remoteObject: Remote) => Promise<void>>(
-                nodeUpdateRemote
-            );
-            deletorRemote = <(remoteObject: Remote) => Promise<void>>nodeDeleteRemote;
-            creatorLocal = <(remoteObject: Remote) => Local>nodeCreateLocal;
-            updatorLocal = <(localObject: Local, remoteObject: Remote) => void>nodeUpdateLocal;
+            graphFunctions = graphFunctionsNodes;
+            localWritable = nodes;
+            remoteWritable = nodeViews;
         } else {
-            localObjectStore = <Writable<Local[]>>edges;
-            localObjects = <Local[]>get(edges);
-            remoteObjects = <IDbRowView<Remote>[]>get(edgeViews);
-            creatorRemote = <(localObject: Local) => Promise<void>>edgeCreateRemote;
-            updatorRemote = <(localObject: Local, remoteObject: Remote) => Promise<void>>(
-                edgeUpdateRemote
-            );
-            deletorRemote = <(remoteObject: Remote) => Promise<void>>edgeDeleteRemote;
-            creatorLocal = <(remoteObject: Remote) => Local>edgeCreateLocal;
-            updatorLocal = <(localObject: Local, remoteObject: Remote) => void>edgeUpdateLocal;
+            graphFunctions = graphFunctionsEdges;
+            localWritable = edges;
+            remoteWritable = edgeViews;
         }
 
-        const newObjects: Local[] = [];
+        // We apply updates coming in from remote immediately, but we apply updates to the remote
+        // asyncronously and wait a cooloff period before sending them out to avoid spamming the
+        // server. Also, it helps sidestep an issue with stores whereby we're calling set inside a
+        // subscription callback.
+        if (isLocalOrigin) {
+            let diff: number;
+            while ((diff = Date.now() - lastUpdateRequestTime) < UPDATE_COOLOFF_MILLIS) {
+                await wait(diff);
+
+                // Reset if interaction is still happening
+                if (graphFunctions.isInteractionActive()) {
+                    lastUpdateRequestTime = Date.now();
+                }
+            }
+        } else {
+            await wait(1); // This sidesteps the store issue mentioned
+        }
+
+        // Reset flags as needed
+        if (isForNodes) {
+            if (isLocalOrigin) {
+                if (pendingReconciliationNodeLocal) pendingReconciliationNodeLocal = false;
+            } else {
+                if (pendingReconciliationNodeRemote) pendingReconciliationNodeRemote = false;
+            }
+        } else {
+            if (isLocalOrigin) {
+                if (pendingReconciliationEdgeLocal) pendingReconciliationEdgeLocal = false;
+            } else {
+                if (pendingReconciliationEdgeRemote) pendingReconciliationEdgeRemote = false;
+            }
+        }
+
+        console.log(`RUNNING RECON [${isLocalOrigin ? 'LOCAL' : 'REMOTE'}]`);
+        let localObjects: LocalObject[] = get(localWritable);
+        let remoteObjects: IDbRowView<RemoteObject>[] = get(remoteWritable);
+        const newObjects: LocalObject[] = [];
         let l: number = 0;
         let r: number = 0;
         for (; l < localObjects.length || r < remoteObjects.length; ) {
-            const localObject: Local = l < localObjects.length ? localObjects[l] : undefined;
-            const remoteObject: IDbRowView<Remote> =
+            const localObject: LocalObject = l < localObjects.length ? localObjects[l] : undefined;
+            const remoteObject: IDbRowView<RemoteObject> =
                 r < remoteObjects.length ? remoteObjects[r] : undefined;
 
             // New Local Node
             if (localObject && localObject.id.startsWith(NEW_GRAPH_OBJECT_ID_PREFIX)) {
+                console.log('made it');
                 if (isLocalOrigin) {
                     // Create Remote
                     // don't capture what's created, another reconciliation will update the ID
                     console.log(`Create remote ${isForNodes ? 'node' : 'edge'}`);
-                    await creatorRemote(localObject);
+                    try {
+                        const newObject: RemoteObject =
+                            await graphFunctions.creatorRemote(localObject);
+                        localObject.id = newObject.id.toString();
+                    } catch (error) {
+                        focusManager.blur(TABLE_ID_CONVERSATIONS);
+                        throw error;
+                    }
                 } else {
                     // Ignore for now, assume this reconcilition will happen soon
                     console.log(`Cached node ${localObject.id} is unexpectedly out of date`);
                 }
+                newObjects.push(localObject);
                 l++;
                 continue;
             }
@@ -306,12 +470,17 @@
             if (localId === remoteId) {
                 if (isLocalOrigin) {
                     // Update Remote (if not equal)
-                    console.log(`Update remote ${isForNodes ? 'node' : 'edge'}`);
-                    await updatorRemote(localObject, get(remoteObject));
+                    // console.log(`Update remote ${isForNodes ? 'node' : 'edge'}`);
+                    try {
+                        await graphFunctions.updatorRemote(localObject, remoteObject);
+                    } catch (error) {
+                        focusManager.blur(TABLE_ID_CONVERSATIONS);
+                        throw error;
+                    }
                 } else {
                     // Update Local (if not equal)
                     console.log(`Update local ${isForNodes ? 'node' : 'edge'}`);
-                    updatorLocal(localObject, get(remoteObject));
+                    graphFunctions.updatorLocal(localObject, remoteObject);
                 }
                 newObjects.push(localObject);
                 l++;
@@ -319,7 +488,8 @@
             } else if (localId < remoteId) {
                 if (isLocalOrigin) {
                     // Ignore for now, assume this reconcilition will happen soon
-                    console.log(`Cached node ${localId} is unexpectedly out of date`);
+                    focusManager.blur(TABLE_ID_CONVERSATIONS);
+                    throw new Error(`Local node cache contained unexpected node: ${localId}`);
                 } else {
                     // Delete Local
                     // Simply don't add to list
@@ -331,21 +501,28 @@
                 if (isLocalOrigin) {
                     // Delete Remote
                     console.log(`Delete remote ${isForNodes ? 'node' : 'edge'}`);
-                    await deletorRemote(get(remoteObject));
+                    try {
+                        await graphFunctions.deletorRemote(get(remoteObject));
+                    } catch (error) {
+                        focusManager.blur(TABLE_ID_CONVERSATIONS);
+                        throw error;
+                    }
                 } else {
                     // Create Local
                     console.log(`Create local ${isForNodes ? 'node' : 'edge'}`);
-                    newObjects.push(creatorLocal(get(remoteObject)));
+                    newObjects.push(graphFunctions.creatorLocal(remoteObject));
                 }
                 r++;
             }
         }
 
-        // If the graph is still loaded, update the stores
-        localObjectStore.set(newObjects);
+        // Update the local store and ignore updates from subscription
+        // This is syncronous, so we're safe from losing any changes
+        ignoreLocalUpdate = true;
+        graphFunctions.localObjectStore.set(newObjects);
+        ignoreLocalUpdate = false;
 
-        // Wait
-        await wait(300);
+        // Set finished
         reconciliationInProgress = false;
 
         // Kick off another reconciliation if needed
@@ -353,22 +530,22 @@
         // You might lose changes this way, but they'd only be related to deletion / movement and
         // shouldn't happen much in practice
         if (pendingReconciliationNodeRemote) {
-            pendingReconciliationNodeRemote = false;
+            console.log('recursing node recon remote');
             runReconciliation(false, true);
             return;
         }
         if (pendingReconciliationEdgeRemote) {
-            pendingReconciliationEdgeRemote = false;
+            console.log('recursing edge recon remote');
             runReconciliation(false, false);
             return;
         }
         if (pendingReconciliationNodeLocal) {
-            pendingReconciliationNodeLocal = false;
+            console.log('recursing node recon local');
             runReconciliation(true, true);
             return;
         }
         if (pendingReconciliationEdgeLocal) {
-            pendingReconciliationEdgeLocal = false;
+            console.log('recursing edge recon local');
             runReconciliation(true, false);
             return;
         }
@@ -378,33 +555,45 @@
     }
 
     function onNodeViewsChanged(): void {
+        console.log('NODE REMOTE CHANGE');
+        updateIsConversationInitialized();
         runReconciliation(false, true);
-
-        // nodes.set(
-        //     rowViews.map((rowView: IDbRowView<Node>) => {
-        //         const node: Node = get(rowView);
-        //         return {
-        //             id: node.id.toString(),
-        //             type: 'dialogue',
-        //             position: { x: node.positionX, y: node.positionY },
-        //             data: <NodeData>{
-        //                 rowView: rowView,
-        //                 localizations: localizations,
-        //             },
-        //         };
-        //     }),
-        // );
     }
 
     function onEdgeViewsChanged(): void {
+        updateIsConversationInitialized();
         runReconciliation(false, false);
     }
 
+    function onLocalizationsChanged(): void {
+        updateIsConversationInitialized();
+        // it doesn't matter that we picked nodes, it'll trigger edge recon too
+        runReconciliation(false, true);
+    }
+
+    function updateIsConversationInitialized(): void {
+        if (!isConversationInitialized) {
+            isConversationInitialized =
+                nodeViews &&
+                edgeViews &&
+                localizationViews &&
+                nodeViews.isInitialized &&
+                edgeViews.isInitialized &&
+                localizationViews.isInitialized;
+        }
+    }
+
     function onNodesChanged(): void {
+        if (ignoreLocalUpdate || !isConversationInitialized) {
+            return;
+        }
         runReconciliation(true, true);
     }
 
     function onEdgesChanged(): void {
+        if (ignoreLocalUpdate || !isConversationInitialized) {
+            return;
+        }
         runReconciliation(true, false);
     }
 
@@ -454,20 +643,26 @@
                 .orderBy('id', ASC)
                 .build(),
         );
-        localizations = db.fetchTable<Localization>(
+        localizationViews = db.fetchTable<Localization>(
             TABLE_ID_LOCALIZATIONS,
             createFilter().where().column('parent').eq(focused.rowView.id).endWhere().build(),
         );
-        unsubscriberNodeView = nodeViews.subscribe(onNodeViewsChanged);
-        unsubscriberEdgeView = edgeViews.subscribe(onEdgeViewsChanged);
+        tableWatcherNode = new TableWatcher(nodeViews);
+        tableWatcherNode.subscribe(onNodeViewsChanged);
+        // tableWatcherEdge = new TableWatcher(edgeViews);
+        // tableWatcherEdge.subscribe(onEdgeViewsChanged);
+        unsubscriberLocalizationView = localizationViews.subscribe(onLocalizationsChanged);
     }
 
     function clearGraph(): void {
+        // Order matters, we don't want subscription updates when the tables clear
+        isConversationInitialized = false;
+        if (tableWatcherNode) tableWatcherNode.dispose();
+        if (tableWatcherEdge) tableWatcherEdge.dispose();
+        if (unsubscriberLocalizationView) unsubscriberLocalizationView();
         if (edgeViews) db.releaseTable(edgeViews);
         if (nodeViews) db.releaseTable(nodeViews);
-        if (localizations) db.releaseTable(localizations);
-        if (unsubscriberNodeView) unsubscriberNodeView();
-        if (unsubscriberEdgeView) unsubscriberEdgeView();
+        if (localizationViews) db.releaseTable(localizationViews);
         if (get(nodes).length !== 0) nodes.set([]);
         if (get(edges).length !== 0) edges.set([]);
         viewport.set(<Viewport>{ ...DEFAULT_VIEWPORT });
@@ -486,7 +681,7 @@
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         unsubscriberNode = nodes.subscribe(onNodesChanged);
-        unsubscriberEdge = edges.subscribe(onEdgesChanged);
+        // unsubscriberEdge = edges.subscribe(onEdgesChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
     });
     onDestroy(() => {
@@ -501,8 +696,15 @@
 <div class="graph-container">
     <div class="graph-title-bar">
         <h4>{focusedRowView ? $focusedRowView.name : 'Please seleect a conversation'}</h4>
-        <Button size="small" disabled={!focused || $isLoading} on:click={onClickCreate}
-            >Create Node</Button
+        <Button
+            size="small"
+            disabled={!focused || $isLoading || reconciliationInProgress}
+            on:click={onClickCreateRemote}>Create Node [REMOTE]</Button
+        >
+        <Button
+            size="small"
+            disabled={!focused || $isLoading || reconciliationInProgress}
+            on:click={onClickCreateLocal}>Create Node [LOCAL]</Button
         >
     </div>
     <div class="graph-editor">
@@ -512,6 +714,7 @@
             {edges}
             {snapGrid}
             {nodeTypes}
+            minZoom={MIN_ZOOM}
             proOptions={{ hideAttribution: true }}
             on:nodeclick={onNodeClick}
         >
