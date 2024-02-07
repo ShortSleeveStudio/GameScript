@@ -13,6 +13,7 @@
     export let columnName: string;
     export let placeholder: string;
     export let resizable: boolean = true;
+    export let disabled: boolean = false;
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string;
@@ -64,7 +65,7 @@
 <TextArea
     {...$$restProps}
     style="resize: {resizable ? 'vertical' : 'none'};"
-    disabled={$isLoading || !rowView}
+    disabled={$isLoading || !rowView || disabled}
     {placeholder}
     bind:value={boundValue}
     on:blur={syncOnBlur}

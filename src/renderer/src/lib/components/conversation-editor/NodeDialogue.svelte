@@ -1,10 +1,9 @@
 <script lang="ts">
     import { Handle, Position, type NodeProps } from '@xyflow/svelte';
-    import type { NodeData } from '@lib/graph/node-data';
+    import type { NodeData } from '@lib/graph/graph-data';
     import type { Actor, Localization, Node } from '@lib/api/db/db-schema';
     import { actorsTable } from '@lib/tables/actors';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { TextArea } from 'carbon-components-svelte';
     import NodeDialogueText from './NodeDialogueText.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { get } from 'svelte/store';
@@ -42,8 +41,14 @@
     export let data: NodeData;
     let rowView: IDbRowView<Node> = data.rowView;
     let localizations: IDbTableView<Localization> = data.localizations;
+    $: onDataChanged(data);
     $: actor = getActorView($rowView);
     $: voiceText = getVoiceText($localizations);
+
+    function onDataChanged(data: NodeData): void {
+        rowView = data?.rowView;
+        localizations = data?.localizations;
+    }
 
     function getActorView(node: Node): IDbRowView<Actor> {
         if (!node) return undefined;
@@ -58,10 +63,10 @@
 
 <div class="node-container">
     <div class="node-title-bar">
-        <span class="node-title-text">{actor ? $actor.name : ''}</span>
+        <span class="node-title-text">{actor ? $actor.name : 'Loading...'}</span>
     </div>
     <div class="node-body">
-        <NodeDialogueText localization={voiceText} />
+        <NodeDialogueText disabled={!actor || !voiceText} localization={voiceText} />
     </div>
     <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
     <Handle type="target" position={Position.Left} />

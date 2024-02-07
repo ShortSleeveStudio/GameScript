@@ -169,6 +169,7 @@ export class SqliteDb extends Db {
         connection?: DbConnection,
     ): Promise<RowType[]> {
         this.assertConnected();
+        if (rows.length === 0) return [];
         for (let i = 0; i < rows.length; i++) {
             // Grab row
             const row: RowType = rows[i];
@@ -325,6 +326,7 @@ export class SqliteDb extends Db {
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
+        if (rows.length === 0) return;
         const query: string = `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
             .map((row) => row.id)
             .join(', ')})`;

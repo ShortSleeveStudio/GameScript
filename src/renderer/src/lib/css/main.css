@@ -278,6 +278,7 @@ input[type='color']::-webkit-color-swatch {
 
     /* Controls */
     --xy-controls-button-background-color-default: var(--cds-layer-accent, #e0e0e0);
+    --xy-controls-button-background-color-hover-default: var(--cds-hover-selected-ui);
     --xy-controls-button-color-default: var(--cds-ui-04, #f4f4f4);
     --xy-controls-button-border-color-default:var(--cds-ui-04, #f4f4f4) ;
 
@@ -288,6 +289,7 @@ input[type='color']::-webkit-color-swatch {
     /* Nodes */
     --xy-node-background-color-default: var(--cds-layer-accent, #e0e0e0);
     --xy-node-boxshadow-selected-default: 0 0 0 0.5px var(--cds-ui-04, #8d8d8d);
+    
     --xy-node-border-default: 1px solid var(--cds-ui-04, #8d8d8d);
     --xy-node-color-default: var(--cds-text-01, #161616);
 

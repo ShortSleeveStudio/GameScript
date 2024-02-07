@@ -10,13 +10,15 @@
         type Node as FlowNode,
         type Edge as FlowEdge,
         type Viewport,
+        type DefaultEdgeOptions,
+        ConnectionLineType,
     } from '@xyflow/svelte';
     import { onDestroy, onMount } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
     import { focusManager, type Focus } from '@lib/stores/app/focus';
     import {
         TABLE_ID_CONVERSATIONS,
-        TABLE_ID_EGDES,
+        TABLE_ID_EDGES,
         TABLE_ID_NODES,
         type Edge,
         type Node,
@@ -26,6 +28,7 @@
         ROUTINE_TYPE_ID_USER,
         type Routine,
         type NodeType,
+        type EdgeType,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -41,10 +44,11 @@
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { EVENT_SHUTDOWN } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import type { NodeData } from '@lib/graph/node-data';
+    import type { EdgeData, NodeData } from '@lib/graph/graph-data';
     import { ASC } from '@lib/api/db/db-filter-interface';
     import { wait } from '@lib/utility/wait';
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
+    import { nodeDeleteRemote } from '@lib/crud/node-d';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -55,7 +59,7 @@
             localObject: LocalObject,
             remoteObject: IDbRowView<RemoteObject>,
         ) => Promise<void>;
-        deletorRemote: (remoteObject: RemoteObject) => Promise<void>;
+        deletorRemote: (remoteObject: RemoteObject, isLoading: IsLoadingStore) => Promise<void>;
         creatorLocal: (remoteObject: IDbRowView<RemoteObject>) => LocalObject;
         updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => void;
         isInteractionActive: () => boolean;
@@ -66,6 +70,9 @@
     const NEW_GRAPH_OBJECT_ID_PREFIX: string = 'xy';
     const NODE_TYPE_DIALOGUE = 'dialogue';
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
+    const DEFAULT_EDGE_OPTIONS: DefaultEdgeOptions = <DefaultEdgeOptions>{
+        type: 'smoothstep',
+    };
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
     const nodes: Writable<FlowNode[]> = writable([]);
     const edges: Writable<FlowEdge[]> = writable([]);
@@ -103,7 +110,7 @@
         deletorRemote: nodeDeleteRemote,
         creatorLocal: nodeCreateLocal,
         updatorLocal: nodeUpdateLocal,
-        isInteractionActive: isNodeDragging,
+        isInteractionActive: nodeIsInteractionActive,
     };
     const graphFunctionsEdges: GraphFunctions = {
         localObjectStore: edges,
@@ -112,7 +119,7 @@
         deletorRemote: edgeDeleteRemote,
         creatorLocal: edgeCreateLocal,
         updatorLocal: edgeUpdateLocal,
-        isInteractionActive: () => false,
+        isInteractionActive: edgeIsInteractionActive,
     };
 
     function loadViewport(): void {
@@ -138,7 +145,17 @@
     ): void {
         const node: FlowNode = event.detail.node;
         const data: NodeData = node.data;
+        if (!data || !data.rowView) return;
         focusManager.focus({ tableId: TABLE_ID_NODES, rowView: data.rowView });
+    }
+
+    function onEdgeClick(
+        event: CustomEvent<{ event: MouseEvent | TouchEvent; edge: FlowEdge }>,
+    ): void {
+        const edge: FlowEdge = event.detail.edge;
+        const data: EdgeData = edge.data;
+        if (!data || !data.rowView) return;
+        focusManager.focus({ tableId: TABLE_ID_EDGES, rowView: data.rowView });
     }
 
     // TODO
@@ -155,6 +172,8 @@
                 id: `${NEW_GRAPH_OBJECT_ID_PREFIX}-${nextNodeIndex++}`,
                 type: NODE_TYPE_DIALOGUE,
                 position: { x: 0, y: 0 },
+                draggable: false,
+                connectable: false,
             });
             return localNodes;
         });
@@ -256,14 +275,7 @@
     }
 
     async function nodeUpdateRemote(local: FlowNode, remoteView: IDbRowView<Node>): Promise<void> {
-        // Make sure the row view is set
         const remote: Node = get(remoteView);
-        if (!local.data) {
-            local.data = <NodeData>{
-                rowView: remoteView,
-                localizations: localizationViews,
-            };
-        }
 
         // Skip equality
         if (nodeIsEqual(local, remote)) return;
@@ -290,25 +302,6 @@
         );
     }
 
-    async function nodeDeleteRemote(remote: Node): Promise<void> {
-        // Detete node
-        const nodeToDelete: Node = <Node>{ ...remote };
-        await isLoading.wrapPromise(db.deleteRow(TABLE_ID_NODES, nodeToDelete));
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'node update',
-                isLoading.wrapFunction(async () => {
-                    await db.createRow(TABLE_ID_NODES, nodeToDelete);
-                }),
-                isLoading.wrapFunction(async () => {
-                    await db.deleteRow(TABLE_ID_NODES, nodeToDelete);
-                }),
-            ),
-        );
-    }
-
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
         const remoteNode: Node = get(remote);
         return <FlowNode>{
@@ -323,8 +316,19 @@
     }
 
     function nodeUpdateLocal(local: FlowNode, remoteView: IDbRowView<Node>): void {
-        // Skip equality
         const remote: Node = get(remoteView);
+
+        // Ensure remote data is set
+        if (!local.data) {
+            local.data = <NodeData>{
+                rowView: remoteView,
+                localizations: localizationViews,
+            };
+            local.draggable = true;
+            local.connectable = true;
+        }
+
+        // Skip equality
         if (nodeIsEqual(local, remote)) return;
         local.type = remote.type;
         local.position.x = remote.positionX;
@@ -339,7 +343,7 @@
         );
     }
 
-    function isNodeDragging(): boolean {
+    function nodeIsInteractionActive(): boolean {
         const flowNodes: FlowNode[] = get(nodes);
         for (let i = 0; i < flowNodes.length; i++) {
             if (flowNodes[i].dragging) {
@@ -349,17 +353,140 @@
         return false;
     }
 
-    async function edgeCreateRemote(local: FlowEdge): Promise<Edge> {}
-    async function edgeUpdateRemote(local: FlowEdge, remote: IDbRowView<Edge>): Promise<void> {}
-    async function edgeDeleteRemote(remote: Edge): Promise<void> {}
-    function edgeCreateLocal(remote: IDbRowView<Edge>): FlowEdge {}
-    function edgeUpdateLocal(local: FlowEdge, remote: IDbRowView<Edge>): void {}
+    async function edgeCreateRemote(local: FlowEdge): Promise<Edge> {
+        // Sanity
+        const [source, target] = isEdgeSourceTargetValid(local);
+
+        // Create edge
+        console.log(local);
+        const edge: Edge = await isLoading.wrapPromise(
+            // Create Node
+            db.createRow(TABLE_ID_EDGES, <Edge>{
+                parent: focused.rowView.id,
+                // Graph Stuff
+                type: local.type ?? 'smoothstep',
+                source: source,
+                target: target,
+            }),
+        );
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'edge creation',
+                isLoading.wrapFunction(async () => {
+                    await db.deleteRow(TABLE_ID_EDGES, edge);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.createRow(TABLE_ID_EDGES, edge);
+                }),
+            ),
+        );
+        return edge;
+    }
+
+    async function edgeUpdateRemote(local: FlowEdge, remoteView: IDbRowView<Edge>): Promise<void> {
+        // Sanity
+        const [source, target] = isEdgeSourceTargetValid(local);
+        const remote: Edge = get(remoteView);
+
+        // Skip equality
+        if (edgeIsEqual(local, remote)) return;
+
+        // Update node
+        const oldEdge: Edge = <Edge>{ ...remote };
+        const newEdge: Edge = <Edge>{ ...remote };
+        newEdge.type = <EdgeType>local.type;
+        newEdge.source = source;
+        newEdge.target = target;
+        await isLoading.wrapPromise(db.updateRow(TABLE_ID_EDGES, newEdge));
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'edge update',
+                isLoading.wrapFunction(async () => {
+                    await db.updateRow(TABLE_ID_EDGES, oldEdge);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.updateRow(TABLE_ID_EDGES, newEdge);
+                }),
+            ),
+        );
+    }
+
+    async function edgeDeleteRemote(remote: Edge, isLoading: IsLoadingStore): Promise<void> {
+        // Detete
+        const edgeToDelete: Edge = <Edge>{ ...remote };
+        await isLoading.wrapPromise(db.deleteRow(TABLE_ID_EDGES, edgeToDelete));
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'edge deletion',
+                isLoading.wrapFunction(async () => {
+                    await db.createRow(TABLE_ID_EDGES, edgeToDelete);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.deleteRow(TABLE_ID_EDGES, edgeToDelete);
+                }),
+            ),
+        );
+    }
+
+    function edgeCreateLocal(remote: IDbRowView<Edge>): FlowEdge {
+        const remoteEdge: Edge = get(remote);
+        return <FlowEdge>{
+            id: remote.id.toString(),
+            type: remoteEdge.type,
+            source: remoteEdge.source.toString(),
+            target: remoteEdge.target.toString(),
+            data: <EdgeData>{
+                rowView: remote,
+                localizations: localizationViews,
+            },
+        };
+    }
+
+    function edgeUpdateLocal(local: FlowEdge, remoteView: IDbRowView<Edge>): void {
+        const remote: Edge = get(remoteView);
+
+        // Make sure the row view is set
+        if (!local.data) {
+            local.data = <EdgeData>{
+                rowView: remoteView,
+                localizations: localizationViews,
+            };
+        }
+
+        // Skip equality
+        if (edgeIsEqual(local, remote)) return;
+        local.type = remote.type;
+        local.source = remote.source.toString();
+        local.target = remote.target.toString();
+    }
+
     function edgeIsEqual(local: FlowEdge, remote: Edge): boolean {
         return (
             local.type === remote.type &&
             local.source === remote.source.toString() &&
             local.target === remote.target.toString()
         );
+    }
+
+    function edgeIsInteractionActive(): boolean {
+        return false;
+    }
+
+    function isEdgeSourceTargetValid(local: FlowEdge): readonly [source: number, target: number] {
+        const source: number = parseInt(local.source);
+        const target: number = parseInt(local.target);
+        if (isNaN(source) || isNaN(target)) {
+            throw new Error(
+                `New edge had invalid source ${local.source} or target (${local.target})`,
+            );
+        }
+        return [source, target];
     }
 
     async function runReconciliation(isLocalOrigin: boolean, isForNodes: boolean): Promise<void> {
@@ -442,7 +569,6 @@
 
             // New Local Node
             if (localObject && localObject.id.startsWith(NEW_GRAPH_OBJECT_ID_PREFIX)) {
-                console.log('made it');
                 if (isLocalOrigin) {
                     // Create Remote
                     // don't capture what's created, another reconciliation will update the ID
@@ -502,7 +628,7 @@
                     // Delete Remote
                     console.log(`Delete remote ${isForNodes ? 'node' : 'edge'}`);
                     try {
-                        await graphFunctions.deletorRemote(get(remoteObject));
+                        await graphFunctions.deletorRemote(get(remoteObject), isLoading);
                     } catch (error) {
                         focusManager.blur(TABLE_ID_CONVERSATIONS);
                         throw error;
@@ -634,7 +760,7 @@
                 .build(),
         );
         edgeViews = db.fetchTable<Edge>(
-            TABLE_ID_EGDES,
+            TABLE_ID_EDGES,
             createFilter<Edge>()
                 .where()
                 .column('parent')
@@ -649,8 +775,8 @@
         );
         tableWatcherNode = new TableWatcher(nodeViews);
         tableWatcherNode.subscribe(onNodeViewsChanged);
-        // tableWatcherEdge = new TableWatcher(edgeViews);
-        // tableWatcherEdge.subscribe(onEdgeViewsChanged);
+        tableWatcherEdge = new TableWatcher(edgeViews);
+        tableWatcherEdge.subscribe(onEdgeViewsChanged);
         unsubscriberLocalizationView = localizationViews.subscribe(onLocalizationsChanged);
     }
 
@@ -681,7 +807,7 @@
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         unsubscriberNode = nodes.subscribe(onNodesChanged);
-        // unsubscriberEdge = edges.subscribe(onEdgesChanged);
+        unsubscriberEdge = edges.subscribe(onEdgesChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
     });
     onDestroy(() => {
@@ -714,9 +840,12 @@
             {edges}
             {snapGrid}
             {nodeTypes}
+            defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
+            connectionLineType={ConnectionLineType.SmoothStep}
             minZoom={MIN_ZOOM}
             proOptions={{ hideAttribution: true }}
             on:nodeclick={onNodeClick}
+            on:edgeclick={onEdgeClick}
         >
             <Controls />
             <Background gap={snapGrid} variant={BackgroundVariant.Dots} />

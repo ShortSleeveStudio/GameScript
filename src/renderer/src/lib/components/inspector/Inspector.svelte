@@ -3,6 +3,7 @@
         TABLE_ID_ACTORS,
         TABLE_ID_AUTO_COMPLETES,
         TABLE_ID_CONVERSATIONS,
+        TABLE_ID_EDGES,
         TABLE_ID_FILTERS,
         TABLE_ID_LOCALES,
         TABLE_ID_LOCALIZATIONS,
@@ -23,6 +24,7 @@
     import InspectorConversation from './InspectorConversation.svelte';
     import InspectorLocalization from './InspectorLocalization.svelte';
     import InspectorNode from './InspectorNode.svelte';
+    import InspectorEdge from './InspectorEdge.svelte';
 
     let inspected: Focus;
 
@@ -81,6 +83,8 @@
                                 />
                             {:else if inspected.tableId === TABLE_ID_NODES}
                                 <InspectorNode rowView={inspected.rowView} />
+                            {:else if inspected.tableId === TABLE_ID_EDGES}
+                                <InspectorEdge rowView={inspected.rowView} />
                             {/if}
                         {/key}
                     {/if}

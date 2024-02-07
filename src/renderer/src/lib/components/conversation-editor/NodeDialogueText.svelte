@@ -8,12 +8,14 @@
     import { localeIdToColumn } from '@lib/utility/locale';
 
     export let localization: IDbRowView<Localization>;
+    export let disabled: boolean = false;
     $: primaryLocale = getLocalePrincipal($localePrincipalTableView);
     $: localeColumn = localeIdToColumn($primaryLocale.principal);
 </script>
 
 <RowColumnTextArea
     class="nodrag"
+    {disabled}
     resizable={false}
     rowView={localization}
     columnName={localeColumn}

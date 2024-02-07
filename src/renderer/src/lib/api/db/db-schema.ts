@@ -108,7 +108,7 @@ export const TABLE_ID_LOCALIZATIONS: DatabaseTableId = 10;
 export const TABLE_ID_ACTORS: DatabaseTableId = 11;
 export const TABLE_ID_ACTOR_PRINCIPAL: DatabaseTableId = 12;
 export const TABLE_ID_NODES: DatabaseTableId = 13;
-export const TABLE_ID_EGDES: DatabaseTableId = 14;
+export const TABLE_ID_EDGES: DatabaseTableId = 14;
 // export const TABLE_ID_PROPERTY_TYPES: DatabaseTableId = 14;
 // export const TABLE_ID_PROPERTIES: DatabaseTableId = 15;
 // export const TABLE_ID_DEFAULT_PROPERTIES: DatabaseTableId = 16;
@@ -279,7 +279,7 @@ export interface Node extends Row, Annotated {
     uiText: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
-    codeOverride: number | null; // FK Routines
+    codeOverride: number | null;
 
     // Graph Stuff
     type: NodeType;
@@ -293,12 +293,11 @@ export interface Node extends Row, Annotated {
 export type EdgeType = 'default' | 'smoothstep' | 'step';
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations
-    priority: number;
 
     // Graph Stuff
     type: EdgeType;
-    source: number;
-    target: number;
+    source: number; // FK Nodes
+    target: number; // FK Nodes
 }
 
 // ///

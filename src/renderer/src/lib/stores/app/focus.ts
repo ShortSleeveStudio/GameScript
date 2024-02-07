@@ -45,6 +45,7 @@ export class FocusManager {
     focus(focus: FocusData): void {
         const isNewFocus: boolean =
             focus.tableId !== this._focused ||
+            this._tableIdToLastFocus[this._focused] === undefined ||
             this._tableIdToLastFocus[this._focused].rowView !== focus.rowView;
         this._focused = focus.tableId;
         this._tableIdToLastFocus[focus.tableId] = focus;

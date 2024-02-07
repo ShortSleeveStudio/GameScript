@@ -59,6 +59,7 @@
     import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
+    import { nodeDeleteRemote } from '@lib/crud/node-d';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
 
@@ -150,21 +151,6 @@
                 for (let i = 0; i < selectedConversations.length; i++) {
                     const conversationToDelete: Conversation = selectedConversations[i];
 
-                    // Delete localizations
-                    const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
-                        TABLE_ID_LOCALIZATIONS,
-                        createFilter()
-                            .where()
-                            .column('parent')
-                            .eq(conversationToDelete.id)
-                            .endWhere()
-                            .build(),
-                        conn,
-                    );
-                    if (localizations.length > 0) {
-                        await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
-                    }
-
                     // Delete nodes
                     const nodes: Node[] = await db.fetchRowsRaw<Node>(
                         TABLE_ID_NODES,
@@ -176,9 +162,22 @@
                             .build(),
                         conn,
                     );
-                    if (nodes.length > 0) {
-                        await db.deleteRows(TABLE_ID_NODES, nodes, conn);
+                    for (let j = 0; j < nodes.length; j++) {
+                        await nodeDeleteRemote(nodes[j], isLoading, false, conn);
                     }
+
+                    // Delete localizations
+                    const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
+                        TABLE_ID_LOCALIZATIONS,
+                        createFilter()
+                            .where()
+                            .column('parent')
+                            .eq(conversationToDelete.id)
+                            .endWhere()
+                            .build(),
+                        conn,
+                    );
+                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
 
                     // Delete conversations
                     await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
