@@ -182,6 +182,18 @@ export abstract class Db {
     ): Promise<IDbRowView<RowType>[]>;
 
     /**
+     * This updates multiple rows in a table.
+     * @param tableId Id of the table
+     * @param rows The rows to update
+     * @param connection Optional connection to execute with
+     */
+    abstract updateRows<RowType extends Row>(
+        tableId: DatabaseTableId,
+        rows: RowType[],
+        connection?: DbConnection,
+    ): Promise<void>;
+
+    /**
      * This updates a single row in a table.
      * @param tableId Id of the table
      * @param row The row to update

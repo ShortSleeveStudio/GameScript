@@ -14,14 +14,30 @@ import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
 
-export async function nodeDeleteRemote(
-    remote: Node,
-    isLoading: IsLoadingStore,
-    isUndoable: boolean = true,
+export async function nodesDelete(
+    nodes: Node[],
+    edges: Edge[],
+    isLoading?: IsLoadingStore,
     connection?: DbConnection,
 ): Promise<void> {
-    // Detete node
-    const nodeToDelete: Node = <Node>{ ...remote };
+    const nodeIds: number[] = [];
+    const nodesToDelete: Node[] = [];
+    const routineIds: number[] = [];
+    const localizationIds: number[] = [];
+    for (let i = 0; i < nodes.length; i++) {
+        const node: Node = nodes[i];
+        nodeIds.push(node.id);
+        nodesToDelete.push(<Node>{ ...node });
+        routineIds.push(node.code);
+        routineIds.push(node.condition);
+        localizationIds.push(node.uiText);
+        localizationIds.push(node.voiceText);
+    }
+    const edgeIdMap: Map<number, Edge> = new Map();
+    for (let i = 0; i < edges.length; i++) {
+        const edge: Edge = edges[i];
+        edgeIdMap.set(edge.id, edge);
+    }
     let edgesToDelete: Edge[];
     let routinesToDelete: Routine[];
     let localizationsToDelete: Localization[];
@@ -30,31 +46,23 @@ export async function nodeDeleteRemote(
         // Delete Edges
         edgesToDelete = await db.fetchRowsRaw<Edge>(
             TABLE_ID_EDGES,
-            createFilter()
-                .where()
-                .column('source')
-                .eq(nodeToDelete.id)
-                .or()
-                .column('target')
-                .eq(nodeToDelete.id)
-                .endWhere()
-                .build(),
+            createFilter().where().column('source').in(nodeIds).endWhere().build(),
             conn,
         );
+        for (let i = 0; i < edgesToDelete.length; i++) {
+            const edge: Edge = edgesToDelete[i];
+            edgeIdMap.set(edge.id, edge);
+        }
+        edgesToDelete = Array.from(edgeIdMap.values()); // Combine fetched and passed-in edges
         await db.deleteRows(TABLE_ID_EDGES, edgesToDelete, conn);
 
-        // Delete Node
-        await db.deleteRow(TABLE_ID_NODES, nodeToDelete, conn);
+        // Delete Nodes
+        await db.deleteRows(TABLE_ID_NODES, nodesToDelete, conn);
 
         // Delete Routines
         routinesToDelete = await db.fetchRowsRaw<Routine>(
             TABLE_ID_ROUTINES,
-            createFilter()
-                .where()
-                .column('id')
-                .in([nodeToDelete.code, nodeToDelete.condition])
-                .endWhere()
-                .build(),
+            createFilter().where().column('id').in(routineIds).endWhere().build(),
             conn,
         );
         await db.deleteRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
@@ -62,46 +70,63 @@ export async function nodeDeleteRemote(
         // Delete Localizations
         localizationsToDelete = await db.fetchRowsRaw<Localization>(
             TABLE_ID_LOCALIZATIONS,
-            createFilter()
-                .where()
-                .column('id')
-                .in([nodeToDelete.uiText, nodeToDelete.voiceText])
-                .endWhere()
-                .build(),
+            createFilter().where().column('id').in(localizationIds).endWhere().build(),
             conn,
         );
         await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
     };
+    const undo: () => Promise<void> = async () => {
+        await db.executeTransaction(async (conn: DbConnection) => {
+            await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+            await db.createRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
+            await db.createRows(TABLE_ID_NODES, nodesToDelete, conn);
+            await db.createRows(TABLE_ID_EDGES, edgesToDelete, conn);
+        });
+    };
+    const redo: () => Promise<void> = async () => {
+        await db.executeTransaction(async (conn: DbConnection) => {
+            await db.deleteRows(TABLE_ID_EDGES, edgesToDelete, conn);
+            await db.deleteRows(TABLE_ID_NODES, nodesToDelete, conn);
+            await db.deleteRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
+            await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+        });
+    };
 
+    // Delete nodes
     if (connection) {
-        await isLoading.wrapPromise(deleteOperation(connection));
+        if (isLoading) {
+            await isLoading.wrapPromise(deleteOperation(connection));
+        } else {
+            await deleteOperation(connection);
+        }
     } else {
-        await isLoading.wrapPromise(db.executeTransaction(deleteOperation));
+        if (isLoading) {
+            await isLoading.wrapPromise(db.executeTransaction(deleteOperation));
+        } else {
+            await db.executeTransaction(deleteOperation);
+        }
     }
 
     // Register undo/redo
-    if (!isUndoable) return;
-    undoManager.register(
-        new Undoable(
-            'node deletion',
-            isLoading.wrapFunction(async () => {
-                await db.executeTransaction(async (conn: DbConnection) => {
-                    await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
-                    await db.createRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
-                    await db.createRow(TABLE_ID_NODES, nodeToDelete, conn);
-                    await db.createRows(TABLE_ID_EDGES, edgesToDelete, conn);
-                });
-            }),
-            isLoading.wrapFunction(async () => {
-                await db.executeTransaction(async (conn: DbConnection) => {
-                    await db.deleteRows(TABLE_ID_EDGES, edgesToDelete, conn);
-                    await db.deleteRow(TABLE_ID_NODES, nodeToDelete, conn);
-                    await db.deleteRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
-                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
-                });
-            }),
-        ),
-    );
+    if (connection) return;
+    if (isLoading) {
+        undoManager.register(
+            new Undoable(
+                'node deletion',
+                isLoading.wrapFunction(undo),
+                isLoading.wrapFunction(redo),
+            ),
+        );
+    } else {
+        undoManager.register(new Undoable('node deletion', undo, redo));
+    }
 }
 
-export async function nodeDeleteFromConversationForever(): Promise<void> {}
+export async function nodeDelete(
+    node: Node,
+    edges: Edge[],
+    isLoading: IsLoadingStore,
+    connection?: DbConnection,
+): Promise<void> {
+    await nodesDelete([node], edges, isLoading, connection);
+}

@@ -1,7 +1,7 @@
-<!-- <script lang="ts">
-    import type { FitViewOptions } from '@xyflow/svelte';
-    import { useSvelteFlow } from '@xyflow/svelte';
+<script lang="ts">
+    import { useStore } from '@xyflow/svelte';
+    import type { Writable } from 'svelte/store';
 
-    const svelteFlowApi = useSvelteFlow();
-    export const fitView: (options?: FitViewOptions) => void = svelteFlowApi.fitView;
-</script> -->
+    const svelteStore = useStore();
+    export const deleteKeyPressed: Writable<boolean> = svelteStore.deleteKeyPressed;
+</script>

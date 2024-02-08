@@ -271,7 +271,11 @@ export interface ActorPrincipal extends Row, Principaled {}
 ///
 /// Nodes
 ///
-export type NodeType = 'dialogue' | 'root';
+export const NODE_TYPE_LINK: NodeType = 'link';
+export const NODE_TYPE_ROOT: NodeType = 'root';
+export const NODE_TYPE_DIALOGUE: NodeType = 'dialogue';
+export const NODE_TYPES: string[] = [NODE_TYPE_LINK, NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
+export type NodeType = (typeof NODE_TYPES)[number];
 export interface Node extends Row, Annotated {
     parent: number; // FK Conversation
     actor: number; // FK Actors
@@ -290,7 +294,15 @@ export interface Node extends Row, Annotated {
 ///
 /// Edges
 ///
-export type EdgeType = 'default' | 'smoothstep' | 'step';
+export const EDGE_TYPE_STEP: EdgeType = 'step';
+export const EDGE_TYPE_DEFAULT: EdgeType = 'default';
+export const EDGE_TYPE_SMOOTHSTEP: EdgeType = 'smoothstep';
+export const EDGE_TYPES: string[] = [
+    EDGE_TYPE_STEP,
+    EDGE_TYPE_DEFAULT,
+    EDGE_TYPE_SMOOTHSTEP,
+] as const;
+export type EdgeType = (typeof EDGE_TYPES)[number];
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations
 

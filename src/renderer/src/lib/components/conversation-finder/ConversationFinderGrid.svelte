@@ -59,7 +59,7 @@
     import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
-    import { nodeDeleteRemote } from '@lib/crud/node-d';
+    import { nodesDelete } from '@lib/crud/node-d';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
 
@@ -162,9 +162,7 @@
                             .build(),
                         conn,
                     );
-                    for (let j = 0; j < nodes.length; j++) {
-                        await nodeDeleteRemote(nodes[j], isLoading, false, conn);
-                    }
+                    await nodesDelete(nodes, [], undefined, conn);
 
                     // Delete localizations
                     const localizations: Localization[] = await db.fetchRowsRaw<Localization>(

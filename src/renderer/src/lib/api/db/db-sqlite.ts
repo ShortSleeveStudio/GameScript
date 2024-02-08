@@ -277,38 +277,50 @@ export class SqliteDb extends Db {
         return rowViews;
     }
 
-    async updateRow<RowType extends Row>(
-        tableId: DatabaseTableId,
-        row: RowType,
+    async updateRows<RowType extends Row>(
+        tableId: number,
+        rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
-        // Generate query arguments
-        let keyValuePairs: string = '';
-        const argumentArray: unknown[] = [];
-        for (const prop in row) {
-            // We add id last
-            if (prop === 'id') continue;
-            if (argumentArray.length >= 1) keyValuePairs += ', ';
-            keyValuePairs += `${prop} = ?`;
-            const value: unknown = row[prop];
-            argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
-        }
-        argumentArray.push(row.id);
+        for (let i = 0; i < rows.length; i++) {
+            const row: RowType = rows[i];
 
-        // Execute
-        const query = `UPDATE ${DATABASE_TABLE_NAMES[tableId]} SET ${keyValuePairs} WHERE id = ?;`;
-        try {
-            await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
-        } catch (err) {
-            throw new Error(`Failed to update row: ${err}`);
+            // Generate query arguments
+            let keyValuePairs: string = '';
+            const argumentArray: unknown[] = [];
+            for (const prop in row) {
+                // We add id last
+                if (prop === 'id') continue;
+                if (argumentArray.length >= 1) keyValuePairs += ', ';
+                keyValuePairs += `${prop} = ?`;
+                const value: unknown = row[prop];
+                argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
+            }
+            argumentArray.push(row.id);
+
+            // Execute
+            const query = `UPDATE ${DATABASE_TABLE_NAMES[tableId]} SET ${keyValuePairs} WHERE id = ?;`;
+            try {
+                await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
+            } catch (err) {
+                throw new Error(`Failed to update row: ${err}`);
+            }
         }
 
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_UPDATE, tableId, [row], connection);
+        await this.notify<RowType>(OP_UPDATE, tableId, rows, connection);
+    }
+
+    async updateRow<RowType extends Row>(
+        tableId: DatabaseTableId,
+        row: RowType,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.updateRows(tableId, [row], connection);
     }
 
     async deleteRow<RowType extends Row>(
@@ -377,7 +389,7 @@ export class SqliteDb extends Db {
                 break;
             }
             case OP_UPDATE: {
-                await this.notifyOnRowUpdated(tableId, rows);
+                await this.notifyOnRowsUpdated(tableId, rows);
                 break;
             }
             case OP_ALTER: {
@@ -401,17 +413,15 @@ export class SqliteDb extends Db {
         }
     }
 
-    private async notifyOnRowUpdated<RowType extends Row>(
+    private async notifyOnRowsUpdated<RowType extends Row>(
         tableId: DatabaseTableId,
         rows: RowType[],
     ): Promise<void> {
-        for (let i = 0; i < rows.length; i++) {
-            // This will update the cached rows
-            await this.fetchRows(
-                tableId,
-                createFilter().where().column('id').eq(rows[i].id).endWhere().build(),
-            );
-        }
+        const rowIds: number[] = rows.map((row) => row.id);
+        await this.fetchRows(
+            tableId,
+            createFilter().where().column('id').in(rowIds).endWhere().build(),
+        );
     }
 
     private async notifyOnTableAltered(tableId: DatabaseTableId): Promise<void> {

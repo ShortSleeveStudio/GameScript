@@ -39,8 +39,8 @@ export class PostgresDb extends Db {
     ): Promise<IDbRowView<RowType>[]> {
         throw new Error(`Method not implemented. ${tableId} ${filter}`);
     }
-    refreshRow<RowType extends Row>(tableId: number, row: RowType): Promise<IDbRowView<RowType>> {
-        throw new Error(`Method not implemented. ${tableId} ${row}`);
+    updateRows<RowType extends Row>(tableId: number, rows: RowType[]): Promise<void> {
+        throw new Error(`Method not implemented. ${tableId} ${rows}`);
     }
     updateRow<RowType extends Row>(tableId: DatabaseTableId, row: RowType): Promise<void> {
         throw new Error(`Method not implemented. ${tableId} ${row}`);
