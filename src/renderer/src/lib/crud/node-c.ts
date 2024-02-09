@@ -13,14 +13,14 @@ import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
 
 export async function nodeCreate(node: Node, isLoading: IsLoadingStore): Promise<void> {
-    let uiText: Localization;
+    let uiResponseText: Localization;
     let voiceText: Localization;
     let condition: Routine;
     let code: Routine;
     await isLoading.wrapPromise(
         db.executeTransaction(async (conn: DbConnection) => {
-            // Create uiText
-            uiText = await db.createRow(
+            // Create uiResponseText
+            uiResponseText = await db.createRow(
                 TABLE_ID_LOCALIZATIONS,
                 <Localization>{
                     parent: node.parent,
@@ -63,7 +63,7 @@ export async function nodeCreate(node: Node, isLoading: IsLoadingStore): Promise
                 <Node>{
                     parent: node.parent,
                     actor: 0,
-                    uiText: uiText.id,
+                    uiResponseText: uiResponseText.id,
                     voiceText: voiceText.id,
                     condition: condition.id,
                     code: code.id,
@@ -87,12 +87,12 @@ export async function nodeCreate(node: Node, isLoading: IsLoadingStore): Promise
                     await db.deleteRow(TABLE_ID_ROUTINES, code, conn);
                     await db.deleteRow(TABLE_ID_ROUTINES, condition, conn);
                     await db.deleteRow(TABLE_ID_LOCALIZATIONS, voiceText, conn);
-                    await db.deleteRow(TABLE_ID_LOCALIZATIONS, uiText, conn);
+                    await db.deleteRow(TABLE_ID_LOCALIZATIONS, uiResponseText, conn);
                 });
             }),
             isLoading.wrapFunction(async () => {
                 await db.executeTransaction(async (conn: DbConnection) => {
-                    await db.createRow(TABLE_ID_LOCALIZATIONS, uiText, conn);
+                    await db.createRow(TABLE_ID_LOCALIZATIONS, uiResponseText, conn);
                     await db.createRow(TABLE_ID_LOCALIZATIONS, voiceText, conn);
                     await db.createRow(TABLE_ID_ROUTINES, condition, conn);
                     await db.createRow(TABLE_ID_ROUTINES, code, conn);

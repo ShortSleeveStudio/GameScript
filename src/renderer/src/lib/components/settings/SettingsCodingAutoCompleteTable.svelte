@@ -115,11 +115,7 @@
             {:else if cell.key === 'insertion'}
                 <RowColumnText rowView={row} columnName={'insertion'} />
             {:else if cell.key === 'focus'}
-                <FocusButton
-                    rowType={TABLE_ID_AUTO_COMPLETES}
-                    rowView={row}
-                    payload={focusPayload}
-                />
+                <FocusButton rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

@@ -53,7 +53,13 @@
         getCopyOfSelectedAndDeselect,
     } from '@lib/constants/grid';
     import { type GridContext } from '@lib/grid/grid-context';
-    import { focusManager, type FocusData, type Focus } from '@lib/stores/app/focus';
+    import {
+        FOCUS_MODE_REPLACE,
+        FOCUS_REPLACE,
+        focusManager,
+        type FocusRequest,
+        type FocusRequests,
+    } from '@lib/stores/app/focus';
     import GridToolbar from '../common/GridToolbar.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
@@ -62,7 +68,10 @@
     import { nodesDelete } from '@lib/crud/node-d';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
-
+    const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
+        tableId: TABLE_ID_CONVERSATIONS,
+        type: FOCUS_REPLACE,
+    };
     const columnIdSet: Set<string> = new Set();
     const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
 
@@ -218,13 +227,9 @@
         shouldDelete: boolean,
     ): Promise<void> {
         await db.executeTransaction(async (conn: DbConnection) => {
-            const focused: Focus = focusManager.get(TABLE_ID_CONVERSATIONS);
+            // We have to do this here because the database only knows about REAL deletions
             for (let i = 0; i < conversationsToDelete.length; i++) {
                 const conversationToDelete = conversationsToDelete[i];
-                if (shouldDelete && focused && focused.rowView.id === conversationToDelete.id) {
-                    // Blur focus if necessary
-                    focusManager.blur(TABLE_ID_CONVERSATIONS);
-                }
                 conversationToDelete.isDeleted = shouldDelete;
                 await db.updateRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
             }
@@ -253,7 +258,12 @@
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Conversation>, GridContext>): void {
         const rowView: IDbRowView<Row> = event.data;
-        focusManager.focus(<FocusData>{ tableId: TABLE_ID_CONVERSATIONS, rowView: rowView });
+        FOCUS_REQUEST.focus = new Map();
+        FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [FOCUS_REQUEST],
+        });
     }
 
     function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {

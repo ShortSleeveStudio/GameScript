@@ -9,9 +9,10 @@
         TABLE_ID_LOCALIZATIONS,
         TABLE_ID_NODES,
         TABLE_ID_ROUTINES,
+        type Row,
     } from '@lib/api/db/db-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
-    import { Column, Content, Grid, Row } from 'carbon-components-svelte';
+    import { Column, Content, Grid, Row as CarbonRow } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
     import { LAYOUT_ID_INSPECTOR } from '@lib/constants/default-layout';
@@ -27,9 +28,19 @@
     import InspectorEdge from './InspectorEdge.svelte';
 
     let inspected: Focus;
+    let focusedItems: number = 0;
 
     function onFocusChanged(): void {
-        inspected = focusManager.get();
+        focusedItems = 0;
+        inspected = undefined;
+        const focus: readonly Map<number, Focus>[] = focusManager.get();
+        for (let i = 0; i < focus.length; i++) {
+            const focusMap: Map<number, Focus> = focus[i];
+            focusedItems += focusMap.size;
+            if (focusMap.size === 1) {
+                inspected = focusMap.values().next().value;
+            }
+        }
         dispatchEvent(
             new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
                 detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_INSPECTOR },
@@ -44,52 +55,54 @@
 <div class="inspector">
     <Content>
         <Grid noGutter>
-            <Row>
+            <CarbonRow>
                 <Column>
-                    {#if $dbConnected && inspected}
+                    {#if $dbConnected && focusedItems}
                         <!-- Destroy and recreate anytime the focus changes -->
-                        {#key inspected}
-                            {#if inspected.tableId === TABLE_ID_ROUTINES}
+                        {#if focusedItems === 1}
+                            {#if inspected.rowView.tableId === TABLE_ID_ROUTINES}
                                 <InspectorRoutine
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_AUTO_COMPLETES}
+                            {:else if inspected.rowView.tableId === TABLE_ID_AUTO_COMPLETES}
                                 <InspectorAutoComplete
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_ACTORS}
+                            {:else if inspected.rowView.tableId === TABLE_ID_ACTORS}
                                 <InspectorActor
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_LOCALES}
+                            {:else if inspected.rowView.tableId === TABLE_ID_LOCALES}
                                 <InspectorLocale
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_FILTERS}
+                            {:else if inspected.rowView.tableId === TABLE_ID_FILTERS}
                                 <InspectorFilter
                                     rowView={inspected.rowView}
                                     payload={inspected.payload}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_CONVERSATIONS}
+                            {:else if inspected.rowView.tableId === TABLE_ID_CONVERSATIONS}
                                 <InspectorConversation rowView={inspected.rowView} />
-                            {:else if inspected.tableId === TABLE_ID_LOCALIZATIONS}
+                            {:else if inspected.rowView.tableId === TABLE_ID_LOCALIZATIONS}
                                 <InspectorLocalization
                                     rowView={inspected.rowView}
                                     showTitle={true}
                                 />
-                            {:else if inspected.tableId === TABLE_ID_NODES}
+                            {:else if inspected.rowView.tableId === TABLE_ID_NODES}
                                 <InspectorNode rowView={inspected.rowView} />
-                            {:else if inspected.tableId === TABLE_ID_EDGES}
+                            {:else if inspected.rowView.tableId === TABLE_ID_EDGES}
                                 <InspectorEdge rowView={inspected.rowView} />
                             {/if}
-                        {/key}
+                        {:else if focusedItems > 1}
+                            {focusedItems} elements selected
+                        {/if}
                     {/if}
                 </Column>
-            </Row>
+            </CarbonRow>
         </Grid>
     </Content>
 </div>

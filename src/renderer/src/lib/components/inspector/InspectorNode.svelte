@@ -12,6 +12,8 @@
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { Tooltip } from 'carbon-components-svelte';
     import RowColumnActor from '../common/RowColumnActor.svelte';
+    import RowColumnBoolean from '../common/RowColumnBoolean.svelte';
+    import { NODE_UNDO_PREVENT_RESPONSE } from '@lib/constants/settings';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -74,16 +76,16 @@
     />
 </p>
 <p>
-    <Tooltip triggerText="UI Text" align="start" direction="bottom">
+    <Tooltip triggerText="UI Response Text" align="start" direction="bottom">
         <p>
-            In most games, the player is presented with a list of dialogue options they can select.
-            This localized text can be used for the UI element the player selects to play this node
-            during a conversation.
+            In most games, the player is presented with a list of dialogue options they can select
+            in response during a conversation. This localized text can be used for the UI element
+            responsible for presenting the player with response options.
         </p>
     </Tooltip>
     <RowColumnLocalization
         {rowView}
-        columnName={'uiText'}
+        columnName={'uiResponseText'}
         showTitle={false}
         showId={false}
         showNickname={false}
@@ -108,5 +110,20 @@
         {rowView}
         columnNameOverrideRoutine={'codeOverride'}
         defaultRoutine={routineCode}
+    />
+</p>
+<p>
+    <Tooltip triggerText="Prevent Response" align="center" direction="top">
+        <p>
+            This setting will prevent this node's children from appearing as response options. If
+            all children are available, then {window.api.constants.APP_NAME} will select the child with
+            the highest priority edge. If all edge priorities are the same, then a node will be selected
+            at random.
+        </p>
+    </Tooltip>
+    <RowColumnBoolean
+        {rowView}
+        columnName={'preventResponse'}
+        undoText={NODE_UNDO_PREVENT_RESPONSE}
     />
 </p>

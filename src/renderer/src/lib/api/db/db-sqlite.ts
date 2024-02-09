@@ -1,4 +1,10 @@
-import type { Focus, FocusManager } from '@lib/stores/app/focus';
+import {
+    FOCUS_MODE_MODIFY,
+    FOCUS_REMOVE,
+    type Focus,
+    type FocusManager,
+    type FocusRequests,
+} from '@lib/stores/app/focus';
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
@@ -320,7 +326,7 @@ export class SqliteDb extends Db {
         row: RowType,
         connection?: DbConnection,
     ): Promise<void> {
-        this.updateRows(tableId, [row], connection);
+        await this.updateRows(tableId, [row], connection);
     }
 
     async deleteRow<RowType extends Row>(
@@ -481,16 +487,28 @@ export class SqliteDb extends Db {
 
     private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]): void {
         const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
-        const focused: Focus = this._focusManager.get(tableId);
+        const focusMap: Map<number, Focus> = new Map();
         row.forEach((row) => {
-            // Delete from cache
-            rowViews.delete(row.id);
+            if (rowViews.has(row.id)) {
+                // Remove from focus if needed
+                focusMap.set(row.id, { rowView: rowViews.get(row.id) });
 
-            // Remove from focus if needed
-            if (focused && focused.tableId === tableId) {
-                this._focusManager.blur(tableId);
+                // Delete from cache
+                rowViews.delete(row.id);
             }
         });
+        if (focusMap.size > 0) {
+            this._focusManager.focus(<FocusRequests>{
+                type: FOCUS_MODE_MODIFY,
+                requests: [
+                    {
+                        tableId: tableId,
+                        focus: focusMap,
+                        type: FOCUS_REMOVE,
+                    },
+                ],
+            });
+        }
     }
 
     private async initializeSchema(): Promise<void> {

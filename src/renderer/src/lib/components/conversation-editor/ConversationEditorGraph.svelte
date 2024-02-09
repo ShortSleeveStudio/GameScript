@@ -17,7 +17,14 @@
     } from '@xyflow/svelte';
     import { onDestroy, onMount } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
-    import { focusManager, type Focus } from '@lib/stores/app/focus';
+    import {
+        focusManager,
+        type Focus,
+        type FocusRequest,
+        FOCUS_REPLACE,
+        FOCUS_MODE_REPLACE,
+        type FocusRequests,
+    } from '@lib/stores/app/focus';
     import {
         TABLE_ID_CONVERSATIONS,
         TABLE_ID_EDGES,
@@ -29,6 +36,7 @@
         type EdgeType,
         NODE_TYPE_DIALOGUE,
         EDGE_TYPE_SMOOTHSTEP,
+        type Conversation,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -65,6 +73,14 @@
     const DEFAULT_EDGE_OPTIONS: DefaultEdgeOptions = <DefaultEdgeOptions>{
         type: DEFAULT_EDGE_TYPE,
     };
+    const NODE_FOCUS_REQUEST: FocusRequest = <FocusRequest>{
+        tableId: TABLE_ID_NODES,
+        type: FOCUS_REPLACE,
+    };
+    const EDGE_FOCUS_REQUEST: FocusRequest = <FocusRequest>{
+        tableId: TABLE_ID_EDGES,
+        type: FOCUS_REPLACE,
+    };
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
     const nodes: Writable<FlowNode[]> = writable([]);
     const edges: Writable<FlowEdge[]> = writable([]);
@@ -82,9 +98,13 @@
     let localizationViews: IDbTableView<Localization>;
     let isLoading: IsLoadingStore = new IsLoadingStore();
     let isConversationInitialized: boolean = false;
-    let focused: Focus;
     let deleteKeyPressed: Writable<boolean>;
-    $: focusedRowView = focused ? focused.rowView : undefined;
+    let focusedRowView: IDbRowView<Conversation>;
+    $: {
+        if (focusedRowView && (focusedRowView.isDisposed || $focusedRowView.isDeleted)) {
+            changeFocus(undefined);
+        }
+    }
 
     const graphFunctionsNodes: GraphFunctions = {
         localObjectStore: nodes,
@@ -98,39 +118,21 @@
     };
 
     function loadViewport(): void {
-        if (focused && focused.rowView) {
+        if (focusedRowView) {
             const storedString: string = localStorage.getItem(
-                conversationIdToViewportKey(focused.rowView.id),
+                conversationIdToViewportKey(focusedRowView.id),
             );
             if (storedString) viewport.set(JSON.parse(storedString));
         }
     }
 
     function saveViewport(): void {
-        if (focused && focused.rowView) {
+        if (focusedRowView) {
             localStorage.setItem(
-                conversationIdToViewportKey(focused.rowView.id),
+                conversationIdToViewportKey(focusedRowView.id),
                 JSON.stringify(get(viewport)),
             );
         }
-    }
-
-    function onNodeClick(
-        event: CustomEvent<{ event: MouseEvent | TouchEvent; node: FlowNode }>,
-    ): void {
-        const node: FlowNode = event.detail.node;
-        const data: NodeData = node.data;
-        if (!data || !data.rowView) return;
-        focusManager.focus({ tableId: TABLE_ID_NODES, rowView: data.rowView });
-    }
-
-    function onEdgeClick(
-        event: CustomEvent<{ event: MouseEvent | TouchEvent; edge: FlowEdge }>,
-    ): void {
-        const edge: FlowEdge = event.detail.edge;
-        const data: EdgeData = edge.data;
-        if (!data || !data.rowView) return;
-        focusManager.focus({ tableId: TABLE_ID_EDGES, rowView: data.rowView });
     }
 
     function onEdgeCreate(connection: Connection): FlowEdge {
@@ -140,7 +142,7 @@
         // Create edge
         edgeCreate(
             <Edge>{
-                parent: focused.rowView.id,
+                parent: focusedRowView.id,
                 // Graph Stuff
                 type: DEFAULT_EDGE_TYPE,
                 source: source,
@@ -148,7 +150,7 @@
             },
             isLoading,
         ).catch((error) => {
-            focusManager.blur(TABLE_ID_CONVERSATIONS);
+            changeFocus(undefined);
             throw error;
         });
 
@@ -167,7 +169,7 @@
 
         // Delete
         nodesDelete(nodes, edges, isLoading).catch((error) => {
-            focusManager.blur(TABLE_ID_CONVERSATIONS);
+            changeFocus(undefined);
             throw error;
         });
 
@@ -184,6 +186,13 @@
         for (let i = 0; i < flowNodes.length; i++) {
             const flowNode: FlowNode = flowNodes[i];
             const originalNode: Node = get(flowNode.data.rowView);
+            // Skip nodes that haven't moved
+            if (
+                flowNode.position.x === originalNode.positionX &&
+                flowNode.position.y === originalNode.positionY
+            ) {
+                continue;
+            }
             oldNodes.push(<Node>{ ...originalNode });
             const newNode = <Node>{ ...originalNode };
             newNode.positionX = flowNode.position.x;
@@ -191,8 +200,31 @@
             newNodes.push(newNode);
         }
         nodesUpdate(oldNodes, newNodes, isLoading).catch((error) => {
-            focusManager.blur(TABLE_ID_CONVERSATIONS);
+            changeFocus(undefined);
             throw error;
+        });
+    }
+
+    function onSelectionChanged(
+        event: CustomEvent<{ nodes: FlowNode[]; edges: FlowEdge[] }>,
+    ): void {
+        const eventNodes: FlowNode[] = event.detail.nodes;
+        const eventEdges: FlowEdge[] = event.detail.edges;
+        NODE_FOCUS_REQUEST.focus = new Map();
+        EDGE_FOCUS_REQUEST.focus = new Map();
+        for (let i = 0; i < eventNodes.length; i++) {
+            NODE_FOCUS_REQUEST.focus.set(eventNodes[i].data.rowView.id, {
+                rowView: eventNodes[i].data.rowView,
+            });
+        }
+        for (let i = 0; i < eventEdges.length; i++) {
+            EDGE_FOCUS_REQUEST.focus.set(eventEdges[i].data.rowView.id, {
+                rowView: eventEdges[i].data.rowView,
+            });
+        }
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [NODE_FOCUS_REQUEST, EDGE_FOCUS_REQUEST],
         });
     }
 
@@ -202,7 +234,7 @@
             type: NODE_TYPE_DIALOGUE,
             positionX: 0,
             positionY: 0,
-            parent: focused.rowView.id,
+            parent: focusedRowView.id,
         };
         nodeCreate(newNode, isLoading);
     }
@@ -294,7 +326,6 @@
     }
 
     function runReconciliation(isForNodes: boolean): void {
-        if (!isConversationInitialized) return;
         let graphFunctions: GraphFunctions;
         let localWritable: Writable<LocalObject[]>;
         let remoteWritable: IDbTableView<RemoteObject>;
@@ -346,19 +377,49 @@
     }
 
     function onNodeViewsChanged(): void {
-        updateIsConversationInitialized();
-        runReconciliation(true);
+        if (isConversationInitialized) runReconciliation(true);
+        else updateIsConversationInitialized();
     }
 
     function onEdgeViewsChanged(): void {
-        updateIsConversationInitialized();
-        runReconciliation(false);
+        if (isConversationInitialized) runReconciliation(false);
+        else updateIsConversationInitialized();
     }
 
     function onLocalizationsChanged(): void {
         // it doesn't matter that we picked nodes, it'll trigger edge recon too
         onNodeViewsChanged();
     }
+
+    // TODO - remove once they implement onselectionchanged
+    let nodesSelected: FlowNode[] = [];
+    let edgesSelected: FlowEdge[] = [];
+    let firstSelectAfterLoadHappened: boolean = false;
+    function onNodeClicked(): void {
+        nodesSelected.length = 0;
+        const nodeList: FlowNode[] = get(nodes);
+        for (let i = 0; i < nodeList.length; i++) {
+            if (nodeList[i].selected) nodesSelected.push(nodeList[i]);
+        }
+        updateSelection();
+    }
+    function onEdgeClicked(): void {
+        edgesSelected.length = 0;
+        const edgeList: FlowEdge[] = get(edges);
+        for (let i = 0; i < edgeList.length; i++) {
+            if (edgeList[i].selected) edgesSelected.push(edgeList[i]);
+        }
+        updateSelection();
+    }
+    async function updateSelection(): Promise<void> {
+        firstSelectAfterLoadHappened;
+        onSelectionChanged(
+            new CustomEvent<{ nodes: FlowNode[]; edges: FlowEdge[] }>('xy-selection-changed', {
+                detail: { nodes: nodesSelected, edges: edgesSelected },
+            }),
+        );
+    }
+    // TODO - remove once they implement onselectionchanged
 
     function updateIsConversationInitialized(): void {
         if (!isConversationInitialized) {
@@ -369,26 +430,39 @@
                 nodeViews.isInitialized &&
                 edgeViews.isInitialized &&
                 localizationViews.isInitialized;
+            if (isConversationInitialized) {
+                // We need to play catch up
+                runReconciliation(true);
+                runReconciliation(false);
+            }
         }
     }
 
     function onFocusChanged(): void {
-        const newFocus = focusManager.get(TABLE_ID_CONVERSATIONS);
+        // Find focused conversations
+        let newFocusedConversation: IDbRowView<Conversation> = undefined;
+        const conversationFocus: Map<number, Focus> = focusManager.get()[TABLE_ID_CONVERSATIONS];
+        if (conversationFocus.size === 1) {
+            newFocusedConversation = conversationFocus.values().next().value.rowView;
+        }
+        if (newFocusedConversation) changeFocus(newFocusedConversation);
+    }
 
+    function changeFocus(newFocus: IDbRowView<Conversation>): void {
         // Skip if already focused
-        if (newFocus === focused) return;
+        if (newFocus === focusedRowView) return;
 
         // Save viewport
         saveViewport();
 
         // Set new focus
-        focused = newFocus;
+        focusedRowView = newFocus;
 
         // Clear Graph
         clearGraph();
 
         // Nothing new to focus
-        if (newFocus === undefined) return;
+        if (focusedRowView === undefined) return;
 
         // Load viewport
         loadViewport();
@@ -398,12 +472,13 @@
     }
 
     function loadGraph(): void {
+        firstSelectAfterLoadHappened = false; // TODO
         nodeViews = db.fetchTable<Node>(
             TABLE_ID_NODES,
             createFilter<Node>()
                 .where()
                 .column('parent')
-                .eq(focused.rowView.id)
+                .eq(focusedRowView.id)
                 .endWhere()
                 .orderBy('id', ASC)
                 .build(),
@@ -413,14 +488,14 @@
             createFilter<Edge>()
                 .where()
                 .column('parent')
-                .eq(focused.rowView.id)
+                .eq(focusedRowView.id)
                 .endWhere()
                 .orderBy('id', ASC)
                 .build(),
         );
         localizationViews = db.fetchTable<Localization>(
             TABLE_ID_LOCALIZATIONS,
-            createFilter().where().column('parent').eq(focused.rowView.id).endWhere().build(),
+            createFilter().where().column('parent').eq(focusedRowView.id).endWhere().build(),
         );
         tableWatcherNode = new TableWatcher(nodeViews);
         tableWatcherNode.subscribe(onNodeViewsChanged);
@@ -466,8 +541,8 @@
 
 <div class="graph-container">
     <div class="graph-title-bar">
-        <h4>{focusedRowView ? $focusedRowView.name : 'Please seleect a conversation'}</h4>
-        <Button size="small" disabled={!focused || $isLoading} on:click={onCreateNode}
+        <h4>{focusedRowView ? $focusedRowView.name : 'Please select a conversation'}</h4>
+        <Button size="small" disabled={!focusedRowView || $isLoading} on:click={onCreateNode}
             >Create Node [REMOTE]</Button
         >
     </div>
@@ -485,14 +560,16 @@
                 proOptions={{ hideAttribution: true }}
                 onedgecreate={onEdgeCreate}
                 onbeforedelete={onBeforeDelete}
+                on:selectionchange={onSelectionChanged}
                 on:nodedragstop={onNodeDragStop}
-                on:nodeclick={onNodeClick}
-                on:edgeclick={onEdgeClick}
+                on:nodeclick={onNodeClicked}
+                on:edgeclick={onEdgeClicked}
             >
                 <Controls />
                 <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
                 <MiniMap />
             </SvelteFlow>
+            <!-- TODO -->
             <SvelteFlowApi bind:deleteKeyPressed />
         </SvelteFlowProvider>
     </div>

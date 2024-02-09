@@ -198,7 +198,7 @@
                     principalStore={localePrincipalRowView}
                 />
             {:else if cell.key === 'focus'}
-                <FocusButton rowType={TABLE_ID_LOCALES} rowView={row} payload={focusPayload} />
+                <FocusButton rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

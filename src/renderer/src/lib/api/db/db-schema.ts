@@ -280,10 +280,11 @@ export interface Node extends Row, Annotated {
     parent: number; // FK Conversation
     actor: number; // FK Actors
     voiceText: number; // FK Localizations
-    uiText: number; // FK Localizations
+    uiResponseText: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
     codeOverride: number | null;
+    preventResponse: boolean;
 
     // Graph Stuff
     type: NodeType;

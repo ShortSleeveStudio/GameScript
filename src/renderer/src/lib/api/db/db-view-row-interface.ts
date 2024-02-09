@@ -6,6 +6,7 @@ export interface IDbRowView<RowType extends Row> extends Readable<RowType> {
     // Used for DataTable
     id: number;
     tableId: DatabaseTableId;
+    isDisposed: boolean;
     subscribe(
         run: Subscriber<RowType>,
         invalidate?: Invalidator<RowType> | undefined,

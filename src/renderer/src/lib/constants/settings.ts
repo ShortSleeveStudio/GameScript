@@ -67,3 +67,4 @@ export const CONVERSATION_PLACEHOLDER_NAME = 'Enter conversation name';
 /**Nodes */
 export const NODE_UNDO_VOICE_TEXT = 'voice text';
 export const NODE_PLACEHOLDER_VOICE_TEXT = 'Enter dialogue...';
+export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';

@@ -61,7 +61,7 @@
     }
 </script>
 
-<div class="node-container">
+<div class="node-container {selected ? 'node-container-selected' : ''}">
     <div class="node-title-bar">
         <span class="node-title-text">{actor ? $actor.name : 'Loading...'}</span>
     </div>
@@ -80,6 +80,10 @@
         flex-direction: column;
         background-color: var(--cds-layer-accent, #e0e0e0);
         border: 1px solid var(--cds-ui-04, #8d8d8d);
+    }
+    .node-container-selected {
+        background-color: var(--cds-hover-selected-ui);
+        /* box-shadow: 0px 0px 10px 2px var(--cds-hover-selected-ui); */
     }
     .node-title-bar {
         height: calc(5 * 8px);

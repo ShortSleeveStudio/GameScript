@@ -15,7 +15,6 @@
         FIELD_TYPE_ID_TEXT,
         TABLE_ID_CONVERSATIONS,
         TABLE_ID_FILTERS,
-        TABLE_ID_LOCALES,
         type Filter,
     } from '@lib/api/db/db-schema';
     import type { FocusPayloadFilter } from '@lib/stores/app/focus';
@@ -157,7 +156,7 @@
                     isInspectorField={false}
                 />
             {:else if cell.key === 'focus'}
-                <FocusButton rowType={TABLE_ID_FILTERS} rowView={row} payload={focusPayload} />
+                <FocusButton rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

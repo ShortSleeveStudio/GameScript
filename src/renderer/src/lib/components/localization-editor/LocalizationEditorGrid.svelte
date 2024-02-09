@@ -20,7 +20,6 @@
         GridApi,
         type IDatasource,
         type ColumnState,
-        type RowClickedEvent,
         type IRowNode,
         type ToolPanelDef,
         createGrid,
@@ -28,6 +27,7 @@
         type NumberFilterModel,
         type FilterModel,
         type EditableCallbackParams,
+        type RowClickedEvent,
     } from '@ag-grid-community/core';
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
@@ -38,7 +38,13 @@
     import { localeIdToColumn } from '@lib/utility/locale';
     import { onDestroy, onMount } from 'svelte';
     import type { GridContext } from '@lib/grid/grid-context';
-    import { focusManager, type FocusData } from '@lib/stores/app/focus';
+    import {
+        FOCUS_MODE_REPLACE,
+        FOCUS_REPLACE,
+        focusManager,
+        type FocusRequest,
+        type FocusRequests,
+    } from '@lib/stores/app/focus';
     import { locales } from '@lib/tables/locales';
     import {
         EVENT_LOCALIZATIONS_FILTER_BY_PARENT,
@@ -58,6 +64,10 @@
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     const CONVERSATION_ID_COLUMN: string = 'parent';
+    const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
+        tableId: TABLE_ID_LOCALIZATIONS,
+        type: FOCUS_REPLACE,
+    };
     const columnIdSet: Set<string> = new Set();
     const datasource: IDatasource = new GridDatasource<Localization>(TABLE_ID_LOCALIZATIONS);
     const staticColumns: ColDef[] = [
@@ -123,8 +133,13 @@
     }
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Localization>, GridContext>): void {
-        const rowView: IDbRowView<Row> = event.data;
-        focusManager.focus(<FocusData>{ tableId: TABLE_ID_LOCALIZATIONS, rowView: rowView });
+        const rowView: IDbRowView<Localization> = event.data;
+        FOCUS_REQUEST.focus = new Map();
+        FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [FOCUS_REQUEST],
+        });
     }
 
     function onCancel(): void {

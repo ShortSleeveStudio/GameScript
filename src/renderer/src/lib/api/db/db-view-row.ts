@@ -15,12 +15,14 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     private _owners: Set<number>;
     private _tableId: DatabaseTableId;
     private _internalWritable: Writable<RowType>;
+    private _isDisposed: boolean;
     private _destructor: RowViewDestructor;
 
     constructor(tableId: DatabaseTableId, row: RowType, destructor: RowViewDestructor) {
         this._owners = new Set();
         this._tableId = tableId;
         this._internalWritable = writable<RowType>(row);
+        this._isDisposed = false;
         this._destructor = destructor;
     }
 
@@ -30,6 +32,10 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
 
     get tableId(): DatabaseTableId {
         return this._tableId;
+    }
+
+    get isDisposed(): boolean {
+        return this._isDisposed;
     }
 
     subscribe(
@@ -54,6 +60,8 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         if (this._owners.size === 0) {
             console.log('CLEANING UP ROW: ' + this.id);
             this._destructor();
+            this._isDisposed = true;
+            this._internalWritable.update((value) => value);
         }
     }
 }

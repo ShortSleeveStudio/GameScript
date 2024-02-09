@@ -1,5 +1,6 @@
 import {
     DATABASE_TABLES,
+    DATABASE_TABLE_NAMES,
     type DatabaseTableId,
     type LocalePrincipal,
     type Row,
@@ -8,23 +9,123 @@ import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
 
-/**Represents the focused row. */
-export interface FocusData {
+export const FOCUS_MODE_MODIFY = 0;
+export const FOCUS_MODE_REPLACE = 1;
+export const FOCUS_MODE_TYPES: number[] = [FOCUS_MODE_MODIFY, FOCUS_MODE_REPLACE] as const;
+export type FocusModeType = (typeof FOCUS_MODE_TYPES)[number];
+export interface FocusRequests {
+    type: FocusModeType;
+    requests: FocusRequest[];
+}
+
+export const FOCUS_CLEAR = 0;
+export const FOCUS_REPLACE = 1;
+export const FOCUS_ADD = 2;
+export const FOCUS_REMOVE = 3;
+export const FOCUS_REQUEST_TYPES: number[] = [
+    FOCUS_CLEAR,
+    FOCUS_REPLACE,
+    FOCUS_ADD,
+    FOCUS_REMOVE,
+] as const;
+export type FocusRequestType = (typeof FOCUS_REQUEST_TYPES)[number];
+export interface FocusRequest {
     tableId: DatabaseTableId;
+    focus: Map<number, Focus>; // Row ID -> Focus
+    type: FocusRequestType;
+}
+
+export interface Focus {
     rowView: IDbRowView<Row>;
     payload?: FocusPayload;
 }
-export type Focus = FocusData | undefined;
 
 export class FocusManager {
+    private _focus: Map<number, Focus>[];
     private _action: Action<void>;
-    private _focused: number;
-    private _tableIdToLastFocus: Focus[];
 
     constructor() {
+        this._focus = DATABASE_TABLES.map(() => new Map());
         this._action = new Action<void>();
-        this._focused = 0;
-        this._tableIdToLastFocus = DATABASE_TABLES.map(() => undefined);
+    }
+
+    focus(request: FocusRequests): void {
+        let mutationOccurred: boolean = false;
+        const focusRequests: FocusRequest[] = request.requests;
+        const modifiedTables: Set<number> = new Set();
+        for (let i = 0; i < focusRequests.length; i++) {
+            const request: FocusRequest = focusRequests[i];
+            modifiedTables.add(request.tableId);
+            let focusMap: Map<number, Focus> = this._focus[request.tableId];
+            switch (request.type) {
+                case FOCUS_ADD:
+                    for (const value of request.focus.values()) {
+                        if (focusMap.has(value.rowView.id)) continue;
+                        else {
+                            focusMap.set(value.rowView.id, value);
+                            mutationOccurred = true;
+                        }
+                    }
+                    break;
+                case FOCUS_REMOVE:
+                    for (const value of request.focus.values()) {
+                        if (!focusMap.has(value.rowView.id)) continue;
+                        else {
+                            focusMap.delete(value.rowView.id);
+                            mutationOccurred = true;
+                        }
+                    }
+                    break;
+                case FOCUS_REPLACE:
+                    if (request.focus.size === focusMap.size) {
+                        for (const value of request.focus.values()) {
+                            if (focusMap.has(value.rowView.id)) {
+                                continue;
+                            } else {
+                                focusMap = request.focus;
+                                mutationOccurred = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        focusMap = request.focus;
+                        mutationOccurred = true;
+                    }
+                    break;
+                case FOCUS_CLEAR:
+                    if (focusMap.size === 0) continue;
+                    else {
+                        focusMap.clear();
+                        mutationOccurred = true;
+                    }
+                    break;
+                default:
+                    throw new Error(`Unexpected focus type requested: ${request.type}`);
+            }
+            // In case replace happened, reassign the map
+            this._focus[request.tableId] = focusMap;
+        }
+        if (request.type === FOCUS_MODE_REPLACE) {
+            const tablesNeedClearing: number[] = [];
+            for (let i = 0; i < DATABASE_TABLE_NAMES.length; i++) {
+                if (!modifiedTables.has(i)) {
+                    tablesNeedClearing.push(i);
+                }
+            }
+            if (tablesNeedClearing.length > 0) {
+                for (let i = 0; i < tablesNeedClearing.length; i++) {
+                    this._focus[tablesNeedClearing[i]].clear();
+                }
+                mutationOccurred = true;
+            }
+        }
+        if (mutationOccurred) {
+            this._action.fire();
+        }
+    }
+
+    get(): readonly Map<number, Focus>[] {
+        return this._focus;
     }
 
     subscribe(handler: ActionHandler<void>): ActionUnsubscriber {
@@ -35,34 +136,6 @@ export class FocusManager {
 
     unsubscribe(handler: ActionHandler<void>): void {
         this._action.unregister(handler);
-    }
-
-    get(tableId?: DatabaseTableId): Focus {
-        if (tableId) return this._tableIdToLastFocus[tableId];
-        return this._tableIdToLastFocus[this._focused];
-    }
-
-    focus(focus: FocusData): void {
-        const isNewFocus: boolean =
-            focus.tableId !== this._focused ||
-            this._tableIdToLastFocus[this._focused] === undefined ||
-            this._tableIdToLastFocus[this._focused].rowView !== focus.rowView;
-        this._focused = focus.tableId;
-        this._tableIdToLastFocus[focus.tableId] = focus;
-        if (isNewFocus) this._action.fire();
-    }
-
-    blur(tableId?: DatabaseTableId): void {
-        if (tableId) this._tableIdToLastFocus[tableId] = undefined;
-        this._tableIdToLastFocus[this._focused] = undefined;
-        this._action.fire();
-    }
-
-    clear(): void {
-        for (let i = 0; i < this._tableIdToLastFocus.length; i++) {
-            this._tableIdToLastFocus[i] = undefined;
-        }
-        this._action.fire();
     }
 }
 

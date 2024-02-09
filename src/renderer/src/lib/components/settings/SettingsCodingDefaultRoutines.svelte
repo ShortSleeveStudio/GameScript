@@ -122,7 +122,7 @@
                     undoText={ROUTINES_UNDO_DEFAULT}
                 />
             {:else if cell.key === 'focus'}
-                <FocusButton rowType={TABLE_ID_ROUTINES} rowView={row} payload={focusPayload} />
+                <FocusButton rowView={row} payload={focusPayload} />
             {/if}
         </svelte:fragment>
 

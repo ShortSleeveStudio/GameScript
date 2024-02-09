@@ -30,7 +30,7 @@ export async function nodesDelete(
         nodesToDelete.push(<Node>{ ...node });
         routineIds.push(node.code);
         routineIds.push(node.condition);
-        localizationIds.push(node.uiText);
+        localizationIds.push(node.uiResponseText);
         localizationIds.push(node.voiceText);
     }
     const edgeIdMap: Map<number, Edge> = new Map();
