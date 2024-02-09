@@ -68,3 +68,7 @@ export const CONVERSATION_PLACEHOLDER_NAME = 'Enter conversation name';
 export const NODE_UNDO_VOICE_TEXT = 'voice text';
 export const NODE_PLACEHOLDER_VOICE_TEXT = 'Enter dialogue...';
 export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';
+
+/**Edges */
+export const EDGE_UNDO_PRIORITY = 'priority';
+export const EDGE_PLACEHOLDER_PRIORITY = 'Enter a priority...';

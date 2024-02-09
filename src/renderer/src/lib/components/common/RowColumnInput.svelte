@@ -14,7 +14,9 @@
     export let undoText: string;
     export let columnName: string;
     export let inputPlaceholder: string;
+    export let isNumber: boolean = false;
 
+    const NON_NUMBERS = /\D/g;
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string = <string>$rowView[columnName];
     let currentValue: string = <string>$rowView[columnName];
@@ -64,6 +66,11 @@
             (<HTMLElement>e.target).blur();
         }
     }
+
+    function onInput(): void {
+        if (!isNumber) return;
+        boundValue = boundValue.replace(NON_NUMBERS, '');
+    }
 </script>
 
 <span class="defeat-form-requirement">
@@ -75,5 +82,6 @@
         bind:value={boundValue}
         on:blur={syncOnBlur}
         on:keyup={onKeyUp}
+        on:input={onInput}
     />
 </span>

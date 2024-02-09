@@ -257,7 +257,7 @@
     }
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Conversation>, GridContext>): void {
-        const rowView: IDbRowView<Row> = event.data;
+        const rowView: IDbRowView<Conversation> = event.data;
         FOCUS_REQUEST.focus = new Map();
         FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
         focusManager.focus(<FocusRequests>{

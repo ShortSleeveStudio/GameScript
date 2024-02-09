@@ -306,6 +306,7 @@ export const EDGE_TYPES: string[] = [
 export type EdgeType = (typeof EDGE_TYPES)[number];
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations
+    priority: number;
 
     // Graph Stuff
     type: EdgeType;

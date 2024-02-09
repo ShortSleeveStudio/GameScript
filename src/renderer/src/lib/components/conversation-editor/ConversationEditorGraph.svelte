@@ -394,25 +394,23 @@
     // TODO - remove once they implement onselectionchanged
     let nodesSelected: FlowNode[] = [];
     let edgesSelected: FlowEdge[] = [];
-    let firstSelectAfterLoadHappened: boolean = false;
     function onNodeClicked(): void {
+        updateSelection();
+    }
+    function onEdgeClicked(): void {
+        updateSelection();
+    }
+    async function updateSelection(): Promise<void> {
         nodesSelected.length = 0;
         const nodeList: FlowNode[] = get(nodes);
         for (let i = 0; i < nodeList.length; i++) {
             if (nodeList[i].selected) nodesSelected.push(nodeList[i]);
         }
-        updateSelection();
-    }
-    function onEdgeClicked(): void {
         edgesSelected.length = 0;
         const edgeList: FlowEdge[] = get(edges);
         for (let i = 0; i < edgeList.length; i++) {
             if (edgeList[i].selected) edgesSelected.push(edgeList[i]);
         }
-        updateSelection();
-    }
-    async function updateSelection(): Promise<void> {
-        firstSelectAfterLoadHappened;
         onSelectionChanged(
             new CustomEvent<{ nodes: FlowNode[]; edges: FlowEdge[] }>('xy-selection-changed', {
                 detail: { nodes: nodesSelected, edges: edgesSelected },
@@ -472,7 +470,6 @@
     }
 
     function loadGraph(): void {
-        firstSelectAfterLoadHappened = false; // TODO
         nodeViews = db.fetchTable<Node>(
             TABLE_ID_NODES,
             createFilter<Node>()
