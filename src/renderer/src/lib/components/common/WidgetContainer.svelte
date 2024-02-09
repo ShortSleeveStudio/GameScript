@@ -1,8 +1,8 @@
 <script lang="ts">
     import { Tile } from 'carbon-components-svelte';
 
-    export let title: string;
-    export let header: string;
+    export let title: string = '';
+    export let header: string = '';
 </script>
 
 <div class="container">

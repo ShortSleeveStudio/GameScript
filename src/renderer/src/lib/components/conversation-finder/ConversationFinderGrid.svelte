@@ -66,6 +66,7 @@
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { nodesDelete } from '@lib/crud/node-d';
+    import { conversationCreate } from '@lib/crud/conversation-c';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
@@ -121,30 +122,13 @@
     }
 
     async function onCreate(): Promise<void> {
-        let newConversation: Conversation = <Conversation>{
+        const conversation: Conversation = <Conversation>{
             name: 'New Conversation',
             isSystemCreated: false,
             notes: '',
             isDeleted: false,
         };
-
-        // Create converation
-        let newRow: Conversation = await isLoading.wrapPromise(
-            db.createRow(TABLE_ID_CONVERSATIONS, newConversation),
-        );
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'conversation creation',
-                isLoading.wrapFunction(async () => {
-                    await db.deleteRow(TABLE_ID_CONVERSATIONS, newRow);
-                }),
-                isLoading.wrapFunction(async () => {
-                    newRow = await db.createRow(TABLE_ID_CONVERSATIONS, newRow);
-                }),
-            ),
-        );
+        await conversationCreate(conversation, isLoading);
     }
 
     async function onDeleteForever(): Promise<void> {

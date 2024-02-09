@@ -5,9 +5,11 @@ import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 export interface NodeData {
     rowView: IDbRowView<Node>;
     localizations: IDbTableView<Localization>;
+    selected: boolean;
 }
 
 export interface EdgeData {
     rowView: IDbRowView<Edge>;
     localizations: IDbTableView<Localization>;
+    selected: boolean;
 }

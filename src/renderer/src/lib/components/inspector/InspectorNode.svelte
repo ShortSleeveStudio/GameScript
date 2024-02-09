@@ -1,5 +1,10 @@
 <script lang="ts">
-    import { TABLE_ID_ROUTINES, type Node, type Routine } from '@lib/api/db/db-schema';
+    import {
+        TABLE_ID_ROUTINES,
+        type Node,
+        type Routine,
+        NODE_TYPE_DIALOGUE,
+    } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnLocalization from '../common/RowColumnLocalization.svelte';
@@ -56,74 +61,78 @@
     <sup>Conversation ID</sup>
     <RowColumnId {rowView} columnName={'parent'} />
 </p>
-<p>
-    <sup>Actor</sup>
-    <RowColumnActor {rowView} columnName={'actor'} />
-</p>
-<p>
-    <Tooltip triggerText="Voice Text" align="start" direction="bottom">
-        <p>
-            This is the localized text for the line that is spoken when this node plays during a
-            conversation.
-        </p>
-    </Tooltip>
-    <RowColumnLocalization
-        {rowView}
-        columnName={'voiceText'}
-        showTitle={false}
-        showId={false}
-        showNickname={false}
-    />
-</p>
-<p>
-    <Tooltip triggerText="UI Response Text" align="start" direction="bottom">
-        <p>
-            In most games, the player is presented with a list of dialogue options they can select
-            in response during a conversation. This localized text can be used for the UI element
-            responsible for presenting the player with response options.
-        </p>
-    </Tooltip>
-    <RowColumnLocalization
-        {rowView}
-        columnName={'uiResponseText'}
-        showTitle={false}
-        showId={false}
-        showNickname={false}
-    />
-</p>
-<p>
-    <Tooltip triggerText="Condition" align="start" direction="bottom">
-        <p>This routine must return a boolean value representing whether this node is unlocked.</p>
-    </Tooltip>
-    <RoutineEditor rowView={routineCondition} columnName={'code'} />
-</p>
-<p>
-    <Tooltip triggerText="Code" align="start" direction="bottom">
-        <p>
-            The following routine will execute as soon as this node plays during a conversation. You
-            can use it to do anything you want (eg. moving a player, play a sound, etc). Also, with
-            the dropdown below, you may select from a list of default routines you can create in the
-            settings menu.
-        </p>
-    </Tooltip>
-    <RoutineSelector
-        {rowView}
-        columnNameOverrideRoutine={'codeOverride'}
-        defaultRoutine={routineCode}
-    />
-</p>
-<p>
-    <Tooltip triggerText="Prevent Response" align="center" direction="top">
-        <p>
-            This setting will prevent this node's children from appearing as response options. If
-            all children are available, then {window.api.constants.APP_NAME} will select the child with
-            the highest priority edge. If all edge priorities are the same, then a node will be selected
-            at random.
-        </p>
-    </Tooltip>
-    <RowColumnBoolean
-        {rowView}
-        columnName={'preventResponse'}
-        undoText={NODE_UNDO_PREVENT_RESPONSE}
-    />
-</p>
+{#if $rowView.type === NODE_TYPE_DIALOGUE}
+    <p>
+        <sup>Actor</sup>
+        <RowColumnActor {rowView} columnName={'actor'} />
+    </p>
+    <p>
+        <Tooltip triggerText="Voice Text" align="start" direction="bottom">
+            <p>
+                This is the localized text for the line that is spoken when this node plays during a
+                conversation.
+            </p>
+        </Tooltip>
+        <RowColumnLocalization
+            {rowView}
+            columnName={'voiceText'}
+            showTitle={false}
+            showId={false}
+            showNickname={false}
+        />
+    </p>
+    <p>
+        <Tooltip triggerText="UI Response Text" align="start" direction="bottom">
+            <p>
+                In most games, the player is presented with a list of dialogue options they can
+                select in response during a conversation. This localized text can be used for the UI
+                element responsible for presenting the player with response options.
+            </p>
+        </Tooltip>
+        <RowColumnLocalization
+            {rowView}
+            columnName={'uiResponseText'}
+            showTitle={false}
+            showId={false}
+            showNickname={false}
+        />
+    </p>
+    <p>
+        <Tooltip triggerText="Condition" align="start" direction="bottom">
+            <p>
+                This routine must return a boolean value representing whether this node is unlocked.
+            </p>
+        </Tooltip>
+        <RoutineEditor rowView={routineCondition} columnName={'code'} />
+    </p>
+    <p>
+        <Tooltip triggerText="Code" align="start" direction="bottom">
+            <p>
+                The following routine will execute as soon as this node plays during a conversation.
+                You can use it to do anything you want (eg. moving a player, play a sound, etc).
+                Also, with the dropdown below, you may select from a list of default routines you
+                can create in the settings menu.
+            </p>
+        </Tooltip>
+        <RoutineSelector
+            {rowView}
+            columnNameOverrideRoutine={'codeOverride'}
+            defaultRoutine={routineCode}
+        />
+    </p>
+    <p>
+        <Tooltip triggerText="Prevent Response" align="center" direction="top">
+            <p>
+                This setting will prevent this node's children from appearing as response options.
+                If all children are available, then {window.api.constants.APP_NAME} will select the child
+                with the highest priority edge. If all edge priorities are the same, then a node will
+                be selected at random.
+            </p>
+        </Tooltip>
+        <RowColumnBoolean
+            {rowView}
+            columnName={'preventResponse'}
+            undoText={NODE_UNDO_PREVENT_RESPONSE}
+        />
+    </p>
+{/if}

@@ -276,7 +276,7 @@ export const NODE_TYPE_ROOT: NodeType = 'root';
 export const NODE_TYPE_DIALOGUE: NodeType = 'dialogue';
 export const NODE_TYPES: string[] = [NODE_TYPE_LINK, NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
 export type NodeType = (typeof NODE_TYPES)[number];
-export interface Node extends Row, Annotated {
+export interface Node extends Row, Annotated, SystemCreatable {
     parent: number; // FK Conversation
     actor: number; // FK Actors
     voiceText: number; // FK Localizations

@@ -37,6 +37,7 @@
         NODE_TYPE_DIALOGUE,
         EDGE_TYPE_SMOOTHSTEP,
         type Conversation,
+        NODE_TYPE_ROOT,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -47,7 +48,7 @@
     } from '@lib/constants/local-storage';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import NodeDialogue from './NodeDialogue.svelte';
-    import { Button } from 'carbon-components-svelte';
+    import { Button, InlineLoading } from 'carbon-components-svelte';
     import { EVENT_SHUTDOWN } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
@@ -58,6 +59,10 @@
     import { nodesUpdate } from '@lib/crud/node-u';
     import SvelteFlowApi from './SvelteFlowApi.svelte';
     import { nodeCreate } from '@lib/crud/node-c';
+    import NodeRoot from './NodeRoot.svelte';
+    import WidgetContainer from '../common/WidgetContainer.svelte';
+    import GridToolbar from '../common/GridToolbar.svelte';
+    import { TrashCan } from 'carbon-icons-svelte';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -85,14 +90,16 @@
     const nodes: Writable<FlowNode[]> = writable([]);
     const edges: Writable<FlowEdge[]> = writable([]);
     const snapGrid: SnapGrid = [30, 30];
-    const nodeTypes = {
-        dialogue: NodeDialogue,
-    };
+    const nodeTypes = {};
+    nodeTypes[NODE_TYPE_ROOT] = NodeRoot;
+    nodeTypes[NODE_TYPE_DIALOGUE] = NodeDialogue;
 
     let unsubscriberFocus: ActionUnsubscriber;
     let tableWatcherNode: TableWatcher<Node>;
     let tableWatcherEdge: TableWatcher<Edge>;
     let unsubscriberLocalizationView: Unsubscriber;
+    let nodeUnsubscriber: Unsubscriber;
+    let edgeUnsubscriber: Unsubscriber;
     let nodeViews: IDbTableView<Node>;
     let edgeViews: IDbTableView<Edge>;
     let localizationViews: IDbTableView<Localization>;
@@ -228,20 +235,37 @@
         });
     }
 
-    // TODO
     function onCreateNode(): void {
+        const view: Viewport = get(viewport);
         const newNode: Node = <Node>{
             type: NODE_TYPE_DIALOGUE,
-            positionX: 0,
-            positionY: 0,
             parent: focusedRowView.id,
+            isSystemCreated: false,
+            positionX: view.x,
+            positionY: view.y,
         };
         nodeCreate(newNode, isLoading);
     }
-    // TODO
+
+    function onDeleteNode(): void {
+        deleteKeyPressed.set(true);
+    }
+
+    function onCancelSelection(): void {
+        // TODO - is this really it?
+        nodes.update((nodeList: FlowNode[]) => {
+            for (let i = 0; i < nodeList.length; i++) nodeList[i].selected = false;
+            return nodeList;
+        });
+        edges.update((edgeList: FlowEdge[]) => {
+            for (let i = 0; i < edgeList.length; i++) edgeList[i].selected = false;
+            return edgeList;
+        });
+    }
 
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
         const remoteNode: Node = get(remote);
+        const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT;
         return <FlowNode>{
             id: remote.id.toString(),
             type: remoteNode.type,
@@ -249,7 +273,11 @@
             data: <NodeData>{
                 rowView: remote,
                 localizations: localizationViews,
+                selected: false,
             },
+            selected: false,
+            deletable: isNotRoot,
+            selectable: isNotRoot,
         };
     }
 
@@ -258,7 +286,10 @@
         // Skip equality
         if (nodeIsEqual(local, remote)) return;
         console.log(`Update local node`);
+        const isNotRoot: boolean = remote.type !== NODE_TYPE_ROOT;
         local.type = remote.type;
+        local.deletable = isNotRoot;
+        local.selectable = isNotRoot;
         if (isNodeDragging()) return; // TODO - test using just this node's dragging flag
         local.position.x = remote.positionX;
         local.position.y = remote.positionY;
@@ -292,7 +323,9 @@
             data: <EdgeData>{
                 rowView: remote,
                 localizations: localizationViews,
+                selected: false,
             },
+            selected: false,
         };
     }
 
@@ -394,12 +427,6 @@
     // TODO - remove once they implement onselectionchanged
     let nodesSelected: FlowNode[] = [];
     let edgesSelected: FlowEdge[] = [];
-    function onNodeClicked(): void {
-        updateSelection();
-    }
-    function onEdgeClicked(): void {
-        updateSelection();
-    }
     async function updateSelection(): Promise<void> {
         nodesSelected.length = 0;
         const nodeList: FlowNode[] = get(nodes);
@@ -416,6 +443,33 @@
                 detail: { nodes: nodesSelected, edges: edgesSelected },
             }),
         );
+    }
+
+    function onNodesChanged(nodes: FlowNode[]): void {
+        let changed: boolean = false;
+        for (let i = 0; i < nodes.length; i++) {
+            const flowNode: FlowNode = nodes[i];
+            if (flowNode.selected !== flowNode.data.selected) {
+                flowNode.data.selected = flowNode.selected;
+                changed = true;
+            }
+        }
+        if (changed) {
+            updateSelection();
+        }
+    }
+    function onEdgesChanged(edges: FlowEdge[]): void {
+        let changed: boolean = false;
+        for (let i = 0; i < edges.length; i++) {
+            const flowEdge: FlowEdge = edges[i];
+            if (flowEdge.selected !== flowEdge.data.selected) {
+                flowEdge.data.selected = flowEdge.selected;
+                changed = true;
+            }
+        }
+        if (changed) {
+            updateSelection();
+        }
     }
     // TODO - remove once they implement onselectionchanged
 
@@ -499,11 +553,15 @@
         tableWatcherEdge = new TableWatcher(edgeViews);
         tableWatcherEdge.subscribe(onEdgeViewsChanged);
         unsubscriberLocalizationView = localizationViews.subscribe(onLocalizationsChanged);
+        nodeUnsubscriber = nodes.subscribe(onNodesChanged);
+        edgeUnsubscriber = edges.subscribe(onEdgesChanged);
     }
 
     function clearGraph(): void {
         // Order matters, we don't want subscription updates when the tables clear
         isConversationInitialized = false;
+        if (nodeUnsubscriber) nodeUnsubscriber();
+        if (edgeUnsubscriber) edgeUnsubscriber();
         if (tableWatcherNode) tableWatcherNode.dispose();
         if (tableWatcherEdge) tableWatcherEdge.dispose();
         if (unsubscriberLocalizationView) unsubscriberLocalizationView();
@@ -536,14 +594,34 @@
     });
 </script>
 
-<div class="graph-container">
-    <div class="graph-title-bar">
-        <h4>{focusedRowView ? $focusedRowView.name : 'Please select a conversation'}</h4>
-        <Button size="small" disabled={!focusedRowView || $isLoading} on:click={onCreateNode}
-            >Create Node [REMOTE]</Button
+<WidgetContainer title={focusedRowView ? $focusedRowView.name : 'Please select a conversation'}>
+    <svelte:fragment slot="toolbar">
+        <GridToolbar
+            elementsSelected={nodesSelected.length + edgesSelected.length}
+            on:cancel={onCancelSelection}
         >
-    </div>
-    <div class="graph-editor">
+            <!-- <svelte:fragment slot="overflow">
+            <OverflowMenuItem
+                text="{isDeletedVisible ? 'Hide' : 'Show'} Deleted"
+                on:click={() => showIsDeleted(!isDeletedVisible)}
+            />
+        </svelte:fragment> -->
+
+            <span slot="create">
+                <Button
+                    size="small"
+                    on:click={onCreateNode}
+                    disabled={$isLoading}
+                    icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
+                >
+            </span>
+            <span slot="delete-restore">
+                <Button icon={TrashCan} disabled={$isLoading} on:click={onDeleteNode}>Delete</Button
+                >
+            </span>
+        </GridToolbar>
+    </svelte:fragment>
+    <svelte:fragment slot="widget">
         <SvelteFlowProvider>
             <SvelteFlow
                 {viewport}
@@ -559,8 +637,6 @@
                 onbeforedelete={onBeforeDelete}
                 on:selectionchange={onSelectionChanged}
                 on:nodedragstop={onNodeDragStop}
-                on:nodeclick={onNodeClicked}
-                on:edgeclick={onEdgeClicked}
             >
                 <Controls />
                 <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
@@ -569,19 +645,5 @@
             <!-- TODO -->
             <SvelteFlowApi bind:deleteKeyPressed />
         </SvelteFlowProvider>
-    </div>
-</div>
-
-<style>
-    .graph-container {
-        height: 100%;
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-    }
-    .graph-title-bar {
-    }
-    .graph-editor {
-        flex-grow: 1;
-    }
-</style>
+    </svelte:fragment>
+</WidgetContainer>
