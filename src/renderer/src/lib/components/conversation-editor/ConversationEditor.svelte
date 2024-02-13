@@ -3,6 +3,7 @@
     import {} from 'carbon-components-svelte';
     import { dbConnected } from '@lib/stores/settings/settings';
     import ConversationEditorGraph from './ConversationEditorGraph.svelte';
+    import { SvelteFlowProvider } from '@xyflow/svelte';
 </script>
 
 <div class="conversation-editor">
@@ -11,7 +12,9 @@
             <Row style="height: 100%">
                 <Column>
                     {#if $dbConnected}
-                        <ConversationEditorGraph />
+                        <SvelteFlowProvider>
+                            <ConversationEditorGraph />
+                        </SvelteFlowProvider>
                     {/if}
                 </Column>
             </Row>

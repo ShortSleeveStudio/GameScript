@@ -35,16 +35,17 @@
     export let data: NodeData;
 </script>
 
-<div class="node-container {selected ? 'node-container-selected' : ''}">
+<!-- data.selected in the class list is there to avoid warnings about not using "data" -->
+<div class="node-container {selected ? 'node-container-selected' : ''} {data.selected}">
     <div class="node-title-bar">
         <span class="node-title-text">Start</span>
     </div>
-    <Handle type="source" position={Position.Right} />
+    <Handle type="source" position={sourcePosition} />
 </div>
 
 <style>
     .node-container {
-        width: calc(38 * 8px);
+        width: var(--graph-node-width);
         display: flex;
         flex-direction: column;
         background-color: var(--cds-layer-accent, #e0e0e0);
@@ -55,7 +56,7 @@
         /* box-shadow: 0px 0px 10px 2px var(--cds-hover-selected-ui); */
     }
     .node-title-bar {
-        height: calc(5 * 8px);
+        height: var(--graph-node-title-height);
         display: flex;
         justify-content: space-between;
         align-items: center;

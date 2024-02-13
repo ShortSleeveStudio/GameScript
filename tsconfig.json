@@ -6,7 +6,7 @@
     "src/renderer/src/**/*.svelte",
     "src/renderer/src/**/*.ts",
     "src/common/*.ts",
-    "src/preload/*.d.ts", 
+    "src/preload/*.d.ts",
     "src/preload/types/index.d.ts"
   ],
   "exclude": [

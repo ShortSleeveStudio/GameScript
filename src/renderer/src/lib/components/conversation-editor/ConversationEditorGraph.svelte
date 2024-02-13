@@ -14,6 +14,8 @@
         ConnectionLineType,
         type Connection,
         SvelteFlowProvider,
+        Position,
+        useStore,
     } from '@xyflow/svelte';
     import { onDestroy, onMount } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
@@ -48,7 +50,7 @@
     } from '@lib/constants/local-storage';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import NodeDialogue from './NodeDialogue.svelte';
-    import { Button, InlineLoading } from 'carbon-components-svelte';
+    import { Button, InlineLoading, OverflowMenuItem } from 'carbon-components-svelte';
     import { EVENT_SHUTDOWN } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
@@ -57,12 +59,15 @@
     import { nodesDelete } from '@lib/crud/node-d';
     import { edgeCreate } from '@lib/crud/edge-c';
     import { nodesUpdate } from '@lib/crud/node-u';
-    import SvelteFlowApi from './SvelteFlowApi.svelte';
     import { nodeCreate } from '@lib/crud/node-c';
     import NodeRoot from './NodeRoot.svelte';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import GridToolbar from '../common/GridToolbar.svelte';
     import { TrashCan } from 'carbon-icons-svelte';
+    import { graphLayoutVertical } from '@lib/stores/graph/graph-layout';
+    import ElkWorker from '@lib/vendor/elkjs/elk-worker.min.js?worker';
+    import { type ELK, type ElkExtendedEdge, type ElkNode } from '@lib/vendor/elkjs/elk-api.js';
+    import { Undoable, undoManager } from '@lib/utility/undo-manager';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -86,6 +91,13 @@
         tableId: TABLE_ID_EDGES,
         type: FOCUS_REPLACE,
     };
+    // @ts-expect-error: I don't know how else to import this
+    const ELK_LAYOUT: ELK = new ELK({
+        workerFactory: () => {
+            return new ElkWorker();
+        },
+    });
+
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
     const nodes: Writable<FlowNode[]> = writable([]);
     const edges: Writable<FlowEdge[]> = writable([]);
@@ -95,6 +107,7 @@
     nodeTypes[NODE_TYPE_DIALOGUE] = NodeDialogue;
 
     let unsubscriberFocus: ActionUnsubscriber;
+    let unsubscriberLayoutVertical: Unsubscriber;
     let tableWatcherNode: TableWatcher<Node>;
     let tableWatcherEdge: TableWatcher<Edge>;
     let unsubscriberLocalizationView: Unsubscriber;
@@ -105,7 +118,6 @@
     let localizationViews: IDbTableView<Localization>;
     let isLoading: IsLoadingStore = new IsLoadingStore();
     let isConversationInitialized: boolean = false;
-    let deleteKeyPressed: Writable<boolean>;
     let focusedRowView: IDbRowView<Conversation>;
     $: {
         if (focusedRowView && (focusedRowView.isDisposed || $focusedRowView.isDeleted)) {
@@ -142,6 +154,14 @@
         }
     }
 
+    function getSourcePosition(isVertical: boolean): Position {
+        return isVertical ? Position.Bottom : Position.Right;
+    }
+
+    function getTargetPosition(isVertical: boolean): Position {
+        return isVertical ? Position.Top : Position.Left;
+    }
+
     function onEdgeCreate(connection: Connection): FlowEdge {
         // Sanity
         const [source, target] = parseConnection(connection);
@@ -166,7 +186,8 @@
     }
 
     function onBeforeDelete(params: { nodes: FlowNode[]; edges: FlowEdge[] }): boolean {
-        // Grab nodes and edges to delete
+        // Grab nodes and edges to delete, this must happen before deselect since we're reusing the
+        // same lists passed in
         const nodes: Node[] = params.nodes.map(
             (flowNode: FlowNode) => <Node>{ ...get(flowNode.data.rowView) },
         );
@@ -179,6 +200,9 @@
             changeFocus(undefined);
             throw error;
         });
+
+        // Deselect
+        onCancelSelection();
 
         // Wait for an update from the backend to really delete anything
         return false;
@@ -235,20 +259,41 @@
         });
     }
 
+    function onLayoutVerticalChanged(): void {
+        nodes.update((nodeList: FlowNode[]) => {
+            const isVertical: boolean = $graphLayoutVertical;
+            for (let i = 0; i < nodeList.length; i++) {
+                const node: FlowNode = nodeList[i];
+                node.sourcePosition = getSourcePosition(isVertical);
+                node.targetPosition = getTargetPosition(isVertical);
+            }
+            return nodeList;
+        });
+    }
+
+    // TODO - https://github.com/xyflow/xyflow/issues/3900
+    let domNode: HTMLDivElement;
+    // TODO - https://github.com/xyflow/xyflow/issues/3900
     function onCreateNode(): void {
         const view: Viewport = get(viewport);
+        const zoomMultiplier: number = 1 / view.zoom;
+        const centerX = -view.x * zoomMultiplier + (domNode.clientWidth * zoomMultiplier) / 2;
+        const centerY = -view.y * zoomMultiplier + (domNode.clientHeight * zoomMultiplier) / 2;
+
+        console.log(view);
+        console.log($nodes);
         const newNode: Node = <Node>{
             type: NODE_TYPE_DIALOGUE,
             parent: focusedRowView.id,
             isSystemCreated: false,
-            positionX: view.x,
-            positionY: view.y,
+            positionX: centerX,
+            positionY: centerY,
         };
         nodeCreate(newNode, isLoading);
     }
 
     function onDeleteNode(): void {
-        deleteKeyPressed.set(true);
+        onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
     }
 
     function onCancelSelection(): void {
@@ -263,7 +308,87 @@
         });
     }
 
+    interface CustomElkNode extends ElkNode {
+        data: NodeData;
+    }
+
+    async function onLayout(): Promise<void> {
+        let flowNodes: FlowNode[] = $nodes;
+        if (flowNodes.length === 0) return;
+        const flowEdges: FlowEdge[] = $edges;
+        const isVertical: boolean = $graphLayoutVertical;
+        const graphOptions = {
+            'elk.algorithm': 'layered',
+            'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+            'elk.spacing.nodeNode': '80',
+            'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
+        };
+        const elkNodes: ElkNode[] = [];
+        for (let i = 0; i < flowNodes.length; i++) {
+            const node: FlowNode = flowNodes[i];
+            elkNodes.push({
+                id: node.id,
+                width: node.computed.width,
+                height: node.computed.height,
+            });
+        }
+        const elkEdges: ElkExtendedEdge[] = [];
+        for (let i = 0; i < flowEdges.length; i++) {
+            const edge: FlowEdge = flowEdges[i];
+            elkEdges.push({
+                id: edge.id,
+                sources: [edge.source],
+                targets: [edge.target],
+            });
+        }
+        // Order is preserved
+        const laidOut: ElkNode = await ELK_LAYOUT.layout({
+            id: 'root',
+            layoutOptions: graphOptions,
+            children: elkNodes,
+            edges: elkEdges,
+        });
+
+        // Time has passed, grab a fresh copy of the nodes
+        flowNodes = $nodes;
+        const newPositions = [];
+        const oldPositions = [];
+        if (elkNodes.length !== laidOut.children.length) return;
+        for (let i = 0; i < laidOut.children.length; i++) {
+            const elkNode: CustomElkNode = <CustomElkNode>laidOut.children[i];
+            const flowNode: FlowNode = flowNodes[i];
+            if (elkNode.id !== flowNode.id) return; // Nodes have gone out of sync during the layout
+            newPositions.push(<Node>{
+                id: flowNode.data.rowView.id,
+                positionX: elkNode.x,
+                positionY: elkNode.y,
+            });
+            oldPositions.push(<Node>{
+                id: flowNode.data.rowView.id,
+                positionX: flowNode.position.x,
+                positionY: flowNode.position.y,
+            });
+        }
+
+        // Update layout
+        await db.updateRows(TABLE_ID_NODES, newPositions);
+
+        // Register undo/redo
+        undoManager.register(
+            new Undoable(
+                'actor deletion',
+                isLoading.wrapFunction(async () => {
+                    await db.updateRows(TABLE_ID_NODES, oldPositions);
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.updateRows(TABLE_ID_NODES, newPositions);
+                }),
+            ),
+        );
+    }
+
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
+        const isVertical: boolean = $graphLayoutVertical;
         const remoteNode: Node = get(remote);
         const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT;
         return <FlowNode>{
@@ -278,6 +403,8 @@
             selected: false,
             deletable: isNotRoot,
             selectable: isNotRoot,
+            targetPosition: isVertical ? Position.Top : Position.Left,
+            sourcePosition: isVertical ? Position.Bottom : Position.Right,
         };
     }
 
@@ -427,7 +554,7 @@
     // TODO - remove once they implement onselectionchanged
     let nodesSelected: FlowNode[] = [];
     let edgesSelected: FlowEdge[] = [];
-    async function updateSelection(): Promise<void> {
+    function updateSelection(): void {
         nodesSelected.length = 0;
         const nodeList: FlowNode[] = get(nodes);
         for (let i = 0; i < nodeList.length; i++) {
@@ -584,10 +711,16 @@
     };
 
     onMount(() => {
+        // TODO - REMOVE ONCE THEY FIX domNode or height/width stores in useStore()
+        domNode = <HTMLDivElement>document.getElementsByClassName('svelte-flow')[0];
+        // TODO - REMOVE ONCE THEY FIX domNode or height/width stores in useStore()
+
+        unsubscriberLayoutVertical = graphLayoutVertical.subscribe(onLayoutVerticalChanged);
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
     });
     onDestroy(() => {
+        if (unsubscriberLayoutVertical) unsubscriberLayoutVertical();
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         clearGraph();
@@ -597,21 +730,25 @@
 <WidgetContainer title={focusedRowView ? $focusedRowView.name : 'Please select a conversation'}>
     <svelte:fragment slot="toolbar">
         <GridToolbar
+            disabled={!isConversationInitialized}
             elementsSelected={nodesSelected.length + edgesSelected.length}
             on:cancel={onCancelSelection}
         >
-            <!-- <svelte:fragment slot="overflow">
-            <OverflowMenuItem
-                text="{isDeletedVisible ? 'Hide' : 'Show'} Deleted"
-                on:click={() => showIsDeleted(!isDeletedVisible)}
-            />
-        </svelte:fragment> -->
+            <svelte:fragment slot="overflow">
+                <OverflowMenuItem text="Perform Layout" on:click={onLayout} />
+                <OverflowMenuItem
+                    text="Set {$graphLayoutVertical ? 'Horizontal' : 'Vertical'}"
+                    on:click={() => {
+                        $graphLayoutVertical = !$graphLayoutVertical;
+                    }}
+                />
+            </svelte:fragment>
 
             <span slot="create">
                 <Button
                     size="small"
                     on:click={onCreateNode}
-                    disabled={$isLoading}
+                    disabled={$isLoading || !isConversationInitialized}
                     icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
                 >
             </span>
@@ -624,6 +761,7 @@
     <svelte:fragment slot="widget">
         <SvelteFlowProvider>
             <SvelteFlow
+                id="conversation-editor"
                 {viewport}
                 {nodes}
                 {edges}
@@ -642,8 +780,6 @@
                 <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
                 <MiniMap />
             </SvelteFlow>
-            <!-- TODO -->
-            <SvelteFlowApi bind:deleteKeyPressed />
         </SvelteFlowProvider>
     </svelte:fragment>
 </WidgetContainer>

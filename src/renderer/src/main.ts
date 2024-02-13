@@ -21,6 +21,7 @@ import '@ag-grid-community/styles/ag-theme-quartz.css';
 import '@lib/grid/grid-initialization';
 
 // Graph
+import '@lib/vendor/elkjs/elk-api.js';
 import '@xyflow/svelte/dist/style.css';
 
 // Main app

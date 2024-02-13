@@ -6,6 +6,7 @@
     const CLASS_BATCH_ACTIONS_ACTIVE: string = 'bx--batch-actions--active';
 
     export let elementsSelected: number;
+    export let disabled: boolean = false;
 
     let isOverflowOpen: boolean;
 
@@ -46,6 +47,7 @@
         <span style="display: flex;">
             {#if $$slots.overflow}
                 <OverflowMenu
+                    {disabled}
                     flipped
                     size="sm"
                     class="bx--toolbar-action bx--overflow-menu"

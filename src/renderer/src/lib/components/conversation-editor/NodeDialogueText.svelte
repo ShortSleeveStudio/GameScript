@@ -14,7 +14,7 @@
 </script>
 
 <RowColumnTextArea
-    class="nodrag"
+    class="nodrag node-text"
     {disabled}
     resizable={false}
     rowView={localization}

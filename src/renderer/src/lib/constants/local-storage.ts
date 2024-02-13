@@ -1,5 +1,5 @@
 // Dock
-export const LS_KEY_DOCK_LAYOUT: string = 'layout-dock';
+export const LS_KEY_DOCK_LAYOUT: string = 'dock-layout';
 
 // Topbar
 export const LS_KEY_DARKMODE: string = 'darkmode';
@@ -10,13 +10,14 @@ export const LS_KEY_SETTINGS_DB_SQLITE_PATH: string = 'settings-database-sqlite-
 export const LS_KEY_SETTINGS_DEFAULT_ROUTINE: string = 'settings-coding-default-routine';
 
 // Finder
-export const LS_KEY_FINDER_LAYOUT = 'layout-finder';
+export const LS_KEY_FINDER_LAYOUT = 'finder-layout';
 
 // Localization
-export const LS_KEY_LOCALIZATION = 'layout-localization';
+export const LS_KEY_LOCALIZATION = 'localization-layout';
 
 // Conversation Editor
-export const LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX = 'layout-conversation-';
+export const LS_KEY_CONVERSATION_EDITOR_LAYOUT_VERTICAL = 'graph-layout-vertical';
+export const LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX = 'graph-layout-';
 export function conversationIdToViewportKey(conversationId: number): string {
     return LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX + conversationId;
 }

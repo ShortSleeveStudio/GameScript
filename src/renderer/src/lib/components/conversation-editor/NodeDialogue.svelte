@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+    import { Handle, type NodeProps } from '@xyflow/svelte';
     import type { NodeData } from '@lib/graph/graph-data';
     import type { Actor, Localization, Node } from '@lib/api/db/db-schema';
     import { actorsTable } from '@lib/tables/actors';
@@ -7,6 +7,7 @@
     import NodeDialogueText from './NodeDialogueText.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { get } from 'svelte/store';
+    import { onMount } from 'svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -39,6 +40,8 @@
     // SUPPRESS WARNINGS
 
     export let data: NodeData;
+
+    let containerElement: HTMLElement;
     let rowView: IDbRowView<Node> = data.rowView;
     let localizations: IDbTableView<Localization> = data.localizations;
     $: onDataChanged(data);
@@ -61,7 +64,10 @@
     }
 </script>
 
-<div class="node-container {selected ? 'node-container-selected' : ''}">
+<div
+    class="node-container {selected ? 'node-container-selected' : ''}"
+    bind:this={containerElement}
+>
     <div class="node-title-bar">
         <span class="node-title-text">{actor ? $actor.name : 'Loading...'}</span>
     </div>
@@ -69,13 +75,13 @@
         <NodeDialogueText disabled={!actor || !voiceText} localization={voiceText} />
     </div>
     <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
-    <Handle type="target" position={Position.Left} />
-    <Handle type="source" position={Position.Right} />
+    <Handle type="target" position={targetPosition} />
+    <Handle type="source" position={sourcePosition} />
 </div>
 
 <style>
     .node-container {
-        width: calc(38 * 8px);
+        width: var(--graph-node-width);
         display: flex;
         flex-direction: column;
         background-color: var(--cds-layer-accent, #e0e0e0);
@@ -86,7 +92,7 @@
         /* box-shadow: 0px 0px 10px 2px var(--cds-hover-selected-ui); */
     }
     .node-title-bar {
-        height: calc(5 * 8px);
+        height: var(--graph-node-title-height);
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -100,7 +106,7 @@
         padding: 0.6875rem 1rem;
     }
     .node-color {
-        height: 1rem;
+        height: var(--graph-node-color-height);
         border-top: 1px solid var(--cds-ui-04, #8d8d8d);
     }
 </style>

@@ -27,7 +27,7 @@ export async function nodesDelete(
     for (let i = 0; i < nodes.length; i++) {
         const node: Node = nodes[i];
         nodeIds.push(node.id);
-        nodesToDelete.push(<Node>{ ...node });
+        nodesToDelete.push(node);
         routineIds.push(node.code);
         routineIds.push(node.condition);
         localizationIds.push(node.uiResponseText);
@@ -46,7 +46,15 @@ export async function nodesDelete(
         // Delete Edges
         edgesToDelete = await db.fetchRowsRaw<Edge>(
             TABLE_ID_EDGES,
-            createFilter().where().column('source').in(nodeIds).endWhere().build(),
+            createFilter()
+                .where()
+                .column('source')
+                .in(nodeIds)
+                .or()
+                .column('target')
+                .in(nodeIds)
+                .endWhere()
+                .build(),
             conn,
         );
         for (let i = 0; i < edgesToDelete.length; i++) {

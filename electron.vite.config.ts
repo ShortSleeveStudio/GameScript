@@ -11,6 +11,9 @@ export default defineConfig({
     },
     renderer: {
         plugins: [svelte()],
+        worker: {
+            format: 'es',
+        },
         resolve: {
             alias: {
                 '@lib': path.resolve(__dirname, './src/renderer/src/lib'),

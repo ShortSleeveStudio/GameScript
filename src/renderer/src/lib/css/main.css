@@ -12,6 +12,12 @@ html {
 
     /* Monaco Editor */
     --me-default-height: calc(8 * 25px);
+
+    /* Graph */
+    --graph-node-title-height: calc(5 * 8px);
+    --graph-node-text-height: calc(13 * 8px);
+    --graph-node-color-height: calc(2 * 8px);
+    --graph-node-width: calc(38 * 8px);
 }
 
 body {
@@ -310,4 +316,9 @@ input[type='color']::-webkit-color-swatch {
     line-height: var(--cds-body-long-02-line-height, 1.5);
     letter-spacing: var(--cds-body-long-02-letter-spacing, 0);
     font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Graph */
+.node-text {
+    height: var(--graph-node-text-height);
 }
