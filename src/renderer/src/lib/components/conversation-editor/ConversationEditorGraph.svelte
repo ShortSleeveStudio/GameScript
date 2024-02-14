@@ -15,7 +15,6 @@
         type Connection,
         SvelteFlowProvider,
         Position,
-        useStore,
     } from '@xyflow/svelte';
     import { onDestroy, onMount } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
@@ -35,11 +34,11 @@
         type Node,
         type Localization,
         TABLE_ID_LOCALIZATIONS,
-        type EdgeType,
         NODE_TYPE_DIALOGUE,
-        EDGE_TYPE_SMOOTHSTEP,
         type Conversation,
         NODE_TYPE_ROOT,
+        type EdgeType,
+        EDGE_TYPE_DEFAULT,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -63,11 +62,11 @@
     import NodeRoot from './NodeRoot.svelte';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import GridToolbar from '../common/GridToolbar.svelte';
-    import { TrashCan } from 'carbon-icons-svelte';
     import { graphLayoutVertical } from '@lib/stores/graph/graph-layout';
     import ElkWorker from '@lib/vendor/elkjs/elk-worker.min.js?worker';
     import { type ELK, type ElkExtendedEdge, type ElkNode } from '@lib/vendor/elkjs/elk-api.js';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
+    import EdgeDefault from './EdgeDefault.svelte';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -79,9 +78,9 @@
 
     const MIN_ZOOM: number = 0.1;
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
-    const DEFAULT_EDGE_TYPE: EdgeType = EDGE_TYPE_SMOOTHSTEP;
+    const DEFAULT_EDGE_TYPE: EdgeType = EDGE_TYPE_DEFAULT;
     const DEFAULT_EDGE_OPTIONS: DefaultEdgeOptions = <DefaultEdgeOptions>{
-        type: DEFAULT_EDGE_TYPE,
+        type: <ConnectionLineType>DEFAULT_EDGE_TYPE,
     };
     const NODE_FOCUS_REQUEST: FocusRequest = <FocusRequest>{
         tableId: TABLE_ID_NODES,
@@ -105,6 +104,8 @@
     const nodeTypes = {};
     nodeTypes[NODE_TYPE_ROOT] = NodeRoot;
     nodeTypes[NODE_TYPE_DIALOGUE] = NodeDialogue;
+    const edgeTypes = {};
+    edgeTypes[EDGE_TYPE_DEFAULT] = EdgeDefault;
 
     let unsubscriberFocus: ActionUnsubscriber;
     let unsubscriberLayoutVertical: Unsubscriber;
@@ -279,9 +280,6 @@
         const zoomMultiplier: number = 1 / view.zoom;
         const centerX = -view.x * zoomMultiplier + (domNode.clientWidth * zoomMultiplier) / 2;
         const centerY = -view.y * zoomMultiplier + (domNode.clientHeight * zoomMultiplier) / 2;
-
-        console.log(view);
-        console.log($nodes);
         const newNode: Node = <Node>{
             type: NODE_TYPE_DIALOGUE,
             parent: focusedRowView.id,
@@ -292,7 +290,7 @@
         nodeCreate(newNode, isLoading);
     }
 
-    function onDeleteNode(): void {
+    function onDelete(): void {
         onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
     }
 
@@ -316,14 +314,9 @@
         let flowNodes: FlowNode[] = $nodes;
         if (flowNodes.length === 0) return;
         const flowEdges: FlowEdge[] = $edges;
-        const isVertical: boolean = $graphLayoutVertical;
-        const graphOptions = {
-            'elk.algorithm': 'layered',
-            'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-            'elk.spacing.nodeNode': '80',
-            'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
-        };
         const elkNodes: ElkNode[] = [];
+        let computedWidth: number;
+        let computedHeight: number;
         for (let i = 0; i < flowNodes.length; i++) {
             const node: FlowNode = flowNodes[i];
             elkNodes.push({
@@ -331,6 +324,8 @@
                 width: node.computed.width,
                 height: node.computed.height,
             });
+            computedWidth = Math.max(node.computed.width, computedWidth);
+            computedHeight = Math.max(node.computed.height, computedHeight);
         }
         const elkEdges: ElkExtendedEdge[] = [];
         for (let i = 0; i < flowEdges.length; i++) {
@@ -341,6 +336,15 @@
                 targets: [edge.target],
             });
         }
+        const isVertical: boolean = $graphLayoutVertical;
+        const graphOptions = {
+            'elk.algorithm': 'layered',
+            'elk.layered.spacing.nodeNodeBetweenLayers': isVertical
+                ? `${computedHeight / 2}`
+                : `${computedWidth / 2}`,
+            'elk.spacing.nodeNode': isVertical ? `${computedWidth / 2}` : `${computedHeight / 2}`,
+            'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
+        };
         // Order is preserved
         const laidOut: ElkNode = await ELK_LAYOUT.layout({
             id: 'root',
@@ -687,6 +691,10 @@
     function clearGraph(): void {
         // Order matters, we don't want subscription updates when the tables clear
         isConversationInitialized = false;
+        // TODO
+        nodesSelected.length = 0;
+        edgesSelected.length = 0;
+        // TODO
         if (nodeUnsubscriber) nodeUnsubscriber();
         if (edgeUnsubscriber) edgeUnsubscriber();
         if (tableWatcherNode) tableWatcherNode.dispose();
@@ -742,6 +750,12 @@
                         $graphLayoutVertical = !$graphLayoutVertical;
                     }}
                 />
+                <OverflowMenuItem
+                    danger
+                    disabled={nodesSelected.length === 0 && edgesSelected.length === 0}
+                    text="Delete Selection"
+                    on:click={onDelete}
+                />
             </svelte:fragment>
 
             <span slot="create">
@@ -752,10 +766,10 @@
                     icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
                 >
             </span>
-            <span slot="delete-restore">
+            <!-- <span slot="delete">
                 <Button icon={TrashCan} disabled={$isLoading} on:click={onDeleteNode}>Delete</Button
                 >
-            </span>
+            </span> -->
         </GridToolbar>
     </svelte:fragment>
     <svelte:fragment slot="widget">
@@ -767,6 +781,7 @@
                 {edges}
                 {snapGrid}
                 {nodeTypes}
+                {edgeTypes}
                 defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
                 connectionLineType={ConnectionLineType.SmoothStep}
                 minZoom={MIN_ZOOM}

@@ -15,6 +15,8 @@
 
 <RowColumnTextArea
     class="nodrag node-text"
+    stopDefault={true}
+    disableBorder={true}
     {disabled}
     resizable={false}
     rowView={localization}

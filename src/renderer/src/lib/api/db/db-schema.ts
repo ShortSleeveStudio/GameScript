@@ -295,14 +295,8 @@ export interface Node extends Row, Annotated, SystemCreatable {
 ///
 /// Edges
 ///
-export const EDGE_TYPE_STEP: EdgeType = 'step';
 export const EDGE_TYPE_DEFAULT: EdgeType = 'default';
-export const EDGE_TYPE_SMOOTHSTEP: EdgeType = 'smoothstep';
-export const EDGE_TYPES: string[] = [
-    EDGE_TYPE_STEP,
-    EDGE_TYPE_DEFAULT,
-    EDGE_TYPE_SMOOTHSTEP,
-] as const;
+export const EDGE_TYPES: string[] = [EDGE_TYPE_DEFAULT] as const;
 export type EdgeType = (typeof EDGE_TYPES)[number];
 export interface Edge extends Row, Annotated {
     parent: number; // FK Conversations

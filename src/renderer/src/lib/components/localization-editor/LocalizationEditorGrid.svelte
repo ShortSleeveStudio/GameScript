@@ -358,7 +358,7 @@
                     icon={$isLoading ? InlineLoading : undefined}>Add Localization</Button
                 >
             </span>
-            <span slot="delete-restore">
+            <span slot="delete">
                 <Button icon={TrashCan} disabled={$isLoading} on:click={onDelete}>Delete</Button>
             </span>
         </GridToolbar>

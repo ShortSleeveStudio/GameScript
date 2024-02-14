@@ -14,6 +14,8 @@
     export let placeholder: string;
     export let resizable: boolean = true;
     export let disabled: boolean = false;
+    export let stopDefault: boolean = false;
+    export let disableBorder: boolean = false;
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string;
@@ -60,14 +62,21 @@
             ),
         );
     }
+
+    function onClick(e: Event): void {
+        if (!stopDefault) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+    }
 </script>
 
 <TextArea
     {...$$restProps}
-    style="resize: {resizable ? 'vertical' : 'none'};"
+    style="{disableBorder ? 'border: none;' : ''} resize: {resizable ? 'vertical' : 'none'};"
     disabled={$isLoading || !rowView || disabled}
     {placeholder}
     bind:value={boundValue}
     on:blur={syncOnBlur}
     on:keydown={onKeyDown}
+    on:click={onClick}
 />

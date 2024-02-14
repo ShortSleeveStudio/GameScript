@@ -407,7 +407,7 @@
                     icon={$isLoading ? InlineLoading : undefined}>Add Conversation</Button
                 >
             </span>
-            <span slot="delete-restore">
+            <span slot="delete">
                 {#if isDeletedVisible}
                     <Button icon={Reset} disabled={$isLoading} on:click={onDeleteOrRestore}
                         >Restore</Button

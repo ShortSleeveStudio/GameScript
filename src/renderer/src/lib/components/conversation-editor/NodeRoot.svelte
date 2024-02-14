@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { NodeData } from '@lib/graph/graph-data';
-    import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+    import { Position, type NodeProps } from '@xyflow/svelte';
+    import NodeBase from './NodeBase.svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -33,36 +34,10 @@
     // SUPPRESS WARNINGS
 
     export let data: NodeData;
+    data;
+
+    let isVertical: boolean = false;
+    $: isVertical = sourcePosition === Position.Bottom;
 </script>
 
-<!-- data.selected in the class list is there to avoid warnings about not using "data" -->
-<div class="node-container {selected ? 'node-container-selected' : ''} {data.selected}">
-    <div class="node-title-bar">
-        <span class="node-title-text">Start</span>
-    </div>
-    <Handle type="source" position={sourcePosition} />
-</div>
-
-<style>
-    .node-container {
-        width: var(--graph-node-width);
-        display: flex;
-        flex-direction: column;
-        background-color: var(--cds-layer-accent, #e0e0e0);
-        border: 1px solid var(--cds-ui-04, #8d8d8d);
-    }
-    .node-container-selected {
-        background-color: var(--cds-hover-selected-ui);
-        /* box-shadow: 0px 0px 10px 2px var(--cds-hover-selected-ui); */
-    }
-    .node-title-bar {
-        height: var(--graph-node-title-height);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .node-title-text {
-        padding-left: 0.6875rem;
-        padding-right: 0.6875rem;
-    }
-</style>
+<NodeBase {isVertical} {selected} title={'Start'} {sourcePosition}></NodeBase>

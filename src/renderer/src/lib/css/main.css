@@ -301,8 +301,14 @@ input[type='color']::-webkit-color-swatch {
 
     /* Edges */
     --xy-edge-label-background-color-default: transparent;
-    --xy-edge-stroke-default: var(--cds-ui-04, #f4f4f4);
     --xy-edge-label-color-default: var(--cds-text-01, #161616);
+    --xy-edge-stroke-default: var(--cds-layer-accent, #e0e0e0);
+    --xy-edge-stroke-selected-default: var(--cds-ui-04, #f4f4f4);
+    --xy-edge-stroke-width-default: 8;
+
+    /* Connection */
+    --xy-connectionline-stroke-width-default: 8;
+    --xy-connectionline-stroke-default: var(--cds-ui-04, #f4f4f4);
 }
 
 .svelte-flow__node {

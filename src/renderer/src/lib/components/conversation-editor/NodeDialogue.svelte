@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Handle, type NodeProps } from '@xyflow/svelte';
+    import { Position, type NodeProps } from '@xyflow/svelte';
     import type { NodeData } from '@lib/graph/graph-data';
     import type { Actor, Localization, Node } from '@lib/api/db/db-schema';
     import { actorsTable } from '@lib/tables/actors';
@@ -7,7 +7,7 @@
     import NodeDialogueText from './NodeDialogueText.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { get } from 'svelte/store';
-    import { onMount } from 'svelte';
+    import NodeBase from './NodeBase.svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -41,9 +41,10 @@
 
     export let data: NodeData;
 
-    let containerElement: HTMLElement;
     let rowView: IDbRowView<Node> = data.rowView;
     let localizations: IDbTableView<Localization> = data.localizations;
+    let isVertical: boolean = false;
+    $: isVertical = sourcePosition === Position.Bottom;
     $: onDataChanged(data);
     $: actor = getActorView($rowView);
     $: voiceText = getVoiceText($localizations);
@@ -64,49 +65,22 @@
     }
 </script>
 
-<div
-    class="node-container {selected ? 'node-container-selected' : ''}"
-    bind:this={containerElement}
+<NodeBase
+    {isVertical}
+    {selected}
+    title={actor ? $actor.name : 'Loading...'}
+    {targetPosition}
+    {sourcePosition}
 >
-    <div class="node-title-bar">
-        <span class="node-title-text">{actor ? $actor.name : 'Loading...'}</span>
-    </div>
-    <div class="node-body">
+    <svelte:fragment slot="body">
+        <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
         <NodeDialogueText disabled={!actor || !voiceText} localization={voiceText} />
-    </div>
-    <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
-    <Handle type="target" position={targetPosition} />
-    <Handle type="source" position={sourcePosition} />
-</div>
+    </svelte:fragment>
+</NodeBase>
 
 <style>
-    .node-container {
-        width: var(--graph-node-width);
-        display: flex;
-        flex-direction: column;
-        background-color: var(--cds-layer-accent, #e0e0e0);
-        border: 1px solid var(--cds-ui-04, #8d8d8d);
-    }
-    .node-container-selected {
-        background-color: var(--cds-hover-selected-ui);
-        /* box-shadow: 0px 0px 10px 2px var(--cds-hover-selected-ui); */
-    }
-    .node-title-bar {
-        height: var(--graph-node-title-height);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--cds-ui-04, #8d8d8d);
-    }
-    .node-title-text {
-        padding-left: 0.6875rem;
-        padding-right: 0.6875rem;
-    }
-    .node-body {
-        padding: 0.6875rem 1rem;
-    }
     .node-color {
         height: var(--graph-node-color-height);
-        border-top: 1px solid var(--cds-ui-04, #8d8d8d);
+        border-bottom: 1px solid var(--cds-ui-04, #8d8d8d);
     }
 </style>
