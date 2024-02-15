@@ -67,6 +67,7 @@
 </script>
 
 <NodeBase
+    id={rowView.id}
     {isVertical}
     {selected}
     title={actor ? $actor.name : 'Loading...'}

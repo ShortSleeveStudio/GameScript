@@ -69,7 +69,6 @@ export function getElkPath(
         return res;
     }, '');
 
-    // TODO
     const labelX = 0;
     const labelY = 0;
     const offsetX = 0;

@@ -17,7 +17,7 @@ html {
     --graph-node-title-height: calc(5 * 8px);
     --graph-node-text-height: calc(13 * 8px);
     --graph-node-color-height: calc(2 * 8px);
-    --graph-node-width: calc(38 * 8px);
+    --graph-node-width: calc(32 * 8px);
 }
 
 body {

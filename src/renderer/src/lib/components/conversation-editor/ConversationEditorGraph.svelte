@@ -79,7 +79,13 @@
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import GridToolbar from '../common/GridToolbar.svelte';
     import ElkWorker from '@lib/vendor/elkjs/elk-worker.min.js?worker';
-    import { type ELK, type ElkExtendedEdge, type ElkNode } from '@lib/vendor/elkjs/elk-api.js';
+    import {
+        type ELK,
+        type ElkExtendedEdge,
+        type ElkLabel,
+        type ElkNode,
+        type ElkPort,
+    } from '@lib/vendor/elkjs/elk-api.js';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import EdgeDefault from './EdgeDefault.svelte';
     import { conversationUpdate } from '@lib/crud/conversation-u';
@@ -373,6 +379,19 @@
         data: NodeData;
     }
 
+    function portIdFromSourceAndTarget(source: string, target: string): string {
+        return source + '.' + target;
+    }
+
+    function addToNodeToPortMap<T>(map: Map<string, T[]>, nodeId: string, port: T): void {
+        let list: T[] = map.get(nodeId);
+        if (!list) {
+            list = [];
+            map.set(nodeId, list);
+        }
+        list.push(port);
+    }
+
     async function onLayout(): Promise<void> {
         // Don't layout if we're not doing auto-layout
         if (!get(focusedRowView).layoutAuto) return;
@@ -383,16 +402,37 @@
         let flowEdges: FlowEdge[] = get(edges);
 
         // Create all elk edges and remember all connected nodes
+        const isVertical: boolean = get(focusedRowView).layoutVertical;
         const connectedNodeIds: Set<string> = new Set();
         const elkEdges: ElkExtendedEdge[] = [];
+        const nodeIdToPorts: Map<string, ElkPort[]> = new Map();
         for (let i = 0; i < flowEdges.length; i++) {
             const edge: FlowEdge = flowEdges[i];
+            // Record connected nodes
             connectedNodeIds.add(edge.source);
             connectedNodeIds.add(edge.target);
+
+            // Record ports
+            const sourcePort: string = portIdFromSourceAndTarget(edge.source, edge.target);
+            addToNodeToPortMap(nodeIdToPorts, edge.source, <ElkPort>{
+                id: sourcePort,
+                layoutOptions: {
+                    'elk.port.side': isVertical ? 'SOUTH' : 'EAST',
+                },
+            });
+            const targetPort: string = portIdFromSourceAndTarget(edge.target, edge.source);
+            addToNodeToPortMap(nodeIdToPorts, edge.target, <ElkPort>{
+                id: targetPort,
+                layoutOptions: {
+                    'elk.port.side': isVertical ? 'NORTH' : 'WEST',
+                },
+            });
+
             elkEdges.push({
                 id: edge.id,
-                sources: [edge.source],
-                targets: [edge.target],
+                sources: [sourcePort],
+                targets: [targetPort],
+                labels: <ElkLabel[]>[{ text: ' ' }],
             });
         }
 
@@ -409,10 +449,16 @@
             } else {
                 node.draggable = false;
             }
+
+            // Generate port list
             elkNodes.push({
                 id: node.id,
                 width: node.computed.width,
                 height: node.computed.height,
+                ports: nodeIdToPorts.get(node.id) ?? [],
+                layoutOptions: {
+                    'elk.portConstraints': 'FIXED_SIDE',
+                },
             });
             computedWidth = Math.max(node.computed.width, computedWidth);
             computedHeight = Math.max(node.computed.height, computedHeight);
@@ -422,14 +468,18 @@
         nodes.set(flowNodes);
 
         // Perform layout (order is preserved)
-        const isVertical: boolean = get(focusedRowView).layoutVertical;
         const graphOptions = {
             'elk.algorithm': 'layered',
             'elk.layered.spacing.nodeNodeBetweenLayers': isVertical
-                ? `${computedHeight / 2}`
-                : `${computedWidth / 2}`,
-            'elk.spacing.nodeNode': isVertical ? `${computedWidth / 2}` : `${computedHeight / 2}`,
+                ? `${computedHeight / 5}`
+                : `${computedWidth / 5}`,
+            'elk.spacing.nodeNode': isVertical ? `${computedWidth / 3}` : `${computedHeight / 3}`,
             'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
+            'elk.edgeLabels.placement:': 'CENTER',
+            // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+            'elk.spacing.edgeLabel': '0',
+            'elk.layered.spacing.edgeEdgeBetweenLayers': '40',
+            'elk.spacing.edgeEdge': '40',
         };
         const laidOut: ElkNode = await ELK_LAYOUT.layout({
             id: 'root',
@@ -972,6 +1022,7 @@
             onbeforedelete={onBeforeDelete}
             on:selectionchange={onSelectionChanged}
             on:nodedragstop={onNodeDragStop}
+            connectionRadius={50}
         >
             <Controls />
             <Background gap={snapGrid} variant={BackgroundVariant.Dots} />

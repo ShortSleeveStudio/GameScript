@@ -1,8 +1,17 @@
 <script lang="ts">
+    import type { Edge } from '@lib/api/db/db-schema';
+    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { EdgeData } from '@lib/graph/graph-data';
     import { getElkPath } from '@lib/graph/graph-path-elk';
     import type { ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
-    import { type EdgeProps, BaseEdge, getBezierPath } from '@xyflow/svelte';
+    import {
+        type EdgeProps,
+        BaseEdge,
+        getBezierPath,
+        EdgeLabelRenderer,
+        getStraightPath,
+        getSmoothStepPath,
+    } from '@xyflow/svelte';
     // import { type EdgeProps, BaseEdge, getBezierPath } from '@lib/vendor/flow/svelte/src/lib';
 
     // SUPPRESS WARNINGS
@@ -48,6 +57,11 @@
     // SUPPRESS WARNINGS
 
     export let data: EdgeData = undefined;
+    let rowView: IDbRowView<Edge>;
+    let elkEdge: ElkExtendedEdge;
+    $: rowView = data?.rowView;
+    $: elkEdge = data?.elkEdge;
+
     $: [path, labelX, labelY] = getPath(
         {
             sourceX,
@@ -94,4 +108,34 @@
     {style}
 />
 
-<!-- label={$rowView.priority !== 0 ? `${$rowView.priority}` : ''} -->
+{#if rowView && $rowView.priority !== 0}
+    {#if elkEdge && elkEdge.labels}
+        <EdgeLabelRenderer>
+            <div
+                style:transform="translate(-50%, -50%) translate({elkEdge.labels[0].x}px,{elkEdge
+                    .labels[0].y}px)"
+                class="edge-label nodrag nopan"
+            >
+                {$rowView.priority}
+            </div>
+        </EdgeLabelRenderer>
+    {:else}
+        <EdgeLabelRenderer>
+            <div
+                style:transform="translate(-50%, -50%) translate({labelX}px,{labelY}px)"
+                class="edge-label nodrag nopan"
+            >
+                {$rowView.priority}
+            </div>
+        </EdgeLabelRenderer>
+    {/if}
+{/if}
+
+<style>
+    .edge-label {
+        position: absolute;
+        background: var(--cds-layer-accent, #e0e0e0);
+        padding: 10px;
+        /* border-radius: 5px; */
+    }
+</style>

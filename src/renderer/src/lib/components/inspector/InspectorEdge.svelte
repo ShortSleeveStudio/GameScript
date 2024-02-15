@@ -18,11 +18,11 @@
     <RowColumnId {rowView} columnName={'parent'} />
 </p>
 <p>
-    <sup>Input Node ID</sup>
+    <sup>Source Node ID</sup>
     <RowColumnId {rowView} columnName={'source'} />
 </p>
 <p>
-    <sup>Output Node ID</sup>
+    <sup>Target Node ID</sup>
     <RowColumnId {rowView} columnName={'target'} />
 </p>
 <p>

@@ -4,6 +4,7 @@
     import { PortInput, PortOutput } from 'carbon-icons-svelte';
     import { PORT_CONTAINER_THICKNESS } from '@lib/graph/graph-constants';
 
+    export let id: number;
     export let selected: boolean;
     export let isVertical: boolean;
     export let title: string;
@@ -32,7 +33,7 @@
 
     <div class="node-content" style={borderCss}>
         <div class="node-title-bar {selected ? 'node-title-bar-selected' : ''}">
-            <span class="node-title-text">{title}</span>
+            <span class="node-title-text">[{id}] - {title}</span>
         </div>
         {#if $$slots.body}
             <div class="node-body">

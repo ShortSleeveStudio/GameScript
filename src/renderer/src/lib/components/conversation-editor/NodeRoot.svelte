@@ -3,6 +3,8 @@
     import { Position, type NodeProps } from '@xyflow/svelte';
     // import { Position, type NodeProps } from '@lib/vendor/flow/svelte/src/lib';
     import NodeBase from './NodeBase.svelte';
+    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import type { Node } from '@lib/api/db/db-schema';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -35,10 +37,9 @@
     // SUPPRESS WARNINGS
 
     export let data: NodeData;
-    data;
-
+    let rowView: IDbRowView<Node> = data.rowView;
     let isVertical: boolean = false;
     $: isVertical = sourcePosition === Position.Bottom;
 </script>
 
-<NodeBase {isVertical} {selected} title={'Start'} {sourcePosition}></NodeBase>
+<NodeBase id={rowView.id} {isVertical} {selected} title={'Start'} {sourcePosition}></NodeBase>
