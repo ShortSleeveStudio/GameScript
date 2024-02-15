@@ -1,8 +1,9 @@
 <script lang="ts">
-    import type { Edge } from '@lib/api/db/db-schema';
-    import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { EdgeData } from '@lib/graph/graph-data';
-    import { type EdgeProps, SmoothStepEdge } from '@xyflow/svelte';
+    import { getElkPath } from '@lib/graph/graph-path-elk';
+    import type { ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
+    import { type EdgeProps, BaseEdge, getBezierPath } from '@xyflow/svelte';
+    // import { type EdgeProps, BaseEdge, getBezierPath } from '@lib/vendor/flow/svelte/src/lib';
 
     // SUPPRESS WARNINGS
     type $$Props = EdgeProps;
@@ -12,20 +13,6 @@
     source;
     export let target: $$Props['target'];
     target;
-    // export let animated: $$Props['animated'] = false;
-    // animated;
-    // export let selected: $$Props['selected'] = false;
-    // selected;
-    // export let label: $$Props['label'] = '';
-    // label;
-    // export let interactionWidth: $$Props['interactionWidth'];
-    // interactionWidth;
-    // export let labelStyle: $$Props['labelStyle'];
-    // labelStyle;
-    // export let sourceHandleId: $$Props['sourceHandleId'];
-    // sourceHandleId;
-    // export let targetHandleId: $$Props['targetHandleId'];
-    // targetHandleId;
     export let sourceX: $$Props['sourceX'];
     sourceX;
     export let sourceY: $$Props['sourceY'];
@@ -44,19 +31,67 @@
     markerEnd;
     export let style: $$Props['style'] = undefined;
     style;
+    export let animated: $$Props['animated'] = false;
+    animated;
+    export let selected: $$Props['selected'] = false;
+    selected;
+    export let label: $$Props['label'] = undefined;
+    label;
+    export let interactionWidth: $$Props['interactionWidth'] = undefined;
+    interactionWidth;
+    export let labelStyle: $$Props['labelStyle'] = undefined;
+    labelStyle;
+    export let sourceHandleId: $$Props['sourceHandleId'] = undefined;
+    sourceHandleId;
+    export let targetHandleId: $$Props['targetHandleId'] = undefined;
+    targetHandleId;
     // SUPPRESS WARNINGS
+
     export let data: EdgeData = undefined;
-    let rowView: IDbRowView<Edge>;
-    $: rowView = data?.rowView;
+    $: [path, labelX, labelY] = getPath(
+        {
+            sourceX,
+            sourceY,
+            targetX,
+            targetY,
+            sourcePosition,
+            targetPosition,
+        },
+        data.elkEdge,
+    );
+
+    function getPath(
+        params: {
+            sourceX;
+            sourceY;
+            sourcePosition;
+            targetX;
+            targetY;
+            targetPosition;
+        },
+        elkEdge: ElkExtendedEdge,
+    ): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] {
+        if (elkEdge) {
+            return getElkPath(elkEdge);
+        } else {
+            return getBezierPath(params);
+            // return getStraightPath(params);
+            // return getSmoothStepPath(params);
+        }
+    }
 </script>
 
-<SmoothStepEdge
+<BaseEdge
     {id}
-    {sourceX}
-    {sourceY}
-    {targetX}
-    {targetY}
-    {sourcePosition}
-    {targetPosition}
-    label={$rowView.priority !== 0 ? `${$rowView.priority}` : ''}
+    {path}
+    {labelX}
+    {labelY}
+    {label}
+    {labelStyle}
+    {markerStart}
+    {markerEnd}
+    {interactionWidth}
+    {style}
 />
+
+<!-- label={$rowView.priority !== 0 ? `${$rowView.priority}` : ''} -->

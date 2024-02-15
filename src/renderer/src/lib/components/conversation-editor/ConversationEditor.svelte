@@ -4,6 +4,7 @@
     import { dbConnected } from '@lib/stores/settings/settings';
     import ConversationEditorGraph from './ConversationEditorGraph.svelte';
     import { SvelteFlowProvider } from '@xyflow/svelte';
+    // import { SvelteFlowProvider } from '@lib/vendor/flow/svelte/src/lib';
 </script>
 
 <div class="conversation-editor">

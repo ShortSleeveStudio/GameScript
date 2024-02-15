@@ -67,6 +67,10 @@
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { nodesDelete } from '@lib/crud/node-d';
     import { conversationCreate } from '@lib/crud/conversation-c';
+    import {
+        graphLayoutAutoLayoutDefault,
+        graphLayoutVerticalDefault,
+    } from '@lib/stores/graph/graph-layout';
 
     const IS_DELETED_COLUMN: string = 'isDeleted';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
@@ -127,6 +131,8 @@
             isSystemCreated: false,
             notes: '',
             isDeleted: false,
+            layoutAuto: get(graphLayoutAutoLayoutDefault),
+            layoutVertical: get(graphLayoutVerticalDefault),
         };
         await conversationCreate(conversation, isLoading);
     }

@@ -7,11 +7,13 @@ export async function nodesUpdate(
     oldNodes: Node[],
     newNodes: Node[],
     isLoading: IsLoadingStore,
+    skipUndo: boolean = false,
 ): Promise<void> {
     // Update nodes
     await isLoading.wrapPromise(db.updateRows(TABLE_ID_NODES, newNodes));
 
     // Register undo/redo
+    if (skipUndo) return;
     undoManager.register(
         new Undoable(
             'node updates',

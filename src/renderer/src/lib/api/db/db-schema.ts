@@ -230,7 +230,10 @@ export interface Filter extends Row, Annotated {}
 ///
 /// Conversations
 ///
-export interface Conversation extends Row, SystemCreatable, Annotated, Deletable {}
+export interface Conversation extends Row, SystemCreatable, Annotated, Deletable {
+    layoutAuto: boolean;
+    layoutVertical: boolean;
+}
 
 ///
 /// Locales
@@ -306,6 +309,7 @@ export interface Edge extends Row, Annotated {
     type: EdgeType;
     source: number; // FK Nodes
     target: number; // FK Nodes
+    // UNIQUE(parent, source, target)
 }
 
 // ///

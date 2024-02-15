@@ -13,10 +13,26 @@
         type DefaultEdgeOptions,
         ConnectionLineType,
         type Connection,
-        SvelteFlowProvider,
         Position,
+        useStore,
     } from '@xyflow/svelte';
-    import { onDestroy, onMount } from 'svelte';
+    // import {
+    //     SvelteFlow,
+    //     Controls,
+    //     Background,
+    //     MiniMap,
+    //     type SnapGrid,
+    //     BackgroundVariant,
+    //     type Node as FlowNode,
+    //     type Edge as FlowEdge,
+    //     type Viewport,
+    //     type DefaultEdgeOptions,
+    //     ConnectionLineType,
+    //     type Connection,
+    //     Position,
+    //     useStore,
+    // } from '@lib/vendor/flow/svelte/src/lib';
+    import { onDestroy, onMount, tick } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
     import {
         focusManager,
@@ -62,11 +78,12 @@
     import NodeRoot from './NodeRoot.svelte';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import GridToolbar from '../common/GridToolbar.svelte';
-    import { graphLayoutVertical } from '@lib/stores/graph/graph-layout';
     import ElkWorker from '@lib/vendor/elkjs/elk-worker.min.js?worker';
     import { type ELK, type ElkExtendedEdge, type ElkNode } from '@lib/vendor/elkjs/elk-api.js';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import EdgeDefault from './EdgeDefault.svelte';
+    import { conversationUpdate } from '@lib/crud/conversation-u';
+    import { updateNodeInternals } from '@lib/graph/graph-temporary';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -97,6 +114,9 @@
         },
     });
 
+    const { width, height, domNode, updateNodeDimensions } = useStore();
+    // TODO - https://github.com/xyflow/xyflow/issues/3910
+    // const updateNodeInternals: (id: string | string[]) => void = useUpdateNodeInternals();
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
     const nodes: Writable<FlowNode[]> = writable([]);
     const edges: Writable<FlowEdge[]> = writable([]);
@@ -107,13 +127,15 @@
     const edgeTypes = {};
     edgeTypes[EDGE_TYPE_DEFAULT] = EdgeDefault;
 
+    let currentLayoutAuto: boolean = false;
+    let currentLayoutVertical: boolean = false;
     let unsubscriberFocus: ActionUnsubscriber;
-    let unsubscriberLayoutVertical: Unsubscriber;
     let tableWatcherNode: TableWatcher<Node>;
     let tableWatcherEdge: TableWatcher<Edge>;
     let unsubscriberLocalizationView: Unsubscriber;
     let nodeUnsubscriber: Unsubscriber;
     let edgeUnsubscriber: Unsubscriber;
+    let conversationUnsubscriber: Unsubscriber;
     let nodeViews: IDbTableView<Node>;
     let edgeViews: IDbTableView<Edge>;
     let localizationViews: IDbTableView<Localization>;
@@ -163,8 +185,57 @@
         return isVertical ? Position.Top : Position.Left;
     }
 
+    async function setAutoLayout(isAuto: boolean): Promise<void> {
+        const conversation: Conversation = get(focusedRowView);
+        if (conversation.layoutAuto === isAuto) return;
+
+        // Update conversation
+        const oldConversation: Conversation = <Conversation>{
+            id: conversation.id,
+            layoutAuto: conversation.layoutAuto,
+        };
+        const newConversation: Conversation = <Conversation>{
+            id: conversation.id,
+            layoutAuto: isAuto,
+        };
+        await conversationUpdate(newConversation, oldConversation, isLoading);
+    }
+
+    async function setVerticalLayout(isVertical: boolean): Promise<void> {
+        const conversation: Conversation = get(focusedRowView);
+        if (conversation.layoutVertical === isVertical) return;
+
+        // Update conversation
+        const oldConversation: Conversation = <Conversation>{
+            id: conversation.id,
+            layoutVertical: conversation.layoutVertical,
+        };
+        const newConversation: Conversation = <Conversation>{
+            id: conversation.id,
+            layoutVertical: isVertical,
+        };
+        await conversationUpdate(newConversation, oldConversation, isLoading);
+
+        // Update layout
+        onLayout();
+    }
+
+    function isValidConnection(edge: FlowEdge | Connection): boolean {
+        // Ensure no self-connection
+        if (edge.source === edge.target) return false;
+
+        // Ensure no duplicate edges
+        const flowEdges: FlowEdge[] = get(edges);
+        for (let i = 0; i < flowEdges.length; i++) {
+            const flowEdge: FlowEdge = flowEdges[i];
+            if (flowEdge.source === edge.source && flowEdge.target === edge.target) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function onEdgeCreate(connection: Connection): FlowEdge {
-        // Sanity
         const [source, target] = parseConnection(connection);
 
         // Create edge
@@ -225,13 +296,20 @@
             ) {
                 continue;
             }
+            // Skip nodes that are not draggable
+            if (!flowNode.draggable) {
+                // TODO - https://github.com/xyflow/xyflow/issues/3911
+                continue;
+            }
             oldNodes.push(<Node>{ ...originalNode });
             const newNode = <Node>{ ...originalNode };
             newNode.positionX = flowNode.position.x;
             newNode.positionY = flowNode.position.y;
             newNodes.push(newNode);
         }
-        nodesUpdate(oldNodes, newNodes, isLoading).catch((error) => {
+        // If there were no updates, exit
+        if (newNodes.length === 0) return;
+        nodesUpdate(oldNodes, newNodes, isLoading, true).catch((error) => {
             changeFocus(undefined);
             throw error;
         });
@@ -260,26 +338,11 @@
         });
     }
 
-    function onLayoutVerticalChanged(): void {
-        nodes.update((nodeList: FlowNode[]) => {
-            const isVertical: boolean = $graphLayoutVertical;
-            for (let i = 0; i < nodeList.length; i++) {
-                const node: FlowNode = nodeList[i];
-                node.sourcePosition = getSourcePosition(isVertical);
-                node.targetPosition = getTargetPosition(isVertical);
-            }
-            return nodeList;
-        });
-    }
-
-    // TODO - https://github.com/xyflow/xyflow/issues/3900
-    let domNode: HTMLDivElement;
-    // TODO - https://github.com/xyflow/xyflow/issues/3900
     function onCreateNode(): void {
         const view: Viewport = get(viewport);
         const zoomMultiplier: number = 1 / view.zoom;
-        const centerX = -view.x * zoomMultiplier + (domNode.clientWidth * zoomMultiplier) / 2;
-        const centerY = -view.y * zoomMultiplier + (domNode.clientHeight * zoomMultiplier) / 2;
+        const centerX = -view.x * zoomMultiplier + (get(width) * zoomMultiplier) / 2;
+        const centerY = -view.y * zoomMultiplier + (get(height) * zoomMultiplier) / 2;
         const newNode: Node = <Node>{
             type: NODE_TYPE_DIALOGUE,
             parent: focusedRowView.id,
@@ -311,14 +374,41 @@
     }
 
     async function onLayout(): Promise<void> {
-        let flowNodes: FlowNode[] = $nodes;
+        // Don't layout if we're not doing auto-layout
+        if (!get(focusedRowView).layoutAuto) return;
+
+        // Grab current nodes and edges, return if there are none
+        let flowNodes: FlowNode[] = get(nodes);
         if (flowNodes.length === 0) return;
-        const flowEdges: FlowEdge[] = $edges;
+        let flowEdges: FlowEdge[] = get(edges);
+
+        // Create all elk edges and remember all connected nodes
+        const connectedNodeIds: Set<string> = new Set();
+        const elkEdges: ElkExtendedEdge[] = [];
+        for (let i = 0; i < flowEdges.length; i++) {
+            const edge: FlowEdge = flowEdges[i];
+            connectedNodeIds.add(edge.source);
+            connectedNodeIds.add(edge.target);
+            elkEdges.push({
+                id: edge.id,
+                sources: [edge.source],
+                targets: [edge.target],
+            });
+        }
+
+        // Create elk edges to be laid out
         const elkNodes: ElkNode[] = [];
-        let computedWidth: number;
-        let computedHeight: number;
+        let computedWidth: number = 100;
+        let computedHeight: number = 100;
         for (let i = 0; i < flowNodes.length; i++) {
             const node: FlowNode = flowNodes[i];
+            // Disconnected nodes don't get layout, and remain draggable
+            if (!connectedNodeIds.has(node.id)) {
+                node.draggable = true;
+                continue;
+            } else {
+                node.draggable = false;
+            }
             elkNodes.push({
                 id: node.id,
                 width: node.computed.width,
@@ -327,16 +417,12 @@
             computedWidth = Math.max(node.computed.width, computedWidth);
             computedHeight = Math.max(node.computed.height, computedHeight);
         }
-        const elkEdges: ElkExtendedEdge[] = [];
-        for (let i = 0; i < flowEdges.length; i++) {
-            const edge: FlowEdge = flowEdges[i];
-            elkEdges.push({
-                id: edge.id,
-                sources: [edge.source],
-                targets: [edge.target],
-            });
-        }
-        const isVertical: boolean = $graphLayoutVertical;
+
+        // Update draggability
+        nodes.set(flowNodes);
+
+        // Perform layout (order is preserved)
+        const isVertical: boolean = get(focusedRowView).layoutVertical;
         const graphOptions = {
             'elk.algorithm': 'layered',
             'elk.layered.spacing.nodeNodeBetweenLayers': isVertical
@@ -345,23 +431,37 @@
             'elk.spacing.nodeNode': isVertical ? `${computedWidth / 2}` : `${computedHeight / 2}`,
             'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
         };
-        // Order is preserved
         const laidOut: ElkNode = await ELK_LAYOUT.layout({
             id: 'root',
             layoutOptions: graphOptions,
             children: elkNodes,
             edges: elkEdges,
         });
+        if (!get(focusedRowView).layoutAuto) return;
 
         // Time has passed, grab a fresh copy of the nodes
-        flowNodes = $nodes;
+        flowNodes = get(nodes);
+        flowEdges = get(edges);
+
+        // If the graph has changed, discard layout results
+        if (flowEdges.length !== laidOut.edges.length) {
+            onLayout();
+            return;
+        }
+
+        // Store positions for undo/redo
         const newPositions = [];
         const oldPositions = [];
-        if (elkNodes.length !== laidOut.children.length) return;
         for (let i = 0; i < laidOut.children.length; i++) {
             const elkNode: CustomElkNode = <CustomElkNode>laidOut.children[i];
             const flowNode: FlowNode = flowNodes[i];
-            if (elkNode.id !== flowNode.id) return; // Nodes have gone out of sync during the layout
+            // Nodes have gone out of sync during the layout
+            if (elkNode.id !== flowNode.id) {
+                onLayout();
+                return;
+            }
+            // Skip nodes that are already in the same position
+            if (elkNode.x === flowNode.position.x && elkNode.y === flowNode.position.y) continue;
             newPositions.push(<Node>{
                 id: flowNode.data.rowView.id,
                 positionX: elkNode.x,
@@ -375,24 +475,38 @@
         }
 
         // Update layout
-        await db.updateRows(TABLE_ID_NODES, newPositions);
+        if (newPositions.length !== 0) {
+            await nodesUpdate(oldPositions, newPositions, isLoading, true);
+            if (!get(focusedRowView).layoutAuto) return;
+        }
 
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'actor deletion',
-                isLoading.wrapFunction(async () => {
-                    await db.updateRows(TABLE_ID_NODES, oldPositions);
-                }),
-                isLoading.wrapFunction(async () => {
-                    await db.updateRows(TABLE_ID_NODES, newPositions);
-                }),
-            ),
-        );
+        // Time has passed, grab a fresh copy of the nodes
+        flowNodes = get(nodes);
+        flowEdges = get(edges);
+
+        // If the graph has changed, discard layout results
+        if (flowEdges.length !== laidOut.edges.length) {
+            onLayout();
+            return;
+        }
+
+        // Draw the edges
+        for (let i = 0; i < laidOut.edges.length; i++) {
+            const flowEdge: FlowEdge = flowEdges[i];
+            const elkEdge: ElkExtendedEdge = laidOut.edges[i];
+            // Edges have gone out of sync during the layout
+            if (elkEdge.id !== flowEdge.id) {
+                onLayout();
+                return;
+            }
+            // The object must be replaced to trigger a refresh
+            (<EdgeData>flowEdge.data) = { ...(<EdgeData>flowEdge.data), elkEdge: elkEdge };
+        }
+        edges.set(flowEdges);
     }
 
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
-        const isVertical: boolean = $graphLayoutVertical;
+        const isVertical: boolean = get(focusedRowView).layoutVertical;
         const remoteNode: Node = get(remote);
         const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT;
         return <FlowNode>{
@@ -407,8 +521,8 @@
             selected: false,
             deletable: isNotRoot,
             selectable: isNotRoot,
-            targetPosition: isVertical ? Position.Top : Position.Left,
-            sourcePosition: isVertical ? Position.Bottom : Position.Right,
+            targetPosition: getTargetPosition(isVertical),
+            sourcePosition: getSourcePosition(isVertical),
         };
     }
 
@@ -489,7 +603,7 @@
         return [source, target];
     }
 
-    function runReconciliation(isForNodes: boolean): void {
+    async function runReconciliation(isForNodes: boolean): Promise<void> {
         let graphFunctions: GraphFunctions;
         let localWritable: Writable<LocalObject[]>;
         let remoteWritable: IDbTableView<RemoteObject>;
@@ -508,6 +622,7 @@
         const newObjects: LocalObject[] = [];
         let l: number = 0;
         let r: number = 0;
+        let wasCreationOrDeletion: boolean = false;
         for (; l < localObjects.length || r < remoteObjects.length; ) {
             const localObject: LocalObject = l < localObjects.length ? localObjects[l] : undefined;
             const remoteObject: IDbRowView<RemoteObject> =
@@ -527,17 +642,24 @@
                 // Simply don't add to list
                 console.log(`Delete local ${isForNodes ? 'node' : 'edge'}`);
                 l++;
+                wasCreationOrDeletion = true;
             } else {
                 // remoteNode.id < localId
                 // Create Local
                 console.log(`Create local ${isForNodes ? 'node' : 'edge'}`);
                 newObjects.push(graphFunctions.creatorLocal(remoteObject));
                 r++;
+                wasCreationOrDeletion = true;
             }
         }
 
         // Update the local store
         graphFunctions.localObjectStore.set(newObjects);
+
+        // Update layout if edges were created or deleted
+        if (wasCreationOrDeletion && !isForNodes && isConversationInitialized) {
+            onLayout();
+        }
     }
 
     function onNodeViewsChanged(): void {
@@ -604,21 +726,75 @@
     }
     // TODO - remove once they implement onselectionchanged
 
+    async function onConversationChanged(conversation: Conversation): Promise<void> {
+        // Handle vertical layout changes
+        if (conversation.layoutVertical !== currentLayoutVertical) {
+            const nodeIds: string[] = [];
+            nodes.update((nodeList: FlowNode[]) => {
+                for (let i = 0; i < nodeList.length; i++) {
+                    const node: FlowNode = nodeList[i];
+                    node.sourcePosition = getSourcePosition(conversation.layoutVertical);
+                    node.targetPosition = getTargetPosition(conversation.layoutVertical);
+                    nodeIds.push(node.id);
+                }
+                return nodeList;
+            });
+            await updateNodeInternals(nodeIds, get(domNode), updateNodeDimensions);
+        }
+
+        // Handle auto-layout changes
+        if (conversation.layoutAuto !== currentLayoutAuto) {
+            if (conversation.layoutAuto) {
+                // Perform layout
+                onLayout();
+            } else {
+                // Destroy all the generated edges
+                const flowEdges: FlowEdge[] = get(edges);
+                for (let i = 0; i < flowEdges.length; i++) {
+                    const flowEdge: FlowEdge = flowEdges[i];
+                    (<EdgeData>flowEdge.data).elkEdge = undefined;
+                    // Have to replace the object to trigger update
+                    (<EdgeData>flowEdge.data) = { ...(<EdgeData>flowEdge.data) };
+                }
+                edges.set(flowEdges);
+
+                // Enable movement
+                const flowNodes: FlowNode[] = get(nodes);
+                for (let i = 0; i < flowNodes.length; i++) {
+                    flowNodes[i].draggable = true;
+                }
+                nodes.set(flowNodes);
+            }
+        }
+    }
+
     function updateIsConversationInitialized(): void {
         if (!isConversationInitialized) {
-            isConversationInitialized =
+            if (
                 nodeViews &&
                 edgeViews &&
                 localizationViews &&
                 nodeViews.isInitialized &&
                 edgeViews.isInitialized &&
-                localizationViews.isInitialized;
-            if (isConversationInitialized) {
+                localizationViews.isInitialized
+            ) {
                 // We need to play catch up
                 runReconciliation(true);
                 runReconciliation(false);
+                isConversationInitialized = true;
+                subscribeToConversationAfterTick();
             }
         }
+    }
+
+    async function subscribeToConversationAfterTick(): Promise<void> {
+        await tick();
+
+        // Subscribe to conversation
+        const focusedConversation: Conversation = get(focusedRowView);
+        currentLayoutAuto = !focusedConversation.layoutAuto; // To trigger a change
+        currentLayoutVertical = !focusedConversation.layoutVertical; // To trigger a change
+        conversationUnsubscriber = focusedRowView.subscribe(onConversationChanged);
     }
 
     function onFocusChanged(): void {
@@ -638,11 +814,11 @@
         // Save viewport
         saveViewport();
 
-        // Set new focus
-        focusedRowView = newFocus;
-
         // Clear Graph
         clearGraph();
+
+        // Set new focus
+        focusedRowView = newFocus;
 
         // Nothing new to focus
         if (focusedRowView === undefined) return;
@@ -679,11 +855,15 @@
             TABLE_ID_LOCALIZATIONS,
             createFilter().where().column('parent').eq(focusedRowView.id).endWhere().build(),
         );
+
+        // Subscribe to table view changes
         tableWatcherNode = new TableWatcher(nodeViews);
         tableWatcherNode.subscribe(onNodeViewsChanged);
         tableWatcherEdge = new TableWatcher(edgeViews);
         tableWatcherEdge.subscribe(onEdgeViewsChanged);
         unsubscriberLocalizationView = localizationViews.subscribe(onLocalizationsChanged);
+
+        // Subscribe to nodes, edges, and localization changes
         nodeUnsubscriber = nodes.subscribe(onNodesChanged);
         edgeUnsubscriber = edges.subscribe(onEdgesChanged);
     }
@@ -695,8 +875,11 @@
         nodesSelected.length = 0;
         edgesSelected.length = 0;
         // TODO
+        currentLayoutAuto = false;
+        currentLayoutVertical = false;
         if (nodeUnsubscriber) nodeUnsubscriber();
         if (edgeUnsubscriber) edgeUnsubscriber();
+        if (conversationUnsubscriber) conversationUnsubscriber();
         if (tableWatcherNode) tableWatcherNode.dispose();
         if (tableWatcherEdge) tableWatcherEdge.dispose();
         if (unsubscriberLocalizationView) unsubscriberLocalizationView();
@@ -719,16 +902,10 @@
     };
 
     onMount(() => {
-        // TODO - REMOVE ONCE THEY FIX domNode or height/width stores in useStore()
-        domNode = <HTMLDivElement>document.getElementsByClassName('svelte-flow')[0];
-        // TODO - REMOVE ONCE THEY FIX domNode or height/width stores in useStore()
-
-        unsubscriberLayoutVertical = graphLayoutVertical.subscribe(onLayoutVerticalChanged);
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
     });
     onDestroy(() => {
-        if (unsubscriberLayoutVertical) unsubscriberLayoutVertical();
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         clearGraph();
@@ -743,11 +920,18 @@
             on:cancel={onCancelSelection}
         >
             <svelte:fragment slot="overflow">
-                <OverflowMenuItem text="Perform Layout" on:click={onLayout} />
                 <OverflowMenuItem
-                    text="Set {$graphLayoutVertical ? 'Horizontal' : 'Vertical'}"
+                    text="{!focusedRowView || $focusedRowView.layoutAuto
+                        ? 'Disable'
+                        : 'Enable'} Layout"
+                    on:click={() => setAutoLayout(!$focusedRowView.layoutAuto)}
+                />
+                <OverflowMenuItem
+                    text="Layout {!focusedRowView || $focusedRowView.layoutVertical
+                        ? 'Horizontal'
+                        : 'Vertical'}"
                     on:click={() => {
-                        $graphLayoutVertical = !$graphLayoutVertical;
+                        setVerticalLayout(!$focusedRowView.layoutVertical);
                     }}
                 />
                 <OverflowMenuItem
@@ -766,35 +950,32 @@
                     icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
                 >
             </span>
-            <!-- <span slot="delete">
-                <Button icon={TrashCan} disabled={$isLoading} on:click={onDeleteNode}>Delete</Button
-                >
-            </span> -->
         </GridToolbar>
     </svelte:fragment>
     <svelte:fragment slot="widget">
-        <SvelteFlowProvider>
-            <SvelteFlow
-                id="conversation-editor"
-                {viewport}
-                {nodes}
-                {edges}
-                {snapGrid}
-                {nodeTypes}
-                {edgeTypes}
-                defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
-                connectionLineType={ConnectionLineType.SmoothStep}
-                minZoom={MIN_ZOOM}
-                proOptions={{ hideAttribution: true }}
-                onedgecreate={onEdgeCreate}
-                onbeforedelete={onBeforeDelete}
-                on:selectionchange={onSelectionChanged}
-                on:nodedragstop={onNodeDragStop}
-            >
-                <Controls />
-                <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
-                <MiniMap />
-            </SvelteFlow>
-        </SvelteFlowProvider>
+        <SvelteFlow
+            id="conversation-editor"
+            {viewport}
+            {nodes}
+            {edges}
+            {snapGrid}
+            {nodeTypes}
+            {edgeTypes}
+            {isValidConnection}
+            defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
+            connectionLineType={!focusedRowView || $focusedRowView.layoutAuto
+                ? ConnectionLineType.SmoothStep
+                : ConnectionLineType.Bezier}
+            minZoom={MIN_ZOOM}
+            proOptions={{ hideAttribution: true }}
+            onedgecreate={onEdgeCreate}
+            onbeforedelete={onBeforeDelete}
+            on:selectionchange={onSelectionChanged}
+            on:nodedragstop={onNodeDragStop}
+        >
+            <Controls />
+            <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
+            <MiniMap />
+        </SvelteFlow>
     </svelte:fragment>
 </WidgetContainer>

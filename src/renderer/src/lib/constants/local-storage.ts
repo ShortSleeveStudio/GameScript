@@ -16,7 +16,8 @@ export const LS_KEY_FINDER_LAYOUT = 'finder-layout';
 export const LS_KEY_LOCALIZATION = 'localization-layout';
 
 // Conversation Editor
-export const LS_KEY_CONVERSATION_EDITOR_LAYOUT_VERTICAL = 'graph-layout-vertical';
+export const LS_KEY_CONVERSATION_EDITOR_LAYOUT_VERTICAL_DEFAULT = 'graph-layout-vertical-default';
+export const LS_KEY_CONVERSATION_EDITOR_LAYOUT_AUTO_DEFAULT = 'graph-layout-auto-default';
 export const LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX = 'graph-layout-';
 export function conversationIdToViewportKey(conversationId: number): string {
     return LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX + conversationId;

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
+    // import { Handle, Position } from '@lib/vendor/flow/svelte/src/lib';
     import { PortInput, PortOutput } from 'carbon-icons-svelte';
     import { PORT_CONTAINER_THICKNESS } from '@lib/graph/graph-constants';
 
@@ -8,6 +9,10 @@
     export let title: string;
     export let targetPosition: Position | undefined = undefined;
     export let sourcePosition: Position | undefined = undefined;
+
+    $: borderCss = isVertical
+        ? 'border-top: none; border-bottom: none;'
+        : 'border-left: none; border-right: none;';
 </script>
 
 <div class="node-container" style:flex-direction={isVertical ? 'column' : 'row'}>
@@ -25,7 +30,7 @@
         </div>
     {/if}
 
-    <div class="node-content">
+    <div class="node-content" style={borderCss}>
         <div class="node-title-bar {selected ? 'node-title-bar-selected' : ''}">
             <span class="node-title-text">{title}</span>
         </div>
@@ -62,8 +67,8 @@
         align-content: center;
     }
     .node-content {
-        border: 1px solid var(--cds-ui-04, #8d8d8d);
         width: var(--graph-node-width);
+        border: 1px solid var(--cds-ui-04, #8d8d8d);
     }
     .node-port-icon-container {
         width: 100%;
@@ -73,6 +78,7 @@
         justify-content: center;
         user-select: none;
         pointer-events: none;
+        border: 1px solid var(--cds-ui-04, #8d8d8d);
     }
     .node-title-bar {
         background-color: var(--cds-layer-accent, #e0e0e0);
