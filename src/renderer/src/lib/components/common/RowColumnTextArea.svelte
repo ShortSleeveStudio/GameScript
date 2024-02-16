@@ -5,8 +5,8 @@
     import { get } from 'svelte/store';
     import { wasEnterPressed, wasSavePressed } from '@lib/utility/keybinding';
     import { type Row } from '@lib/api/db/db-schema';
-    import { TextArea } from 'carbon-components-svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import TextAreaCustom from '../carbon/TextAreaCustom.svelte';
 
     export let rowView: IDbRowView<Row>;
     export let undoText: string;
@@ -16,6 +16,7 @@
     export let disabled: boolean = false;
     export let stopDefault: boolean = false;
     export let disableBorder: boolean = false;
+    export let labelText: string = '';
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string;
@@ -66,12 +67,13 @@
     function onClick(e: Event): void {
         if (!stopDefault) return;
         e.preventDefault();
-        e.stopImmediatePropagation();
+        // e.stopImmediatePropagation();
     }
 </script>
 
-<TextArea
+<TextAreaCustom
     {...$$restProps}
+    {labelText}
     style="{disableBorder ? 'border: none;' : ''} resize: {resizable ? 'vertical' : 'none'};"
     disabled={$isLoading || !rowView || disabled}
     {placeholder}
@@ -79,4 +81,5 @@
     on:blur={syncOnBlur}
     on:keydown={onKeyDown}
     on:click={onClick}
+    showCount={true}
 />

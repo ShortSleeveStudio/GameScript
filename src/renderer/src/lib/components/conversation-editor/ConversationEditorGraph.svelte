@@ -1020,9 +1020,6 @@
             duration: 1000,
             nodes: [flowNode],
         });
-
-        // flowNode.selected = true;
-        // nodes.update((nodes) => nodes);
     };
 
     onMount(() => {

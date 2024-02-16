@@ -79,9 +79,10 @@
 {/if}
 {#if locales}
     <p>
-        <sup><RowColumnText rowView={primaryLocale} columnName={'name'} /></sup>
+        <!-- <sup><RowColumnText rowView={primaryLocale} columnName={'name'} /></sup> -->
         <RowColumnTextArea
             {rowView}
+            labelText={primaryLocale ? $primaryLocale.name : ''}
             columnName={localeIdToColumn($primaryLocale.id)}
             undoText={LOCALIZATION_UNDO_TEXT}
             placeholder={LOCALIZATION_PLACEHOLDER_TEXT}
