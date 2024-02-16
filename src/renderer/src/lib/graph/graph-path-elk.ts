@@ -15,12 +15,14 @@ export interface GetSmoothStepPathParams {
     offset?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const distance = (a: XYPosition, b: XYPosition) =>
+const distance = (a: XYPosition, b: XYPosition): number =>
     Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 
 function getBend(a: XYPosition, b: XYPosition, c: XYPosition, size: number): string {
-    const bendSize = Math.min(distance(a, b) / 2, distance(b, c) / 2, size);
+    const aToB: number = distance(a, b) / 2;
+    const bToC: number = distance(b, c) / 2;
+    if (aToB === size || bToC === size) size = 0;
+    const bendSize = Math.min(aToB, bToC, size);
     const { x, y } = b;
 
     // no bend
@@ -61,7 +63,8 @@ export function getElkPath(
     const path = points.reduce<string>((res, p, i) => {
         let segment = '';
         if (i > 0 && i < points.length - 1) {
-            segment = getBend(points[i - 1], p, points[i + 1], borderRadius);
+            // segment = getBend(points[i - 1], p, points[i + 1], borderRadius);
+            segment = `L${p.x} ${p.y}`;
         } else {
             segment = `${i === 0 ? 'M' : 'L'}${p.x} ${p.y}`;
         }
