@@ -4,6 +4,7 @@
         type Node,
         type Routine,
         NODE_TYPE_DIALOGUE,
+        NODE_TYPE_LINK,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -15,10 +16,11 @@
     import { get } from 'svelte/store';
     import { db } from '@lib/api/db/db';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
-    import { Tooltip } from 'carbon-components-svelte';
+    import { Button, Tooltip } from 'carbon-components-svelte';
     import RowColumnActor from '../common/RowColumnActor.svelte';
     import RowColumnBoolean from '../common/RowColumnBoolean.svelte';
     import { NODE_UNDO_PREVENT_RESPONSE } from '@lib/constants/settings';
+    import { EVENT_GRAPH_SELECT_NODE, type GraphSelectNodeRequest } from '@lib/constants/events';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -40,6 +42,14 @@
         }
     }
 
+    function onSelectLinkedNode(): void {
+        dispatchEvent(
+            new CustomEvent(EVENT_GRAPH_SELECT_NODE, {
+                detail: <GraphSelectNodeRequest>{ id: $rowView.link },
+            }),
+        );
+    }
+
     onMount(() => {
         const routineIds: number[] = [get(rowView).code, get(rowView).condition];
         routineTable = db.fetchTable<Routine>(
@@ -47,12 +57,19 @@
             createFilter().where().column('id').in(routineIds).endWhere().build(),
         );
     });
+
     onDestroy(() => {
         if (routineTable) db.releaseTable(routineTable);
     });
 </script>
 
-<h2>Node</h2>
+<h2>
+    {$rowView.type === NODE_TYPE_DIALOGUE
+        ? 'Dialogue'
+        : $rowView.type === NODE_TYPE_LINK
+          ? 'Link'
+          : 'Root'} Node
+</h2>
 <p>
     <sup>ID</sup>
     <RowColumnId {rowView} />
@@ -60,6 +77,10 @@
 <p>
     <sup>Conversation ID</sup>
     <RowColumnId {rowView} columnName={'parent'} />
+</p>
+<p>
+    <sup>Type</sup>
+    <RowColumnId {rowView} columnName={'type'} />
 </p>
 {#if $rowView.type === NODE_TYPE_DIALOGUE}
     <p>
@@ -134,5 +155,28 @@
             columnName={'preventResponse'}
             undoText={NODE_UNDO_PREVENT_RESPONSE}
         />
+    </p>
+{:else if $rowView.type === NODE_TYPE_LINK}
+    <p>
+        <Tooltip triggerText="Link" align="start" direction="bottom">
+            <p>
+                This is the ID of the node this link node connects to. You can set this value by
+                dragging a connection from this node to the node you want to link it to.
+            </p>
+            <br />
+            <p>
+                It's important to note that link nodes are purely an organizational construct.
+                {window.api.constants.APP_NAME} will replace all link nodes with normal edges during
+                the build process. Therefore, if you use link nodes to connect a single dialogue node
+                to another dialogue node multiple times, only one edge will be created.
+            </p>
+        </Tooltip>
+        <RowColumnId {rowView} columnName={'link'} />
+    </p>
+
+    <p>
+        <sup>Linked Node</sup>
+        <br />
+        <Button size="small" on:click={onSelectLinkedNode}>Select Linked Node</Button>
     </p>
 {/if}

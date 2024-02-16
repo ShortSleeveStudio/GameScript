@@ -114,7 +114,7 @@
             <div
                 style:transform="translate(-50%, -50%) translate({elkEdge.labels[0].x}px,{elkEdge
                     .labels[0].y}px)"
-                class="edge-label nodrag nopan"
+                class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
             >
                 {$rowView.priority}
             </div>
@@ -123,7 +123,7 @@
         <EdgeLabelRenderer>
             <div
                 style:transform="translate(-50%, -50%) translate({labelX}px,{labelY}px)"
-                class="edge-label nodrag nopan"
+                class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
             >
                 {$rowView.priority}
             </div>
@@ -137,5 +137,8 @@
         background: var(--cds-layer-accent, #e0e0e0);
         padding: 10px;
         /* border-radius: 5px; */
+    }
+    .edge-label-selected {
+        background-color: var(--xy-edge-stroke-selected-default);
     }
 </style>

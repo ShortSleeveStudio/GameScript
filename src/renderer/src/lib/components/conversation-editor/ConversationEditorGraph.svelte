@@ -15,6 +15,7 @@
         type Connection,
         Position,
         useStore,
+        type FitViewOptions,
     } from '@xyflow/svelte';
     // import {
     //     SvelteFlow,
@@ -32,7 +33,7 @@
     //     Position,
     //     useStore,
     // } from '@lib/vendor/flow/svelte/src/lib';
-    import { onDestroy, onMount, tick } from 'svelte';
+    import { onDestroy, onMount, setContext, tick } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
     import {
         focusManager,
@@ -55,6 +56,8 @@
         NODE_TYPE_ROOT,
         type EdgeType,
         EDGE_TYPE_DEFAULT,
+        type NodeType,
+        NODE_TYPE_LINK,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -66,7 +69,11 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import NodeDialogue from './NodeDialogue.svelte';
     import { Button, InlineLoading, OverflowMenuItem } from 'carbon-components-svelte';
-    import { EVENT_SHUTDOWN } from '@lib/constants/events';
+    import {
+        EVENT_GRAPH_SELECT_NODE,
+        EVENT_SHUTDOWN,
+        type GraphSelectNodeRequest,
+    } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
     import { ASC } from '@lib/api/db/db-filter-interface';
@@ -86,10 +93,12 @@
         type ElkNode,
         type ElkPort,
     } from '@lib/vendor/elkjs/elk-api.js';
-    import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import EdgeDefault from './EdgeDefault.svelte';
     import { conversationUpdate } from '@lib/crud/conversation-u';
     import { updateNodeInternals } from '@lib/graph/graph-temporary';
+    import NodeLink from './NodeLink.svelte';
+    import { GRAPH_CONTEXT } from '@lib/graph/graph-constants';
+    import type { GraphContext } from '@lib/graph/graph-context';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -120,7 +129,7 @@
         },
     });
 
-    const { width, height, domNode, updateNodeDimensions } = useStore();
+    const { width, height, domNode, updateNodeDimensions, nodeLookup, fitView } = useStore();
     // TODO - https://github.com/xyflow/xyflow/issues/3910
     // const updateNodeInternals: (id: string | string[]) => void = useUpdateNodeInternals();
     const viewport: Writable<Viewport> = writable(<Viewport>{ ...DEFAULT_VIEWPORT });
@@ -130,6 +139,7 @@
     const nodeTypes = {};
     nodeTypes[NODE_TYPE_ROOT] = NodeRoot;
     nodeTypes[NODE_TYPE_DIALOGUE] = NodeDialogue;
+    nodeTypes[NODE_TYPE_LINK] = NodeLink;
     const edgeTypes = {};
     edgeTypes[EDGE_TYPE_DEFAULT] = EdgeDefault;
 
@@ -230,6 +240,17 @@
         // Ensure no self-connection
         if (edge.source === edge.target) return false;
 
+        // Ensure link node don't connect to link nodes
+        const sourceNode: FlowNode = get(nodeLookup)?.get(edge.source);
+        const targetNode: FlowNode = get(nodeLookup)?.get(edge.target);
+        if (
+            !targetNode ||
+            !sourceNode ||
+            (sourceNode.type === NODE_TYPE_LINK && targetNode.type === NODE_TYPE_LINK)
+        ) {
+            return false;
+        }
+
         // Ensure no duplicate edges
         const flowEdges: FlowEdge[] = get(edges);
         for (let i = 0; i < flowEdges.length; i++) {
@@ -243,6 +264,20 @@
 
     function onEdgeCreate(connection: Connection): FlowEdge {
         const [source, target] = parseConnection(connection);
+
+        // If source is a link node, update the node and don't create an edge
+        const sourceFlowNode: FlowNode = get(nodeLookup)?.get(connection.source);
+        if (!sourceFlowNode) throw new Error('Could not find source node to create connection.');
+        if (sourceFlowNode.type === NODE_TYPE_LINK) {
+            const sourceNode: Node = get((<NodeData>sourceFlowNode.data).rowView);
+            const newNode: Node = <Node>{ id: sourceNode.id, link: target };
+            const oldNode: Node = <Node>{ id: sourceNode.id, link: sourceNode.link };
+            nodesUpdate([oldNode], [newNode], isLoading).catch((error) => {
+                changeFocus(undefined);
+                throw error;
+            });
+            return undefined;
+        }
 
         // Create edge
         edgeCreate(
@@ -263,6 +298,17 @@
         return undefined;
     }
 
+    function onDeleteSelection(): void {
+        onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
+    }
+
+    async function onDelete(nodes: Node[], edges: Edge[]): Promise<void> {
+        nodesDelete(nodes, edges, isLoading).catch((error) => {
+            changeFocus(undefined);
+            throw error;
+        });
+    }
+
     function onBeforeDelete(params: { nodes: FlowNode[]; edges: FlowEdge[] }): boolean {
         // Grab nodes and edges to delete, this must happen before deselect since we're reusing the
         // same lists passed in
@@ -274,13 +320,10 @@
         );
 
         // Delete
-        nodesDelete(nodes, edges, isLoading).catch((error) => {
-            changeFocus(undefined);
-            throw error;
-        });
+        onDelete(nodes, edges);
 
         // Deselect
-        onCancelSelection();
+        onSelectExclusive();
 
         // Wait for an update from the backend to really delete anything
         return false;
@@ -344,13 +387,13 @@
         });
     }
 
-    function onCreateNode(): void {
+    function onCreateNode(type: NodeType): void {
         const view: Viewport = get(viewport);
         const zoomMultiplier: number = 1 / view.zoom;
         const centerX = -view.x * zoomMultiplier + (get(width) * zoomMultiplier) / 2;
         const centerY = -view.y * zoomMultiplier + (get(height) * zoomMultiplier) / 2;
         const newNode: Node = <Node>{
-            type: NODE_TYPE_DIALOGUE,
+            type: type,
             parent: focusedRowView.id,
             isSystemCreated: false,
             positionX: centerX,
@@ -359,18 +402,19 @@
         nodeCreate(newNode, isLoading);
     }
 
-    function onDelete(): void {
-        onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
-    }
-
-    function onCancelSelection(): void {
-        // TODO - is this really it?
+    function onSelectExclusive(nodeSet?: Set<FlowNode>, edgeSet?: Set<FlowEdge>): void {
         nodes.update((nodeList: FlowNode[]) => {
-            for (let i = 0; i < nodeList.length; i++) nodeList[i].selected = false;
+            for (let i = 0; i < nodeList.length; i++) {
+                const node: FlowNode = nodeList[i];
+                node.selected = nodeSet && nodeSet.has(node);
+            }
             return nodeList;
         });
         edges.update((edgeList: FlowEdge[]) => {
-            for (let i = 0; i < edgeList.length; i++) edgeList[i].selected = false;
+            for (let i = 0; i < edgeList.length; i++) {
+                const edge: FlowEdge = edgeList[i];
+                edge.selected = edgeSet && edgeSet.has(edge);
+            }
             return edgeList;
         });
     }
@@ -394,7 +438,7 @@
 
     async function onLayout(): Promise<void> {
         // Don't layout if we're not doing auto-layout
-        if (!get(focusedRowView).layoutAuto) return;
+        if (!focusedRowView || !get(focusedRowView).layoutAuto) return;
 
         // Grab current nodes and edges, return if there are none
         let flowNodes: FlowNode[] = get(nodes);
@@ -476,10 +520,11 @@
             'elk.spacing.nodeNode': isVertical ? `${computedWidth / 3}` : `${computedHeight / 3}`,
             'elk.direction': isVertical ? 'DOWN' : 'RIGHT',
             'elk.edgeLabels.placement:': 'CENTER',
-            // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
             'elk.spacing.edgeLabel': '0',
-            'elk.layered.spacing.edgeEdgeBetweenLayers': '40',
             'elk.spacing.edgeEdge': '40',
+            'elk.layered.spacing.edgeEdgeBetweenLayers': '40',
+            // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+            // 'elk.aspectRatio': `1.7`,
         };
         const laidOut: ElkNode = await ELK_LAYOUT.layout({
             id: 'root',
@@ -777,6 +822,9 @@
     // TODO - remove once they implement onselectionchanged
 
     async function onConversationChanged(conversation: Conversation): Promise<void> {
+        // Skip undefined conversations
+        if (!conversation) return;
+
         // Handle vertical layout changes
         if (conversation.layoutVertical !== currentLayoutVertical) {
             const nodeIds: string[] = [];
@@ -941,6 +989,10 @@
         viewport.set(<Viewport>{ ...DEFAULT_VIEWPORT });
     }
 
+    setContext(GRAPH_CONTEXT, <GraphContext>{
+        onDelete: onDelete,
+    });
+
     const onShutdown: () => void = () => {
         // Clear saved viewports on shutdown
         for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -951,13 +1003,37 @@
         }
     };
 
+    const onSelectNode: (event: CustomEvent<GraphSelectNodeRequest>) => void = (
+        event: CustomEvent<GraphSelectNodeRequest>,
+    ) => {
+        const nodeId: number = event.detail.id;
+        const flowNode: FlowNode = get(nodeLookup)?.get(nodeId.toString());
+        if (!flowNode) return;
+        const selectedSet: Set<FlowNode> = new Set();
+        selectedSet.add(flowNode);
+
+        // Select Node
+        onSelectExclusive(selectedSet);
+
+        // Focus on Node
+        fitView(<FitViewOptions>{
+            duration: 1000,
+            nodes: [flowNode],
+        });
+
+        // flowNode.selected = true;
+        // nodes.update((nodes) => nodes);
+    };
+
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
+        addEventListener(EVENT_GRAPH_SELECT_NODE, onSelectNode);
     });
     onDestroy(() => {
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
+        removeEventListener(EVENT_GRAPH_SELECT_NODE, onSelectNode);
         clearGraph();
     });
 </script>
@@ -967,7 +1043,7 @@
         <GridToolbar
             disabled={!isConversationInitialized}
             elementsSelected={nodesSelected.length + edgesSelected.length}
-            on:cancel={onCancelSelection}
+            on:cancel={() => onSelectExclusive()}
         >
             <svelte:fragment slot="overflow">
                 <OverflowMenuItem
@@ -988,16 +1064,22 @@
                     danger
                     disabled={nodesSelected.length === 0 && edgesSelected.length === 0}
                     text="Delete Selection"
-                    on:click={onDelete}
+                    on:click={onDeleteSelection}
                 />
             </svelte:fragment>
 
             <span slot="create">
                 <Button
                     size="small"
-                    on:click={onCreateNode}
+                    on:click={() => onCreateNode(NODE_TYPE_LINK)}
                     disabled={$isLoading || !isConversationInitialized}
-                    icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
+                    icon={$isLoading ? InlineLoading : undefined}>Add Link Node</Button
+                >
+                <Button
+                    size="small"
+                    on:click={() => onCreateNode(NODE_TYPE_DIALOGUE)}
+                    disabled={$isLoading || !isConversationInitialized}
+                    icon={$isLoading ? InlineLoading : undefined}>Add Dialogue Node</Button
                 >
             </span>
         </GridToolbar>
@@ -1014,7 +1096,7 @@
             {isValidConnection}
             defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
             connectionLineType={!focusedRowView || $focusedRowView.layoutAuto
-                ? ConnectionLineType.SmoothStep
+                ? ConnectionLineType.Step
                 : ConnectionLineType.Bezier}
             minZoom={MIN_ZOOM}
             proOptions={{ hideAttribution: true }}
@@ -1023,8 +1105,9 @@
             on:selectionchange={onSelectionChanged}
             on:nodedragstop={onNodeDragStop}
             connectionRadius={50}
+            zoomOnDoubleClick={false}
         >
-            <Controls />
+            <Controls showLock={false} />
             <Background gap={snapGrid} variant={BackgroundVariant.Dots} />
             <MiniMap />
         </SvelteFlow>

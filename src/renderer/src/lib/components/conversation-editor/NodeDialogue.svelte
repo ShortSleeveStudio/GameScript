@@ -9,6 +9,7 @@
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { get } from 'svelte/store';
     import NodeBase from './NodeBase.svelte';
+    import { OverflowMenuItem } from 'carbon-components-svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -42,6 +43,7 @@
 
     export let data: NodeData;
 
+    let onDelete: () => void;
     let rowView: IDbRowView<Node> = data.rowView;
     let localizations: IDbTableView<Localization> = data.localizations;
     let isVertical: boolean = false;
@@ -67,16 +69,20 @@
 </script>
 
 <NodeBase
-    id={rowView.id}
+    {rowView}
     {isVertical}
     {selected}
     title={actor ? $actor.name : 'Loading...'}
     {targetPosition}
     {sourcePosition}
+    bind:onDelete
 >
     <svelte:fragment slot="body">
         <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
         <NodeDialogueText disabled={!actor || !voiceText} localization={voiceText} />
+    </svelte:fragment>
+    <svelte:fragment slot="overflow">
+        <OverflowMenuItem danger text="Delete" on:click={onDelete} />
     </svelte:fragment>
 </NodeBase>
 

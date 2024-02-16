@@ -9,7 +9,6 @@
         TABLE_ID_LOCALIZATIONS,
         TABLE_ID_NODES,
         TABLE_ID_ROUTINES,
-        type Row,
     } from '@lib/api/db/db-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
     import { Column, Content, Grid, Row as CarbonRow } from 'carbon-components-svelte';

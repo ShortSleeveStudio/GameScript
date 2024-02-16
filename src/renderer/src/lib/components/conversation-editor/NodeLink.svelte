@@ -5,6 +5,7 @@
     import NodeBase from './NodeBase.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { Node } from '@lib/api/db/db-schema';
+    import { OverflowMenuItem } from 'carbon-components-svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -35,11 +36,23 @@
     export let positionAbsoluteY: $$Props['positionAbsoluteY'] = undefined;
     positionAbsoluteY;
     // SUPPRESS WARNINGS
-
     export let data: NodeData;
+    let onDelete: () => void;
     let rowView: IDbRowView<Node> = data.rowView;
     let isVertical: boolean = false;
-    $: isVertical = sourcePosition === Position.Bottom;
+    $: isVertical = targetPosition === Position.Top;
 </script>
 
-<NodeBase {rowView} {isVertical} {selected} title={'Start'} {sourcePosition}></NodeBase>
+<NodeBase
+    {rowView}
+    {isVertical}
+    {selected}
+    title={$rowView.link ? 'Link: ' + $rowView.link : 'Disconnected'}
+    {sourcePosition}
+    {targetPosition}
+    bind:onDelete
+>
+    <svelte:fragment slot="overflow">
+        <OverflowMenuItem danger text="Delete" on:click={onDelete} />
+    </svelte:fragment>
+</NodeBase>

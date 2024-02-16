@@ -16,7 +16,7 @@ export async function nodesUpdate(
     if (skipUndo) return;
     undoManager.register(
         new Undoable(
-            'node updates',
+            oldNodes.length > 1 ? 'node updates' : 'node update',
             isLoading.wrapFunction(async () => {
                 await db.updateRows(TABLE_ID_NODES, oldNodes);
             }),

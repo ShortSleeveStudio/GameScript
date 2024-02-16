@@ -288,6 +288,7 @@ export interface Node extends Row, Annotated, SystemCreatable {
     code: number; // FK Routines
     codeOverride: number | null;
     preventResponse: boolean;
+    link: number; // FK Nodes
 
     // Graph Stuff
     type: NodeType;

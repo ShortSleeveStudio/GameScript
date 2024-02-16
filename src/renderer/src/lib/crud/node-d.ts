@@ -14,25 +14,23 @@ import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
 
+/**
+ * Delete nodes
+ * @param nodes nodes to delete (these should be clones)
+ * @param edges edges to delete (these should be clones)
+ * @param isLoading is loading
+ * @param connection transaction connection
+ */
 export async function nodesDelete(
     nodes: Node[],
-    edges: Edge[],
+    edges: Edge[] = [],
     isLoading?: IsLoadingStore,
     connection?: DbConnection,
 ): Promise<void> {
-    const nodeIds: number[] = [];
     const nodesToDelete: Node[] = [];
+    const nodeIds: number[] = [];
     const routineIds: number[] = [];
     const localizationIds: number[] = [];
-    for (let i = 0; i < nodes.length; i++) {
-        const node: Node = nodes[i];
-        nodeIds.push(node.id);
-        nodesToDelete.push(node);
-        routineIds.push(node.code);
-        routineIds.push(node.condition);
-        localizationIds.push(node.uiResponseText);
-        localizationIds.push(node.voiceText);
-    }
     const edgeIdMap: Map<number, Edge> = new Map();
     for (let i = 0; i < edges.length; i++) {
         const edge: Edge = edges[i];
@@ -43,6 +41,15 @@ export async function nodesDelete(
     let localizationsToDelete: Localization[];
 
     const deleteOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
+        // Find Link Nodes
+        gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
+        const linkNodesToDelete = await db.fetchRowsRaw<Node>(
+            TABLE_ID_NODES,
+            createFilter().where().column('link').in(nodeIds).endWhere().build(),
+            conn,
+        );
+        gatherNodeData(linkNodesToDelete, nodesToDelete, nodeIds, routineIds, localizationIds);
+
         // Delete Edges
         edgesToDelete = await db.fetchRowsRaw<Edge>(
             TABLE_ID_EDGES,
@@ -137,4 +144,22 @@ export async function nodeDelete(
     connection?: DbConnection,
 ): Promise<void> {
     await nodesDelete([node], edges, isLoading, connection);
+}
+
+function gatherNodeData(
+    nodes: Node[],
+    accumulator: Node[],
+    nodeIds: number[],
+    routineIds: number[],
+    localizationIds: number[],
+): void {
+    for (let i = 0; i < nodes.length; i++) {
+        const node: Node = nodes[i];
+        accumulator.push(node);
+        nodeIds.push(node.id);
+        routineIds.push(node.code);
+        routineIds.push(node.condition);
+        localizationIds.push(node.uiResponseText);
+        localizationIds.push(node.voiceText);
+    }
 }
