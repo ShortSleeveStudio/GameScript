@@ -3,7 +3,7 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { locales } from '@lib/tables/locales';
     import RowColumnId from '../common/RowColumnId.svelte';
-    import { Accordion, AccordionItem, Tooltip } from 'carbon-components-svelte';
+    import { Accordion, AccordionItem, Button, Tooltip } from 'carbon-components-svelte';
     import RowColumnInput from '../common/RowColumnInput.svelte';
     import {
         LOCALIZATION_PLACEHOLDER_NICKNAME,
@@ -15,11 +15,20 @@
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
     import { localeIdToColumn } from '@lib/utility/locale';
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
+    import { get } from 'svelte/store';
+    import {
+        EVENT_DOCK_SELECTION_REQUEST,
+        EVENT_FINDER_FILTER_BY_PARENT,
+        type DockSelectionRequest,
+        type GridFilterByParentRequest,
+    } from '@lib/constants/events';
+    import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
     export let showNickname: boolean = true;
     export let rowView: IDbRowView<Localization>;
+    export let showConversationButton: boolean = false;
 
     let primaryLocale: IDbRowView<Locale>;
     let localePrincipalView: IDbRowView<LocalePrincipal>;
@@ -36,6 +45,23 @@
                 }
             }
         }
+    }
+
+    function onFindConversation(): void {
+        // Filter Conversations
+        const parentConversation: number = get(rowView).parent;
+        dispatchEvent(
+            new CustomEvent(EVENT_FINDER_FILTER_BY_PARENT, {
+                detail: <GridFilterByParentRequest>{ parent: parentConversation },
+            }),
+        );
+
+        // Select Localization Editor
+        dispatchEvent(
+            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
+                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_CONVERSATION_FINDER },
+            }),
+        );
     }
 </script>
 
@@ -79,7 +105,6 @@
 {/if}
 {#if locales}
     <p>
-        <!-- <sup><RowColumnText rowView={primaryLocale} columnName={'name'} /></sup> -->
         <RowColumnTextArea
             {rowView}
             labelText={primaryLocale ? $primaryLocale.name : ''}
@@ -108,4 +133,11 @@
             </AccordionItem>
         </Accordion>
     {/if}
+{/if}
+{#if showConversationButton && rowView && $rowView.parent}
+    <p>
+        <sup>Conversation</sup>
+        <br />
+        <Button size="small" on:click={onFindConversation}>Find Conversation</Button>
+    </p>
 {/if}

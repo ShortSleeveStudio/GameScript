@@ -44,6 +44,9 @@
         </div>
     {/if}
     <div class="bx--toolbar-content">
+        {#if $$slots.search}
+            <slot name="search" />
+        {/if}
         <span style="display: flex;">
             {#if $$slots.overflow}
                 <OverflowMenu
@@ -57,7 +60,9 @@
                     <slot name="overflow" />
                 </OverflowMenu>
             {/if}
-            <slot name="create" />
+            {#if $$slots.create}
+                <slot name="create" />
+            {/if}
         </span>
     </div>
 </section>

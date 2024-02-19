@@ -60,7 +60,7 @@
         // Listen to is visible store
         unsubscriber = isVisible.subscribe((newVal: boolean) => {
             // If the component is already in accordance with requested visibility, return
-            if (dockableInfo.actuallyInDock == newVal) return;
+            if (dockableInfo.actuallyInDock === newVal) return;
 
             // We need to update the layout
             if (newVal) {

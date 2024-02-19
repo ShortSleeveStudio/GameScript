@@ -36,6 +36,11 @@
         EVENT_SHUTDOWN,
         type DockSelectionChanged,
         EVENT_DOCK_SELECTION_CHANGED,
+        EVENT_FINDER_FILTER_BY_PARENT,
+        isCustomEvent,
+        type GridFilterByParentRequest,
+        EVENT_DOCK_SELECTION_REQUEST,
+        type DockSelectionRequest,
     } from '@lib/constants/events';
     import { LS_KEY_FINDER_LAYOUT } from '@lib/constants/local-storage';
     import { db } from '@lib/api/db/db';
@@ -62,7 +67,10 @@
     } from '@lib/stores/app/focus';
     import GridToolbar from '../common/GridToolbar.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
-    import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
+    import {
+        LAYOUT_ID_CONVERSATION_EDITOR,
+        LAYOUT_ID_CONVERSATION_FINDER,
+    } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { nodesDelete } from '@lib/crud/node-d';
@@ -72,6 +80,7 @@
         graphLayoutVerticalDefault,
     } from '@lib/stores/graph/graph-layout';
 
+    const CONVERSATION_ID_COLUMN: string = 'id';
     const IS_DELETED_COLUMN: string = 'isDeleted';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
         tableId: TABLE_ID_CONVERSATIONS,
@@ -84,7 +93,7 @@
         {
             pinned: 'left',
             headerName: 'ID',
-            colId: 'id',
+            colId: CONVERSATION_ID_COLUMN,
             resizable: false,
             cellRenderer: GridCellRenderer,
             editable: false,
@@ -247,13 +256,24 @@
     }
 
     function onRowClicked(event: RowClickedEvent<IDbRowView<Conversation>, GridContext>): void {
-        const rowView: IDbRowView<Conversation> = event.data;
+        focusOnConversation(event.data);
+    }
+
+    function focusOnConversation(rowView: IDbRowView<Conversation>): void {
+        // Focus
         FOCUS_REQUEST.focus = new Map();
         FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
         focusManager.focus(<FocusRequests>{
             type: FOCUS_MODE_REPLACE,
             requests: [FOCUS_REQUEST],
         });
+
+        // Request dock selection
+        dispatchEvent(
+            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
+                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_CONVERSATION_EDITOR },
+            }),
+        );
     }
 
     function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {
@@ -306,6 +326,27 @@
         if (e.detail.layoutId === LAYOUT_ID_CONVERSATION_FINDER) {
             api?.autoSizeAllColumns();
         }
+    };
+
+    const onFilterByParent: (e: Event) => void = (e: Event) => {
+        if (!isCustomEvent(e)) throw new Error('Selection request was missing payload');
+        const filterRequest = e as CustomEvent<GridFilterByParentRequest>;
+        const parentId: number = filterRequest.detail.parent;
+
+        // Check if filter is required
+        const currentModel: NumberFilterModel = <NumberFilterModel>(
+            api.getFilterModel()[CONVERSATION_ID_COLUMN]
+        );
+        if (currentModel && currentModel.filter === parentId) return;
+
+        // Filter
+        const model: FilterModel = {};
+        model[CONVERSATION_ID_COLUMN] = <NumberFilterModel>{
+            filterType: 'number',
+            filter: parentId,
+            type: 'equals',
+        };
+        api.setFilterModel(model);
     };
 
     const onShutdown: () => void = () => {
@@ -377,11 +418,13 @@
         // Event Listeners
         addEventListener(EVENT_SHUTDOWN, onShutdown);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        addEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
     });
     onDestroy(() => {
         // Remove event listener
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        removeEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
 
         // Dispose of table watcher
         tableWatcher?.dispose();

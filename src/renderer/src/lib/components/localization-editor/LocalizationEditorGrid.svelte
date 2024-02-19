@@ -51,8 +51,8 @@
         EVENT_SHUTDOWN,
         isCustomEvent,
         type DockSelectionChanged,
-        type LocalizationsFilterByParent,
         EVENT_DOCK_SELECTION_CHANGED,
+        type GridFilterByParentRequest,
     } from '@lib/constants/events';
     import GridToolbar from '../common/GridToolbar.svelte';
     import { Button, InlineLoading } from 'carbon-components-svelte';
@@ -245,13 +245,17 @@
 
     const onFilterByParent: (e: Event) => void = (e: Event) => {
         if (!isCustomEvent(e)) throw new Error('Selection request was missing payload');
-        const filterRequest = e as CustomEvent<LocalizationsFilterByParent>;
+        const filterRequest = e as CustomEvent<GridFilterByParentRequest>;
         const parentId: number = filterRequest.detail.parent;
 
-        // Filter (if needed)
-        const model: FilterModel = api.getFilterModel();
-        const currentModel: NumberFilterModel = <NumberFilterModel>model[CONVERSATION_ID_COLUMN];
+        // Check if filter is required
+        const currentModel: NumberFilterModel = <NumberFilterModel>(
+            api.getFilterModel()[CONVERSATION_ID_COLUMN]
+        );
         if (currentModel && currentModel.filter === parentId) return;
+
+        // Filter
+        const model: FilterModel = {};
         model[CONVERSATION_ID_COLUMN] = <NumberFilterModel>{
             filterType: 'number',
             filter: parentId,

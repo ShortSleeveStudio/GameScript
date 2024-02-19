@@ -28,6 +28,10 @@ export class TableWatcher<RowType extends Row> {
         this._action.unregister(handler);
     }
 
+    unsubscribeAll(): void {
+        this._action.unregisterAll();
+    }
+
     dispose(): void {
         this._action.unregisterAll();
         this._unsubscribeTable();

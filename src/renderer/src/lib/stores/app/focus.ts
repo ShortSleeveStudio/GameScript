@@ -160,6 +160,9 @@ export interface FocusPayloadLocale extends FocusPayload {
 export interface FocusPayloadFilter extends FocusPayload {
     uniqueNameTracker: UniqueNameTracker;
 }
+export interface FocusPayloadGraphElement extends FocusPayload {
+    requestIsFromGraph: boolean;
+}
 
 /**Export Singleton */
 export const focusManager: FocusManager = new FocusManager();

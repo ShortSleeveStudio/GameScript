@@ -90,6 +90,7 @@
                                 <InspectorLocalization
                                     rowView={inspected.rowView}
                                     showTitle={true}
+                                    showConversationButton={true}
                                 />
                             {:else if inspected.rowView.tableId === TABLE_ID_NODES}
                                 <InspectorNode rowView={inspected.rowView} />
