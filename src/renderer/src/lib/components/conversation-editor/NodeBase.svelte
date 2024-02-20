@@ -4,7 +4,6 @@
     import { PortInput, PortOutput, Settings } from 'carbon-icons-svelte';
     import { GRAPH_CONTEXT, PORT_CONTAINER_THICKNESS } from '@lib/graph/graph-constants';
     import OverflowMenuCustom from '../carbon/OverflowMenuCustom.svelte';
-    import { nodesDelete } from '@lib/crud/node-d';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { Node } from '@lib/api/db/db-schema';
     import { get } from 'svelte/store';
@@ -23,9 +22,8 @@
         graphContext.onDelete([<Node>{ ...get(rowView) }], []);
     };
 
-    $: borderCss = isVertical
-        ? 'border-top: none; border-bottom: none;'
-        : 'border-left: none; border-right: none;';
+    $: borderCssSource = isVertical ? 'border-top: none;' : 'border-left: none;';
+    $: borderCssTarget = isVertical ? 'border-bottom: none;' : 'border-right: none;';
 </script>
 
 <div class="node-container" style:flex-direction={isVertical ? 'column' : 'row'}>
@@ -36,14 +34,14 @@
             style:height={isVertical ? PORT_CONTAINER_THICKNESS : ''}
         >
             <Handle class="node-custom-port" type="target" position={targetPosition}>
-                <div class="node-port-icon-container">
+                <div class="node-port-icon-container" style={borderCssTarget}>
                     <PortInput style={isVertical ? 'transform: rotate(90deg);' : ''} />
                 </div>
             </Handle>
         </div>
     {/if}
 
-    <div class="node-content" style={borderCss}>
+    <div class="node-content">
         <div class="node-title-bar {selected ? 'node-title-bar-selected' : ''}">
             <span class="node-title-id">{rowView.id}</span>
             <span class="node-title-text">{title}</span>
@@ -69,7 +67,7 @@
             style:height={isVertical ? PORT_CONTAINER_THICKNESS : ''}
         >
             <Handle class="node-custom-port" type="source" position={sourcePosition}>
-                <div class="node-port-icon-container">
+                <div class="node-port-icon-container" style={borderCssSource}>
                     <PortOutput style={isVertical ? 'transform: rotate(90deg);' : ''} />
                 </div>
             </Handle>
@@ -113,8 +111,8 @@
     }
     .node-title-id {
         height: 100%;
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
         /* width: 2.5rem; */
         /* height: 2.5rem; */
         /* box-shadow: inset -7px 0 9px -7px rgba(0, 0, 0, 0.7); */

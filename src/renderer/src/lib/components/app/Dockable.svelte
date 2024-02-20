@@ -82,4 +82,11 @@
     });
 </script>
 
-<dockable bind:this={element}><slot /></dockable>
+<dockable class="dockable" bind:this={element}><slot /></dockable>
+
+<style>
+    .dockable {
+        display: flex;
+        height: 100%;
+    }
+</style>

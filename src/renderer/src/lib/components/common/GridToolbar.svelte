@@ -8,12 +8,28 @@
     export let elementsSelected: number;
     export let disabled: boolean = false;
 
+    let flipped: boolean = false;
     let isOverflowOpen: boolean;
+    let locationInPageFinder: HTMLDivElement;
 
     const dispatch = createEventDispatcher();
 
     function onCancel(): void {
         dispatch('cancel');
+    }
+
+    function recalculateOpenDirection(): void {
+        const innerRect: DOMRect = locationInPageFinder.getBoundingClientRect();
+        const nearestDocContainer: HTMLDivElement = locationInPageFinder.closest('.lm_content');
+        if (!nearestDocContainer) return;
+        const outerRect: DOMRect = nearestDocContainer.getBoundingClientRect();
+        const distanceToLeft = innerRect.left - outerRect.left;
+        const distanceToRight = outerRect.right - innerRect.right;
+        if (distanceToLeft >= distanceToRight) {
+            flipped = true;
+        } else {
+            flipped = false;
+        }
     }
 </script>
 
@@ -49,16 +65,19 @@
         {/if}
         <span style="display: flex;">
             {#if $$slots.overflow}
-                <OverflowMenu
-                    {disabled}
-                    flipped
-                    size="sm"
-                    class="bx--toolbar-action bx--overflow-menu"
-                    icon={Settings}
-                    bind:open={isOverflowOpen}
-                >
-                    <slot name="overflow" />
-                </OverflowMenu>
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div on:mouseenter={recalculateOpenDirection} bind:this={locationInPageFinder}>
+                    <OverflowMenu
+                        {disabled}
+                        {flipped}
+                        size="sm"
+                        class="bx--toolbar-action bx--overflow-menu"
+                        icon={Settings}
+                        bind:open={isOverflowOpen}
+                    >
+                        <slot name="overflow" />
+                    </OverflowMenu>
+                </div>
             {/if}
             {#if $$slots.create}
                 <slot name="create" />
