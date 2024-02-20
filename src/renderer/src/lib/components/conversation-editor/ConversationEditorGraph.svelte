@@ -150,17 +150,23 @@
     let currentLayoutAuto: boolean = false;
     let currentLayoutVertical: boolean = false;
     let unsubscriberFocus: ActionUnsubscriber;
+    let tableWatcherConversation: TableWatcher<Conversation>;
     let tableWatcherNode: TableWatcher<Node>;
     let tableWatcherEdge: TableWatcher<Edge>;
-    let unsubscriberLocalizationView: Unsubscriber;
+    let unsubscriberConversationTable: Unsubscriber;
+    let unsubscriberNodeTable: Unsubscriber;
+    let unsubscriberEdgeTable: Unsubscriber;
+    let unsubscriberLocalizationTable: Unsubscriber;
     let nodeUnsubscriber: Unsubscriber;
     let edgeUnsubscriber: Unsubscriber;
     let conversationUnsubscriber: Unsubscriber;
+    let conversationViews: IDbTableView<Conversation>;
     let nodeViews: IDbTableView<Node>;
     let edgeViews: IDbTableView<Edge>;
     let localizationViews: IDbTableView<Localization>;
     let isLoading: IsLoadingStore = new IsLoadingStore();
     let isConversationInitialized: boolean = false;
+    let focusedConversationId: number | undefined = undefined;
     let focusedRowView: IDbRowView<Conversation> = undefined;
     $: {
         if (focusedRowView && (focusedRowView.isDisposed || $focusedRowView.isDeleted)) {
@@ -180,18 +186,18 @@
     };
 
     function loadViewport(): void {
-        if (focusedRowView) {
+        if (focusedConversationId) {
             const storedString: string = localStorage.getItem(
-                conversationIdToViewportKey(focusedRowView.id),
+                conversationIdToViewportKey(focusedConversationId),
             );
             if (storedString) viewport.set(JSON.parse(storedString));
         }
     }
 
     function saveViewport(): void {
-        if (focusedRowView) {
+        if (focusedConversationId) {
             localStorage.setItem(
-                conversationIdToViewportKey(focusedRowView.id),
+                conversationIdToViewportKey(focusedConversationId),
                 JSON.stringify(get(viewport)),
             );
         }
@@ -493,18 +499,22 @@
         for (let i = 0; i < flowNodes.length; i++) {
             const node: FlowNode = flowNodes[i];
             // Disconnected nodes don't get layout, and remain draggable
+            let width: number = 0;
+            let height: number = 0;
             if (!connectedNodeIds.has(node.id)) {
+                // Node size is 0 to keep from affecting layout
                 node.draggable = true;
-                continue;
             } else {
                 node.draggable = false;
+                width = node.computed.width;
+                height = node.computed.height;
             }
 
             // Generate port list
             elkNodes.push({
                 id: node.id,
-                width: node.computed.width,
-                height: node.computed.height,
+                width: width,
+                height: height,
                 ports: nodeIdToPorts.get(node.id) ?? [],
                 layoutOptions: {
                     'elk.portConstraints': 'FIXED_SIDE',
@@ -544,18 +554,14 @@
         flowNodes = get(nodes);
         flowEdges = get(edges);
 
-        // If the graph has changed, discard layout results
-        if (flowEdges.length !== laidOut.edges.length) {
-            await onLayout();
-            return;
-        }
-
         // Store positions for undo/redo
         const newPositions = [];
         const oldPositions = [];
         for (let i = 0; i < laidOut.children.length; i++) {
             const elkNode: CustomElkNode = <CustomElkNode>laidOut.children[i];
             const flowNode: FlowNode = flowNodes[i];
+            // Skip updating disconnected nodes
+            if (!connectedNodeIds.has(flowNode.id)) continue;
             // Nodes have gone out of sync during the layout
             if (elkNode.id !== flowNode.id) {
                 await onLayout();
@@ -577,19 +583,18 @@
 
         // Update layout
         if (newPositions.length !== 0) {
-            await nodesUpdate(oldPositions, newPositions, isLoading, true);
+            try {
+                await nodesUpdate(oldPositions, newPositions, isLoading, true);
+            } catch (error) {
+                blur();
+                throw error;
+            }
             if (!get(focusedRowView).layoutAuto) return;
         }
 
         // Time has passed, grab a fresh copy of the nodes
         flowNodes = get(nodes);
         flowEdges = get(edges);
-
-        // If the graph has changed, discard layout results
-        if (flowEdges.length !== laidOut.edges.length) {
-            await onLayout();
-            return;
-        }
 
         // Draw the edges
         for (let i = 0; i < laidOut.edges.length; i++) {
@@ -622,6 +627,7 @@
             selected: false,
             deletable: isNotRoot,
             selectable: isNotRoot,
+            draggable: true,
             targetPosition: getTargetPosition(isVertical),
             sourcePosition: getSourcePosition(isVertical),
         };
@@ -812,6 +818,25 @@
     }
     // TODO - remove once they implement onselectionchanged
 
+    function onConversationTableChanged(): void {
+        // Blur if conversation was deleted
+        const conversations: IDbRowView<Conversation>[] = get(conversationViews);
+        if (conversations.length !== 1) {
+            changeFocus(true);
+            return;
+        }
+        const conversationView: IDbRowView<Conversation> = conversations[0];
+        const conversation: Conversation = get(conversationView);
+        if (conversation.isDeleted) {
+            changeFocus(true);
+            return;
+        }
+        // Make sure focused row view is set
+        if (focusedRowView !== conversationView) {
+            focusedRowView = conversationView;
+        }
+    }
+
     async function onConversationModified(conversation: Conversation): Promise<void> {
         // Skip undefined conversations
         if (!conversation) return;
@@ -857,49 +882,53 @@
         }
     }
 
+    function blur(): void {
+        changeFocus(true);
+    }
+
     function onFocusChanged(): void {
         // Find focused conversations
         const focusMap: readonly Map<number, Focus>[] = focusManager.get();
 
         // Conversation focus
-        let newFocusedConversation: IDbRowView<Conversation> = undefined;
+        // let newFocusedConversation: IDbRowView<Conversation> = undefined;
+        let newFocusedConversation: number | undefined = undefined;
         const conversationFocus: Map<number, Focus> = focusMap[TABLE_ID_CONVERSATIONS];
         if (conversationFocus.size === 1) {
-            newFocusedConversation = conversationFocus.values().next().value.rowView;
+            newFocusedConversation = conversationFocus.values().next().value.rowView.id;
         }
 
         // Node focus
         const nodeMap: Map<number, Focus> = focusMap[TABLE_ID_NODES];
-        let newFocusedNodes: IDbRowView<Node>[] = [];
+        // let newFocusedNodes: IDbRowView<Node>[] = [];
+        let newFocusedNodes: number[] = [];
         if (nodeMap.size !== 0) {
             for (const focus of nodeMap.values()) {
                 const payload: FocusPayloadGraphElement = <FocusPayloadGraphElement>focus.payload;
                 // If there's no payload or it's a request from the graph, ignore it
                 if (!payload || payload.requestIsFromGraph) continue;
-                newFocusedNodes.push(<IDbRowView<Node>>focus.rowView);
+                newFocusedNodes.push((<IDbRowView<Node>>focus.rowView).id);
             }
         }
         changeFocus(false, newFocusedConversation, newFocusedNodes);
     }
 
-    function blur(): void {
-        changeFocus(true);
-    }
-
     async function changeFocus(
         isBlur: boolean,
-        newFocusedConversation?: IDbRowView<Conversation>,
-        newFocusedNodes?: IDbRowView<Node>[], // we automatically fit these to view
+        newFocusedConversation?: number,
+        newFocusedNodes?: number[], // we automatically fit these to view
     ): Promise<void> {
         // Make sure conversation is set correctly
         if (!isBlur) {
-            if (!newFocusedConversation) newFocusedConversation = focusedRowView;
-        } else if (newFocusedConversation) {
+            if (newFocusedConversation === undefined) {
+                newFocusedConversation = focusedConversationId;
+            }
+        } else if (newFocusedConversation !== undefined) {
             throw new Error('New conversation focus set during a blur operation');
         }
 
         // Skip if already focused
-        if (newFocusedConversation !== focusedRowView) {
+        if (focusedConversationId !== newFocusedConversation) {
             // Save viewport
             saveViewport();
 
@@ -907,17 +936,23 @@
             clearGraph();
 
             // Set new focus
-            focusedRowView = newFocusedConversation;
+            focusedConversationId = newFocusedConversation;
 
             // Nothing new to focus (blur)
-            if (focusedRowView !== undefined) {
+            if (focusedConversationId !== undefined) {
                 // Load viewport
                 loadViewport();
 
                 // Load graph
                 await loadGraph();
 
-                // Graph loaded, run reconciliation
+                // Create watchers
+                tableWatcherConversation = new TableWatcher(conversationViews);
+                tableWatcherNode = new TableWatcher(nodeViews);
+                tableWatcherEdge = new TableWatcher(edgeViews);
+
+                // Setup and run reconciliation
+                tableWatcherConversation.subscribe(onConversationTableChanged);
                 tableWatcherNode.subscribe(() => runReconciliation(true));
                 tableWatcherEdge.subscribe(() => runReconciliation(false));
 
@@ -929,6 +964,8 @@
                 currentLayoutAuto = !focusedConversation.layoutAuto; // To trigger a change
                 currentLayoutVertical = !focusedConversation.layoutVertical; // To trigger a change
                 isConversationInitialized = true; // this allows layout to happen
+
+                // Duplicate call here to allow for the awaiting
                 await onConversationModified(focusedConversation);
                 conversationUnsubscriber = focusedRowView.subscribe(onConversationModified);
             } else if (!blur) {
@@ -944,7 +981,7 @@
             const focusedFlowNodes: FlowNode[] = [];
             const selectedFlowNodes: Set<FlowNode> = new Set();
             for (const focusedNode of newFocusedNodes) {
-                const flowNode: FlowNode = <FlowNode>lookup.get(focusedNode.id.toString());
+                const flowNode: FlowNode = <FlowNode>lookup.get(focusedNode.toString());
                 focusedFlowNodes.push(flowNode);
                 selectedFlowNodes.add(flowNode);
             }
@@ -963,12 +1000,21 @@
 
     async function loadGraph(): Promise<void> {
         return new Promise((resolve) => {
+            conversationViews = db.fetchTable(
+                TABLE_ID_CONVERSATIONS,
+                createFilter<Conversation>()
+                    .where()
+                    .column('id')
+                    .eq(focusedConversationId)
+                    .endWhere()
+                    .build(),
+            );
             nodeViews = db.fetchTable<Node>(
                 TABLE_ID_NODES,
                 createFilter<Node>()
                     .where()
                     .column('parent')
-                    .eq(focusedRowView.id)
+                    .eq(focusedConversationId)
                     .endWhere()
                     .orderBy('id', ASC)
                     .build(),
@@ -978,37 +1024,41 @@
                 createFilter<Edge>()
                     .where()
                     .column('parent')
-                    .eq(focusedRowView.id)
+                    .eq(focusedConversationId)
                     .endWhere()
                     .orderBy('id', ASC)
                     .build(),
             );
             localizationViews = db.fetchTable<Localization>(
                 TABLE_ID_LOCALIZATIONS,
-                createFilter().where().column('parent').eq(focusedRowView.id).endWhere().build(),
+                createFilter()
+                    .where()
+                    .column('parent')
+                    .eq(focusedConversationId)
+                    .endWhere()
+                    .build(),
             );
 
-            // Create table watchers for the node and edge views
-            tableWatcherNode = new TableWatcher(nodeViews);
-            tableWatcherEdge = new TableWatcher(edgeViews);
-
-            // Subscribe to changes
+            // Monitor tables until all are loaded and the resolve promise
             const onChange: () => void = () => {
                 if (
+                    conversationViews?.isInitialized &&
                     nodeViews?.isInitialized &&
                     edgeViews?.isInitialized &&
                     localizationViews?.isInitialized
                 ) {
                     // Unsubscribe all temporary change handlers
-                    if (unsubscriberLocalizationView) unsubscriberLocalizationView();
-                    tableWatcherNode.unsubscribeAll();
-                    tableWatcherEdge.unsubscribeAll();
+                    unsubscriberConversationTable();
+                    unsubscriberNodeTable();
+                    unsubscriberEdgeTable();
+                    unsubscriberLocalizationTable();
                     resolve();
                 }
             };
-            tableWatcherNode.subscribe(onChange);
-            tableWatcherEdge.subscribe(onChange);
-            unsubscriberLocalizationView = localizationViews.subscribe(onChange);
+            unsubscriberConversationTable = conversationViews.subscribe(onChange);
+            unsubscriberNodeTable = nodeViews.subscribe(onChange);
+            unsubscriberEdgeTable = edgeViews.subscribe(onChange);
+            unsubscriberLocalizationTable = localizationViews.subscribe(onChange);
 
             // Subscribe to nodes, edges, and localization changes
             nodeUnsubscriber = nodes.subscribe(onNodesChanged);
@@ -1025,12 +1075,18 @@
         // TODO
         currentLayoutAuto = false;
         currentLayoutVertical = false;
+        focusedRowView = undefined;
         if (nodeUnsubscriber) nodeUnsubscriber();
         if (edgeUnsubscriber) edgeUnsubscriber();
         if (conversationUnsubscriber) conversationUnsubscriber();
+        if (unsubscriberConversationTable) unsubscriberConversationTable();
+        if (tableWatcherConversation) tableWatcherConversation.dispose();
         if (tableWatcherNode) tableWatcherNode.dispose();
         if (tableWatcherEdge) tableWatcherEdge.dispose();
-        if (unsubscriberLocalizationView) unsubscriberLocalizationView();
+        if (unsubscriberNodeTable) unsubscriberNodeTable();
+        if (unsubscriberEdgeTable) unsubscriberEdgeTable();
+        if (unsubscriberLocalizationTable) unsubscriberLocalizationTable();
+        if (conversationViews) db.releaseTable(conversationViews);
         if (edgeViews) db.releaseTable(edgeViews);
         if (nodeViews) db.releaseTable(nodeViews);
         if (localizationViews) db.releaseTable(localizationViews);

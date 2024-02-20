@@ -128,5 +128,6 @@ export async function nodeCreate(
         }
     }
 
+    console.log('node create complete');
     return newNode;
 }

@@ -80,7 +80,10 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         this._requests.push(currentRequest);
 
         // Create update handler
-        const updateHandler = (rowViews: IDbRowView<RowType>[], argumentRequestIndex?: number) => {
+        const updateHandler: (
+            rowViews: IDbRowView<RowType>[],
+            argumentRequestIndex?: number,
+        ) => void = (rowViews: IDbRowView<RowType>[], argumentRequestIndex?: number) => {
             const currentIndex: number =
                 argumentRequestIndex === undefined ? capturedRequestIndex : argumentRequestIndex;
             const request: RowsRequest = this._requests[currentIndex];
