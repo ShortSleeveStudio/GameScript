@@ -126,7 +126,7 @@ const ROOT: RootItemConfig = {
 const DIMENSIONS: LayoutConfig.Dimensions = {
     defaultMinItemWidth: `${8 * 24}px`,
     defaultMinItemHeight: `${8 * 24}px`,
-    borderWidth: 1,
+    borderWidth: 2,
     headerHeight: parseInt(
         getComputedStyle(document.documentElement).getPropertyValue('--gl-tab-height'),
     ),

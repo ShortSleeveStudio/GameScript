@@ -1,6 +1,16 @@
 /**
  * Module initialization
  */
+// CSS
+import '@ag-grid-community/styles/ag-grid.css';
+import '@ag-grid-community/styles/ag-theme-quartz.css';
+import '@lib/css/carbon.css'; // This needs to be updated everytime you upgrade the library
+import '@lib/css/golden-layout-base-custom.css';
+import '@lib/css/golden-layout-theme-custom.css';
+import '@xyflow/svelte/dist/style.css';
+
+import '@lib/css/main.css';
+
 // API
 import '@lib/api/db/db';
 
@@ -16,25 +26,12 @@ import '@lib/utility/keybinding';
 import '@lib/utility/undo-manager';
 
 // Grid
-import '@ag-grid-community/styles/ag-grid.css';
-import '@ag-grid-community/styles/ag-theme-quartz.css';
 import '@lib/grid/grid-initialization';
 
 // Graph
 import '@lib/vendor/elkjs/elk-api.js';
-import '@xyflow/svelte/dist/style.css';
 
 // Main app
-import '@lib/css/carbon.css'; // This needs to be updated everytime you upgrade the library
-import '@lib/css/main.css';
-// import 'golden-layout/dist/css/goldenlayout-base.css';
-// import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
-
-import '@lib/css/golden-layout-base-custom.css';
-import '@lib/css/golden-layout-theme-custom.css';
-
-// import '@lib/vendor/golden-layout/css/goldenlayout-base.css';
-// import '@lib/vendor/golden-layout/css/themes/goldenlayout-dark-theme.css';
 import App from './lib/components/app/App.svelte';
 
 /**

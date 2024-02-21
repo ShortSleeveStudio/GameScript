@@ -1,5 +1,6 @@
 import Database, { Database as Db, RunResult, Statement } from 'better-sqlite3';
-import { IpcMainInvokeEvent, ipcMain } from 'electron';
+import { IpcMainInvokeEvent, app, ipcMain } from 'electron';
+import path from 'path';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,
@@ -15,12 +16,33 @@ import { SqliteResult } from '../preload/api-sqlite';
 let connectionId: number = 0;
 const connectionMap: Map<number, Db> = new Map();
 
+// Load Extensions
+console.log('PLEASE FIX EXTENSION LOADING');
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function loadExtensions(db: Db): void {
+    switch (process.platform) {
+        case 'win32':
+            db.loadExtension(
+                path.join(app.getAppPath(), 'resources', 'regex', 'win-x64', 'regexp'),
+            );
+            break;
+        case 'darwin':
+            db.loadExtension(
+                path.join(app.getAppPath(), 'resources', 'regex', 'macos-arm64', 'regexp'),
+            );
+            break;
+        default:
+            throw new Error('Unsupported operating system detected: ' + process.platform);
+    }
+}
+
 ipcMain.handle(
     API_SQLITE_OPEN,
     async (_: IpcMainInvokeEvent, file: string): Promise<DbConnection> => {
         return new Promise((resolve) => {
             const id = connectionId++;
             const connection = new Database(file, { timeout: 0 });
+            // loadExtensions(connection);
             connectionMap.set(id, connection);
             resolve(<DbConnection>{ id: id });
         });
