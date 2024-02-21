@@ -135,7 +135,7 @@
     function onRowClicked(event: RowClickedEvent<IDbRowView<Localization>, GridContext>): void {
         const rowView: IDbRowView<Localization> = event.data;
         FOCUS_REQUEST.focus = new Map();
-        FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
+        FOCUS_REQUEST.focus.set(rowView.id, { rowId: rowView.id });
         focusManager.focus(<FocusRequests>{
             type: FOCUS_MODE_REPLACE,
             requests: [FOCUS_REQUEST],

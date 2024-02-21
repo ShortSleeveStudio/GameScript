@@ -3,7 +3,6 @@ import {
     DATABASE_TABLE_NAMES,
     type DatabaseTableId,
     type LocalePrincipal,
-    type Row,
 } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
@@ -36,7 +35,7 @@ export interface FocusRequest {
 }
 
 export interface Focus {
-    rowView: IDbRowView<Row>;
+    rowId: number;
     payload?: FocusPayload;
 }
 
@@ -60,18 +59,18 @@ export class FocusManager {
             switch (request.type) {
                 case FOCUS_ADD:
                     for (const value of request.focus.values()) {
-                        if (focusMap.has(value.rowView.id)) continue;
+                        if (focusMap.has(value.rowId)) continue;
                         else {
-                            focusMap.set(value.rowView.id, value);
+                            focusMap.set(value.rowId, value);
                             mutationOccurred = true;
                         }
                     }
                     break;
                 case FOCUS_REMOVE:
                     for (const value of request.focus.values()) {
-                        if (!focusMap.has(value.rowView.id)) continue;
+                        if (!focusMap.has(value.rowId)) continue;
                         else {
-                            focusMap.delete(value.rowView.id);
+                            focusMap.delete(value.rowId);
                             mutationOccurred = true;
                         }
                     }
@@ -79,7 +78,7 @@ export class FocusManager {
                 case FOCUS_REPLACE:
                     if (request.focus.size === focusMap.size) {
                         for (const value of request.focus.values()) {
-                            if (focusMap.has(value.rowView.id)) {
+                            if (focusMap.has(value.rowId)) {
                                 continue;
                             } else {
                                 focusMap = request.focus;

@@ -1,5 +1,12 @@
 <script lang="ts">
-    import type { Locale, LocalePrincipal, Localization } from '@lib/api/db/db-schema';
+    import {
+        TABLE_ID_CONVERSATIONS,
+        type Locale,
+        type LocalePrincipal,
+        type Localization,
+        TABLE_ID_NODES,
+        type Node,
+    } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { locales } from '@lib/tables/locales';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -17,12 +24,20 @@
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
     import {
-        EVENT_DOCK_SELECTION_REQUEST,
+        FOCUS_MODE_REPLACE,
+        FOCUS_REPLACE,
+        focusManager,
+        type Focus,
+        type FocusRequests,
+        type FocusRequest,
+        type FocusPayloadGraphElement,
+    } from '@lib/stores/app/focus';
+    import {
         EVENT_FINDER_FILTER_BY_PARENT,
-        type DockSelectionRequest,
         type GridFilterByParentRequest,
     } from '@lib/constants/events';
-    import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
+    import { db } from '@lib/api/db/db';
+    import { createFilter } from '@lib/api/db/db-filter';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
@@ -47,21 +62,64 @@
         }
     }
 
-    function onFindConversation(): void {
+    async function onFindConversation(): Promise<void> {
+        // Grab conversation
+        const localization: Localization = get(rowView);
+        const parentConversation: number = localization.parent;
+
+        // Create conversation focus
+        const conversationFocusMap: Map<number, Focus> = new Map();
+        conversationFocusMap.set(parentConversation, {
+            rowId: parentConversation,
+        });
+        const conversationFocus: FocusRequest = <FocusRequest>{
+            tableId: TABLE_ID_CONVERSATIONS,
+            focus: conversationFocusMap,
+            type: FOCUS_REPLACE,
+        };
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [conversationFocus],
+        });
+
         // Filter Conversations
-        const parentConversation: number = get(rowView).parent;
         dispatchEvent(
             new CustomEvent(EVENT_FINDER_FILTER_BY_PARENT, {
                 detail: <GridFilterByParentRequest>{ parent: parentConversation },
             }),
         );
 
-        // Select Localization Editor
-        dispatchEvent(
-            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
-                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_CONVERSATION_FINDER },
-            }),
+        // Focus on node
+        const rawRows: Node[] = await db.fetchRowsRaw(
+            TABLE_ID_NODES,
+            createFilter<Node>()
+                .where()
+                .column('voiceText')
+                .eq(localization.id)
+                .or()
+                .column('uiResponseText')
+                .eq(localization.id)
+                .endWhere()
+                .build(),
         );
+        if (!rawRows || rawRows.length !== 1) return;
+        const nodeFocusMap: Map<number, Focus> = new Map();
+        const node: Node = rawRows[0];
+        nodeFocusMap.set(node.id, <Focus>{
+            rowId: node.id,
+            payload: <FocusPayloadGraphElement>{
+                requestIsFromGraph: false,
+            },
+        });
+        const nodeFocus: FocusRequest = <FocusRequest>{
+            tableId: TABLE_ID_NODES,
+            focus: nodeFocusMap,
+            type: FOCUS_REPLACE,
+        };
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [nodeFocus],
+        });
     }
 </script>
 
@@ -136,8 +194,8 @@
 {/if}
 {#if showConversationButton && rowView && $rowView.parent}
     <p>
-        <sup>Conversation</sup>
+        <sup>Node</sup>
         <br />
-        <Button size="small" on:click={onFindConversation}>Find Conversation</Button>
+        <Button size="small" on:click={onFindConversation}>Find Node</Button>
     </p>
 {/if}

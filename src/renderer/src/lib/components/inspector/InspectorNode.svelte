@@ -5,6 +5,8 @@
         type Routine,
         NODE_TYPE_DIALOGUE,
         NODE_TYPE_LINK,
+        TABLE_ID_NODES,
+        TABLE_ID_CONVERSATIONS,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -20,7 +22,15 @@
     import RowColumnActor from '../common/RowColumnActor.svelte';
     import RowColumnBoolean from '../common/RowColumnBoolean.svelte';
     import { NODE_UNDO_PREVENT_RESPONSE } from '@lib/constants/settings';
-    import { EVENT_GRAPH_SELECT_NODE, type GraphSelectNodeRequest } from '@lib/constants/events';
+    import {
+        FOCUS_MODE_REPLACE,
+        FOCUS_REPLACE,
+        type FocusRequest,
+        type FocusPayloadGraphElement,
+        type Focus,
+        focusManager,
+        type FocusRequests,
+    } from '@lib/stores/app/focus';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -43,11 +53,37 @@
     }
 
     function onSelectLinkedNode(): void {
-        dispatchEvent(
-            new CustomEvent(EVENT_GRAPH_SELECT_NODE, {
-                detail: <GraphSelectNodeRequest>{ id: $rowView.link },
-            }),
-        );
+        // Grab node
+        const node: Node = get(rowView);
+
+        // Create conversation focus
+        const conversationFocusMap: Map<number, Focus> = new Map();
+        conversationFocusMap.set(node.parent, {
+            rowId: node.parent,
+        });
+        const conversationFocus: FocusRequest = <FocusRequest>{
+            tableId: TABLE_ID_CONVERSATIONS,
+            focus: conversationFocusMap,
+            type: FOCUS_REPLACE,
+        };
+
+        // Create node focus
+        const nodeFocusMap: Map<number, Focus> = new Map();
+        nodeFocusMap.set(node.link, <Focus>{
+            rowId: node.link,
+            payload: <FocusPayloadGraphElement>{
+                requestIsFromGraph: false,
+            },
+        });
+        const nodeFocus: FocusRequest = <FocusRequest>{
+            tableId: TABLE_ID_NODES,
+            focus: nodeFocusMap,
+            type: FOCUS_REPLACE,
+        };
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [conversationFocus, nodeFocus],
+        });
     }
 
     onMount(() => {

@@ -39,8 +39,6 @@
         EVENT_FINDER_FILTER_BY_PARENT,
         isCustomEvent,
         type GridFilterByParentRequest,
-        EVENT_DOCK_SELECTION_REQUEST,
-        type DockSelectionRequest,
     } from '@lib/constants/events';
     import { LS_KEY_FINDER_LAYOUT } from '@lib/constants/local-storage';
     import { db } from '@lib/api/db/db';
@@ -67,10 +65,7 @@
     } from '@lib/stores/app/focus';
     import GridToolbar from '../common/GridToolbar.svelte';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
-    import {
-        LAYOUT_ID_CONVERSATION_EDITOR,
-        LAYOUT_ID_CONVERSATION_FINDER,
-    } from '@lib/constants/default-layout';
+    import { LAYOUT_ID_CONVERSATION_FINDER } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { nodesDelete } from '@lib/crud/node-d';
@@ -262,18 +257,11 @@
     function focusOnConversation(rowView: IDbRowView<Conversation>): void {
         // Focus
         FOCUS_REQUEST.focus = new Map();
-        FOCUS_REQUEST.focus.set(rowView.id, { rowView: rowView });
+        FOCUS_REQUEST.focus.set(rowView.id, { rowId: rowView.id });
         focusManager.focus(<FocusRequests>{
             type: FOCUS_MODE_REPLACE,
             requests: [FOCUS_REQUEST],
         });
-
-        // Request dock selection
-        dispatchEvent(
-            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
-                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_CONVERSATION_EDITOR },
-            }),
-        );
     }
 
     function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {

@@ -71,9 +71,9 @@
     import NodeDialogue from './NodeDialogue.svelte';
     import { Button, InlineLoading, OverflowMenuItem } from 'carbon-components-svelte';
     import {
-        EVENT_GRAPH_SELECT_NODE,
+        EVENT_DOCK_SELECTION_REQUEST,
         EVENT_SHUTDOWN,
-        type GraphSelectNodeRequest,
+        type DockSelectionRequest,
     } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
@@ -100,6 +100,7 @@
     import NodeLink from './NodeLink.svelte';
     import { GRAPH_CONTEXT } from '@lib/graph/graph-constants';
     import type { GraphContext } from '@lib/graph/graph-context';
+    import { LAYOUT_ID_CONVERSATION_EDITOR } from '@lib/constants/default-layout';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -383,13 +384,13 @@
         EDGE_FOCUS_REQUEST.focus = new Map();
         for (let i = 0; i < eventNodes.length; i++) {
             NODE_FOCUS_REQUEST.focus.set(eventNodes[i].data.rowView.id, <Focus>{
-                rowView: eventNodes[i].data.rowView,
+                rowId: eventNodes[i].data.rowView.id,
                 payload: GRAPH_FOCUS_PAYLOAD,
             });
         }
         for (let i = 0; i < eventEdges.length; i++) {
             EDGE_FOCUS_REQUEST.focus.set(eventEdges[i].data.rowView.id, <Focus>{
-                rowView: eventEdges[i].data.rowView,
+                rowId: eventEdges[i].data.rowView.id,
                 payload: GRAPH_FOCUS_PAYLOAD,
             });
         }
@@ -891,23 +892,28 @@
         const focusMap: readonly Map<number, Focus>[] = focusManager.get();
 
         // Conversation focus
-        // let newFocusedConversation: IDbRowView<Conversation> = undefined;
         let newFocusedConversation: number | undefined = undefined;
         const conversationFocus: Map<number, Focus> = focusMap[TABLE_ID_CONVERSATIONS];
         if (conversationFocus.size === 1) {
-            newFocusedConversation = conversationFocus.values().next().value.rowView.id;
+            newFocusedConversation = conversationFocus.values().next().value.rowId;
+
+            // Request dock selection
+            dispatchEvent(
+                new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
+                    detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_CONVERSATION_EDITOR },
+                }),
+            );
         }
 
         // Node focus
         const nodeMap: Map<number, Focus> = focusMap[TABLE_ID_NODES];
-        // let newFocusedNodes: IDbRowView<Node>[] = [];
         let newFocusedNodes: number[] = [];
         if (nodeMap.size !== 0) {
             for (const focus of nodeMap.values()) {
                 const payload: FocusPayloadGraphElement = <FocusPayloadGraphElement>focus.payload;
                 // If there's no payload or it's a request from the graph, ignore it
                 if (!payload || payload.requestIsFromGraph) continue;
-                newFocusedNodes.push((<IDbRowView<Node>>focus.rowView).id);
+                newFocusedNodes.push(focus.rowId);
             }
         }
         changeFocus(false, newFocusedConversation, newFocusedNodes);
@@ -944,7 +950,12 @@
                 loadViewport();
 
                 // Load graph
-                await loadGraph();
+                try {
+                    await loadGraph();
+                } catch (error) {
+                    changeFocus(true);
+                    throw new Error(error);
+                }
 
                 // Create watchers
                 tableWatcherConversation = new TableWatcher(conversationViews);
@@ -975,8 +986,6 @@
 
         // Handle node/edge zoom
         if (focusedRowView && newFocusedNodes.length > 0) {
-            console.log(newFocusedNodes);
-            console.log('make sure to test this');
             const lookup = get(nodeLookup);
             const focusedFlowNodes: FlowNode[] = [];
             const selectedFlowNodes: Set<FlowNode> = new Set();
@@ -999,7 +1008,7 @@
     }
 
     async function loadGraph(): Promise<void> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             conversationViews = db.fetchTable(
                 TABLE_ID_CONVERSATIONS,
                 createFilter<Conversation>()
@@ -1052,6 +1061,11 @@
                     unsubscriberNodeTable();
                     unsubscriberEdgeTable();
                     unsubscriberLocalizationTable();
+
+                    // Make sure the conversation exists
+                    if (get(conversationViews).length !== 1) {
+                        reject('Failed to load conversation');
+                    }
                     resolve();
                 }
             };
@@ -1109,34 +1123,13 @@
         }
     };
 
-    const onSelectNode: (event: CustomEvent<GraphSelectNodeRequest>) => void = (
-        event: CustomEvent<GraphSelectNodeRequest>,
-    ) => {
-        const nodeId: number = event.detail.id;
-        const flowNode: FlowNode = get(nodeLookup)?.get(nodeId.toString());
-        if (!flowNode) return;
-        const selectedSet: Set<FlowNode> = new Set();
-        selectedSet.add(flowNode);
-
-        // Select Node
-        onSelectExclusive(selectedSet);
-
-        // Focus on Node
-        fitView(<FitViewOptions>{
-            duration: 1000,
-            nodes: [flowNode],
-        });
-    };
-
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
-        addEventListener(EVENT_GRAPH_SELECT_NODE, onSelectNode);
     });
     onDestroy(() => {
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
-        removeEventListener(EVENT_GRAPH_SELECT_NODE, onSelectNode);
         clearGraph();
     });
 </script>

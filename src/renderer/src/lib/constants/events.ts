@@ -16,9 +16,6 @@ export const EVENT_DB_CHANGED: string = 'db-changed';
 // Localizations
 export const EVENT_LOCALIZATIONS_FILTER_BY_PARENT = 'localizations-filter-by-parent';
 
-// Conversation Editor
-export const EVENT_GRAPH_SELECT_NODE: string = 'graph-select-node';
-
 // Conversation Finder
 export const EVENT_FINDER_FILTER_BY_PARENT: string = 'finder-filter-by-parent';
 
@@ -30,9 +27,6 @@ export interface DockSelectionRequest {
 }
 export interface DockSelectionChanged {
     layoutId: LayoutId;
-}
-export interface GraphSelectNodeRequest {
-    id: number;
 }
 export interface GridFilterByParentRequest {
     parent: number;

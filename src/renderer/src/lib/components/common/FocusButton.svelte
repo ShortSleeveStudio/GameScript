@@ -17,7 +17,7 @@
 
     function focusOnRowView(): void {
         const focusMap: Map<number, Focus> = new Map();
-        focusMap.set(rowView.id, { rowView: rowView, payload: payload });
+        focusMap.set(rowView.id, { rowId: rowView.id, payload: payload });
         focusManager.focus(<FocusRequests>{
             type: FOCUS_MODE_REPLACE,
             requests: [
