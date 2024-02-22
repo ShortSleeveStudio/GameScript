@@ -1,19 +1,13 @@
 <script lang="ts">
     import { dbSqlitePath, dbType } from '@lib/stores/settings/settings';
-    import {
-        Dropdown,
-        Button,
-        Row,
-        Column,
-        TextInput,
-        OverflowMenu,
-        OverflowMenuItem,
-    } from 'carbon-components-svelte';
+    import { Dropdown, OverflowMenuItem } from 'carbon-components-svelte';
     import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
     import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
-    import { OverflowMenuVertical } from 'carbon-icons-svelte';
     import type { DialogResult } from 'preload/api-dialog';
     import { dialogResultReset } from '@lib/utility/dialog';
+    import FileSelector from '../common/FileSelector.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
 
     // Database type dropdown
     const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
@@ -41,8 +35,8 @@
     }
 </script>
 
-<Row>
-    <Column>
+<DockableRow isFullHeight={false}>
+    <DockableColumn>
         <h2>Database</h2>
         <p>
             <sup>Database Type</sup>
@@ -51,24 +45,13 @@
         {#if $dbType === 'SQLite'}
             <p>
                 <sup>Database File</sup>
-                <span class="button-set">
-                    <Button size="small" on:click={sqliteDatabaseDialogOpen}>Open Database</Button>
-                    <TextInput
-                        size="sm"
-                        disabled={true}
-                        value={$dbSqlitePath.baseName}
-                        placeholder="Database file..."
-                    />
-                    <OverflowMenu flipped size="sm" style="width: auto;">
-                        <div slot="menu">
-                            <Button
-                                tooltipPosition="left"
-                                iconDescription="Options"
-                                size="small"
-                                kind="secondary"
-                                icon={OverflowMenuVertical}
-                            />
-                        </div>
+                <FileSelector
+                    buttonText={'Open Database'}
+                    on:click={sqliteDatabaseDialogOpen}
+                    fieldText={$dbSqlitePath.baseName}
+                    fieldPlaceholder={'Database file...'}
+                >
+                    <svelte:fragment slot="overflow">
                         <OverflowMenuItem text="New Database" on:click={sqliteDatabaseDialogNew} />
                         <OverflowMenuItem
                             text="Close Database"
@@ -76,9 +59,9 @@
                             on:click={resetConnection}
                             disabled={$dbSqlitePath.baseName === ''}
                         />
-                    </OverflowMenu>
-                </span>
+                    </svelte:fragment>
+                </FileSelector>
             </p>
         {/if}
-    </Column>
-</Row>
+    </DockableColumn>
+</DockableRow>

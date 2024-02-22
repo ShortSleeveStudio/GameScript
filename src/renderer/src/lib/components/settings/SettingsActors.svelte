@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { Column, Row } from 'carbon-components-svelte';
-
     import SettingsActorsTable from './SettingsActorsTable.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
 </script>
 
-<Row>
-    <Column>
+<DockableRow isFullHeight={false}>
+    <DockableColumn>
         <h2>Actors</h2>
         <SettingsActorsTable />
-    </Column>
-</Row>
+    </DockableColumn>
+</DockableRow>

@@ -1,11 +1,12 @@
 <script lang="ts">
-    import { Column, Row } from 'carbon-components-svelte';
     import SettingsLocales from './SettingsLocales.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
 </script>
 
-<Row>
-    <Column>
+<DockableRow isFullHeight={false}>
+    <DockableColumn>
         <h2>Localization</h2>
         <SettingsLocales />
-    </Column>
-</Row>
+    </DockableColumn>
+</DockableRow>

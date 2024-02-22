@@ -1,18 +1,18 @@
 <script lang="ts">
-    import { Column, Row } from 'carbon-components-svelte';
-
     import SettingsCodingImports from './SettingsCodingImports.svelte';
     import SettingsCodingAutoComplete from './SettingsCodingAutoComplete.svelte';
     import SettingsCodingLanguageSelect from './SettingsCodingLanguageSelect.svelte';
     import SettingsCodingDefaultRoutines from './SettingsCodingDefaultRoutines.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
 </script>
 
-<Row>
-    <Column>
+<DockableRow isFullHeight={false}>
+    <DockableColumn>
         <h2>Coding</h2>
         <SettingsCodingLanguageSelect />
         <SettingsCodingImports />
         <SettingsCodingDefaultRoutines />
         <SettingsCodingAutoComplete />
-    </Column>
-</Row>
+    </DockableColumn>
+</DockableRow>

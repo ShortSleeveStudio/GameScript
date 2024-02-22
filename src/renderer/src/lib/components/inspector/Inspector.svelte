@@ -13,7 +13,6 @@
         type Row,
     } from '@lib/api/db/db-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
-    import { Column, Content, Grid, Row as CarbonRow } from 'carbon-components-svelte';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
     import { LAYOUT_ID_INSPECTOR } from '@lib/constants/default-layout';
@@ -31,6 +30,9 @@
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { createFilter } from '@lib/api/db/db-filter';
     import type { Unsubscriber } from 'svelte/store';
+    import DockableContent from '../app/DockableContent.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
 
     let focusedItems: number = 0;
     let inspectedFocus: Focus | undefined;
@@ -96,56 +98,41 @@
 
 <!-- https://svelte-5-preview.vercel.app/status -->
 <!-- For all the casting that needs to be done -->
-<div class="inspector">
-    <Content>
-        <Grid noGutter>
-            <CarbonRow>
-                <Column>
-                    {#if $dbConnected && focusedItems}
-                        <!-- Destroy and recreate anytime the focus changes -->
-                        {#if focusedItems === 1 && inspectedTableView && inspectedTableId && inspectedFocus}
-                            {#each $inspectedTableView as rowView (rowView.id)}
-                                {#if inspectedTableId === TABLE_ID_ROUTINES}
-                                    <InspectorRoutine {rowView} payload={inspectedFocus.payload} />
-                                {:else if inspectedTableId === TABLE_ID_AUTO_COMPLETES}
-                                    <InspectorAutoComplete
-                                        {rowView}
-                                        payload={inspectedFocus.payload}
-                                    />
-                                {:else if inspectedTableId === TABLE_ID_ACTORS}
-                                    <InspectorActor {rowView} payload={inspectedFocus.payload} />
-                                {:else if inspectedTableId === TABLE_ID_LOCALES}
-                                    <InspectorLocale {rowView} payload={inspectedFocus.payload} />
-                                {:else if inspectedTableId === TABLE_ID_FILTERS}
-                                    <InspectorFilter {rowView} payload={inspectedFocus.payload} />
-                                {:else if inspectedTableId === TABLE_ID_CONVERSATIONS}
-                                    <InspectorConversation {rowView} />
-                                {:else if inspectedTableId === TABLE_ID_LOCALIZATIONS}
-                                    <InspectorLocalization
-                                        {rowView}
-                                        showTitle={true}
-                                        showConversationButton={true}
-                                    />
-                                {:else if inspectedTableId === TABLE_ID_NODES}
-                                    <InspectorNode {rowView} />
-                                {:else if inspectedTableId === TABLE_ID_EDGES}
-                                    <InspectorEdge {rowView} />
-                                {/if}
-                            {/each}
-                        {:else if focusedItems > 1}
-                            {focusedItems} elements selected
+<DockableContent minWidth={45 * 8}>
+    <DockableRow>
+        <DockableColumn>
+            {#if $dbConnected && focusedItems}
+                <!-- Destroy and recreate anytime the focus changes -->
+                {#if focusedItems === 1 && inspectedTableView && inspectedTableId && inspectedFocus}
+                    {#each $inspectedTableView as rowView (rowView.id)}
+                        {#if inspectedTableId === TABLE_ID_ROUTINES}
+                            <InspectorRoutine {rowView} payload={inspectedFocus.payload} />
+                        {:else if inspectedTableId === TABLE_ID_AUTO_COMPLETES}
+                            <InspectorAutoComplete {rowView} payload={inspectedFocus.payload} />
+                        {:else if inspectedTableId === TABLE_ID_ACTORS}
+                            <InspectorActor {rowView} payload={inspectedFocus.payload} />
+                        {:else if inspectedTableId === TABLE_ID_LOCALES}
+                            <InspectorLocale {rowView} payload={inspectedFocus.payload} />
+                        {:else if inspectedTableId === TABLE_ID_FILTERS}
+                            <InspectorFilter {rowView} payload={inspectedFocus.payload} />
+                        {:else if inspectedTableId === TABLE_ID_CONVERSATIONS}
+                            <InspectorConversation {rowView} />
+                        {:else if inspectedTableId === TABLE_ID_LOCALIZATIONS}
+                            <InspectorLocalization
+                                {rowView}
+                                showTitle={true}
+                                showConversationButton={true}
+                            />
+                        {:else if inspectedTableId === TABLE_ID_NODES}
+                            <InspectorNode {rowView} />
+                        {:else if inspectedTableId === TABLE_ID_EDGES}
+                            <InspectorEdge {rowView} />
                         {/if}
-                    {/if}
-                </Column>
-            </CarbonRow>
-        </Grid>
-    </Content>
-</div>
-
-<style>
-    .inspector {
-        /* Textareas don't get any smaller also, tooltips don't either */
-        height: 100%;
-        min-width: calc(45 * 8px);
-    }
-</style>
+                    {/each}
+                {:else if focusedItems > 1}
+                    {focusedItems} elements selected
+                {/if}
+            {/if}
+        </DockableColumn>
+    </DockableRow>
+</DockableContent>

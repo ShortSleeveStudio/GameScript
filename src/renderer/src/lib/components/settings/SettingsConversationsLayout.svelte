@@ -3,7 +3,7 @@
         graphLayoutAutoLayoutDefault,
         graphLayoutVerticalDefault,
     } from '@lib/stores/graph/graph-layout';
-    import { Tooltip, Dropdown } from 'carbon-components-svelte';
+    import { Tooltip } from 'carbon-components-svelte';
     import PersistedDropdown from '../common/PersistedDropdown.svelte';
     import {
         CONVERSATION_UNDO_DEFAULT_AUTO_LAYOUT,

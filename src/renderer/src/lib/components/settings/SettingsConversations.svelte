@@ -1,13 +1,14 @@
 <script lang="ts">
-    import { Column, Row } from 'carbon-components-svelte';
     import SettingsConversationsFilters from './SettingsConversationsFilters.svelte';
     import SettingsConversationsLayout from './SettingsConversationsLayout.svelte';
+    import DockableRow from '../app/DockableRow.svelte';
+    import DockableColumn from '../app/DockableColumn.svelte';
 </script>
 
-<Row>
-    <Column>
+<DockableRow isFullHeight={false}>
+    <DockableColumn>
         <h2>Conversations</h2>
         <SettingsConversationsLayout />
         <SettingsConversationsFilters />
-    </Column>
-</Row>
+    </DockableColumn>
+</DockableRow>
