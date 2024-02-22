@@ -17,13 +17,11 @@
     } from '@lib/vendor/golden-layout/ts/config/resolved-config';
     import { LayoutConfig } from '@lib/vendor/golden-layout/ts/config/config';
     import {
-        ACTORS_LAYOUT,
         BUILD_LAYOUT,
         CONVERSATION_EDITOR_LAYOUT,
         CONVERSATION_FINDER_LAYOUT,
         DEFAULT_LAYOUT,
         INSPECTOR_LAYOUT,
-        LAYOUT_ID_ACTORS,
         LAYOUT_ID_BUILD,
         LAYOUT_ID_CONVERSATION_EDITOR,
         LAYOUT_ID_CONVERSATION_FINDER,
@@ -38,7 +36,6 @@
     import { LS_KEY_DOCK_LAYOUT } from '@lib/constants/local-storage';
     import { ToastItem, toastManager } from '@lib/stores/app/toasts';
     import {
-        actorsIsVisible,
         buildIsVisible,
         conversationEditorIsVisible,
         conversationFinderIsVisible,
@@ -55,7 +52,6 @@
     import ConversationFinder from '../conversation-finder/ConversationFinder.svelte';
     import ConversationEditor from '../conversation-editor/ConversationEditor.svelte';
     import Build from '../build/Build.svelte';
-    import Actors from '../actors/Actors.svelte';
     import Inspector from '../inspector/Inspector.svelte';
     import { EventEmitter } from '@lib/vendor/golden-layout/ts/utils/event-emitter';
     import type { ComponentItem } from '@lib/vendor/golden-layout/ts/items/component-item';
@@ -173,12 +169,6 @@
 
 <main id="dock" bind:this={dock}></main>
 <del id="hidden" bind:this={hidden}>
-    <Dockable
-        name={LAYOUT_ID_ACTORS}
-        isVisible={actorsIsVisible}
-        layout={layoutReadable}
-        layoutConfig={ACTORS_LAYOUT}><Actors /></Dockable
-    >
     <Dockable
         name={LAYOUT_ID_BUILD}
         isVisible={buildIsVisible}

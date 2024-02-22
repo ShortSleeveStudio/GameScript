@@ -13,7 +13,6 @@ const HEADER_CONFIG: HeaderedItemConfig.Header = {
 };
 
 // Component IDs
-export const LAYOUT_ID_ACTORS: string = 'actors';
 export const LAYOUT_ID_BUILD: string = 'build';
 export const LAYOUT_ID_CONVERSATION_EDITOR: string = 'conversation-editor';
 export const LAYOUT_ID_CONVERSATION_FINDER: string = 'conversation-finder';
@@ -22,7 +21,6 @@ export const LAYOUT_ID_LOCALIZATION_EDITOR: string = 'localization-editor';
 export const LAYOUT_ID_SEARCH: string = 'search';
 export const LAYOUT_ID_SETTINGS: string = 'settings';
 export const LAYOUT_IDS = [
-    LAYOUT_ID_ACTORS,
     LAYOUT_ID_BUILD,
     LAYOUT_ID_CONVERSATION_EDITOR,
     LAYOUT_ID_CONVERSATION_FINDER,
@@ -34,13 +32,6 @@ export const LAYOUT_IDS = [
 export type LayoutId = (typeof LAYOUT_IDS)[number];
 
 // Component Config
-export const ACTORS_LAYOUT: ComponentItemConfig = {
-    id: LAYOUT_ID_ACTORS,
-    title: 'Actors',
-    header: HEADER_CONFIG,
-    type: 'component',
-    componentType: 'actors',
-};
 export const BUILD_LAYOUT: ComponentItemConfig = {
     id: LAYOUT_ID_BUILD,
     title: 'Build',
@@ -97,7 +88,7 @@ const ROOT: RootItemConfig = {
         {
             size: '23%',
             type: 'stack',
-            content: [CONVERSATION_FINDER_LAYOUT, ACTORS_LAYOUT],
+            content: [CONVERSATION_FINDER_LAYOUT],
         },
         {
             size: '50%',

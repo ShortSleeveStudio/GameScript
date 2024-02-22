@@ -18,7 +18,6 @@
     import { darkmode } from '@lib/stores/app/darkmode';
     import { EVENT_DOCK_RESET_LAYOUT, EVENT_SHUTDOWN } from '@lib/constants/events';
     import {
-        actorsIsVisible,
         buildIsVisible,
         conversationEditorIsVisible,
         conversationFinderIsVisible,
@@ -76,12 +75,8 @@
                 text="Load Default Layout"
                 on:click={() => dispatchEvent(new CustomEvent(EVENT_DOCK_RESET_LAYOUT))}
             />
+
             <SideNavDivider />
-            <SideNavMenuItem
-                text="Actors"
-                isSelected={$actorsIsVisible}
-                on:click={() => ($actorsIsVisible = !$actorsIsVisible)}
-            />
 
             <SideNavMenuItem
                 text="Build"

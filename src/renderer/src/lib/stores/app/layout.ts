@@ -1,7 +1,5 @@
 import { writable, type Writable } from 'svelte/store';
 
-/** Store for if actors component is visible */
-export const actorsIsVisible: Writable<boolean> = writable(false);
 /** Store for if build component is visible */
 export const buildIsVisible: Writable<boolean> = writable(false);
 /** Store for if conversation editor component is visible */

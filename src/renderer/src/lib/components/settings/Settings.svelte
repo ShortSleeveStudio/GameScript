@@ -6,6 +6,7 @@
     import SettingsCoding from './SettingsCoding.svelte';
     import SettingsLocalization from './SettingsLocalization.svelte';
     import SettingsConversations from './SettingsConversations.svelte';
+    import SettingsActors from './SettingsActors.svelte';
 </script>
 
 <div class="settings">
@@ -14,6 +15,7 @@
             <SettingsDatabase />
             {#if $dbConnected}
                 <SettingsCoding />
+                <SettingsActors />
                 <SettingsLocalization />
                 <SettingsConversations />
             {/if}
