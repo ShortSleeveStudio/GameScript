@@ -38,6 +38,7 @@
     } from '@lib/constants/events';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
+    import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
@@ -63,63 +64,7 @@
     }
 
     async function onFindConversation(): Promise<void> {
-        // Grab conversation
-        const localization: Localization = get(rowView);
-        const parentConversation: number = localization.parent;
-
-        // Create conversation focus
-        const conversationFocusMap: Map<number, Focus> = new Map();
-        conversationFocusMap.set(parentConversation, {
-            rowId: parentConversation,
-        });
-        const conversationFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_CONVERSATIONS,
-            focus: conversationFocusMap,
-            type: FOCUS_REPLACE,
-        };
-        focusManager.focus(<FocusRequests>{
-            type: FOCUS_MODE_REPLACE,
-            requests: [conversationFocus],
-        });
-
-        // Filter Conversations
-        dispatchEvent(
-            new CustomEvent(EVENT_FINDER_FILTER_BY_PARENT, {
-                detail: <GridFilterByParentRequest>{ parent: parentConversation },
-            }),
-        );
-
-        // Focus on node
-        const rawRows: Node[] = await db.fetchRowsRaw(
-            TABLE_ID_NODES,
-            createFilter<Node>()
-                .where()
-                .column('voiceText')
-                .eq(localization.id)
-                .or()
-                .column('uiResponseText')
-                .eq(localization.id)
-                .endWhere()
-                .build(),
-        );
-        if (!rawRows || rawRows.length !== 1) return;
-        const nodeFocusMap: Map<number, Focus> = new Map();
-        const node: Node = rawRows[0];
-        nodeFocusMap.set(node.id, <Focus>{
-            rowId: node.id,
-            payload: <FocusPayloadGraphElement>{
-                requestIsFromGraph: false,
-            },
-        });
-        const nodeFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_NODES,
-            focus: nodeFocusMap,
-            type: FOCUS_REPLACE,
-        };
-        focusManager.focus(<FocusRequests>{
-            type: FOCUS_MODE_REPLACE,
-            requests: [nodeFocus],
-        });
+        await focusOnNodeOfLocalization(get(rowView));
     }
 </script>
 

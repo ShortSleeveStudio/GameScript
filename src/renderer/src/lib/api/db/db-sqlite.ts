@@ -365,6 +365,32 @@ export class SqliteDb extends Db {
         await this.notify<RowType>(OP_DELETE, tableId, rows, connection);
     }
 
+    async searchAndReplace<RowType extends Row>(
+        tableId: number,
+        filter: Filter<RowType>,
+        field: string,
+        search: string,
+        replace: string,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        // Execute
+        const query = `UPDATE ${
+            DATABASE_TABLE_NAMES[tableId]
+        } SET ${field} = REPLACE(${field},?,?) ${filter.toString()};`;
+        try {
+            await window.api.sqlite.run(connection ?? this._db, query, [search, replace]);
+        } catch (err) {
+            throw new Error(`Failed to update row: ${err}`);
+        }
+
+        // TODO: REMOVE THIS
+        await wait(300);
+
+        // Notify
+        await this.notify(OP_ALTER, tableId, undefined, connection);
+    }
+
     async shutdown(): Promise<void> {
         this.destroyConnection();
         this._unsubscribeSqlitePath();

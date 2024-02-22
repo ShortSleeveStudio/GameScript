@@ -970,6 +970,12 @@
                 // Catch up
                 await tick();
 
+                // Bail early if we've already blurred or the conversation is otherwise not there
+                if (!focusedRowView) {
+                    changeFocus(true);
+                    return;
+                }
+
                 // Update conversation auto-layout / vertical settings
                 const focusedConversation: Conversation = get(focusedRowView);
                 currentLayoutAuto = !focusedConversation.layoutAuto; // To trigger a change

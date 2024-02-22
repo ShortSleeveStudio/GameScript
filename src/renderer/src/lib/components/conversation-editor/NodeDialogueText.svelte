@@ -14,7 +14,7 @@
 </script>
 
 <RowColumnTextArea
-    class="nodrag node-text"
+    class="nodrag nopan node-text"
     stopDefault={true}
     disableBorder={true}
     {disabled}

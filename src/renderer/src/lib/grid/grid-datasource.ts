@@ -1,27 +1,13 @@
-import type {
-    ICombinedSimpleModel,
-    IDatasource,
-    IGetRowsParams,
-    ISimpleFilterModel,
-    JoinOperator,
-    NumberFilterModel,
-    ProvidedFilterModel,
-    SortModelItem,
-    TextFilterModel,
-} from '@ag-grid-community/core';
+import type { IDatasource, IGetRowsParams, SortModelItem } from '@ag-grid-community/core';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
-import type {
-    Filter,
-    WhereAndOrCloseScopeEnd,
-    WhereColumnOrOpenScope,
-    WherePredicate,
-} from '@lib/api/db/db-filter-interface';
+import type { Filter } from '@lib/api/db/db-filter-interface';
 import { type DatabaseTableId, type Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 import { get, type Unsubscriber } from 'svelte/store';
 import type { GridContext } from './grid-context';
+import { datasourceFilterWhere } from './grid-datasource-helpers';
 
 interface CacheBlock {
     blockNumber: number;
@@ -146,7 +132,6 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
     }
 
     private buildFilter(params: IGetRowsParams): Filter<RowType> {
-        let filter: Filter<RowType>;
         // Filter - limit / offset
         const filterBuilder = createFilter().offset(this._currentOffset).limit(this._currentLimit);
 
@@ -157,116 +142,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         }
 
         // Filter - where clause
-        const filterColumns: string[] = Object.keys(params.filterModel);
-        if (filterColumns.length > 0) {
-            let whereBuilder: WhereColumnOrOpenScope<RowType> = filterBuilder.where();
-            for (let i = 0; i < filterColumns.length; i++) {
-                const column: string = filterColumns[i];
-                const filterModel: ProvidedFilterModel = params.filterModel[column];
-
-                // Check if this requires a join
-                let filters: ISimpleFilterModel[];
-                let joinOperator: JoinOperator;
-                if ('conditions' in filterModel) {
-                    const combinedModel = filterModel as ICombinedSimpleModel<
-                        TextFilterModel | NumberFilterModel
-                    >;
-                    joinOperator = combinedModel.operator;
-                    filters = combinedModel.conditions;
-                } else {
-                    filters = [filterModel];
-                }
-
-                // Iterate over all filters for this column
-                let whereAndOrClose: WhereAndOrCloseScopeEnd<RowType>;
-                for (let j = 0; j < filters.length; j++) {
-                    const wherePredicate: WherePredicate<RowType> = whereBuilder.column(column);
-                    switch (filterModel.filterType) {
-                        case 'text': {
-                            whereAndOrClose = this.handleTextFilter(
-                                wherePredicate,
-                                <TextFilterModel>filters[j],
-                            );
-                            break;
-                        }
-                        case 'number': {
-                            whereAndOrClose = this.handleNumberFilter(
-                                wherePredicate,
-                                <NumberFilterModel>filters[j],
-                            );
-                            break;
-                        }
-                        default:
-                            throw new Error(`Unknown filter type: ${filterModel.filterType}`);
-                    }
-                    if (j !== filters.length - 1) {
-                        switch (joinOperator) {
-                            case 'AND':
-                                whereBuilder = whereAndOrClose.and();
-                                break;
-                            case 'OR':
-                                whereBuilder = whereAndOrClose.or();
-                                break;
-                        }
-                    }
-                }
-
-                // If this isn't the last column, add an 'AND'
-                // If this is the last column, end the where clause
-                if (i !== filterColumns.length - 1) {
-                    whereBuilder = whereAndOrClose.and();
-                } else {
-                    filter = whereAndOrClose.endWhere().build();
-                }
-            }
-        } else {
-            filter = filterBuilder.build();
-        }
-        return filter;
-    }
-
-    private handleTextFilter(
-        whereBuilder: WherePredicate<RowType>,
-        textFilterModel: TextFilterModel,
-    ): WhereAndOrCloseScopeEnd<RowType> {
-        switch (textFilterModel.type) {
-            case 'equals':
-                return whereBuilder.eq(textFilterModel.filter);
-            case 'notEqual':
-                return whereBuilder.ne(textFilterModel.filter);
-            case 'contains':
-                return whereBuilder.like(`%${textFilterModel.filter}%`);
-            case 'notContains':
-                return whereBuilder.notLike(`%${textFilterModel.filter}%`);
-            case 'startsWith':
-                return whereBuilder.like(`${textFilterModel.filter}%`);
-            case 'endsWith':
-                return whereBuilder.like(`%${textFilterModel.filter}`);
-            default:
-                throw new Error(`Unknown filter operation: ${textFilterModel.type}`);
-        }
-    }
-
-    private handleNumberFilter(
-        whereBuilder: WherePredicate<RowType>,
-        numberFilterModel: NumberFilterModel,
-    ): WhereAndOrCloseScopeEnd<RowType> {
-        switch (numberFilterModel.type) {
-            case 'equals':
-                return whereBuilder.eq(numberFilterModel.filter);
-            case 'notEqual':
-                return whereBuilder.ne(numberFilterModel.filter);
-            case 'lessThan':
-                return whereBuilder.lt(numberFilterModel.filter);
-            case 'lessThanOrEqual':
-                return whereBuilder.lte(numberFilterModel.filter);
-            case 'greaterThan':
-                return whereBuilder.gt(numberFilterModel.filter);
-            case 'greaterThanOrEqual':
-                return whereBuilder.gte(numberFilterModel.filter);
-            default:
-                throw new Error(`Unknown filter operation: ${numberFilterModel.type}`);
-        }
+        return datasourceFilterWhere(filterBuilder, params.filterModel);
     }
 
     private updateRange(cacheBlocks: unknown): void {

@@ -5,9 +5,9 @@
 </script>
 
 <div class="search">
-    <Content>
-        <Grid noGutter>
-            <Row>
+    <Content style="height: 100%">
+        <Grid noGutter style="height: 100%">
+            <Row style="height: 100%">
                 <Column>
                     {#if $dbConnected}
                         <SearchTable />
@@ -21,6 +21,7 @@
 <style>
     .search {
         height: 100%;
+        width: 100%;
         min-width: calc(52px * 8);
     }
 </style>

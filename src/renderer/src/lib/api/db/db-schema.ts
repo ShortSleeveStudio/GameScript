@@ -220,6 +220,7 @@ export type RoutineTypeId = (typeof ROUTINE_TYPES)[number]['id'];
 export interface Routine extends Row, Annotated, SystemCreatable {
     code: string;
     type: RoutineTypeId;
+    parent: number; // FK Conversations
 }
 
 ///

@@ -232,6 +232,24 @@ export abstract class Db {
     ): Promise<void>;
 
     /**
+     * Search for and replace a string of text.
+     * @param tableId Id of the table
+     * @param filter Filter for the query
+     * @param field Field to search in
+     * @param search String to search for
+     * @param replace String to replace with
+     * @param connection Optional connection to execute with
+     */
+    abstract searchAndReplace<RowType extends Row>(
+        tableId: DatabaseTableId,
+        filter: Filter<RowType>,
+        field: string,
+        search: string,
+        replace: string,
+        connection?: DbConnection,
+    ): Promise<void>;
+
+    /**
      * Shutdown this database connection.
      */
     abstract shutdown(): Promise<void>;
