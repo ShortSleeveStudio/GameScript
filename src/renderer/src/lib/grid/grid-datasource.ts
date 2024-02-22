@@ -23,6 +23,7 @@ interface RowsRequest {
     endRow: number;
     isSubscribeUpdateCalled: boolean;
     oldTable: IDbTableView<Row>;
+    oldUnsubscriber: Unsubscriber;
 }
 
 // TODO: remove logging
@@ -35,6 +36,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
     private _currentLimit: number;
     private _currentOffset: number;
     private _requests: RowsRequest[];
+    private _previousFilter: Filter<RowType>;
 
     constructor(tableId: DatabaseTableId) {
         this._tableId = tableId;
@@ -52,7 +54,6 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
 
         // Build filter
         const filter: Filter<RowType> = this.buildFilter(params);
-        // console.log('FILTER: ' + filter.toString());
 
         // Store callback
         const capturedRequestIndex: number = this._requests.length;
@@ -65,62 +66,61 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         };
         this._requests.push(currentRequest);
 
+        // Check if this is a refresh request
+        // console.log(
+        //     `${filter.toString()} ======== ${
+        //         this._previousFilter ? this._previousFilter.toString() : 'null'
+        //     }`,
+        // );
+        if (
+            this._refreshRequested &&
+            this._previousFilter &&
+            filter.toString() === this._previousFilter.toString()
+        ) {
+            // console.log('REFRESH');
+            this._refreshRequested = false;
+            this.handleSuccess(get(this._tableView), capturedRequestIndex);
+            return;
+        }
+        this._previousFilter = filter;
+
         // Create update handler
-        const updateHandler: (
+        const updateHandler: (rowViews: IDbRowView<RowType>[]) => void = (
             rowViews: IDbRowView<RowType>[],
-            argumentRequestIndex?: number,
-        ) => void = (rowViews: IDbRowView<RowType>[], argumentRequestIndex?: number) => {
-            const currentIndex: number =
-                argumentRequestIndex === undefined ? capturedRequestIndex : argumentRequestIndex;
+        ) => {
+            const currentIndex: number = capturedRequestIndex;
             const request: RowsRequest = this._requests[currentIndex];
+            // console.log(`CALLBACK - current index ${currentIndex}`);
 
             // Update from backend
             if (request === undefined) {
                 // Backend update
-                // console.log('BACKEND UPDATE');
+                // console.log(`BACKEND UPDATE for table ${this._tableView.viewId}`);
                 this._refreshRequested = true;
                 this._context.getGridApi().refreshInfiniteCache();
             }
             // Skip subscription update
-            else if (!request.isSubscribeUpdateCalled && rowViews.length === 0) {
+            else if (!request.isSubscribeUpdateCalled) {
+                // console.log('SUBSCRIPTION CALLBACK');
+                if (rowViews.length !== 0) throw new Error('Subscription request was non-empty');
                 request.isSubscribeUpdateCalled = true;
                 return;
             }
             // Update from frontend
             else {
-                const sliceStart: number = request.startRow - this._currentOffset;
-                const sliceEnd: number = request.endRow - this._currentOffset;
-                // console.log(
-                //     `FRONTEND UPDATE START[${request.startRow}] END[${request.endRow}] ROWCOUNT[${this._tableView.rowCount}]`,
-                // );
-                request.successCallback(
-                    rowViews.slice(sliceStart, sliceEnd),
-                    this._tableView.rowCount,
-                );
-                // Destroy old table now that the new one exists (any sooner and rows are destroyed)
-                if (request.oldTable) db.releaseTable(request.oldTable);
-                this._context.getGridApi().autoSizeAllColumns();
-                this._requests[currentIndex] = undefined;
-                this.attemptPurgeRequests();
+                // console.log('FRONTEND CALLBACK');
+                this.handleSuccess(rowViews, currentIndex);
             }
         };
 
-        // Recreate table
         if (this._tableView) {
-            if (this._refreshRequested) {
-                // console.log('REFRESH');
-                this._refreshRequested = false;
-                updateHandler(get(this._tableView), capturedRequestIndex);
-                return;
-            } else {
-                // Store old table to destroy
-                this._tableViewUnsubscriber();
-                currentRequest.oldTable = this._tableView;
-            }
+            currentRequest.oldTable = this._tableView;
+            currentRequest.oldUnsubscriber = this._tableViewUnsubscriber;
         }
-        // console.log('CREATE TABLE');
         currentRequest.isSubscribeUpdateCalled = false;
         this._tableView = db.fetchTable<RowType>(this._tableId, filter);
+        // console.log('CREATE TABLE: ' + filter.toString());
+        // console.log(this._tableView);
         this._tableViewUnsubscriber = this._tableView.subscribe(updateHandler);
     }
 
@@ -129,6 +129,28 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         this._context = undefined;
         if (this._tableViewUnsubscriber) this._tableViewUnsubscriber();
         if (this._tableView) db.releaseTable(this._tableView);
+    }
+
+    private handleSuccess(rowViews: IDbRowView<RowType>[], currentIndex: number): void {
+        // Send back successful results
+        const request: RowsRequest = this._requests[currentIndex];
+        const sliceStart: number = request.startRow - this._currentOffset;
+        const sliceEnd: number = request.endRow - this._currentOffset;
+        request.successCallback(rowViews.slice(sliceStart, sliceEnd), this._tableView.rowCount);
+
+        // Destroy old table now that the new one exists (any sooner and rows are destroyed)
+        if (request.oldUnsubscriber) request.oldUnsubscriber();
+        if (request.oldTable) {
+            // console.log('DELETE TABLE: ');
+            // console.log(request.oldTable);
+            db.releaseTable(request.oldTable);
+        }
+
+        // Update column sizes
+        this._context.getGridApi().autoSizeAllColumns();
+
+        this._requests[currentIndex] = undefined;
+        this.attemptPurgeRequests();
     }
 
     private buildFilter(params: IGetRowsParams): Filter<RowType> {

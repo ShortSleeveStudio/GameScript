@@ -21,6 +21,8 @@
         TABLE_ID_LOCALIZATIONS,
         type Localization,
         type Row,
+        TABLE_ID_FILTERS,
+        type DatabaseTableId,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
@@ -39,6 +41,8 @@
         EVENT_FINDER_FILTER_BY_PARENT,
         isCustomEvent,
         type GridFilterByParentRequest,
+        EVENT_DB_COLUMN_DELETING,
+        type DbColumnDeleting,
     } from '@lib/constants/events';
     import { LS_KEY_FINDER_LAYOUT } from '@lib/constants/local-storage';
     import { db } from '@lib/api/db/db';
@@ -343,6 +347,18 @@
         localStorage.setItem(LS_KEY_FINDER_LAYOUT, JSON.stringify(savedState));
     };
 
+    const onFilterDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
+        e: CustomEvent<DbColumnDeleting>,
+    ) => {
+        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
+        if (tableId === TABLE_ID_FILTERS) {
+            api.setFilterModel(null);
+            api.applyColumnState({
+                defaultState: { sort: null },
+            });
+        }
+    };
+
     onMount(() => {
         // Create grid options
         const gridOptions: GridOptions = <GridOptions>{
@@ -407,12 +423,14 @@
         addEventListener(EVENT_SHUTDOWN, onShutdown);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
         addEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
+        addEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
     });
     onDestroy(() => {
         // Remove event listener
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
         removeEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
+        removeEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
 
         // Dispose of table watcher
         tableWatcher?.dispose();

@@ -27,6 +27,7 @@
     import type { DbConnection } from 'preload/api-db';
     import { filterIdToColumn } from '@lib/utility/filters';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
+    import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadFilter = <FocusPayloadFilter>{
@@ -54,6 +55,13 @@
     }
 
     async function deleteFilter(toDelete: Filter, conn: DbConnection): Promise<void> {
+        // Notify anyone interested
+        dispatchEvent(
+            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
+                detail: <DbColumnDeleting>{ tableId: TABLE_ID_FILTERS },
+            }),
+        );
+
         // Delete Column
         await db.deleteColumn(TABLE_ID_CONVERSATIONS, filterIdToColumn(toDelete.id), conn);
 

@@ -13,6 +13,8 @@
         type Locale,
         type Localization,
         type Row,
+        type DatabaseTableId,
+        TABLE_ID_LOCALES,
     } from '@lib/api/db/db-schema';
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import {
@@ -53,6 +55,8 @@
         type DockSelectionChanged,
         EVENT_DOCK_SELECTION_CHANGED,
         type GridFilterByParentRequest,
+        type DbColumnDeleting,
+        EVENT_DB_COLUMN_DELETING,
     } from '@lib/constants/events';
     import GridToolbar from '../common/GridToolbar.svelte';
     import { Button, InlineLoading } from 'carbon-components-svelte';
@@ -272,6 +276,18 @@
         }
     };
 
+    const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
+        e: CustomEvent<DbColumnDeleting>,
+    ) => {
+        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
+        if (tableId === TABLE_ID_LOCALES) {
+            api.setFilterModel(null);
+            api.applyColumnState({
+                defaultState: { sort: null },
+            });
+        }
+    };
+
     onMount(() => {
         // Create grid options
         const gridOptions: GridOptions = <GridOptions>{
@@ -331,12 +347,14 @@
         addEventListener(EVENT_SHUTDOWN, onShutdown);
         addEventListener(EVENT_LOCALIZATIONS_FILTER_BY_PARENT, onFilterByParent);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        addEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
     });
     onDestroy(() => {
         // Remove event listeners
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         removeEventListener(EVENT_LOCALIZATIONS_FILTER_BY_PARENT, onFilterByParent);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        removeEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
 
         // Dispose of table watcher
         tableWatcher?.dispose();

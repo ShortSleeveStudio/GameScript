@@ -1,3 +1,4 @@
+import type { DatabaseTableId } from '@lib/api/db/db-schema';
 import type { LayoutId } from './default-layout';
 /**
  * Event Names
@@ -12,6 +13,7 @@ export const EVENT_DOCK_SELECTION_CHANGED: string = 'dock-selection-changed';
 
 // Database
 export const EVENT_DB_CHANGED: string = 'db-changed';
+export const EVENT_DB_COLUMN_DELETING: string = 'db-column-deleting';
 
 // Localizations
 export const EVENT_LOCALIZATIONS_FILTER_BY_PARENT = 'localizations-filter-by-parent';
@@ -30,6 +32,9 @@ export interface DockSelectionChanged {
 }
 export interface GridFilterByParentRequest {
     parent: number;
+}
+export interface DbColumnDeleting {
+    tableId: DatabaseTableId;
 }
 
 /**

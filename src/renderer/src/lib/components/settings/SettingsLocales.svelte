@@ -38,6 +38,8 @@
     import { localeIdToColumn } from '@lib/utility/locale';
     import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
+    import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
+    import { wait } from '@lib/utility/wait';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
@@ -74,6 +76,13 @@
                 conn,
             );
         }
+
+        // Notify anyone interested
+        dispatchEvent(
+            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
+                detail: <DbColumnDeleting>{ tableId: TABLE_ID_LOCALES },
+            }),
+        );
 
         // Delete Column
         await db.deleteColumn(TABLE_ID_LOCALIZATIONS, localeIdToColumn(toDelete.id), conn);

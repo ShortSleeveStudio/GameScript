@@ -20,10 +20,17 @@
         type Row,
         type Routine,
         type DatabaseTableId,
+        TABLE_ID_LOCALES,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { LAYOUT_ID_SEARCH } from '@lib/constants/default-layout';
-    import { EVENT_DOCK_SELECTION_CHANGED, type DockSelectionChanged } from '@lib/constants/events';
+    import {
+        EVENT_DOCK_SELECTION_CHANGED,
+        type DockSelectionChanged,
+        isCustomEvent,
+        type DbColumnDeleting,
+        EVENT_DB_COLUMN_DELETING,
+    } from '@lib/constants/events';
     import {
         GRID_CACHE_BLOCK_SIZE,
         GRID_FILTER_PARAMS_NUMBER,
@@ -53,6 +60,7 @@
     import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropdown.svelte';
     import { onDestroy, onMount, tick } from 'svelte';
     import { get } from 'svelte/store';
+    import Search from './Search.svelte';
 
     const COLUMN_ID: string = 'id';
     const COLUMN_CONVERSATION_ID: string = 'parent';
@@ -117,6 +125,9 @@
                 },
             ];
             api.setFilterModel(null);
+            api.applyColumnState({
+                defaultState: { sort: null },
+            });
             api.updateGridOptions(<ManagedGridOptions>{
                 datasource: datasourceRoutines,
                 columnDefs: columnDefs,
@@ -124,6 +135,9 @@
             currentSearchColumnId = COLUMN_CODE;
         } else {
             api.setFilterModel(null);
+            api.applyColumnState({
+                defaultState: { sort: null },
+            });
             api.updateGridOptions(<ManagedGridOptions>{
                 datasource: datasourceLocalizations,
             });
@@ -133,17 +147,23 @@
 
     async function onLocalesChanged(): Promise<void> {
         // Update dropdown options
+        let selectedIdExists: boolean = false;
         localeDropdownOptions = get(locales).map((locale: IDbRowView<Locale>) => {
+            if (locale.id === selectedLocale) selectedIdExists = true;
             return <DropdownItem>{
                 id: locale.id,
                 text: get(locale).name,
             };
         });
+        if (!selectedIdExists && localeDropdownOptions.length > 0) {
+            selectedLocale = localeDropdownOptions[0].id;
+        }
         await tick();
         if (!isCode) onLocaleSelected();
     }
 
     function onLocaleSelected(): void {
+        searchString = '';
         let localeRowView: IDbRowView<Locale> = undefined;
         const localeViews: IDbRowView<Locale>[] = get(locales);
         for (let i = 0; i < localeViews.length; i++) {
@@ -288,6 +308,18 @@
         }
     };
 
+    const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
+        e: CustomEvent<DbColumnDeleting>,
+    ) => {
+        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
+        if (tableId === TABLE_ID_LOCALES) {
+            api.setFilterModel(null);
+            api.applyColumnState({
+                defaultState: { sort: null },
+            });
+        }
+    };
+
     onMount(() => {
         // Create grid options
         const gridOptions: GridOptions = <GridOptions>{
@@ -323,10 +355,12 @@
 
         // Add event listeners
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        addEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
     });
     onDestroy(() => {
         // Remove event listeners
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        removeEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
 
         // Dispose of table watcher
         tableWatcher?.dispose();
@@ -340,8 +374,8 @@
     <span class="top">
         <Tile>
             <div class="control-container">
-                <div class="control-item"><sup>Content</sup></div>
-                <div class="control-item">
+                <div class="control-item with-gap"><sup>Content</sup></div>
+                <div class="control-item with-gap">
                     <ContentSwitcher
                         size="sm"
                         on:change={onContentChanged}
@@ -464,5 +498,10 @@
 
     .control-item > sup {
         margin-bottom: 0;
+    }
+
+    .with-gap {
+        margin-bottom: 0px;
+        /* var(--cds-layout-02); */
     }
 </style>
