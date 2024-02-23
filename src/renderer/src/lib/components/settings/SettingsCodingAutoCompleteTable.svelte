@@ -25,6 +25,7 @@
     } from '@lib/constants/settings';
     import { db } from '@lib/api/db/db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
+    import { APP_NAME } from '@common/constants';
 
     const headers: DataTableHeader[] = [
         { key: 'label', value: 'Label' },
@@ -92,7 +93,7 @@
         size="medium"
         title="Auto-Complete Strings"
         description="This table is populated with auto-complete strings that are made available 
-        anywhere you write code within {window.api.constants.APP_NAME}."
+        anywhere you write code within {APP_NAME}."
         batchSelection
         bind:selectedRowIds
         {headers}

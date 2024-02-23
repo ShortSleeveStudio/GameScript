@@ -173,7 +173,7 @@ export const PROGRAMMING_LANGUAGE_ID_CS: ProgrammingLanguageId = 0;
 export const PROGRAMMING_LANGUAGE_ID_CPP: ProgrammingLanguageId = 1;
 
 /**Dropdowns to select programming lanugage */
-export const PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS: DropdownItem[] = PROGRAMMING_LANGUAGE_NAMES.map(
+export const PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS: DropdownItem[] = PROGRAMMING_LANGUAGE_NAMES.map(
     (languageName: string, index: number) =>
         <DropdownItem>{
             id: index,

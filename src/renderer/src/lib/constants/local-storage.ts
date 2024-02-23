@@ -25,3 +25,11 @@ export function conversationIdToViewportKey(conversationId: number): string {
 export function isConversationViewportKey(key: string): boolean {
     return key && key.startsWith(LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX);
 }
+
+// Build
+export const LS_KEY_BUILD_EXPORT_PATH_DATA: string = 'build-export-path-data';
+export const LS_KEY_BUILD_EXPORT_PATH_ROUTINES: string = 'build-export-path-routines';
+export const LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION: string = 'build-export-path-localization';
+export const LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION: string =
+    'build-export-localization-division';
+export const LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT: string = 'build-export-localization-format';

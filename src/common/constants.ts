@@ -2,8 +2,8 @@
 export const APP_NAME = 'GameScript';
 
 // Dialog
-export const API_DIALOG_SQLITE_OPEN = '/api/dialog/sqlite-open';
-export const API_DIALOG_SQLITE_SAVE = '/api/dialog/sqlite-save';
+export const API_DIALOG_OPEN = '/api/dialog/open';
+export const API_DIALOG_SAVE = '/api/dialog/save';
 export const API_DIALOG_AUTO_COMPLETE_OPEN = '/api/dialog/auto-complete-open';
 
 // FileSystem
@@ -26,3 +26,6 @@ export const API_SQLITE_RUN = '/api/sqlite/run';
 export const API_SQLITE_ALL = '/api/sqlite/all';
 export const API_SQLITE_GET = '/api/sqlite/get';
 export const API_SQLITE_EXEC = '/api/sqlite/exec';
+
+// Build
+export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';

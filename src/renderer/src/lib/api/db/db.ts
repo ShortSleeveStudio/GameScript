@@ -1,19 +1,24 @@
+import {
+    DATABASE_TYPE_POSTGRES,
+    DATABASE_TYPE_SQLITE,
+    type DatabaseTypeId,
+} from '@common/common-types';
 import { EVENT_SHUTDOWN } from '@lib/constants/events';
 import { focusManager } from '@lib/stores/app/focus';
 import { appInitializationErrors } from '@lib/stores/app/initialization-errors';
 import { notificationManager } from '@lib/stores/app/notifications';
 import { dbConnected, dbSqlitePath, dbType } from '@lib/stores/settings/settings';
+import { type Unsubscriber } from 'svelte/store';
 import type { Db } from './db-base';
 import { PostgresDb } from './db-postgres';
 import { SqliteDb } from './db-sqlite';
-import type { DatabaseTypeName } from './db-types';
 
 /**Main DB instance */
 export let db: Db;
 
 // Initialization
-dbType.subscribe(onDbTypeChange);
-function onDbTypeChange(newDbtype: DatabaseTypeName): void {
+const dbTypeUnsubscriber: Unsubscriber = dbType.subscribe(onDbTypeChange);
+function onDbTypeChange(newDbtype: DatabaseTypeId): void {
     // Shutdown old DB instance
     if (db) {
         db.shutdown();
@@ -21,7 +26,7 @@ function onDbTypeChange(newDbtype: DatabaseTypeName): void {
 
     // Create new DB instance
     switch (newDbtype) {
-        case 'SQLite':
+        case DATABASE_TYPE_SQLITE.id:
             db = new SqliteDb(
                 dbConnected,
                 dbSqlitePath,
@@ -30,12 +35,13 @@ function onDbTypeChange(newDbtype: DatabaseTypeName): void {
                 focusManager,
             );
             break;
-        case 'PostgreSQL':
+        case DATABASE_TYPE_POSTGRES.id:
             db = new PostgresDb(dbConnected);
             break;
     }
 }
 
 addEventListener(EVENT_SHUTDOWN, () => {
+    if (dbTypeUnsubscriber) dbTypeUnsubscriber();
     db.shutdown();
 });

@@ -17,7 +17,6 @@ let connectionId: number = 0;
 const connectionMap: Map<number, Db> = new Map();
 
 // Load Extensions
-console.log('PLEASE FIX EXTENSION LOADING');
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function loadExtensions(db: Db): void {
     switch (process.platform) {

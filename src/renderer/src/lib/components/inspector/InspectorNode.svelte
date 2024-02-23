@@ -31,6 +31,7 @@
         focusManager,
         type FocusRequests,
     } from '@lib/stores/app/focus';
+    import { APP_NAME } from '@common/constants';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -181,9 +182,8 @@
         <Tooltip triggerText="Prevent Response" align="center" direction="top">
             <p>
                 This setting will prevent this node's children from appearing as response options.
-                If all children are available, then {window.api.constants.APP_NAME} will select the child
-                with the highest priority edge. If all edge priorities are the same, then a node will
-                be selected at random.
+                If all children are available, then {APP_NAME} will select the child with the highest
+                priority edge. If all edge priorities are the same, then a node will be selected at random.
             </p>
         </Tooltip>
         <RowColumnBoolean
@@ -202,9 +202,9 @@
             <br />
             <p>
                 It's important to note that link nodes are purely an organizational construct.
-                {window.api.constants.APP_NAME} will replace all link nodes with normal edges during
-                the build process. Therefore, if you use link nodes to connect a single dialogue node
-                to another dialogue node multiple times, only one edge will be created.
+                {APP_NAME} will replace all link nodes with normal edges during the build process. Therefore,
+                if you use link nodes to connect a single dialogue node to another dialogue node multiple
+                times, only one edge will be created.
             </p>
         </Tooltip>
         <RowColumnId {rowView} columnName={'link'} />

@@ -9,11 +9,7 @@ import {
     ipcMain,
 } from 'electron';
 import path from 'path';
-import {
-    API_DIALOG_AUTO_COMPLETE_OPEN,
-    API_DIALOG_SQLITE_OPEN,
-    API_DIALOG_SQLITE_SAVE,
-} from '../common/constants.js';
+import { API_DIALOG_OPEN, API_DIALOG_SAVE } from '../common/constants.js';
 import { DialogResult } from '../preload/api-dialog.js';
 import { windowFromWebContents } from './ipc-common.js';
 
@@ -21,7 +17,7 @@ import { windowFromWebContents } from './ipc-common.js';
  * Result object from dialog.
  */
 ipcMain.handle(
-    API_DIALOG_SQLITE_OPEN,
+    API_DIALOG_OPEN,
     async (event: IpcMainInvokeEvent, payload: OpenDialogOptions): Promise<DialogResult> => {
         const mainWindow: BrowserWindow = windowFromWebContents(event);
         const result: OpenDialogReturnValue = await dialog.showOpenDialog(mainWindow, payload);
@@ -30,16 +26,29 @@ ipcMain.handle(
                 cancelled: result.canceled,
             };
         }
+        const isOpenDirectory: boolean = isOpenDirectoryOperation(payload);
+        let thePath: string;
+        let baseName: string;
+        let fullPath: string;
+        if (isOpenDirectory) {
+            thePath = <string>result.filePaths[0];
+            baseName = '';
+            fullPath = '';
+        } else {
+            thePath = path.dirname(<string>result.filePaths[0]);
+            baseName = path.basename(<string>result.filePaths[0]);
+            fullPath = <string>result.filePaths[0];
+        }
         return <DialogResult>{
-            path: path.dirname(<string>result.filePaths[0]),
-            baseName: path.basename(<string>result.filePaths[0]),
-            fullPath: <string>result.filePaths[0],
+            path: thePath,
+            baseName: baseName,
+            fullPath: fullPath,
             cancelled: result.canceled,
         };
     },
 );
 ipcMain.handle(
-    API_DIALOG_SQLITE_SAVE,
+    API_DIALOG_SAVE,
     async (event: IpcMainInvokeEvent, payload: SaveDialogOptions): Promise<DialogResult> => {
         const mainWindow: BrowserWindow = windowFromWebContents(event);
         const result: SaveDialogReturnValue = await dialog.showSaveDialog(mainWindow, payload);
@@ -56,21 +65,7 @@ ipcMain.handle(
         };
     },
 );
-ipcMain.handle(
-    API_DIALOG_AUTO_COMPLETE_OPEN,
-    async (event: IpcMainInvokeEvent, payload: OpenDialogOptions): Promise<DialogResult> => {
-        const mainWindow: BrowserWindow = windowFromWebContents(event);
-        const result: OpenDialogReturnValue = await dialog.showOpenDialog(mainWindow, payload);
-        if (result && (result.canceled || !result.filePaths || result.filePaths.length !== 1)) {
-            return <DialogResult>{
-                cancelled: result.canceled,
-            };
-        }
-        return <DialogResult>{
-            path: path.dirname(<string>result.filePaths[0]),
-            baseName: '',
-            fullPath: '',
-            cancelled: result.canceled,
-        };
-    },
-);
+
+function isOpenDirectoryOperation(payload: OpenDialogOptions): boolean {
+    return payload.properties!.findIndex((value) => value === 'openDirectory') !== -1;
+}

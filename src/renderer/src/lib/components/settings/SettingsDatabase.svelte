@@ -1,22 +1,12 @@
 <script lang="ts">
     import { dbSqlitePath, dbType } from '@lib/stores/settings/settings';
     import { Dropdown, OverflowMenuItem } from 'carbon-components-svelte';
-    import { type DropdownItem } from 'carbon-components-svelte/src/Dropdown/Dropdown.svelte';
-    import { DATABASE_TYPES, type DatabaseType } from '@lib/api/db/db-types';
     import type { DialogResult } from 'preload/api-dialog';
     import { dialogResultReset } from '@lib/utility/dialog';
     import FileSelector from '../common/FileSelector.svelte';
     import DockableRow from '../app/DockableRow.svelte';
     import DockableColumn from '../app/DockableColumn.svelte';
-
-    // Database type dropdown
-    const databaseOptions: DropdownItem[] = DATABASE_TYPES.map(
-        (dbType: DatabaseType) =>
-            <DropdownItem>{
-                id: dbType.name,
-                text: dbType.name,
-            },
-    );
+    import { DATABASE_TYPE_DROPDOWN_ITEMS, DATABASE_TYPE_SQLITE } from '@common/common-types';
 
     async function sqliteDatabaseDialogNew(): Promise<void> {
         const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
@@ -40,9 +30,9 @@
         <h2>Database</h2>
         <p>
             <sup>Database Type</sup>
-            <Dropdown size="sm" bind:selectedId={$dbType} items={databaseOptions} />
+            <Dropdown size="sm" bind:selectedId={$dbType} items={DATABASE_TYPE_DROPDOWN_ITEMS} />
         </p>
-        {#if $dbType === 'SQLite'}
+        {#if $dbType === DATABASE_TYPE_SQLITE.id}
             <p>
                 <sup>Database File</sup>
                 <FileSelector

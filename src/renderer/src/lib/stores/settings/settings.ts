@@ -1,5 +1,15 @@
-import { DATABASE_TYPE_NAMES, type DatabaseTypeName } from '@lib/api/db/db-types';
 import {
+    DATABASE_TYPES,
+    LOCALIZATION_DIVISION_SINGLE,
+    LOCALIZATION_FORMAT_CSV,
+    type DatabaseTypeId,
+} from '@common/common-types';
+import {
+    LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION,
+    LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
+    LS_KEY_BUILD_EXPORT_PATH_DATA,
+    LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION,
+    LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
@@ -14,9 +24,9 @@ import { writable, type Writable } from 'svelte/store';
 /**Database connection state store */
 export const dbConnected: Writable<boolean> = writable(false);
 /**Database type store */
-export const dbType: Writable<DatabaseTypeName> = persisted(
+export const dbType: Writable<DatabaseTypeId> = persisted(
     LS_KEY_SETTINGS_DB_TYPE,
-    DATABASE_TYPE_NAMES[0],
+    DATABASE_TYPES[0].id,
 );
 /**SQLite database file path */
 export const dbSqlitePath: Writable<DialogResult> = persisted(
@@ -25,8 +35,28 @@ export const dbSqlitePath: Writable<DialogResult> = persisted(
 );
 
 ///
-/// Conversation Editor Settings
+/// Build Settings
 ///
+export const buildExportPathData: Writable<DialogResult> = persisted(
+    LS_KEY_BUILD_EXPORT_PATH_DATA,
+    <DialogResult>{},
+);
+export const buildExportPathRoutines: Writable<DialogResult> = persisted(
+    LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
+    <DialogResult>{},
+);
+export const buildExportPathLocalization: Writable<DialogResult> = persisted(
+    LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION,
+    <DialogResult>{},
+);
+export const buildExportLocalizationDivision: Writable<number> = persisted(
+    LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION,
+    LOCALIZATION_DIVISION_SINGLE.id,
+);
+export const buildExportLocalizationFormat: Writable<number> = persisted(
+    LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
+    LOCALIZATION_FORMAT_CSV.id,
+);
 
 ///
 /// Coding Settings

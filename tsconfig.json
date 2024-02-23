@@ -6,6 +6,7 @@
     "src/renderer/src/**/*.svelte",
     "src/renderer/src/**/*.ts",
     "src/common/*.ts",
+    "src/common/*.d.ts",
     "src/preload/*.d.ts",
     "src/preload/types/index.d.ts"
   ],
@@ -21,7 +22,8 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "baseUrl": "./src",
     "paths": {
-      "@lib/*": ["renderer/src/lib/*"]
+      "@lib/*": ["renderer/src/lib/*"],
+      "@common/*": ["common/*"]
     },
     "types": ["vitest/globals"]
   },

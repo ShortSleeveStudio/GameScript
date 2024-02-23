@@ -33,6 +33,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { createFilter } from '@lib/api/db/db-filter';
+    import { APP_NAME } from '@common/constants';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [
@@ -150,8 +151,7 @@
         size="medium"
         title="Actors"
         description="Actors are the entities that participate in conversations. The initial actor 
-        can be renamed, but not deleted. {window.api.constants.APP_NAME} requires at least one 
-        actor."
+        can be renamed, but not deleted. {APP_NAME} requires at least one actor."
         batchSelection
         bind:selectedRowIds
         nonSelectableRowIds={$actorsTable

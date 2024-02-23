@@ -39,6 +39,7 @@
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
     import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';
+    import { APP_NAME } from '@common/constants';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
@@ -88,9 +89,9 @@
             </p>
             <br />
             <p>
-                They are used by each {window.api.constants.APP_NAME} game engine plugin to help you
-                locate localizations while you're building your game. As such, they don't need to be
-                unique, but it's better if they are.
+                They are used by each {APP_NAME} game engine plugin to help you locate localizations
+                while you're building your game. As such, they don't need to be unique, but it's better
+                if they are.
             </p>
             <br />
             <p>

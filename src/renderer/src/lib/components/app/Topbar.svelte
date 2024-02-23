@@ -27,6 +27,7 @@
         settingsIsVisible,
     } from '@lib/stores/app/layout';
     import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
+    import { APP_NAME } from '@common/constants';
 
     let isSideNavOpen = false;
 
@@ -37,7 +38,7 @@
 </script>
 
 <Header
-    platformName={window.api.constants.APP_NAME}
+    platformName={APP_NAME}
     style="width: 100%; -webkit-app-region: drag;"
     bind:isSideNavOpen
     persistentHamburgerMenu={true}

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { db } from '@lib/api/db/db';
     import {
-        PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS,
+        PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS,
         type ProgrammingLanguageId,
         type ProgrammingLanguagePrincipal,
         PROGRAMMING_LANGUAGE_ID_CS,
@@ -88,7 +88,7 @@
     <sup>Programming Language</sup>
     <Dropdown
         size="sm"
-        items={PROGRAMMING_LANGUAGE_DROP_DOWN_ITEMS}
+        items={PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS}
         disabled={$isLoading}
         bind:selectedId={boundValue}
         direction="bottom"
