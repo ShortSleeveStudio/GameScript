@@ -2,6 +2,8 @@ import {
     DATABASE_TABLES,
     PROGRAMMING_LANGUAGE_CS,
     PROGRAMMING_LANGUAGE_TYPES,
+    ROUTINE_TYPES,
+    ROUTINE_TYPE_IMPORT,
     TABLE_ACTORS,
     TABLE_ACTOR_PRINCIPAL,
     TABLE_AUTO_COMPLETES,
@@ -22,7 +24,6 @@ import {
 } from '@common/common-types';
 import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
 import { localeIdToColumn } from '@lib/utility/locale';
-import { ROUTINE_TYPES, ROUTINE_TYPE_ID_IMPORTS } from './db-schema';
 
 ///
 /// Table Creation
@@ -258,7 +259,9 @@ const INITIALIZE_ROUTINES = `
 BEGIN TRANSACTION;
 INSERT OR IGNORE INTO ${
     TABLE_ROUTINES.name
-} (id, name, code, type, isSystemCreated) VALUES (${rowIndex++}, 'Import Statements', '', ${ROUTINE_TYPE_ID_IMPORTS}, true);
+} (id, name, code, type, isSystemCreated) VALUES (${rowIndex++}, 'Import Statements', '', ${
+    ROUTINE_TYPE_IMPORT.id
+}, true);
 COMMIT;
 `;
 // Conversations

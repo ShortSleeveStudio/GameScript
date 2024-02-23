@@ -1,6 +1,6 @@
-import { TABLE_CONVERSATIONS } from '@common/common-types';
+import { NODE_TYPE_ROOT, TABLE_CONVERSATIONS } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import { NODE_TYPE_ROOT, type Conversation, type Node } from '@lib/api/db/db-schema';
+import { type Conversation, type Node } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
@@ -12,7 +12,7 @@ export async function conversationCreate(
     isLoading: IsLoadingStore,
 ): Promise<Conversation> {
     const node: Node = <Node>{
-        type: NODE_TYPE_ROOT,
+        type: NODE_TYPE_ROOT.id,
         isSystemCreated: true,
     };
 

@@ -48,13 +48,7 @@
         type Edge,
         type Node,
         type Localization,
-        NODE_TYPE_DIALOGUE,
         type Conversation,
-        NODE_TYPE_ROOT,
-        type EdgeType,
-        EDGE_TYPE_DEFAULT,
-        type NodeType,
-        NODE_TYPE_LINK,
     } from '@lib/api/db/db-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
@@ -98,10 +92,16 @@
     import type { GraphContext } from '@lib/graph/graph-context';
     import { LAYOUT_ID_CONVERSATION_EDITOR } from '@lib/constants/default-layout';
     import {
+        EDGE_TYPE_DEFAULT,
         TABLE_CONVERSATIONS,
         TABLE_EDGES,
         TABLE_LOCALIZATIONS,
         TABLE_NODES,
+        type EdgeTypeName,
+        NODE_TYPE_LINK,
+        NODE_TYPE_DIALOGUE,
+        NODE_TYPE_ROOT,
+        type NodeTypeName,
     } from '@common/common-types';
 
     type LocalObject = FlowNode | FlowEdge;
@@ -114,7 +114,7 @@
 
     const MIN_ZOOM: number = 0.1;
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
-    const DEFAULT_EDGE_TYPE: EdgeType = EDGE_TYPE_DEFAULT;
+    const DEFAULT_EDGE_TYPE: EdgeTypeName = EDGE_TYPE_DEFAULT.name;
     const DEFAULT_EDGE_OPTIONS: DefaultEdgeOptions = <DefaultEdgeOptions>{
         type: <ConnectionLineType>DEFAULT_EDGE_TYPE,
     };
@@ -144,11 +144,11 @@
     const edges: Writable<FlowEdge[]> = writable([]);
     const snapGrid: SnapGrid = [30, 30];
     const nodeTypes = {};
-    nodeTypes[NODE_TYPE_ROOT] = NodeRoot;
-    nodeTypes[NODE_TYPE_DIALOGUE] = NodeDialogue;
-    nodeTypes[NODE_TYPE_LINK] = NodeLink;
+    nodeTypes[NODE_TYPE_ROOT.name] = NodeRoot;
+    nodeTypes[NODE_TYPE_DIALOGUE.name] = NodeDialogue;
+    nodeTypes[NODE_TYPE_LINK.name] = NodeLink;
     const edgeTypes = {};
-    edgeTypes[EDGE_TYPE_DEFAULT] = EdgeDefault;
+    edgeTypes[EDGE_TYPE_DEFAULT.name] = EdgeDefault;
 
     let currentLayoutAuto: boolean = false;
     let currentLayoutVertical: boolean = false;
@@ -259,7 +259,7 @@
         if (
             !targetNode ||
             !sourceNode ||
-            (sourceNode.type === NODE_TYPE_LINK && targetNode.type === NODE_TYPE_LINK)
+            (sourceNode.type === NODE_TYPE_LINK.name && targetNode.type === NODE_TYPE_LINK.name)
         ) {
             return false;
         }
@@ -281,7 +281,7 @@
         // If source is a link node, update the node and don't create an edge
         const sourceFlowNode: FlowNode = get(nodeLookup)?.get(connection.source);
         if (!sourceFlowNode) throw new Error('Could not find source node to create connection.');
-        if (sourceFlowNode.type === NODE_TYPE_LINK) {
+        if (sourceFlowNode.type === NODE_TYPE_LINK.name) {
             const sourceNode: Node = get((<NodeData>sourceFlowNode.data).rowView);
             const newNode: Node = <Node>{ id: sourceNode.id, link: target };
             const oldNode: Node = <Node>{ id: sourceNode.id, link: sourceNode.link };
@@ -402,7 +402,7 @@
         });
     }
 
-    function onCreateNode(type: NodeType): void {
+    function onCreateNode(type: NodeTypeName): void {
         const view: Viewport = get(viewport);
         const zoomMultiplier: number = 1 / view.zoom;
         const centerX = -view.x * zoomMultiplier + (get(width) * zoomMultiplier) / 2;
@@ -617,7 +617,7 @@
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
         const isVertical: boolean = get(focusedRowView).layoutVertical;
         const remoteNode: Node = get(remote);
-        const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT;
+        const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT.name;
         return <FlowNode>{
             id: remote.id.toString(),
             type: remoteNode.type,
@@ -641,7 +641,7 @@
         // Skip equality
         if (nodeIsEqual(local, remote)) return;
         console.log(`Update local node`);
-        const isNotRoot: boolean = remote.type !== NODE_TYPE_ROOT;
+        const isNotRoot: boolean = remote.type !== NODE_TYPE_ROOT.name;
         local.type = remote.type;
         local.deletable = isNotRoot;
         local.selectable = isNotRoot;
@@ -1175,13 +1175,13 @@
             <span slot="create">
                 <Button
                     size="small"
-                    on:click={() => onCreateNode(NODE_TYPE_LINK)}
+                    on:click={() => onCreateNode(NODE_TYPE_LINK.name)}
                     disabled={$isLoading || !isConversationInitialized}
                     icon={$isLoading ? InlineLoading : undefined}>Add Link Node</Button
                 >
                 <Button
                     size="small"
-                    on:click={() => onCreateNode(NODE_TYPE_DIALOGUE)}
+                    on:click={() => onCreateNode(NODE_TYPE_DIALOGUE.name)}
                     disabled={$isLoading || !isConversationInitialized}
                     icon={$isLoading ? InlineLoading : undefined}>Add Dialogue Node</Button
                 >

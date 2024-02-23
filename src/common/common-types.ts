@@ -1,10 +1,5 @@
 import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropdown.svelte';
 
-/**Helper Functions */
-export function TypeNameToType<T, R>(name: T, index: number): R {
-    return <R>{ id: index, name: name };
-}
-
 /**Database Types */
 export interface DatabaseType {
     id: number;
@@ -72,6 +67,22 @@ export const DATABASE_TABLES: DatabaseTableType[] = [
 export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
 export type DatabaseTableName = (typeof DATABASE_TABLES)[number]['name'];
 
+/**Routine Types */
+export interface RoutineType {
+    id: number;
+    name: string;
+}
+export const ROUTINE_TYPE_USER_CREATED = { id: 0, name: 'User' };
+export const ROUTINE_TYPE_IMPORT = { id: 1, name: 'Import' };
+export const ROUTINE_TYPE_DEFAULT = { id: 2, name: 'Default' };
+export const ROUTINE_TYPES: RoutineType[] = [
+    ROUTINE_TYPE_USER_CREATED,
+    ROUTINE_TYPE_IMPORT,
+    ROUTINE_TYPE_DEFAULT,
+] as const;
+export type RoutineTypeId = (typeof ROUTINE_TYPES)[number]['id'];
+export type RoutineTypeName = (typeof ROUTINE_TYPES)[number]['name'];
+
 /**Database Field Types */
 export interface FieldType {
     id: number;
@@ -108,6 +119,28 @@ export const PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS: DropdownItem[] = PROGRAMMING_L
             text: languageType.name,
         },
 );
+
+/**Node Types */
+export interface NodeType {
+    id: number;
+    name: string;
+}
+export const NODE_TYPE_LINK: NodeType = { id: 0, name: 'link' };
+export const NODE_TYPE_ROOT: NodeType = { id: 1, name: 'root' };
+export const NODE_TYPE_DIALOGUE: NodeType = { id: 2, name: 'dialogue' };
+export const NODE_TYPES: NodeType[] = [NODE_TYPE_LINK, NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
+export type NodeTypeId = (typeof NODE_TYPES)[number]['id'];
+export type NodeTypeName = (typeof NODE_TYPES)[number]['name'];
+
+/**Edge Types */
+export interface EdgeType {
+    id: number;
+    name: string;
+}
+export const EDGE_TYPE_DEFAULT: EdgeType = { id: 0, name: 'default' };
+export const EDGE_TYPES: EdgeType[] = [EDGE_TYPE_DEFAULT] as const;
+export type EdgeTypeId = (typeof EDGE_TYPES)[number]['id'];
+export type EdgeTypeName = (typeof EDGE_TYPES)[number]['name'];
 
 /**Build Localization Division */
 export interface LocalizationDivisionType {

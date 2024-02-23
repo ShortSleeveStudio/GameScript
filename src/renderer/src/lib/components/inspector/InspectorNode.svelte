@@ -1,10 +1,5 @@
 <script lang="ts">
-    import {
-        type Node,
-        type Routine,
-        NODE_TYPE_DIALOGUE,
-        NODE_TYPE_LINK,
-    } from '@lib/api/db/db-schema';
+    import { type Node, type Routine } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnLocalization from '../common/RowColumnLocalization.svelte';
@@ -29,7 +24,13 @@
         type FocusRequests,
     } from '@lib/stores/app/focus';
     import { APP_NAME } from '@common/constants';
-    import { TABLE_CONVERSATIONS, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
+    import {
+        NODE_TYPE_DIALOGUE,
+        NODE_TYPE_LINK,
+        TABLE_CONVERSATIONS,
+        TABLE_NODES,
+        TABLE_ROUTINES,
+    } from '@common/common-types';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -99,9 +100,9 @@
 </script>
 
 <h2>
-    {$rowView.type === NODE_TYPE_DIALOGUE
+    {$rowView.type === NODE_TYPE_DIALOGUE.name
         ? 'Dialogue'
-        : $rowView.type === NODE_TYPE_LINK
+        : $rowView.type === NODE_TYPE_LINK.name
           ? 'Link'
           : 'Root'} Node
 </h2>
@@ -117,7 +118,7 @@
     <sup>Type</sup>
     <RowColumnId {rowView} columnName={'type'} />
 </p>
-{#if $rowView.type === NODE_TYPE_DIALOGUE}
+{#if $rowView.type === NODE_TYPE_DIALOGUE.name}
     <p>
         <sup>Actor</sup>
         <RowColumnActor {rowView} columnName={'actor'} />
@@ -190,7 +191,7 @@
             undoText={NODE_UNDO_PREVENT_RESPONSE}
         />
     </p>
-{:else if $rowView.type === NODE_TYPE_LINK}
+{:else if $rowView.type === NODE_TYPE_LINK.name}
     <p>
         <Tooltip triggerText="Link" align="start" direction="bottom">
             <p>

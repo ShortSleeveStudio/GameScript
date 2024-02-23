@@ -13,7 +13,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { type Routine, ROUTINE_TYPE_ID_DEFAULT } from '@lib/api/db/db-schema';
+    import { type Routine } from '@lib/api/db/db-schema';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -25,7 +25,7 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
     import SettingsCodingDefaultRoutinesRadio from './SettingsCodingDefaultRoutinesRadio.svelte';
-    import { TABLE_ROUTINES } from '@common/common-types';
+    import { ROUTINE_TYPE_DEFAULT, TABLE_ROUTINES } from '@common/common-types';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
@@ -43,7 +43,7 @@
         let newRoutine: Routine = <Routine>{
             name: 'New Routine',
             code: '',
-            type: ROUTINE_TYPE_ID_DEFAULT,
+            type: ROUTINE_TYPE_DEFAULT.id,
             isSystemCreated: false,
         };
         let newRow: Routine = await isLoading.wrapPromise(db.createRow(TABLE_ROUTINES, newRoutine));

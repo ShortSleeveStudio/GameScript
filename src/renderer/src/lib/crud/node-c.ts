@@ -1,11 +1,11 @@
-import { TABLE_LOCALIZATIONS, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
-import { db } from '@lib/api/db/db';
 import {
-    ROUTINE_TYPE_ID_USER,
-    type Localization,
-    type Node,
-    type Routine,
-} from '@lib/api/db/db-schema';
+    ROUTINE_TYPE_USER_CREATED,
+    TABLE_LOCALIZATIONS,
+    TABLE_NODES,
+    TABLE_ROUTINES,
+} from '@common/common-types';
+import { db } from '@lib/api/db/db';
+import { type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
@@ -44,7 +44,7 @@ export async function nodeCreate(
             TABLE_ROUTINES,
             <Routine>{
                 code: '',
-                type: ROUTINE_TYPE_ID_USER,
+                type: ROUTINE_TYPE_USER_CREATED.id,
                 isSystemCreated: true,
                 parent: newNode.parent,
             },
@@ -55,7 +55,7 @@ export async function nodeCreate(
             TABLE_ROUTINES,
             <Routine>{
                 code: '',
-                type: ROUTINE_TYPE_ID_USER,
+                type: ROUTINE_TYPE_USER_CREATED.id,
                 isSystemCreated: true,
                 parent: newNode.parent,
             },
