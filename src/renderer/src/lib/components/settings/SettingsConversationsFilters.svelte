@@ -11,12 +11,7 @@
     import FocusButton from '../common/FocusButton.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
-    import {
-        FIELD_TYPE_ID_TEXT,
-        TABLE_ID_CONVERSATIONS,
-        TABLE_ID_FILTERS,
-        type Filter,
-    } from '@lib/api/db/db-schema';
+    import { type Filter } from '@lib/api/db/db-schema';
     import type { FocusPayloadFilter } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -28,6 +23,7 @@
     import { filterIdToColumn } from '@lib/utility/filters';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
+    import { FIELD_TYPE_TEXT, TABLE_CONVERSATIONS, TABLE_FILTERS } from '@common/common-types';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadFilter = <FocusPayloadFilter>{
@@ -42,13 +38,13 @@
 
     async function createFilter(toCreate: Filter, conn: DbConnection): Promise<Filter> {
         // Create Filter
-        toCreate = await db.createRow(TABLE_ID_FILTERS, toCreate, conn);
+        toCreate = await db.createRow(TABLE_FILTERS, toCreate, conn);
 
         // Create Column
         await db.createColumn(
-            TABLE_ID_CONVERSATIONS,
+            TABLE_CONVERSATIONS,
             filterIdToColumn(toCreate.id),
-            FIELD_TYPE_ID_TEXT,
+            FIELD_TYPE_TEXT.id,
             conn,
         );
         return toCreate;
@@ -58,15 +54,15 @@
         // Notify anyone interested
         dispatchEvent(
             new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableId: TABLE_ID_FILTERS },
+                detail: <DbColumnDeleting>{ tableId: TABLE_FILTERS },
             }),
         );
 
         // Delete Column
-        await db.deleteColumn(TABLE_ID_CONVERSATIONS, filterIdToColumn(toDelete.id), conn);
+        await db.deleteColumn(TABLE_CONVERSATIONS, filterIdToColumn(toDelete.id), conn);
 
         // Delete Locale
-        await db.deleteRow(TABLE_ID_FILTERS, toDelete, conn);
+        await db.deleteRow(TABLE_FILTERS, toDelete, conn);
     }
 
     async function addRow(): Promise<void> {

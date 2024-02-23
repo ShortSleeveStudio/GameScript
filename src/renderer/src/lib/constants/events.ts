@@ -1,4 +1,4 @@
-import type { DatabaseTableId } from '@lib/api/db/db-schema';
+import type { DatabaseTableType } from '@common/common-types';
 import type { LayoutId } from './default-layout';
 /**
  * Event Names
@@ -34,7 +34,7 @@ export interface GridFilterByParentRequest {
     parent: number;
 }
 export interface DbColumnDeleting {
-    tableId: DatabaseTableId;
+    tableType: DatabaseTableType;
 }
 
 /**

@@ -1,10 +1,6 @@
+import { TABLE_CONVERSATIONS } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import {
-    NODE_TYPE_ROOT,
-    TABLE_ID_CONVERSATIONS,
-    type Conversation,
-    type Node,
-} from '@lib/api/db/db-schema';
+import { NODE_TYPE_ROOT, type Conversation, type Node } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
@@ -26,7 +22,7 @@ export async function conversationCreate(
     await isLoading.wrapPromise(
         db.executeTransaction(async (conn: DbConnection) => {
             // Create conversation
-            newConversation = await db.createRow(TABLE_ID_CONVERSATIONS, newConversation, conn);
+            newConversation = await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
 
             // Create root node
             node.parent = newConversation.id;
@@ -41,12 +37,12 @@ export async function conversationCreate(
             isLoading.wrapFunction(async () => {
                 await db.executeTransaction(async (conn: DbConnection) => {
                     await nodeDelete(newNode, [], undefined, conn);
-                    await db.deleteRow(TABLE_ID_CONVERSATIONS, newConversation, conn);
+                    await db.deleteRow(TABLE_CONVERSATIONS, newConversation, conn);
                 });
             }),
             isLoading.wrapFunction(async () => {
                 await db.executeTransaction(async (conn: DbConnection) => {
-                    await db.createRow(TABLE_ID_CONVERSATIONS, newConversation, conn);
+                    await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
                     await nodeCreate(newNode, undefined, conn);
                 });
             }),

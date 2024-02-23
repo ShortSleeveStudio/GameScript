@@ -1,12 +1,13 @@
+import { TABLE_LOCALES } from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
-import { TABLE_ID_LOCALES, type Locale } from '@lib/api/db/db-schema';
+import { type Locale } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 
 /**Shared view of the system created locale.  */
 const systemCreatedLocaleTableView: IDbTableView<Locale> = db.fetchTable(
-    TABLE_ID_LOCALES,
+    TABLE_LOCALES,
     createFilter<Locale>().where().column('isSystemCreated').eq(true).endWhere().build(),
 );
 

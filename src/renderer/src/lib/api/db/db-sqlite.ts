@@ -1,4 +1,11 @@
 import {
+    FIELD_TYPE_DECIMAL,
+    FIELD_TYPE_INTEGER,
+    FIELD_TYPE_TEXT,
+    type DatabaseTableType,
+    type FieldTypeId,
+} from '@common/common-types';
+import {
     FOCUS_MODE_MODIFY,
     FOCUS_REMOVE,
     type Focus,
@@ -23,15 +30,7 @@ import {
 } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
-import {
-    DATABASE_TABLE_NAMES,
-    FIELD_TYPE_ID_DECIMAL,
-    FIELD_TYPE_ID_INTEGER,
-    FIELD_TYPE_ID_TEXT,
-    type DatabaseTableId,
-    type FieldTypeId,
-    type Row,
-} from './db-schema';
+import { type Row } from './db-schema';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -40,7 +39,7 @@ import type { DbTableView } from './db-view-table';
 /**Used to queue notifications when needed. */
 interface DbNotification {
     op: OpType;
-    tableId: DatabaseTableId;
+    tableType: DatabaseTableType;
     rows?: Row[];
 }
 
@@ -98,7 +97,7 @@ export class SqliteDb extends Db {
                     const notification: DbNotification = this._transactionNotifications[i];
                     await this.notify(
                         notification.op,
-                        notification.tableId,
+                        notification.tableType,
                         notification.rows,
                         undefined,
                     );
@@ -110,7 +109,7 @@ export class SqliteDb extends Db {
     }
 
     async createColumn(
-        tableId: number,
+        tableType: DatabaseTableType,
         name: string,
         type: FieldTypeId,
         connection?: DbConnection,
@@ -118,19 +117,19 @@ export class SqliteDb extends Db {
         this.assertConnected();
         let typeString: string;
         switch (type) {
-            case FIELD_TYPE_ID_DECIMAL:
+            case FIELD_TYPE_DECIMAL.id:
                 typeString = 'NUMERIC DEFAULT 0';
                 break;
-            case FIELD_TYPE_ID_INTEGER:
+            case FIELD_TYPE_INTEGER.id:
                 typeString = 'INTEGER DEFAULT 0';
                 break;
-            case FIELD_TYPE_ID_TEXT:
+            case FIELD_TYPE_TEXT.id:
                 typeString = 'TEXT';
                 break;
             default:
                 throw Error(`Unknown column type: ${type}`);
         }
-        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} ADD COLUMN ${name} ${typeString};`;
+        const query: string = `ALTER TABLE ${tableType.name} ADD COLUMN ${name} ${typeString};`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
@@ -141,12 +140,16 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableId, undefined, connection);
+        await this.notify(OP_ALTER, tableType, undefined, connection);
     }
 
-    async deleteColumn(tableId: number, name: string, connection?: DbConnection): Promise<void> {
+    async deleteColumn(
+        tableType: DatabaseTableType,
+        name: string,
+        connection?: DbConnection,
+    ): Promise<void> {
         this.assertConnected();
-        const query: string = `ALTER TABLE ${DATABASE_TABLE_NAMES[tableId]} DROP COLUMN ${name}`;
+        const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name}`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
@@ -157,20 +160,20 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableId, undefined, connection);
+        await this.notify(OP_ALTER, tableType, undefined, connection);
     }
 
     async createRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<RowType> {
         this.assertConnected();
-        return (await this.createRows(tableId, [row], connection))[0];
+        return (await this.createRows(tableType, [row], connection))[0];
     }
 
     async createRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]> {
@@ -196,7 +199,7 @@ export class SqliteDb extends Db {
             }
 
             // Execute
-            const query: string = `INSERT INTO ${DATABASE_TABLE_NAMES[tableId]} (${propertyNames}) VALUES (${placeHolders});`;
+            const query: string = `INSERT INTO ${tableType.name} (${propertyNames}) VALUES (${placeHolders});`;
             let result: SqliteResult;
             try {
                 result = await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
@@ -212,19 +215,19 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_CREATE, tableId, rows, connection);
+        await this.notify<RowType>(OP_CREATE, tableType, rows, connection);
 
         // Return new id
         return rows;
     }
 
     async fetchRowCount<RowType extends Row>(
-        tableId: number,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number> {
         const query: string = `SELECT COUNT(*) as count FROM ${
-            DATABASE_TABLE_NAMES[tableId]
+            tableType.name
         } ${filter.whereClause()}`;
         let result: number = 0;
         try {
@@ -237,13 +240,13 @@ export class SqliteDb extends Db {
     }
 
     async fetchRowsRaw<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]> {
         this.assertConnected();
         // Fetch rows
-        const query: string = `SELECT * FROM ${DATABASE_TABLE_NAMES[tableId]} ${filter.toString()}`;
+        const query: string = `SELECT * FROM ${tableType.name} ${filter.toString()}`;
         let results: RowType[];
         try {
             results = await window.api.sqlite.all(connection ?? this._db, query);
@@ -254,23 +257,23 @@ export class SqliteDb extends Db {
     }
 
     async fetchRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]> {
         this.assertConnected();
         // Fetch rows
         const rowViews: IDbRowView<RowType>[] = [];
-        const results: RowType[] = await this.fetchRowsRaw(tableId, filter, connection);
+        const results: RowType[] = await this.fetchRowsRaw(tableType, filter, connection);
 
         // Map to row views
-        const rowViewMap: Map<number, DbRowView<RowType>> = super.getRowViewsForTable(tableId);
+        const rowViewMap: Map<number, DbRowView<RowType>> = super.getRowViewsForTable(tableType);
         for (let i = 0; i < results.length; i++) {
             const row: RowType = results[i];
             let rowView = rowViewMap.get(row.id);
             if (!rowView) {
-                rowView = new DbRowView<RowType>(tableId, row, () =>
-                    super.destroyRowView(tableId, row.id),
+                rowView = new DbRowView<RowType>(tableType, row, () =>
+                    super.destroyRowView(tableType, row.id),
                 );
                 rowViewMap.set(row.id, rowView);
             } else {
@@ -284,7 +287,7 @@ export class SqliteDb extends Db {
     }
 
     async updateRows<RowType extends Row>(
-        tableId: number,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -306,7 +309,7 @@ export class SqliteDb extends Db {
             argumentArray.push(row.id);
 
             // Execute
-            const query = `UPDATE ${DATABASE_TABLE_NAMES[tableId]} SET ${keyValuePairs} WHERE id = ?;`;
+            const query = `UPDATE ${tableType.name} SET ${keyValuePairs} WHERE id = ?;`;
             try {
                 await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
             } catch (err) {
@@ -318,34 +321,34 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_UPDATE, tableId, rows, connection);
+        await this.notify<RowType>(OP_UPDATE, tableType, rows, connection);
     }
 
     async updateRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void> {
-        await this.updateRows(tableId, [row], connection);
+        await this.updateRows(tableType, [row], connection);
     }
 
     async deleteRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
-        await this.deleteRows(tableId, [row], connection);
+        await this.deleteRows(tableType, [row], connection);
     }
 
     async deleteRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
         if (rows.length === 0) return;
-        const query: string = `DELETE FROM ${DATABASE_TABLE_NAMES[tableId]} WHERE id IN (${rows
+        const query: string = `DELETE FROM ${tableType.name} WHERE id IN (${rows
             .map((row) => row.id)
             .join(', ')})`;
 
@@ -356,17 +359,17 @@ export class SqliteDb extends Db {
         }
 
         // Remove from cache
-        this.removeRowViews(tableId, rows);
+        this.removeRowViews(tableType, rows);
 
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_DELETE, tableId, rows, connection);
+        await this.notify<RowType>(OP_DELETE, tableType, rows, connection);
     }
 
     async searchAndReplace<RowType extends Row>(
-        tableId: number,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         field: string,
         search: string,
@@ -376,7 +379,7 @@ export class SqliteDb extends Db {
         this.assertConnected();
         // Execute
         const query = `UPDATE ${
-            DATABASE_TABLE_NAMES[tableId]
+            tableType.name
         } SET ${field} = REPLACE(${field},?,?) ${filter.toString()};`;
         try {
             await window.api.sqlite.run(connection ?? this._db, query, [search, replace]);
@@ -388,7 +391,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableId, undefined, connection);
+        await this.notify(OP_ALTER, tableType, undefined, connection);
     }
 
     async shutdown(): Promise<void> {
@@ -400,7 +403,7 @@ export class SqliteDb extends Db {
     // This will look very different for postgres
     private async notify<RowType extends Row>(
         op: OpType,
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows?: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -408,7 +411,7 @@ export class SqliteDb extends Db {
         if (connection) {
             this._transactionNotifications.push({
                 op: op,
-                tableId: tableId,
+                tableType: tableType,
                 rows: rows,
             });
             return;
@@ -417,15 +420,15 @@ export class SqliteDb extends Db {
         switch (op) {
             case OP_CREATE:
             case OP_DELETE: {
-                await this.notifyOnRowLifecycleEvent(tableId, rows);
+                await this.notifyOnRowLifecycleEvent(tableType, rows);
                 break;
             }
             case OP_UPDATE: {
-                await this.notifyOnRowsUpdated(tableId, rows);
+                await this.notifyOnRowsUpdated(tableType, rows);
                 break;
             }
             case OP_ALTER: {
-                await this.notifyOnTableAltered(tableId);
+                await this.notifyOnTableAltered(tableType);
                 break;
             }
             default:
@@ -434,10 +437,10 @@ export class SqliteDb extends Db {
     }
 
     private async notifyOnRowLifecycleEvent<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
     ): Promise<void> {
-        const tableViews = super.getTableViewsForTable<RowType>(tableId);
+        const tableViews = super.getTableViewsForTable<RowType>(tableType);
         for (const tableView of tableViews.values()) {
             if (tableView.filter.wouldAffectRows(rows)) {
                 (<DbTableView<RowType>>tableView).onReloadRequired();
@@ -446,18 +449,18 @@ export class SqliteDb extends Db {
     }
 
     private async notifyOnRowsUpdated<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
     ): Promise<void> {
         const rowIds: number[] = rows.map((row) => row.id);
         await this.fetchRows(
-            tableId,
+            tableType,
             createFilter().where().column('id').in(rowIds).endWhere().build(),
         );
     }
 
-    private async notifyOnTableAltered(tableId: DatabaseTableId): Promise<void> {
-        const tableViews = super.getTableViewsForTable(tableId);
+    private async notifyOnTableAltered(tableType: DatabaseTableType): Promise<void> {
+        const tableViews = super.getTableViewsForTable(tableType);
         for (const tableView of tableViews.values()) {
             tableView.onReloadRequired();
         }
@@ -511,13 +514,16 @@ export class SqliteDb extends Db {
         }
     };
 
-    private removeRowViews<RowType extends Row>(tableId: DatabaseTableId, row: RowType[]): void {
-        const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableId);
+    private removeRowViews<RowType extends Row>(
+        tableType: DatabaseTableType,
+        row: RowType[],
+    ): void {
+        const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableType);
         const focusMap: Map<number, Focus> = new Map();
         row.forEach((row) => {
             if (rowViews.has(row.id)) {
                 // Remove from focus if needed
-                focusMap.set(row.id, { rowView: rowViews.get(row.id) });
+                focusMap.set(row.id, { rowId: row.id });
 
                 // Delete from cache
                 rowViews.delete(row.id);
@@ -528,7 +534,7 @@ export class SqliteDb extends Db {
                 type: FOCUS_MODE_MODIFY,
                 requests: [
                     {
-                        tableId: tableId,
+                        tableType: tableType,
                         focus: focusMap,
                         type: FOCUS_REMOVE,
                     },

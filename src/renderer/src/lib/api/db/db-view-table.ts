@@ -1,3 +1,4 @@
+import type { DatabaseTableId, DatabaseTableName, DatabaseTableType } from '@common/common-types';
 import type { DbConnection } from 'preload/api-db';
 import {
     get,
@@ -10,12 +11,7 @@ import {
 } from 'svelte/store';
 import { db } from './db';
 import type { Filter } from './db-filter-interface';
-import {
-    DATABASE_TABLE_NAMES,
-    type DatabaseTableId,
-    type DatabaseTableName,
-    type Row,
-} from './db-schema';
+import { type Row } from './db-schema';
 import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
@@ -24,7 +20,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private static nextId = 0;
     private _viewId: number;
     private _isInitialized: boolean;
-    private _tableId: DatabaseTableId;
+    private _tableType: DatabaseTableType;
     private _internalWritable: Writable<DbRowView<RowType>[]>;
     private _filter: Filter<RowType>;
     private _idToRowMap: Map<number, DbRowView<RowType>>;
@@ -32,10 +28,14 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _totalRowCount: number;
     private _isDisposed: boolean;
 
-    constructor(tableId: DatabaseTableId, filter: Filter<RowType>, isConnected: Readable<boolean>) {
+    constructor(
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
+        isConnected: Readable<boolean>,
+    ) {
         this._viewId = DbTableView.nextId++;
         this._isInitialized = false;
-        this._tableId = tableId;
+        this._tableType = tableType;
         this._filter = filter;
         this._idToRowMap = new Map();
         this._internalWritable = writable<DbRowView<RowType>[]>([]);
@@ -53,12 +53,16 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         return this._viewId;
     }
 
+    get tableType(): DatabaseTableType {
+        return this._tableType;
+    }
+
     get tableId(): DatabaseTableId {
-        return this._tableId;
+        return this._tableType.id;
     }
 
     get tableName(): DatabaseTableName {
-        return DATABASE_TABLE_NAMES[this.tableId];
+        return this._tableType.name;
     }
 
     get filter(): Filter<RowType> {
@@ -125,9 +129,9 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         } else {
             // Fetch new data
             await db.executeTransaction(async (conn: DbConnection) => {
-                newRowCount = await db.fetchRowCount(this._tableId, this._filter, conn);
+                newRowCount = await db.fetchRowCount(this._tableType, this._filter, conn);
                 newRowViews = <DbRowView<RowType>[]>(
-                    await db.fetchRows(this._tableId, this._filter, conn)
+                    await db.fetchRows(this._tableType, this._filter, conn)
                 );
             });
         }

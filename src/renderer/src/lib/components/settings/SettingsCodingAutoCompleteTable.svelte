@@ -10,7 +10,7 @@
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { autoCompleteTable } from '@lib/tables/auto-complete';
-    import { TABLE_ID_AUTO_COMPLETES, type AutoComplete } from '@lib/api/db/db-schema';
+    import { type AutoComplete } from '@lib/api/db/db-schema';
     import { languages } from 'monaco-editor';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
@@ -26,6 +26,7 @@
     import { db } from '@lib/api/db/db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { APP_NAME } from '@common/constants';
+    import { TABLE_AUTO_COMPLETES } from '@common/common-types';
 
     const headers: DataTableHeader[] = [
         { key: 'label', value: 'Label' },
@@ -48,7 +49,7 @@
             documentation: '',
         };
         let newRow: AutoComplete = await isLoading.wrapPromise(
-            db.createRow(TABLE_ID_AUTO_COMPLETES, newAutoComplete),
+            db.createRow(TABLE_AUTO_COMPLETES, newAutoComplete),
         );
 
         // Register undo/redo
@@ -56,10 +57,10 @@
             new Undoable(
                 'auto-complete creation',
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRow(TABLE_ID_AUTO_COMPLETES, newRow);
+                    await db.deleteRow(TABLE_AUTO_COMPLETES, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    newRow = await db.createRow(TABLE_ID_AUTO_COMPLETES, newRow);
+                    newRow = await db.createRow(TABLE_AUTO_COMPLETES, newRow);
                 }),
             ),
         );
@@ -71,17 +72,17 @@
         selectedRowIds.length = 0;
 
         // Delete rows
-        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete));
+        await isLoading.wrapPromise(db.deleteRows(TABLE_AUTO_COMPLETES, rowsToDelete));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'auto-complete deletion',
                 isLoading.wrapFunction(async () => {
-                    rowsToDelete = await db.createRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
+                    rowsToDelete = await db.createRows(TABLE_AUTO_COMPLETES, rowsToDelete);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRows(TABLE_ID_AUTO_COMPLETES, rowsToDelete);
+                    await db.deleteRows(TABLE_AUTO_COMPLETES, rowsToDelete);
                 }),
             ),
         );

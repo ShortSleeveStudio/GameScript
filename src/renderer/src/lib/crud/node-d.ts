@@ -1,15 +1,12 @@
+import {
+    TABLE_EDGES,
+    TABLE_LOCALIZATIONS,
+    TABLE_NODES,
+    TABLE_ROUTINES,
+} from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
-import {
-    TABLE_ID_EDGES,
-    TABLE_ID_LOCALIZATIONS,
-    TABLE_ID_NODES,
-    TABLE_ID_ROUTINES,
-    type Edge,
-    type Localization,
-    type Node,
-    type Routine,
-} from '@lib/api/db/db-schema';
+import { type Edge, type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import type { DbConnection } from 'preload/api-db';
@@ -44,7 +41,7 @@ export async function nodesDelete(
         // Find Link Nodes
         gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
         const linkNodesToDelete = await db.fetchRowsRaw<Node>(
-            TABLE_ID_NODES,
+            TABLE_NODES,
             createFilter().where().column('link').in(nodeIds).endWhere().build(),
             conn,
         );
@@ -52,7 +49,7 @@ export async function nodesDelete(
 
         // Delete Edges
         edgesToDelete = await db.fetchRowsRaw<Edge>(
-            TABLE_ID_EDGES,
+            TABLE_EDGES,
             createFilter()
                 .where()
                 .column('source')
@@ -69,41 +66,41 @@ export async function nodesDelete(
             edgeIdMap.set(edge.id, edge);
         }
         edgesToDelete = Array.from(edgeIdMap.values()); // Combine fetched and passed-in edges
-        await db.deleteRows(TABLE_ID_EDGES, edgesToDelete, conn);
+        await db.deleteRows(TABLE_EDGES, edgesToDelete, conn);
 
         // Delete Nodes
-        await db.deleteRows(TABLE_ID_NODES, nodesToDelete, conn);
+        await db.deleteRows(TABLE_NODES, nodesToDelete, conn);
 
         // Delete Routines
         routinesToDelete = await db.fetchRowsRaw<Routine>(
-            TABLE_ID_ROUTINES,
+            TABLE_ROUTINES,
             createFilter().where().column('id').in(routineIds).endWhere().build(),
             conn,
         );
-        await db.deleteRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
+        await db.deleteRows(TABLE_ROUTINES, routinesToDelete, conn);
 
         // Delete Localizations
         localizationsToDelete = await db.fetchRowsRaw<Localization>(
-            TABLE_ID_LOCALIZATIONS,
+            TABLE_LOCALIZATIONS,
             createFilter().where().column('id').in(localizationIds).endWhere().build(),
             conn,
         );
-        await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+        await db.deleteRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
     };
     const undo: () => Promise<void> = async () => {
         await db.executeTransaction(async (conn: DbConnection) => {
-            await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
-            await db.createRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
-            await db.createRows(TABLE_ID_NODES, nodesToDelete, conn);
-            await db.createRows(TABLE_ID_EDGES, edgesToDelete, conn);
+            await db.createRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
+            await db.createRows(TABLE_ROUTINES, routinesToDelete, conn);
+            await db.createRows(TABLE_NODES, nodesToDelete, conn);
+            await db.createRows(TABLE_EDGES, edgesToDelete, conn);
         });
     };
     const redo: () => Promise<void> = async () => {
         await db.executeTransaction(async (conn: DbConnection) => {
-            await db.deleteRows(TABLE_ID_EDGES, edgesToDelete, conn);
-            await db.deleteRows(TABLE_ID_NODES, nodesToDelete, conn);
-            await db.deleteRows(TABLE_ID_ROUTINES, routinesToDelete, conn);
-            await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+            await db.deleteRows(TABLE_EDGES, edgesToDelete, conn);
+            await db.deleteRows(TABLE_NODES, nodesToDelete, conn);
+            await db.deleteRows(TABLE_ROUTINES, routinesToDelete, conn);
+            await db.deleteRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
         });
     };
 

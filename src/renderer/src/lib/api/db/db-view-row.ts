@@ -1,3 +1,4 @@
+import type { DatabaseTableId, DatabaseTableType } from '@common/common-types';
 import {
     get,
     writable,
@@ -7,20 +8,20 @@ import {
     type Writable,
 } from 'svelte/store';
 import type { RowViewDestructor } from './db-base';
-import type { DatabaseTableId, Row } from './db-schema';
+import type { Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */
 export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     private _owners: Set<number>;
-    private _tableId: DatabaseTableId;
+    private _tableType: DatabaseTableType;
     private _internalWritable: Writable<RowType>;
     private _isDisposed: boolean;
     private _destructor: RowViewDestructor;
 
-    constructor(tableId: DatabaseTableId, row: RowType, destructor: RowViewDestructor) {
+    constructor(tableType: DatabaseTableType, row: RowType, destructor: RowViewDestructor) {
         this._owners = new Set();
-        this._tableId = tableId;
+        this._tableType = tableType;
         this._internalWritable = writable<RowType>(row);
         this._isDisposed = false;
         this._destructor = destructor;
@@ -30,8 +31,12 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         return get(this._internalWritable).id;
     }
 
+    get tableType(): DatabaseTableType {
+        return this._tableType;
+    }
+
     get tableId(): DatabaseTableId {
-        return this._tableId;
+        return this._tableType.id;
     }
 
     get isDisposed(): boolean {

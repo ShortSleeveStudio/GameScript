@@ -1,12 +1,11 @@
 <script lang="ts">
-    import { db } from '@lib/api/db/db';
     import {
+        PROGRAMMING_LANGUAGE_CS,
         PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS,
         type ProgrammingLanguageId,
-        type ProgrammingLanguagePrincipal,
-        PROGRAMMING_LANGUAGE_ID_CS,
-        type Row,
-    } from '@lib/api/db/db-schema';
+    } from '@common/common-types';
+    import { db } from '@lib/api/db/db';
+    import { type ProgrammingLanguagePrincipal, type Row } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
@@ -16,8 +15,8 @@
     import type { Unsubscriber } from 'svelte/motion';
     import { get } from 'svelte/store';
 
-    let boundValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_ID_CS;
-    let currentValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_ID_CS;
+    let boundValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_CS.id;
+    let currentValue: ProgrammingLanguageId = PROGRAMMING_LANGUAGE_CS.id;
     let languagePrincipalRowView: IDbRowView<ProgrammingLanguagePrincipal> | undefined;
     const isLoading: IsLoadingStore = new IsLoadingStore();
 

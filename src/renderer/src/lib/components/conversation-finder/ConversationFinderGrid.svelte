@@ -13,16 +13,11 @@
         type RowClickedEvent,
     } from '@ag-grid-community/core';
     import {
-        TABLE_ID_CONVERSATIONS,
         type Conversation,
         type Filter,
-        TABLE_ID_NODES,
         type Node,
-        TABLE_ID_LOCALIZATIONS,
         type Localization,
         type Row,
-        TABLE_ID_FILTERS,
-        type DatabaseTableId,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
@@ -78,15 +73,22 @@
         graphLayoutAutoLayoutDefault,
         graphLayoutVerticalDefault,
     } from '@lib/stores/graph/graph-layout';
+    import {
+        TABLE_CONVERSATIONS,
+        TABLE_FILTERS,
+        TABLE_LOCALIZATIONS,
+        TABLE_NODES,
+        type DatabaseTableType,
+    } from '@common/common-types';
 
     const CONVERSATION_ID_COLUMN: string = 'id';
     const IS_DELETED_COLUMN: string = 'isDeleted';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
-        tableId: TABLE_ID_CONVERSATIONS,
+        tableType: TABLE_CONVERSATIONS,
         type: FOCUS_REPLACE,
     };
     const columnIdSet: Set<string> = new Set();
-    const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_ID_CONVERSATIONS);
+    const datasource: IDatasource = new GridDatasource<Conversation>(TABLE_CONVERSATIONS);
 
     const staticColumns: ColDef[] = [
         {
@@ -160,7 +162,7 @@
 
                     // Delete nodes
                     const nodes: Node[] = await db.fetchRowsRaw<Node>(
-                        TABLE_ID_NODES,
+                        TABLE_NODES,
                         createFilter()
                             .where()
                             .column('parent')
@@ -173,7 +175,7 @@
 
                     // Delete localizations
                     const localizations: Localization[] = await db.fetchRowsRaw<Localization>(
-                        TABLE_ID_LOCALIZATIONS,
+                        TABLE_LOCALIZATIONS,
                         createFilter()
                             .where()
                             .column('parent')
@@ -182,10 +184,10 @@
                             .build(),
                         conn,
                     );
-                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizations, conn);
+                    await db.deleteRows(TABLE_LOCALIZATIONS, localizations, conn);
 
                     // Delete conversations
-                    await db.deleteRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
+                    await db.deleteRow(TABLE_CONVERSATIONS, conversationToDelete, conn);
                 }
             }),
         );
@@ -229,7 +231,7 @@
             for (let i = 0; i < conversationsToDelete.length; i++) {
                 const conversationToDelete = conversationsToDelete[i];
                 conversationToDelete.isDeleted = shouldDelete;
-                await db.updateRow(TABLE_ID_CONVERSATIONS, conversationToDelete, conn);
+                await db.updateRow(TABLE_CONVERSATIONS, conversationToDelete, conn);
             }
         });
         api.refreshInfiniteCache();
@@ -350,8 +352,8 @@
     const onFilterDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
-        if (tableId === TABLE_ID_FILTERS) {
+        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        if (tableType.id === TABLE_FILTERS.id) {
             api.setFilterModel(null);
             api.applyColumnState({
                 defaultState: { sort: null },

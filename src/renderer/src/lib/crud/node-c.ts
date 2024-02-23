@@ -1,9 +1,7 @@
+import { TABLE_LOCALIZATIONS, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import {
     ROUTINE_TYPE_ID_USER,
-    TABLE_ID_LOCALIZATIONS,
-    TABLE_ID_NODES,
-    TABLE_ID_ROUTINES,
     type Localization,
     type Node,
     type Routine,
@@ -25,7 +23,7 @@ export async function nodeCreate(
     const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
         // Create uiResponseText
         newUiResponseText = await db.createRow(
-            TABLE_ID_LOCALIZATIONS,
+            TABLE_LOCALIZATIONS,
             <Localization>{
                 parent: newNode.parent,
                 isSystemCreated: true,
@@ -34,7 +32,7 @@ export async function nodeCreate(
         );
         // Create voiceText
         newVoiceText = await db.createRow(
-            TABLE_ID_LOCALIZATIONS,
+            TABLE_LOCALIZATIONS,
             <Localization>{
                 parent: newNode.parent,
                 isSystemCreated: true,
@@ -43,7 +41,7 @@ export async function nodeCreate(
         );
         // Create condition
         newCondition = await db.createRow(
-            TABLE_ID_ROUTINES,
+            TABLE_ROUTINES,
             <Routine>{
                 code: '',
                 type: ROUTINE_TYPE_ID_USER,
@@ -54,7 +52,7 @@ export async function nodeCreate(
         );
         // Create code
         newCode = await db.createRow(
-            TABLE_ID_ROUTINES,
+            TABLE_ROUTINES,
             <Routine>{
                 code: '',
                 type: ROUTINE_TYPE_ID_USER,
@@ -65,7 +63,7 @@ export async function nodeCreate(
         );
         // Create Node
         newNode = await db.createRow(
-            TABLE_ID_NODES,
+            TABLE_NODES,
             <Node>{
                 parent: newNode.parent,
                 actor: 0,
@@ -101,20 +99,20 @@ export async function nodeCreate(
     if (!connection) {
         const undo: () => Promise<void> = async () => {
             await db.executeTransaction(async (conn: DbConnection) => {
-                await db.deleteRow(TABLE_ID_NODES, newNode, conn);
-                await db.deleteRow(TABLE_ID_ROUTINES, newCode, conn);
-                await db.deleteRow(TABLE_ID_ROUTINES, newCondition, conn);
-                await db.deleteRow(TABLE_ID_LOCALIZATIONS, newVoiceText, conn);
-                await db.deleteRow(TABLE_ID_LOCALIZATIONS, newUiResponseText, conn);
+                await db.deleteRow(TABLE_NODES, newNode, conn);
+                await db.deleteRow(TABLE_ROUTINES, newCode, conn);
+                await db.deleteRow(TABLE_ROUTINES, newCondition, conn);
+                await db.deleteRow(TABLE_LOCALIZATIONS, newVoiceText, conn);
+                await db.deleteRow(TABLE_LOCALIZATIONS, newUiResponseText, conn);
             });
         };
         const redo: () => Promise<void> = async () => {
             await db.executeTransaction(async (conn: DbConnection) => {
-                await db.createRow(TABLE_ID_LOCALIZATIONS, newUiResponseText, conn);
-                await db.createRow(TABLE_ID_LOCALIZATIONS, newVoiceText, conn);
-                await db.createRow(TABLE_ID_ROUTINES, newCondition, conn);
-                await db.createRow(TABLE_ID_ROUTINES, newCode, conn);
-                await db.createRow(TABLE_ID_NODES, newNode, conn);
+                await db.createRow(TABLE_LOCALIZATIONS, newUiResponseText, conn);
+                await db.createRow(TABLE_LOCALIZATIONS, newVoiceText, conn);
+                await db.createRow(TABLE_ROUTINES, newCondition, conn);
+                await db.createRow(TABLE_ROUTINES, newCode, conn);
+                await db.createRow(TABLE_NODES, newNode, conn);
             });
         };
         if (isLoading) {

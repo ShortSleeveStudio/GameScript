@@ -1,12 +1,5 @@
 <script lang="ts">
-    import {
-        TABLE_ID_CONVERSATIONS,
-        type Locale,
-        type LocalePrincipal,
-        type Localization,
-        TABLE_ID_NODES,
-        type Node,
-    } from '@lib/api/db/db-schema';
+    import { type Locale, type LocalePrincipal, type Localization } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { locales } from '@lib/tables/locales';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -23,21 +16,6 @@
     import { localeIdToColumn } from '@lib/utility/locale';
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
-    import {
-        FOCUS_MODE_REPLACE,
-        FOCUS_REPLACE,
-        focusManager,
-        type Focus,
-        type FocusRequests,
-        type FocusRequest,
-        type FocusPayloadGraphElement,
-    } from '@lib/stores/app/focus';
-    import {
-        EVENT_FINDER_FILTER_BY_PARENT,
-        type GridFilterByParentRequest,
-    } from '@lib/constants/events';
-    import { db } from '@lib/api/db/db';
-    import { createFilter } from '@lib/api/db/db-filter';
     import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';
     import { APP_NAME } from '@common/constants';
 

@@ -45,13 +45,9 @@
         type FocusPayloadGraphElement,
     } from '@lib/stores/app/focus';
     import {
-        TABLE_ID_CONVERSATIONS,
-        TABLE_ID_EDGES,
-        TABLE_ID_NODES,
         type Edge,
         type Node,
         type Localization,
-        TABLE_ID_LOCALIZATIONS,
         NODE_TYPE_DIALOGUE,
         type Conversation,
         NODE_TYPE_ROOT,
@@ -101,6 +97,12 @@
     import { GRAPH_CONTEXT } from '@lib/graph/graph-constants';
     import type { GraphContext } from '@lib/graph/graph-context';
     import { LAYOUT_ID_CONVERSATION_EDITOR } from '@lib/constants/default-layout';
+    import {
+        TABLE_CONVERSATIONS,
+        TABLE_EDGES,
+        TABLE_LOCALIZATIONS,
+        TABLE_NODES,
+    } from '@common/common-types';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -117,11 +119,11 @@
         type: <ConnectionLineType>DEFAULT_EDGE_TYPE,
     };
     const NODE_FOCUS_REQUEST: FocusRequest = <FocusRequest>{
-        tableId: TABLE_ID_NODES,
+        tableType: TABLE_NODES,
         type: FOCUS_REPLACE,
     };
     const EDGE_FOCUS_REQUEST: FocusRequest = <FocusRequest>{
-        tableId: TABLE_ID_EDGES,
+        tableType: TABLE_EDGES,
         type: FOCUS_REPLACE,
     };
     const GRAPH_FOCUS_PAYLOAD: FocusPayloadGraphElement = <FocusPayloadGraphElement>{
@@ -893,7 +895,7 @@
 
         // Conversation focus
         let newFocusedConversation: number | undefined = undefined;
-        const conversationFocus: Map<number, Focus> = focusMap[TABLE_ID_CONVERSATIONS];
+        const conversationFocus: Map<number, Focus> = focusMap[TABLE_CONVERSATIONS.id];
         if (conversationFocus.size === 1) {
             newFocusedConversation = conversationFocus.values().next().value.rowId;
 
@@ -906,7 +908,7 @@
         }
 
         // Node focus
-        const nodeMap: Map<number, Focus> = focusMap[TABLE_ID_NODES];
+        const nodeMap: Map<number, Focus> = focusMap[TABLE_NODES.id];
         let newFocusedNodes: number[] = [];
         if (nodeMap.size !== 0) {
             for (const focus of nodeMap.values()) {
@@ -1016,7 +1018,7 @@
     async function loadGraph(): Promise<void> {
         return new Promise((resolve, reject) => {
             conversationViews = db.fetchTable(
-                TABLE_ID_CONVERSATIONS,
+                TABLE_CONVERSATIONS,
                 createFilter<Conversation>()
                     .where()
                     .column('id')
@@ -1025,7 +1027,7 @@
                     .build(),
             );
             nodeViews = db.fetchTable<Node>(
-                TABLE_ID_NODES,
+                TABLE_NODES,
                 createFilter<Node>()
                     .where()
                     .column('parent')
@@ -1035,7 +1037,7 @@
                     .build(),
             );
             edgeViews = db.fetchTable<Edge>(
-                TABLE_ID_EDGES,
+                TABLE_EDGES,
                 createFilter<Edge>()
                     .where()
                     .column('parent')
@@ -1045,7 +1047,7 @@
                     .build(),
             );
             localizationViews = db.fetchTable<Localization>(
-                TABLE_ID_LOCALIZATIONS,
+                TABLE_LOCALIZATIONS,
                 createFilter()
                     .where()
                     .column('parent')

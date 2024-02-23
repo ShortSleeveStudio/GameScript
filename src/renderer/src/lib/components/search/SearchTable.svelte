@@ -8,26 +8,21 @@
         type ManagedGridOptions,
         type RowClickedEvent,
         type TextFilterModel,
-        type IRowNode,
     } from '@ag-grid-community/core';
+    import {
+        TABLE_LOCALIZATIONS,
+        TABLE_ROUTINES,
+        type DatabaseTableType,
+        TABLE_LOCALES,
+    } from '@common/common-types';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import {
-        TABLE_ID_LOCALIZATIONS,
-        type Localization,
-        TABLE_ID_ROUTINES,
-        type Locale,
-        type Row,
-        type Routine,
-        type DatabaseTableId,
-        TABLE_ID_LOCALES,
-    } from '@lib/api/db/db-schema';
+    import { type Localization, type Locale, type Row, type Routine } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { LAYOUT_ID_SEARCH } from '@lib/constants/default-layout';
     import {
         EVENT_DOCK_SELECTION_CHANGED,
         type DockSelectionChanged,
-        isCustomEvent,
         type DbColumnDeleting,
         EVENT_DB_COLUMN_DELETING,
     } from '@lib/constants/events';
@@ -60,15 +55,14 @@
     import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropdown.svelte';
     import { onDestroy, onMount, tick } from 'svelte';
     import { get } from 'svelte/store';
-    import Search from './Search.svelte';
 
     const COLUMN_ID: string = 'id';
     const COLUMN_CONVERSATION_ID: string = 'parent';
     const COLUMN_CODE: string = 'code';
 
-    const datasourceRoutines: IDatasource = new GridDatasource<Localization>(TABLE_ID_ROUTINES);
+    const datasourceRoutines: IDatasource = new GridDatasource<Localization>(TABLE_ROUTINES);
     const datasourceLocalizations: IDatasource = new GridDatasource<Localization>(
-        TABLE_ID_LOCALIZATIONS,
+        TABLE_LOCALIZATIONS,
     );
 
     const staticColumns: ColDef[] = [
@@ -259,18 +253,18 @@
             }
 
             // Update rows
-            const tableId: DatabaseTableId = isCode ? TABLE_ID_ROUTINES : TABLE_ID_LOCALIZATIONS;
-            await isLoading.wrapPromise(db.updateRows(tableId, newRows));
+            const tableType: DatabaseTableType = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
+            await isLoading.wrapPromise(db.updateRows(tableType, newRows));
 
             // Register undo/redo
             undoManager.register(
                 new Undoable(
                     `${isCode ? 'routine' : 'localization'} change`,
                     isLoading.wrapFunction(async () => {
-                        await db.updateRows(tableId, oldRows);
+                        await db.updateRows(tableType, oldRows);
                     }),
                     isLoading.wrapFunction(async () => {
-                        await db.updateRows(tableId, newRows);
+                        await db.updateRows(tableType, newRows);
                     }),
                 ),
             );
@@ -284,10 +278,10 @@
         isModalOpen = false;
 
         // Replace all
-        let tableId: DatabaseTableId = isCode ? TABLE_ID_ROUTINES : TABLE_ID_LOCALIZATIONS;
+        let tableType: DatabaseTableType = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
         await isLoading.wrapPromise(
             db.searchAndReplace(
-                tableId,
+                tableType,
                 datasourceFilterWhere(createFilter(), api.getFilterModel()),
                 currentSearchColumnId,
                 searchString,
@@ -311,8 +305,8 @@
     const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
-        if (tableId === TABLE_ID_LOCALES) {
+        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        if (tableType.id === TABLE_LOCALES.id) {
             api.setFilterModel(null);
             api.applyColumnState({
                 defaultState: { sort: null },

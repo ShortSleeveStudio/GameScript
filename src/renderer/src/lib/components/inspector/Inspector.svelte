@@ -1,17 +1,5 @@
 <script lang="ts">
-    import {
-        TABLE_ID_ACTORS,
-        TABLE_ID_AUTO_COMPLETES,
-        TABLE_ID_CONVERSATIONS,
-        TABLE_ID_EDGES,
-        TABLE_ID_FILTERS,
-        TABLE_ID_LOCALES,
-        TABLE_ID_LOCALIZATIONS,
-        TABLE_ID_NODES,
-        TABLE_ID_ROUTINES,
-        type DatabaseTableId,
-        type Row,
-    } from '@lib/api/db/db-schema';
+    import { type Row } from '@lib/api/db/db-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';
@@ -33,6 +21,19 @@
     import DockableContent from '../app/DockableContent.svelte';
     import DockableRow from '../app/DockableRow.svelte';
     import DockableColumn from '../app/DockableColumn.svelte';
+    import {
+        DATABASE_TABLES,
+        TABLE_ROUTINES,
+        type DatabaseTableId,
+        TABLE_AUTO_COMPLETES,
+        TABLE_ACTORS,
+        TABLE_LOCALES,
+        TABLE_FILTERS,
+        TABLE_CONVERSATIONS,
+        TABLE_LOCALIZATIONS,
+        TABLE_NODES,
+        TABLE_EDGES,
+    } from '@common/common-types';
 
     let focusedItems: number = 0;
     let inspectedFocus: Focus | undefined;
@@ -69,7 +70,7 @@
             inspectedFocus = focused;
             inspectedTableId = tableId;
             inspectedTableView = db.fetchTable(
-                inspectedTableId,
+                DATABASE_TABLES[inspectedTableId],
                 createFilter().where().column('id').eq(inspectedFocus.rowId).endWhere().build(),
             );
         }
@@ -105,27 +106,27 @@
                 <!-- Destroy and recreate anytime the focus changes -->
                 {#if focusedItems === 1 && inspectedTableView && inspectedTableId && inspectedFocus}
                     {#each $inspectedTableView as rowView (rowView.id)}
-                        {#if inspectedTableId === TABLE_ID_ROUTINES}
+                        {#if inspectedTableId === TABLE_ROUTINES.id}
                             <InspectorRoutine {rowView} payload={inspectedFocus.payload} />
-                        {:else if inspectedTableId === TABLE_ID_AUTO_COMPLETES}
+                        {:else if inspectedTableId === TABLE_AUTO_COMPLETES.id}
                             <InspectorAutoComplete {rowView} payload={inspectedFocus.payload} />
-                        {:else if inspectedTableId === TABLE_ID_ACTORS}
+                        {:else if inspectedTableId === TABLE_ACTORS.id}
                             <InspectorActor {rowView} payload={inspectedFocus.payload} />
-                        {:else if inspectedTableId === TABLE_ID_LOCALES}
+                        {:else if inspectedTableId === TABLE_LOCALES.id}
                             <InspectorLocale {rowView} payload={inspectedFocus.payload} />
-                        {:else if inspectedTableId === TABLE_ID_FILTERS}
+                        {:else if inspectedTableId === TABLE_FILTERS.id}
                             <InspectorFilter {rowView} payload={inspectedFocus.payload} />
-                        {:else if inspectedTableId === TABLE_ID_CONVERSATIONS}
+                        {:else if inspectedTableId === TABLE_CONVERSATIONS.id}
                             <InspectorConversation {rowView} />
-                        {:else if inspectedTableId === TABLE_ID_LOCALIZATIONS}
+                        {:else if inspectedTableId === TABLE_LOCALIZATIONS.id}
                             <InspectorLocalization
                                 {rowView}
                                 showTitle={true}
                                 showConversationButton={true}
                             />
-                        {:else if inspectedTableId === TABLE_ID_NODES}
+                        {:else if inspectedTableId === TABLE_NODES.id}
                             <InspectorNode {rowView} />
-                        {:else if inspectedTableId === TABLE_ID_EDGES}
+                        {:else if inspectedTableId === TABLE_EDGES.id}
                             <InspectorEdge {rowView} />
                         {/if}
                     {/each}

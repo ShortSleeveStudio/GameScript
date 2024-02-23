@@ -10,12 +10,7 @@
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { get } from 'svelte/store';
-    import {
-        TABLE_ID_ACTORS,
-        type Actor,
-        type Localization,
-        TABLE_ID_LOCALIZATIONS,
-    } from '@lib/api/db/db-schema';
+    import { type Actor, type Localization } from '@lib/api/db/db-schema';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import FocusButton from '../common/FocusButton.svelte';
     import type { FocusPayloadActor } from '@lib/stores/app/focus';
@@ -34,6 +29,7 @@
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { createFilter } from '@lib/api/db/db-filter';
     import { APP_NAME } from '@common/constants';
+    import { TABLE_ACTORS, TABLE_LOCALIZATIONS } from '@common/common-types';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [
@@ -56,11 +52,11 @@
                     parent: null,
                     isSystemCreated: true,
                 };
-                localizedName = await db.createRow(TABLE_ID_LOCALIZATIONS, localizationArg, conn);
+                localizedName = await db.createRow(TABLE_LOCALIZATIONS, localizationArg, conn);
 
                 // Create Actor
                 newActor = await db.createRow(
-                    TABLE_ID_ACTORS,
+                    TABLE_ACTORS,
                     <Actor>{
                         name: ACTORS_DEFAULT_NAME,
                         color: ACTORS_DEFAULT_COLOR,
@@ -78,18 +74,18 @@
                 'actor creation',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await db.deleteRow(TABLE_ID_ACTORS, newActor, conn);
-                        await db.deleteRow(TABLE_ID_LOCALIZATIONS, localizedName, conn);
+                        await db.deleteRow(TABLE_ACTORS, newActor, conn);
+                        await db.deleteRow(TABLE_LOCALIZATIONS, localizedName, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
                         localizedName = await db.createRow(
-                            TABLE_ID_LOCALIZATIONS,
+                            TABLE_LOCALIZATIONS,
                             localizedName,
                             conn,
                         );
-                        newActor = await db.createRow(TABLE_ID_ACTORS, newActor, conn);
+                        newActor = await db.createRow(TABLE_ACTORS, newActor, conn);
                     });
                 }),
             ),
@@ -110,9 +106,9 @@
         let localizationsToDelete: Localization[];
         await isLoading.wrapPromise(
             db.executeTransaction(async (conn: DbConnection) => {
-                await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+                await db.deleteRows(TABLE_ACTORS, actorsToDelete, conn);
                 localizationsToDelete = await db.fetchRowsRaw<Localization>(
-                    TABLE_ID_LOCALIZATIONS,
+                    TABLE_LOCALIZATIONS,
                     createFilter()
                         .where()
                         .column('id')
@@ -121,7 +117,7 @@
                         .build(),
                     conn,
                 );
-                await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+                await db.deleteRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
             }),
         );
 
@@ -131,14 +127,14 @@
                 'actor deletion',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await db.createRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
-                        await db.createRows(TABLE_ID_ACTORS, actorsToDelete, conn);
+                        await db.createRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
+                        await db.createRows(TABLE_ACTORS, actorsToDelete, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await db.deleteRows(TABLE_ID_ACTORS, actorsToDelete, conn);
-                        await db.deleteRows(TABLE_ID_LOCALIZATIONS, localizationsToDelete, conn);
+                        await db.deleteRows(TABLE_ACTORS, actorsToDelete, conn);
+                        await db.deleteRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
                     });
                 }),
             ),

@@ -1,12 +1,8 @@
+import { DATABASE_TABLES, type DatabaseTableType, type FieldTypeId } from '@common/common-types';
 import type { DbConnection } from 'preload/api-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import {
-    DATABASE_TABLE_NAMES,
-    type DatabaseTableId,
-    type FieldTypeId,
-    type Row,
-} from './db-schema';
+import { type Row } from './db-schema';
 import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
@@ -31,11 +27,9 @@ export abstract class Db {
     protected static _tableToRowView: Map<number, DbRowView<Row>>[]; // Lookup table using table id
     protected static _tableToTableView: Map<number, DbTableView<Row>>[]; // Lookup table using table id
     static {
-        Db._tableToRowView = <Map<number, DbRowView<Row>>[]>(
-            DATABASE_TABLE_NAMES.map(() => new Map())
-        );
+        Db._tableToRowView = <Map<number, DbRowView<Row>>[]>DATABASE_TABLES.map(() => new Map());
         Db._tableToTableView = <Map<number, DbTableView<Row>>[]>(
-            DATABASE_TABLE_NAMES.map(() => new Map())
+            DATABASE_TABLES.map(() => new Map())
         );
     }
 
@@ -47,17 +41,17 @@ export abstract class Db {
 
     /**
      * Creates a table view.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      */
     fetchTable<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
     ): IDbTableView<RowType> {
         // Create view
-        const tableView = new DbTableView<RowType>(tableId, filter, this._isConnected);
+        const tableView = new DbTableView<RowType>(tableType, filter, this._isConnected);
 
         // Store it in the map
-        this.getTableViewsForTable(tableId).set(tableView.viewId, tableView);
+        this.getTableViewsForTable(tableType).set(tableView.viewId, tableView);
 
         // Return
         return tableView;
@@ -70,7 +64,7 @@ export abstract class Db {
     releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
         // Delete table view from registry
         const tableViewMap: Map<number, IDbTableView<RowType>> = this.getTableViewsForTable(
-            tableView.tableId,
+            tableView.tableType,
         );
         tableViewMap.delete(tableView.viewId);
 
@@ -78,8 +72,11 @@ export abstract class Db {
         (<DbTableView<RowType>>tableView).dispose();
     }
 
-    protected destroyRowView<RowType extends Row>(tableId: DatabaseTableId, rowId: number): void {
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableId);
+    protected destroyRowView<RowType extends Row>(
+        tableType: DatabaseTableType,
+        rowId: number,
+    ): void {
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
         rowViews.delete(rowId);
     }
 
@@ -97,7 +94,7 @@ export abstract class Db {
      * @param connection Optional connection to execute with
      */
     abstract createColumn(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         name: string,
         type: FieldTypeId,
         connection?: DbConnection,
@@ -110,7 +107,7 @@ export abstract class Db {
      * @param connection Optional connection to execute with
      */
     abstract deleteColumn(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         name: string,
         connection?: DbConnection,
     ): Promise<void>;
@@ -119,12 +116,12 @@ export abstract class Db {
      * This creates a single row in the table.
      * Throws an error during failures.
      * Returns the id of the newly created row.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param row The row to create
      * @param connection Optional connection to execute with
      */
     abstract createRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<RowType>;
@@ -133,36 +130,36 @@ export abstract class Db {
      * This creates a list of rows in the table.
      * Throws an error during failures.
      * Returns the rows with their id fields populated.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param rows The rows to create
      * @param connection Optional connection to execute with
      */
     abstract createRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]>;
 
     /**
      * Fetch the total number of rows in a given table.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param filter Filter for the query
      * @param connection Optional connection to execute with
      */
     abstract fetchRowCount<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number>;
 
     /**
      * Fetch raw rows that won't be used by a table view or updated when changes happen.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param filter Filter for the query
      * @param connection Optional connection to execute with
      */
     abstract fetchRowsRaw<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]>;
@@ -170,37 +167,37 @@ export abstract class Db {
     /**
      * This fetches (all) rows in a table and returns them sorted by id.
      * Throws an error during failures.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param filter Filter for the query
      * @param connection Optional connection to execute with
      * @internal
      */
     abstract fetchRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]>;
 
     /**
      * This updates multiple rows in a table.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param rows The rows to update
      * @param connection Optional connection to execute with
      */
     abstract updateRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
     /**
      * This updates a single row in a table.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param row The row to update
      * @param connection Optional connection to execute with
      */
     abstract updateRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void>;
@@ -208,12 +205,12 @@ export abstract class Db {
     /**
      * This deletes a single row in the table.
      * Throws an error during failures.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param row The row to delete
      * @param connection Optional connection to execute with
      */
     abstract deleteRow<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void>;
@@ -221,19 +218,19 @@ export abstract class Db {
     /**
      * This deletes a list of rows in the table.
      * Throws an error during failures.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param rows The rows to delete
      * @param connection Optional connection to execute with
      */
     abstract deleteRows<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
     /**
      * Search for and replace a string of text.
-     * @param tableId Id of the table
+     * @param tableType Type of the table
      * @param filter Filter for the query
      * @param field Field to search in
      * @param search String to search for
@@ -241,7 +238,7 @@ export abstract class Db {
      * @param connection Optional connection to execute with
      */
     abstract searchAndReplace<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
         filter: Filter<RowType>,
         field: string,
         search: string,
@@ -255,20 +252,20 @@ export abstract class Db {
     abstract shutdown(): Promise<void>;
 
     protected getTableViewsForTable<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
     ): Map<number, DbTableView<RowType>> {
-        return <Map<number, DbTableView<RowType>>>Db._tableToTableView[tableId];
+        return <Map<number, DbTableView<RowType>>>Db._tableToTableView[tableType.id];
     }
 
     protected getRowViewsForTable<RowType extends Row>(
-        tableId: DatabaseTableId,
+        tableType: DatabaseTableType,
     ): Map<number, DbRowView<RowType>> {
         let rowViewMap: Map<number, DbRowView<RowType>> = <Map<number, DbRowView<RowType>>>(
-            Db._tableToRowView[tableId]
+            Db._tableToRowView[tableType.id]
         );
         if (!rowViewMap) {
             rowViewMap = new Map();
-            Db._tableToRowView[tableId] = rowViewMap;
+            Db._tableToRowView[tableType.id] = rowViewMap;
         }
         return rowViewMap;
     }

@@ -1,12 +1,9 @@
 <script lang="ts">
     import {
-        TABLE_ID_ROUTINES,
         type Node,
         type Routine,
         NODE_TYPE_DIALOGUE,
         NODE_TYPE_LINK,
-        TABLE_ID_NODES,
-        TABLE_ID_CONVERSATIONS,
     } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -32,6 +29,7 @@
         type FocusRequests,
     } from '@lib/stores/app/focus';
     import { APP_NAME } from '@common/constants';
+    import { TABLE_CONVERSATIONS, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -63,7 +61,7 @@
             rowId: node.parent,
         });
         const conversationFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_CONVERSATIONS,
+            tableType: TABLE_CONVERSATIONS,
             focus: conversationFocusMap,
             type: FOCUS_REPLACE,
         };
@@ -77,7 +75,7 @@
             },
         });
         const nodeFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_NODES,
+            tableType: TABLE_NODES,
             focus: nodeFocusMap,
             type: FOCUS_REPLACE,
         };
@@ -90,7 +88,7 @@
     onMount(() => {
         const routineIds: number[] = [get(rowView).code, get(rowView).condition];
         routineTable = db.fetchTable<Routine>(
-            TABLE_ID_ROUTINES,
+            TABLE_ROUTINES,
             createFilter().where().column('id').in(routineIds).endWhere().build(),
         );
     });

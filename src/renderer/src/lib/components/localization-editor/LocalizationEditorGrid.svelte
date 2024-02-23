@@ -8,14 +8,7 @@
     } from '@lib/constants/grid';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
-    import {
-        TABLE_ID_LOCALIZATIONS,
-        type Locale,
-        type Localization,
-        type Row,
-        type DatabaseTableId,
-        TABLE_ID_LOCALES,
-    } from '@lib/api/db/db-schema';
+    import { type Locale, type Localization, type Row } from '@lib/api/db/db-schema';
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import {
         type ColDef,
@@ -67,13 +60,18 @@
     import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
+    import {
+        TABLE_LOCALES,
+        TABLE_LOCALIZATIONS,
+        type DatabaseTableType,
+    } from '@common/common-types';
     const CONVERSATION_ID_COLUMN: string = 'parent';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
-        tableId: TABLE_ID_LOCALIZATIONS,
+        tableType: TABLE_LOCALIZATIONS,
         type: FOCUS_REPLACE,
     };
     const columnIdSet: Set<string> = new Set();
-    const datasource: IDatasource = new GridDatasource<Localization>(TABLE_ID_LOCALIZATIONS);
+    const datasource: IDatasource = new GridDatasource<Localization>(TABLE_LOCALIZATIONS);
     const staticColumns: ColDef[] = [
         {
             pinned: 'left',
@@ -159,7 +157,7 @@
 
         // Create localization
         let newRow: Localization = await isLoading.wrapPromise(
-            db.createRow(TABLE_ID_LOCALIZATIONS, newLocalization),
+            db.createRow(TABLE_LOCALIZATIONS, newLocalization),
         );
 
         // Register undo/redo
@@ -167,10 +165,10 @@
             new Undoable(
                 'localization creation',
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRow(TABLE_ID_LOCALIZATIONS, newRow);
+                    await db.deleteRow(TABLE_LOCALIZATIONS, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    newRow = await db.createRow(TABLE_ID_LOCALIZATIONS, newRow);
+                    newRow = await db.createRow(TABLE_LOCALIZATIONS, newRow);
                 }),
             ),
         );
@@ -181,17 +179,17 @@
         const selected: Localization[] = getCopyOfSelectedAndDeselect(api, selectedRows);
 
         // Delete localizations
-        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_LOCALIZATIONS, selected));
+        await isLoading.wrapPromise(db.deleteRows(TABLE_LOCALIZATIONS, selected));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'conversation deletion',
                 isLoading.wrapFunction(async () => {
-                    await db.createRows(TABLE_ID_LOCALIZATIONS, selected);
+                    await db.createRows(TABLE_LOCALIZATIONS, selected);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRows(TABLE_ID_LOCALIZATIONS, selected);
+                    await db.deleteRows(TABLE_LOCALIZATIONS, selected);
                 }),
             ),
         );
@@ -279,8 +277,8 @@
     const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableId: DatabaseTableId = (<CustomEvent<DbColumnDeleting>>e).detail.tableId;
-        if (tableId === TABLE_ID_LOCALES) {
+        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        if (tableType.id === TABLE_LOCALES.id) {
             api.setFilterModel(null);
             api.applyColumnState({
                 defaultState: { sort: null },

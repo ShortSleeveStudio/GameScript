@@ -12,14 +12,7 @@
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import {
-        type LocalePrincipal,
-        TABLE_ID_LOCALES,
-        type Locale,
-        TABLE_ID_LOCALIZATIONS,
-        FIELD_TYPE_ID_TEXT,
-        TABLE_ID_LOCALE_PRINCIPAL,
-    } from '@lib/api/db/db-schema';
+    import { type LocalePrincipal, type Locale } from '@lib/api/db/db-schema';
     import type { FocusPayloadLocale } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -39,7 +32,12 @@
     import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
-    import { wait } from '@lib/utility/wait';
+    import {
+        FIELD_TYPE_TEXT,
+        TABLE_LOCALES,
+        TABLE_LOCALE_PRINCIPAL,
+        TABLE_LOCALIZATIONS,
+    } from '@common/common-types';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
@@ -55,13 +53,13 @@
 
     async function createLocale(toCreate: Locale, conn: DbConnection): Promise<Locale> {
         // Create Locale
-        toCreate = await db.createRow(TABLE_ID_LOCALES, toCreate, conn);
+        toCreate = await db.createRow(TABLE_LOCALES, toCreate, conn);
 
         // Create Column
         await db.createColumn(
-            TABLE_ID_LOCALIZATIONS,
+            TABLE_LOCALIZATIONS,
             localeIdToColumn(toCreate.id),
-            FIELD_TYPE_ID_TEXT,
+            FIELD_TYPE_TEXT.id,
             conn,
         );
         return toCreate;
@@ -71,7 +69,7 @@
         // If this is primary, switch to another
         if (get(localePrincipalRowView).principal === toDelete.id) {
             await db.updateRow(
-                TABLE_ID_LOCALE_PRINCIPAL,
+                TABLE_LOCALE_PRINCIPAL,
                 <LocalePrincipal>{ id: 0, principal: get(systemCreatedLocaleRowView).id },
                 conn,
             );
@@ -80,15 +78,15 @@
         // Notify anyone interested
         dispatchEvent(
             new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableId: TABLE_ID_LOCALES },
+                detail: <DbColumnDeleting>{ tableId: TABLE_LOCALES },
             }),
         );
 
         // Delete Column
-        await db.deleteColumn(TABLE_ID_LOCALIZATIONS, localeIdToColumn(toDelete.id), conn);
+        await db.deleteColumn(TABLE_LOCALIZATIONS, localeIdToColumn(toDelete.id), conn);
 
         // Delete Locale
-        await db.deleteRow(TABLE_ID_LOCALES, toDelete, conn);
+        await db.deleteRow(TABLE_LOCALES, toDelete, conn);
     }
 
     async function addRow(): Promise<void> {

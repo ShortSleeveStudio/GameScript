@@ -1,13 +1,11 @@
-<script lang="ts" generics="RowType extends Row">
+<script lang="ts">
+    import { PROGRAMMING_LANGUAGE_CS } from '@common/common-types';
+
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 
     import { db } from '@lib/api/db/db';
 
-    import {
-        PROGRAMMING_LANGUAGE_ID_CS,
-        type Row,
-        type ProgrammingLanguagePrincipal,
-    } from '@lib/api/db/db-schema';
+    import { type Row, type ProgrammingLanguagePrincipal } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
@@ -20,7 +18,7 @@
 
     export let languageOverride: string | undefined = undefined;
     export let columnName: string;
-    export let rowView: IDbRowView<RowType> | undefined;
+    export let rowView: IDbRowView<Row> | undefined;
     export let disabled: boolean = false;
     $: onRowViewChanged(rowView); // Used to detect if the rowView passed in is swapped for another
 
@@ -79,7 +77,7 @@
         });
     }
 
-    function onRowChanged(newRoutine: RowType): void {
+    function onRowChanged(newRoutine: Row): void {
         editor.setValue(<string>newRoutine[columnName]);
     }
 
@@ -135,7 +133,7 @@
         monaco.editor.setModelLanguage(model, languageName);
     }
 
-    function onRowViewChanged(row: IDbRowView<RowType> | undefined): void {
+    function onRowViewChanged(row: IDbRowView<Row> | undefined): void {
         if (!editor) return;
         if (rowChangeUnsubscribe) rowChangeUnsubscribe();
         if (row) {
@@ -149,7 +147,7 @@
     onMount(() => {
         // Initialize the editor
         let principalLanguageId =
-            $languagePrincipalRowView?.principal ?? PROGRAMMING_LANGUAGE_ID_CS;
+            $languagePrincipalRowView?.principal ?? PROGRAMMING_LANGUAGE_CS.id;
         const languageName: string = languageOverride
             ? languageOverride
             : MONACO_PROGRAMMING_LANGUAGE_NAMES[principalLanguageId];

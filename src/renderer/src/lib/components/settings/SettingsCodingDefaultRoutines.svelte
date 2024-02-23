@@ -13,11 +13,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import {
-        TABLE_ID_ROUTINES,
-        type Routine,
-        ROUTINE_TYPE_ID_DEFAULT,
-    } from '@lib/api/db/db-schema';
+    import { type Routine, ROUTINE_TYPE_ID_DEFAULT } from '@lib/api/db/db-schema';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -29,6 +25,7 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
     import SettingsCodingDefaultRoutinesRadio from './SettingsCodingDefaultRoutinesRadio.svelte';
+    import { TABLE_ROUTINES } from '@common/common-types';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
@@ -49,19 +46,17 @@
             type: ROUTINE_TYPE_ID_DEFAULT,
             isSystemCreated: false,
         };
-        let newRow: Routine = await isLoading.wrapPromise(
-            db.createRow(TABLE_ID_ROUTINES, newRoutine),
-        );
+        let newRow: Routine = await isLoading.wrapPromise(db.createRow(TABLE_ROUTINES, newRoutine));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine creation',
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRow(TABLE_ID_ROUTINES, newRow);
+                    await db.deleteRow(TABLE_ROUTINES, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    newRow = await db.createRow(TABLE_ID_ROUTINES, newRow);
+                    newRow = await db.createRow(TABLE_ROUTINES, newRow);
                 }),
             ),
         );
@@ -73,17 +68,17 @@
         selectedRowIds.length = 0;
 
         // Delete rows
-        await isLoading.wrapPromise(db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete));
+        await isLoading.wrapPromise(db.deleteRows(TABLE_ROUTINES, rowsToDelete));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 'routine deletion',
                 isLoading.wrapFunction(async () => {
-                    rowsToDelete = await db.createRows(TABLE_ID_ROUTINES, rowsToDelete);
+                    rowsToDelete = await db.createRows(TABLE_ROUTINES, rowsToDelete);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.deleteRows(TABLE_ID_ROUTINES, rowsToDelete);
+                    await db.deleteRows(TABLE_ROUTINES, rowsToDelete);
                 }),
             ),
         );

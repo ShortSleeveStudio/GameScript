@@ -1,13 +1,8 @@
+import { TABLE_CONVERSATIONS, TABLE_NODES } from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import type { Filter } from '@lib/api/db/db-filter-interface';
-import {
-    TABLE_ID_CONVERSATIONS,
-    TABLE_ID_NODES,
-    type Localization,
-    type Node,
-    type Routine,
-} from '@lib/api/db/db-schema';
+import { type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import {
     FOCUS_MODE_REPLACE,
     FOCUS_REPLACE,
@@ -34,7 +29,7 @@ async function focusOnNode(parentConversation: number, filter: Filter<Node>): Pr
             rowId: parentConversation,
         });
         const conversationFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_CONVERSATIONS,
+            tableType: TABLE_CONVERSATIONS,
             focus: conversationFocusMap,
             type: FOCUS_REPLACE,
         };
@@ -51,7 +46,7 @@ async function focusOnNode(parentConversation: number, filter: Filter<Node>): Pr
         // );
 
         // Focus on node
-        const rawRows: Node[] = await db.fetchRowsRaw(TABLE_ID_NODES, filter);
+        const rawRows: Node[] = await db.fetchRowsRaw(TABLE_NODES, filter);
         if (!rawRows || rawRows.length !== 1) return;
         const nodeFocusMap: Map<number, Focus> = new Map();
         const node: Node = rawRows[0];
@@ -62,7 +57,7 @@ async function focusOnNode(parentConversation: number, filter: Filter<Node>): Pr
             },
         });
         const nodeFocus: FocusRequest = <FocusRequest>{
-            tableId: TABLE_ID_NODES,
+            tableType: TABLE_NODES,
             focus: nodeFocusMap,
             type: FOCUS_REPLACE,
         };

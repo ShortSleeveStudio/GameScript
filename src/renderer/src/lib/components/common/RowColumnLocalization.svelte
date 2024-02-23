@@ -1,12 +1,13 @@
 <script lang="ts">
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { TABLE_ID_LOCALIZATIONS, type Localization, type Row } from '@lib/api/db/db-schema';
+    import { type Localization, type Row } from '@lib/api/db/db-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { onDestroy, onMount } from 'svelte';
     import InspectorLocalization from '../inspector/InspectorLocalization.svelte';
     import { Tile } from 'carbon-components-svelte';
+    import { TABLE_LOCALIZATIONS } from '@common/common-types';
 
     export let rowView: IDbRowView<Row>;
     export let columnName: string;
@@ -18,7 +19,7 @@
 
     onMount(() => {
         localizationTableView = db.fetchTable(
-            TABLE_ID_LOCALIZATIONS,
+            TABLE_LOCALIZATIONS,
             createFilter<Localization>()
                 .where()
                 .column('id')

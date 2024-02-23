@@ -1,9 +1,5 @@
-import {
-    DATABASE_TABLES,
-    DATABASE_TABLE_NAMES,
-    type DatabaseTableId,
-    type LocalePrincipal,
-} from '@lib/api/db/db-schema';
+import { DATABASE_TABLES, type DatabaseTableType } from '@common/common-types';
+import { type LocalePrincipal } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
@@ -29,7 +25,7 @@ export const FOCUS_REQUEST_TYPES: number[] = [
 ] as const;
 export type FocusRequestType = (typeof FOCUS_REQUEST_TYPES)[number];
 export interface FocusRequest {
-    tableId: DatabaseTableId;
+    tableType: DatabaseTableType;
     focus: Map<number, Focus>; // Row ID -> Focus
     type: FocusRequestType;
 }
@@ -54,8 +50,8 @@ export class FocusManager {
         const modifiedTables: Set<number> = new Set();
         for (let i = 0; i < focusRequests.length; i++) {
             const request: FocusRequest = focusRequests[i];
-            modifiedTables.add(request.tableId);
-            let focusMap: Map<number, Focus> = this._focus[request.tableId];
+            modifiedTables.add(request.tableType.id);
+            let focusMap: Map<number, Focus> = this._focus[request.tableType.id];
             switch (request.type) {
                 case FOCUS_ADD:
                     for (const value of request.focus.values()) {
@@ -102,11 +98,11 @@ export class FocusManager {
                     throw new Error(`Unexpected focus type requested: ${request.type}`);
             }
             // In case replace happened, reassign the map
-            this._focus[request.tableId] = focusMap;
+            this._focus[request.tableType.id] = focusMap;
         }
         if (request.type === FOCUS_MODE_REPLACE) {
             const tablesNeedClearing: number[] = [];
-            for (let i = 0; i < DATABASE_TABLE_NAMES.length; i++) {
+            for (let i = 0; i < DATABASE_TABLES.length; i++) {
                 if (!modifiedTables.has(i)) {
                     tablesNeedClearing.push(i);
                 }

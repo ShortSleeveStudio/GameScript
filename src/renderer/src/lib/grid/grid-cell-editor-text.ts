@@ -1,6 +1,7 @@
 import type { AgPromise, ICellEditorComp, ICellEditorParams } from '@ag-grid-community/core';
+import type { DatabaseTableType } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import { DATABASE_TABLE_NAMES, type Row } from '@lib/api/db/db-schema';
+import { type Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import { get } from 'svelte/store';
@@ -12,21 +13,21 @@ export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, stri
     private _element: HTMLInputElement;
 
     getValue(): undefined {
-        const tableId: number = this._rowView.tableId;
+        const tableType: DatabaseTableType = this._rowView.tableType;
         const newRow = <Row>{ id: this._rowView.id };
         newRow[this._columnName] = this._element.value;
         const oldRow = <Row>{ id: this._rowView.id };
         oldRow[this._columnName] = get(this._rowView)[this._columnName];
 
-        db.updateRow(tableId, newRow).then(() => {
+        db.updateRow(tableType, newRow).then(() => {
             undoManager.register(
                 new Undoable(
-                    `${DATABASE_TABLE_NAMES[tableId].toLowerCase()} update`,
+                    `${tableType.name.toLowerCase()} update`,
                     async () => {
-                        await db.updateRow(tableId, oldRow);
+                        await db.updateRow(tableType, oldRow);
                     },
                     async () => {
-                        await db.updateRow(tableId, newRow);
+                        await db.updateRow(tableType, newRow);
                     },
                 ),
             );

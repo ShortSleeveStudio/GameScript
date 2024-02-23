@@ -1,5 +1,6 @@
+import type { DatabaseTableType } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import { DATABASE_TABLE_NAMES, type Row } from '@lib/api/db/db-schema';
+import { type Row } from '@lib/api/db/db-schema';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import { get } from 'svelte/store';
 import { GridCellEditorInteger } from './grid-cell-editor-integer';
@@ -8,27 +9,27 @@ export class GridCellEditorConversationId extends GridCellEditorInteger {
     getValue(): undefined {
         // Skip non-integers
         if (!this.isInteger(this._element.value)) return undefined;
-        const tableId: number = this._rowView.tableId;
+        const tableType: DatabaseTableType = this._rowView.tableType;
         const newRow = <Row>{ id: this._rowView.id };
         newRow[this._columnName] = parseInt(this._element.value);
         const oldRow = <Row>{ id: this._rowView.id };
         oldRow[this._columnName] = get(this._rowView)[this._columnName];
 
-        db.updateRow(tableId, newRow)
+        db.updateRow(tableType, newRow)
             .then(() => {
                 undoManager.register(
                     new Undoable(
-                        `${DATABASE_TABLE_NAMES[tableId].toLowerCase()} update`,
+                        `${tableType.name.toLowerCase()} update`,
                         async () => {
                             try {
-                                await db.updateRow(tableId, oldRow);
+                                await db.updateRow(tableType, oldRow);
                             } catch (e) {
                                 this.throwError(e);
                             }
                         },
                         async () => {
                             try {
-                                await db.updateRow(tableId, newRow);
+                                await db.updateRow(tableType, newRow);
                             } catch (e) {
                                 this.throwError(e);
                             }
