@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron';
+import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-types-db';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,
@@ -8,26 +9,20 @@ import {
     API_SQLITE_OPEN,
     API_SQLITE_RUN,
 } from '../common/constants';
-import { DbConnection } from './api-db';
-
-export interface SqliteResult {
-    lastInsertRowId: number;
-    rowsAffected: number;
-}
 
 export interface SqliteApi {
-    open(file: string): Promise<DbConnection>;
+    open(config: DbConnectionConfig): Promise<DbConnection>;
     close(connection: DbConnection): Promise<void>;
     closeAll(): Promise<void>;
-    run(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<SqliteResult>;
+    run(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<DbResult>;
     all<T = unknown[]>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
 }
 
 export const sqliteApi: SqliteApi = {
-    open: async (file: string) => {
-        return await ipcRenderer.invoke(API_SQLITE_OPEN, file);
+    open: async (config: DbConnectionConfig) => {
+        return await ipcRenderer.invoke(API_SQLITE_OPEN, config);
     },
     close: async (connection: DbConnection) => {
         await ipcRenderer.invoke(API_SQLITE_CLOSE, connection);

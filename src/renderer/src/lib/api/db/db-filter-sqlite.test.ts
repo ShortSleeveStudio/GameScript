@@ -1,5 +1,5 @@
+import { ROUTINE_TYPE_ID_USER, type Conversation, type Routine } from '@common/common-schema';
 import { createFilter } from '@lib/api/db/db-filter';
-import { ROUTINE_TYPE_ID_USER, type Conversation, type Routine } from '@lib/api/db/db-schema';
 import { expect, test } from 'vitest';
 import { ASC, DESC } from './db-filter-interface';
 

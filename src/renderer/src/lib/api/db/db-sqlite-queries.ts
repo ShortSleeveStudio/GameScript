@@ -1,3 +1,4 @@
+import { localeIdToColumn } from '@common/common-locale';
 import {
     DATABASE_TABLES,
     PROGRAMMING_LANGUAGE_CS,
@@ -23,7 +24,6 @@ import {
     type ProgrammingLanguageType,
 } from '@common/common-types';
 import { ACTORS_DEFAULT_COLOR } from '@lib/constants/settings';
-import { localeIdToColumn } from '@lib/utility/locale';
 
 ///
 /// Table Creation

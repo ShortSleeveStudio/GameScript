@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type AutoComplete } from '@lib/api/db/db-schema';
+    import { type AutoComplete } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadAutoComplete } from '@lib/stores/app/focus';
     import RowColumnId from '../common/RowColumnId.svelte';

@@ -1,8 +1,9 @@
+import type { Row } from '@common/common-schema';
 import type { DatabaseTableType, FieldTypeId } from '@common/common-types';
+import type { Transaction } from '@common/common-types-db';
 import type { Writable } from 'svelte/store';
-import { Db, type Transaction } from './db-base';
+import { Db } from './db-base';
 import type { Filter } from './db-filter-interface';
-import type { Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**PostgreSQL database implementation */

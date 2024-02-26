@@ -1,6 +1,6 @@
 <script lang="ts">
     import { db } from '@lib/api/db/db';
-    import type { Row } from '@lib/api/db/db-schema';
+    import type { Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -22,7 +22,7 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         // Register undo/redo
         undoManager.register(
@@ -30,11 +30,11 @@
                 `${undoText} change`,
                 isLoading.wrapFunction(async () => {
                     newRow[columnName] = oldValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
                     newRow[columnName] = newValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
             ),
         );

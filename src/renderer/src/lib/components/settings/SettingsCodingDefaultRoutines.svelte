@@ -13,7 +13,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { type Routine } from '@lib/api/db/db-schema';
+    import { type Routine } from '@common/common-schema';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';

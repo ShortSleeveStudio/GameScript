@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Locale, type LocalePrincipal, type Localization } from '@lib/api/db/db-schema';
+    import { type Locale, type LocalePrincipal, type Localization } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { locales } from '@lib/tables/locales';
     import RowColumnId from '../common/RowColumnId.svelte';
@@ -13,7 +13,7 @@
     } from '@lib/constants/settings';
     import RowColumnText from '../common/RowColumnText.svelte';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
-    import { localeIdToColumn } from '@lib/utility/locale';
+    import { localeIdToColumn } from '@common/common-locale';
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
     import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';

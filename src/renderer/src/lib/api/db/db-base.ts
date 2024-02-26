@@ -1,8 +1,8 @@
+import type { Row } from '@common/common-schema';
 import { DATABASE_TABLES, type DatabaseTableType, type FieldTypeId } from '@common/common-types';
-import type { DbConnection } from 'preload/api-db';
+import type { DbConnection, Transaction } from '@common/common-types-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
-import { type Row } from './db-schema';
 import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
@@ -15,9 +15,6 @@ export const OP_CREATE: OpType = 0;
 export const OP_DELETE: OpType = 1;
 export const OP_UPDATE: OpType = 2;
 export const OP_ALTER: OpType = 3;
-
-// Transaction type
-export type Transaction = (connection: DbConnection) => Promise<void>;
 
 // Row view destructor
 export type RowViewDestructor = () => void;
@@ -42,6 +39,7 @@ export abstract class Db {
     /**
      * Creates a table view.
      * @param tableType Type of the table
+     * @param filter Filter for the table
      */
     fetchTable<RowType extends Row>(
         tableType: DatabaseTableType,

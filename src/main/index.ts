@@ -94,6 +94,7 @@ app.on('activate', () => {
 /**
  * IPC
  */
+import './ipc-build';
 import './ipc-dialog';
 import './ipc-fs';
 import './ipc-sqlite';

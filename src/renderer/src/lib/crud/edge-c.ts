@@ -1,6 +1,6 @@
+import { type Edge } from '@common/common-schema';
 import { TABLE_EDGES } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import { type Edge } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 

@@ -5,7 +5,7 @@
     import { GRAPH_CONTEXT, PORT_CONTAINER_THICKNESS } from '@lib/graph/graph-constants';
     import OverflowMenuCustom from '../carbon/OverflowMenuCustom.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { Node } from '@lib/api/db/db-schema';
+    import type { Node } from '@common/common-schema';
     import { get } from 'svelte/store';
     import { getContext } from 'svelte';
     import type { GraphContext } from '@lib/graph/graph-context';

@@ -3,7 +3,7 @@
     import RoutineEditor from '../common/RoutineEditor.svelte';
     import { importRoutines } from '@lib/tables/routines-imports';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { Routine } from '@lib/api/db/db-schema';
+    import type { Routine } from '@common/common-schema';
     import { onDestroy } from 'svelte';
 
     let rowView: IDbRowView<Routine>;

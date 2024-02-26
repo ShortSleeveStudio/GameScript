@@ -6,6 +6,7 @@ import type {
     ProvidedFilterModel,
     TextFilterModel,
 } from '@ag-grid-community/core';
+import type { Row } from '@common/common-schema';
 import type {
     Filter,
     FilterBuilder,
@@ -13,7 +14,6 @@ import type {
     WhereColumnOrOpenScope,
     WherePredicate,
 } from '@lib/api/db/db-filter-interface';
-import type { Row } from '@lib/api/db/db-schema';
 
 export function datasourceFilterWhere<RowType extends Row>(
     filterBuilder: FilterBuilder<RowType>,

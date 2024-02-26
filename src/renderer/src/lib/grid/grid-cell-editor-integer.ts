@@ -1,7 +1,7 @@
 import type { AgPromise, ICellEditorComp, ICellEditorParams } from '@ag-grid-community/core';
+import { type Row } from '@common/common-schema';
 import type { DatabaseTableType } from '@common/common-types';
 import { db } from '@lib/api/db/db';
-import { type Row } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 import { get } from 'svelte/store';

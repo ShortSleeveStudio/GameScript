@@ -1,5 +1,5 @@
 import type { AgPromise, ICellRendererComp, ICellRendererParams } from '@ag-grid-community/core';
-import type { Conversation } from '@lib/api/db/db-schema';
+import type { Conversation } from '@common/common-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { Unsubscriber } from 'svelte/store';
 import type { GridContext } from './grid-context';

@@ -4,22 +4,21 @@
     import {
         buildExportLocalizationDivision,
         buildExportLocalizationFormat,
+        buildExportLocalizationHeaderInclude,
         buildExportPathLocalization,
         dbSqlitePath,
         dbType,
     } from '@lib/stores/settings/settings';
     import type { DialogResult } from 'preload/api-dialog';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import type {
-        DatabaseInfo,
-        DatabaseInfoSqlite,
-        LocalizationExportRequest,
-    } from 'preload/api-build';
+    import type { DatabaseInfo, LocalizationExportRequest } from 'preload/api-build';
     import {
         DATABASE_TYPE_POSTGRES,
         DATABASE_TYPE_SQLITE,
         LOCALIZATION_DIVISION_DROPDOWN_ITEMS,
+        LOCALIZATION_FORMAT_CSV,
         LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
+        LOCALIZATION_HEADER_INCLUDE_DROPDOWN_ITEMS,
     } from '@common/common-types';
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
@@ -36,15 +35,19 @@
         const database: DatabaseInfo = <DatabaseInfo>{};
         if ($dbType === DATABASE_TYPE_SQLITE.id) {
             database.database = DATABASE_TYPE_SQLITE.id;
-            (<DatabaseInfoSqlite>database).sqliteFilePath = $dbSqlitePath.fullPath;
+            database.databaseConfig = {
+                sqliteFile: $dbSqlitePath.fullPath,
+            };
         } else {
             database.database = DATABASE_TYPE_POSTGRES.id;
+            // TODO
         }
         await isLoading.wrapPromise(
             window.api.build.localizationExport(<LocalizationExportRequest>{
                 database: database,
                 format: $buildExportLocalizationFormat,
                 division: $buildExportLocalizationDivision,
+                headerInclude: $buildExportLocalizationHeaderInclude,
                 location: $buildExportPathLocalization.path,
             }),
         );
@@ -97,6 +100,19 @@
         items={LOCALIZATION_FORMAT_DROPDOWN_ITEMS}
     />
 </p>
+{#if $buildExportLocalizationFormat === LOCALIZATION_FORMAT_CSV.id}
+    <p>
+        <Tooltip triggerText="Include Header" align="start" direction="bottom">
+            <p>This settings decides whether your CSV files will include a header or not.</p>
+        </Tooltip>
+        <Dropdown
+            size="sm"
+            disabled={$isLoading}
+            bind:selectedId={$buildExportLocalizationHeaderInclude}
+            items={LOCALIZATION_HEADER_INCLUDE_DROPDOWN_ITEMS}
+        />
+    </p>
+{/if}
 <p>
     <sup>Export</sup>
     <br />

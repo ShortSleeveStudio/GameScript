@@ -1,6 +1,6 @@
+import type { Row } from '@common/common-schema';
 import type { Filter, FilterBuilder } from './db-filter-interface';
 import { FilterBuilderSqlite } from './db-filter-sqlite';
-import type { Row } from './db-schema';
 
 /**Factory for filters */
 export function createFilter<RowType extends Row>(): FilterBuilder<RowType> {

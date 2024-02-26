@@ -10,7 +10,7 @@
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { get } from 'svelte/store';
-    import { type Actor, type Localization } from '@lib/api/db/db-schema';
+    import { type Actor, type Localization } from '@common/common-schema';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import FocusButton from '../common/FocusButton.svelte';
     import type { FocusPayloadActor } from '@lib/stores/app/focus';
@@ -23,13 +23,13 @@
     } from '@lib/constants/settings';
     import { actorsTable } from '@lib/tables/actors';
     import { db } from '@lib/api/db/db';
-    import type { DbConnection } from 'preload/api-db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { createFilter } from '@lib/api/db/db-filter';
     import { APP_NAME } from '@common/constants';
     import { TABLE_ACTORS, TABLE_LOCALIZATIONS } from '@common/common-types';
+    import type { DbConnection } from '@common/common-types-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [

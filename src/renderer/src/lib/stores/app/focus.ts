@@ -1,5 +1,5 @@
+import { type LocalePrincipal } from '@common/common-schema';
 import { DATABASE_TABLES, type DatabaseTableType } from '@common/common-types';
-import { type LocalePrincipal } from '@lib/api/db/db-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';

@@ -10,7 +10,7 @@
         FILTER_UNDO_NOTES,
     } from '@lib/constants/settings';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
-    import type { Filter } from '@lib/api/db/db-schema';
+    import type { Filter } from '@common/common-schema';
 
     export let rowView: IDbRowView<Filter>;
     export let payload: FocusPayloadFilter;

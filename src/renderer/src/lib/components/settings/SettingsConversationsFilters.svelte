@@ -11,7 +11,7 @@
     import FocusButton from '../common/FocusButton.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
-    import { type Filter } from '@lib/api/db/db-schema';
+    import { type Filter } from '@common/common-schema';
     import type { FocusPayloadFilter } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -19,11 +19,11 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { filters } from '@lib/tables/filters';
     import { db } from '@lib/api/db/db';
-    import type { DbConnection } from 'preload/api-db';
     import { filterIdToColumn } from '@lib/utility/filters';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
     import { FIELD_TYPE_TEXT, TABLE_CONVERSATIONS, TABLE_FILTERS } from '@common/common-types';
+    import type { DbConnection } from '@common/common-types-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadFilter = <FocusPayloadFilter>{
@@ -54,7 +54,7 @@
         // Notify anyone interested
         dispatchEvent(
             new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableId: TABLE_FILTERS },
+                detail: <DbColumnDeleting>{ tableType: TABLE_FILTERS },
             }),
         );
 

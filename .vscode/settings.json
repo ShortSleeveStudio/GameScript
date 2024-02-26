@@ -20,6 +20,7 @@
   },
   "svelte.enable-ts-plugin": true,
   "eslint.validate": [
+    "typescript",
     "javascript",
     "javascriptreact",
     "svelte"

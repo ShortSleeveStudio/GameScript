@@ -3,7 +3,7 @@
     import { onDestroy } from 'svelte';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
-    import type { Routine, Row } from '@lib/api/db/db-schema';
+    import type { Routine, Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { RadioButton, RadioButtonGroup } from 'carbon-components-svelte';
@@ -29,17 +29,17 @@
         const originalRow: Row = { ...get(principalStore) };
         const newRow: Row = { ...get(principalStore) };
         newRow.principal = rowView.id;
-        await isLoading.wrapPromise(db.updateRow(principalStore.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(principalStore.tableType, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `${undoText} change`,
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(principalStore.tableId, originalRow);
+                    await db.updateRow(principalStore.tableType, originalRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(principalStore.tableId, newRow);
+                    await db.updateRow(principalStore.tableType, newRow);
                 }),
             ),
         );

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Conversation } from '@lib/api/db/db-schema';
+    import { type Conversation } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';

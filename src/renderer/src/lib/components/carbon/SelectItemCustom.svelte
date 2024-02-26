@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Row } from '@lib/api/db/db-schema';
+    import type { Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { getContext, onDestroy, onMount } from 'svelte';
     import type { Unsubscriber } from 'svelte/motion';

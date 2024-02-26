@@ -1,15 +1,15 @@
+import { type Edge, type Localization, type Node, type Routine } from '@common/common-schema';
 import {
     TABLE_EDGES,
     TABLE_LOCALIZATIONS,
     TABLE_NODES,
     TABLE_ROUTINES,
 } from '@common/common-types';
+import type { DbConnection } from '@common/common-types-db';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
-import { type Edge, type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
-import type { DbConnection } from 'preload/api-db';
 
 /**
  * Delete nodes

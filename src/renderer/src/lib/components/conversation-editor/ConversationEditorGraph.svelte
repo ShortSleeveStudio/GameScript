@@ -49,7 +49,7 @@
         type Node,
         type Localization,
         type Conversation,
-    } from '@lib/api/db/db-schema';
+    } from '@common/common-schema';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';

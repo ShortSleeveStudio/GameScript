@@ -1,4 +1,4 @@
-import type { Row } from '@lib/api/db/db-schema';
+import type { Row } from '@common/common-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';

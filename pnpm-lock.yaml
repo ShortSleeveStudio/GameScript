@@ -52,6 +52,9 @@ devDependencies:
   '@types/node':
     specifier: ^18.19.5
     version: 18.19.6
+  '@types/papaparse':
+    specifier: ^5.3.14
+    version: 5.3.14
   '@xyflow/svelte':
     specifier: ^0.0.35
     version: 0.0.35(svelte@4.2.9)
@@ -88,6 +91,9 @@ devDependencies:
   mousetrap:
     specifier: ^1.6.5
     version: 1.6.5
+  papaparse:
+    specifier: ^5.4.1
+    version: 5.4.1
   prettier:
     specifier: ^3.1.1
     version: 3.1.1
@@ -1272,6 +1278,12 @@ packages:
     resolution: {integrity: sha512-X36s5CXMrrJOs2lQCdDF68apW4Rfx9ixYMawlepwmE4Anezv/AV2LSpKD1Ub8DAc+urp5bk0BGZ6NtmBitfnsg==}
     dependencies:
       undici-types: 5.26.5
+
+  /@types/papaparse@5.3.14:
+    resolution: {integrity: sha512-LxJ4iEFcpqc6METwp9f6BV6VVc43m6MfH0VqFosHvrUgfXiFe6ww7R3itkOQ+TCK6Y+Iv/+RnnvtRZnkc5Kc9g==}
+    dependencies:
+      '@types/node': 18.19.6
+    dev: true
 
   /@types/plist@3.0.5:
     resolution: {integrity: sha512-E6OCaRmAe4WDmWNsL/9RMqdkkzDCY1etutkflWk4c+AcjDU07Pcz1fQwTX0TQz+Pxqn9i4L1TU3UFpjnrcDgxA==}
@@ -3612,6 +3624,10 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       p-limit: 3.1.0
+    dev: true
+
+  /papaparse@5.4.1:
+    resolution: {integrity: sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==}
     dev: true
 
   /parent-module@1.0.1:

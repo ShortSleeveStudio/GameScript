@@ -5,7 +5,7 @@
         type ProgrammingLanguageId,
     } from '@common/common-types';
     import { db } from '@lib/api/db/db';
-    import { type ProgrammingLanguagePrincipal, type Row } from '@lib/api/db/db-schema';
+    import { type ProgrammingLanguagePrincipal, type Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
@@ -46,7 +46,7 @@
         const originalRow = { ...get(languagePrincipalRowView) };
         const newRow = <Row>{ id: originalRow.id };
         newRow['principal'] = newValue;
-        await isLoading.wrapPromise(db.updateRow(languagePrincipalRowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(languagePrincipalRowView.tableType, newRow));
 
         // Register undo/redo
         undoManager.register(
@@ -56,13 +56,13 @@
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
                     newRow['principal'] = oldValue;
-                    await db.updateRow(languagePrincipalRowView.tableId, newRow);
+                    await db.updateRow(languagePrincipalRowView.tableType, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
                     if (!languagePrincipalRowView)
                         throw Error('Database view of default programming language is missing');
                     newRow['principal'] = newValue;
-                    await db.updateRow(languagePrincipalRowView.tableId, newRow);
+                    await db.updateRow(languagePrincipalRowView.tableType, newRow);
                 }),
             ),
         );

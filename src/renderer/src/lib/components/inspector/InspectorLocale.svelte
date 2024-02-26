@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Locale } from '@lib/api/db/db-schema';
+    import { type Locale } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { FocusPayloadLocale } from '@lib/stores/app/focus';
     import RowColumnId from '../common/RowColumnId.svelte';

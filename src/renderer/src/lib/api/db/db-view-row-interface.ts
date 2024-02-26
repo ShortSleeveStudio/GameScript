@@ -1,6 +1,6 @@
+import type { Row } from '@common/common-schema';
 import type { DatabaseTableId, DatabaseTableType } from '@common/common-types';
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
-import type { Row } from './db-schema';
 
 /**Interface for row views. This interface exists to prevent circular dependency. */
 export interface IDbRowView<RowType extends Row> extends Readable<RowType> {

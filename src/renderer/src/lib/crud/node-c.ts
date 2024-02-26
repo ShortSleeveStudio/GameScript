@@ -1,14 +1,14 @@
+import { type Localization, type Node, type Routine } from '@common/common-schema';
 import {
     ROUTINE_TYPE_USER_CREATED,
     TABLE_LOCALIZATIONS,
     TABLE_NODES,
     TABLE_ROUTINES,
 } from '@common/common-types';
+import type { DbConnection } from '@common/common-types-db';
 import { db } from '@lib/api/db/db';
-import { type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
-import type { DbConnection } from 'preload/api-db';
 
 export async function nodeCreate(
     newNode: Node,
@@ -127,7 +127,5 @@ export async function nodeCreate(
             undoManager.register(new Undoable('node creation', undo, redo));
         }
     }
-
-    console.log('node create complete');
     return newNode;
 }

@@ -1,3 +1,4 @@
+import type { Row } from '../../../../../common/common-schema';
 import type {
     Filter,
     FilterBuilder,
@@ -9,7 +10,6 @@ import type {
     WhereColumnOrOpenScope,
     WherePredicate,
 } from './db-filter-interface';
-import type { Row } from './db-schema';
 
 interface Condition<RowType extends Row> {
     execute(row: RowType): boolean;

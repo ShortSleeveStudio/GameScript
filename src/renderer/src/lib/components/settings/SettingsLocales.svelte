@@ -12,7 +12,7 @@
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { type LocalePrincipal, type Locale } from '@lib/api/db/db-schema';
+    import { type LocalePrincipal, type Locale } from '@common/common-schema';
     import type { FocusPayloadLocale } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -27,8 +27,7 @@
     import RowColumnRadio from '../common/RowColumnRadio.svelte';
     import { localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
-    import type { DbConnection } from 'preload/api-db';
-    import { localeIdToColumn } from '@lib/utility/locale';
+    import { localeIdToColumn } from '@common/common-locale';
     import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
@@ -38,6 +37,7 @@
         TABLE_LOCALE_PRINCIPAL,
         TABLE_LOCALIZATIONS,
     } from '@common/common-types';
+    import type { DbConnection } from '@common/common-types-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
@@ -78,7 +78,7 @@
         // Notify anyone interested
         dispatchEvent(
             new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableId: TABLE_LOCALES },
+                detail: <DbColumnDeleting>{ tableType: TABLE_LOCALES },
             }),
         );
 

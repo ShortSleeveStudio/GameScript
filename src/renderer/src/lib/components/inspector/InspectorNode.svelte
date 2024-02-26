@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Node, type Routine } from '@lib/api/db/db-schema';
+    import { type Node, type Routine } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnLocalization from '../common/RowColumnLocalization.svelte';

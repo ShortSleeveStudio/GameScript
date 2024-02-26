@@ -9,7 +9,7 @@
     "src/common/*.d.ts",
     "src/preload/*.d.ts",
     "src/preload/types/index.d.ts"
-  ],
+, "src/common/TEMPORARY/tmp.ts"  ],
   "exclude": [
     "src/renderer/lib/vendor/**"
   ],

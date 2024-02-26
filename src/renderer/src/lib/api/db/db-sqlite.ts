@@ -5,6 +5,12 @@ import {
     type DatabaseTableType,
     type FieldTypeId,
 } from '@common/common-types';
+import type {
+    DbConnection,
+    DbConnectionConfig,
+    DbResult,
+    Transaction,
+} from '@common/common-types-db';
 import {
     FOCUS_MODE_MODIFY,
     FOCUS_REMOVE,
@@ -15,22 +21,12 @@ import {
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
-import type { DbConnection } from 'preload/api-db';
 import type { DialogResult } from 'preload/api-dialog';
-import type { SqliteResult } from 'preload/api-sqlite';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
-import {
-    Db,
-    OP_ALTER,
-    OP_CREATE,
-    OP_DELETE,
-    OP_UPDATE,
-    type OpType,
-    type Transaction,
-} from './db-base';
+import { type Row } from '../../../../../common/common-schema';
+import { Db, OP_ALTER, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
-import { type Row } from './db-schema';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -82,7 +78,9 @@ export class SqliteDb extends Db {
         const dbFile: DialogResult = get(this._sqlitePathStore);
         let conn: DbConnection;
         try {
-            conn = await window.api.sqlite.open(dbFile.fullPath);
+            conn = await window.api.sqlite.open(<DbConnectionConfig>{
+                sqliteFile: dbFile.fullPath,
+            });
             await window.api.sqlite.exec(conn, 'BEGIN;');
             await transaction(conn);
         } catch (err) {
@@ -90,11 +88,17 @@ export class SqliteDb extends Db {
             await window.api.sqlite.exec(conn, 'ROLLBACK;');
             throw err;
         } finally {
+            // Preserve and reset notifications. If you don't clear these before notifying,
+            // transactions in the notifications will end up looping over these irrelevant
+            // notifications
+            const preservedTransactions: DbNotification[] = this._transactionNotifications;
+            this._transactionNotifications = [];
             if (!wasError) {
-                window.api.sqlite.exec(conn, 'COMMIT;');
+                await window.api.sqlite.exec(conn, 'COMMIT;');
+                await window.api.sqlite.close(conn);
                 // Only notify if there were no errors
-                for (let i = 0; i < this._transactionNotifications.length; i++) {
-                    const notification: DbNotification = this._transactionNotifications[i];
+                for (let i = 0; i < preservedTransactions.length; i++) {
+                    const notification: DbNotification = preservedTransactions[i];
                     await this.notify(
                         notification.op,
                         notification.tableType,
@@ -102,9 +106,9 @@ export class SqliteDb extends Db {
                         undefined,
                     );
                 }
+            } else {
+                await window.api.sqlite.close(conn);
             }
-            await window.api.sqlite.close(conn);
-            this._transactionNotifications.length = 0;
         }
     }
 
@@ -200,7 +204,7 @@ export class SqliteDb extends Db {
 
             // Execute
             const query: string = `INSERT INTO ${tableType.name} (${propertyNames}) VALUES (${placeHolders});`;
-            let result: SqliteResult;
+            let result: DbResult;
             try {
                 result = await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
             } catch (err) {
@@ -443,7 +447,7 @@ export class SqliteDb extends Db {
         const tableViews = super.getTableViewsForTable<RowType>(tableType);
         for (const tableView of tableViews.values()) {
             if (tableView.filter.wouldAffectRows(rows)) {
-                (<DbTableView<RowType>>tableView).onReloadRequired();
+                await (<DbTableView<RowType>>tableView).onReloadRequired();
             }
         }
     }
@@ -497,7 +501,9 @@ export class SqliteDb extends Db {
 
         try {
             // Attempt to connect
-            this._db = await window.api.sqlite.open(fileDetails.fullPath);
+            this._db = await window.api.sqlite.open(<DbConnectionConfig>{
+                sqliteFile: fileDetails.fullPath,
+            });
 
             // Ensure schema
             await this.initializeSchema();

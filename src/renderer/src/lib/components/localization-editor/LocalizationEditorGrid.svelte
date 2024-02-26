@@ -1,6 +1,7 @@
 <script lang="ts">
     import {
         GRID_CACHE_BLOCK_SIZE,
+        GRID_CACHE_MAX_BLOCKS,
         GRID_FILTER_PARAMS_NUMBER,
         GRID_FILTER_PARAMS_TEXT,
         getCopyOfSelectedAndDeselect,
@@ -8,7 +9,7 @@
     } from '@lib/constants/grid';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
-    import { type Locale, type Localization, type Row } from '@lib/api/db/db-schema';
+    import { type Locale, type Localization, type Row } from '@common/common-schema';
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import {
         type ColDef,
@@ -30,7 +31,7 @@
     import { LS_KEY_LOCALIZATION } from '@lib/constants/local-storage';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { localeIdToColumn } from '@lib/utility/locale';
+    import { localeIdToColumn } from '@common/common-locale';
     import { onDestroy, onMount } from 'svelte';
     import type { GridContext } from '@lib/grid/grid-context';
     import {
@@ -325,7 +326,7 @@
                 ],
             },
             cacheBlockSize: GRID_CACHE_BLOCK_SIZE,
-            maxBlocksInCache: GRID_CACHE_BLOCK_SIZE,
+            maxBlocksInCache: GRID_CACHE_MAX_BLOCKS,
             autoSizeStrategy: {
                 type: 'fitCellContents',
             },

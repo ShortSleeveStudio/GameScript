@@ -1,4 +1,4 @@
-import type { EdgeTypeName, NodeTypeName, RoutineTypeId } from '@common/common-types';
+import type { EdgeTypeName, NodeTypeName, RoutineTypeId } from './common-types';
 
 ///
 /// Rows

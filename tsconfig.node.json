@@ -11,7 +11,7 @@
     "src/main/ipc-fs.ts",
     "src/main/ipc-sqlite.ts",
     "src/main/ipc-window.ts"
-  ],
+, "src/common/TEMPORARY/tmp.ts"  ],
   "compilerOptions": {
     "composite": true,
     "types": ["electron-vite/node"]

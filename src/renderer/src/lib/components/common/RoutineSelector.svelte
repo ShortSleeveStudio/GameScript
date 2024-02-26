@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Routine, Row } from '@lib/api/db/db-schema';
+    import type { Routine, Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { Select } from 'carbon-components-svelte';
     import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
@@ -60,17 +60,17 @@
         const oldRow = <Row>{ id: rowView.id };
         newRow[columnNameOverrideRoutine] = nullableNewValue;
         oldRow[columnNameOverrideRoutine] = nullableOldValue;
-        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `routine selection change`,
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(rowView.tableId, oldRow);
+                    await db.updateRow(rowView.tableType, oldRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
             ),
         );

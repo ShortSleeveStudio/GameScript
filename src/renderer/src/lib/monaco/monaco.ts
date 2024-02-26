@@ -1,16 +1,11 @@
-import type { AutoComplete } from '@lib/api/db/db-schema';
+import type { AutoComplete } from '@common/common-schema';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { autoCompleteTable } from '@lib/tables/auto-complete';
 import { Position, editor, languages, type IRange } from 'monaco-editor';
-// @ts-expect-error Something funny about these imports
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-// @ts-expect-error Something funny about these imports
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
-// @ts-expect-error Something funny about these imports
 import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker';
-// @ts-expect-error Something funny about these imports
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker';
-// @ts-expect-error Something funny about these imports
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import { get } from 'svelte/store';
 

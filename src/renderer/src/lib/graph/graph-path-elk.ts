@@ -15,36 +15,36 @@ export interface GetSmoothStepPathParams {
     offset?: number;
 }
 
-const distance = (a: XYPosition, b: XYPosition): number =>
-    Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+// const distance = (a: XYPosition, b: XYPosition): number =>
+//     Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
 
-function getBend(a: XYPosition, b: XYPosition, c: XYPosition, size: number): string {
-    const aToB: number = distance(a, b) / 2;
-    const bToC: number = distance(b, c) / 2;
-    if (aToB === size || bToC === size) size = 0;
-    const bendSize = Math.min(aToB, bToC, size);
-    const { x, y } = b;
+// function getBend(a: XYPosition, b: XYPosition, c: XYPosition, size: number): string {
+//     const aToB: number = distance(a, b) / 2;
+//     const bToC: number = distance(b, c) / 2;
+//     if (aToB === size || bToC === size) size = 0;
+//     const bendSize = Math.min(aToB, bToC, size);
+//     const { x, y } = b;
 
-    // no bend
-    if ((a.x === x && x === c.x) || (a.y === y && y === c.y)) {
-        return `L${x} ${y}`;
-    }
+//     // no bend
+//     if ((a.x === x && x === c.x) || (a.y === y && y === c.y)) {
+//         return `L${x} ${y}`;
+//     }
 
-    // first segment is horizontal
-    if (a.y === y) {
-        const xDir = a.x < c.x ? -1 : 1;
-        const yDir = a.y < c.y ? 1 : -1;
-        return `L ${x + bendSize * xDir},${y}Q ${x},${y} ${x},${y + bendSize * yDir}`;
-    }
+//     // first segment is horizontal
+//     if (a.y === y) {
+//         const xDir = a.x < c.x ? -1 : 1;
+//         const yDir = a.y < c.y ? 1 : -1;
+//         return `L ${x + bendSize * xDir},${y}Q ${x},${y} ${x},${y + bendSize * yDir}`;
+//     }
 
-    const xDir = a.x < c.x ? 1 : -1;
-    const yDir = a.y < c.y ? -1 : 1;
-    return `L ${x},${y + bendSize * yDir}Q ${x},${y} ${x + bendSize * xDir},${y}`;
-}
+//     const xDir = a.x < c.x ? 1 : -1;
+//     const yDir = a.y < c.y ? -1 : 1;
+//     return `L ${x},${y + bendSize * yDir}Q ${x},${y} ${x + bendSize * xDir},${y}`;
+// }
 
 export function getElkPath(
     elkEdge: ElkExtendedEdge,
-    borderRadius = 5,
+    // borderRadius = 5,
 ): [path: string, labelX: number, labelY: number, offsetX: number, offsetY: number] {
     // Skip when edge data is missing
     if (!elkEdge || !elkEdge.sections) return ['', 0, 0, 0, 0];

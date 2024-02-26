@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type Row } from '@lib/api/db/db-schema';
+    import { type Row } from '@common/common-schema';
     import { type Focus, focusManager } from '@lib/stores/app/focus';
     import { onDestroy } from 'svelte';
     import InspectorRoutine from './InspectorRoutine.svelte';

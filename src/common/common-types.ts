@@ -169,6 +169,36 @@ export const LOCALIZATION_DIVISION_DROPDOWN_ITEMS: DropdownItem[] = LOCALIZATION
         },
 );
 
+/**Build Localization Include Header */
+export interface LocalizationHeaderInclude {
+    id: number;
+    name: string;
+}
+export const LOCALIZATION_HEADER_INCLUDE_TRUE: LocalizationHeaderInclude = {
+    id: 0,
+    name: 'True',
+};
+export const LOCALIZATION_HEADER_INCLUDE_FALSE: LocalizationHeaderInclude = {
+    id: 1,
+    name: 'False',
+};
+export const LOCALIZATION_HEADER_INCLUDE_TYPES: LocalizationFormatType[] = [
+    LOCALIZATION_HEADER_INCLUDE_TRUE,
+    LOCALIZATION_HEADER_INCLUDE_FALSE,
+] as const;
+export type LocalizationHeaderIncludeTypeId =
+    (typeof LOCALIZATION_HEADER_INCLUDE_TYPES)[number]['id'];
+export type LocalizationHeaderIncludeTypeName =
+    (typeof LOCALIZATION_HEADER_INCLUDE_TYPES)[number]['name'];
+export const LOCALIZATION_HEADER_INCLUDE_DROPDOWN_ITEMS: DropdownItem[] =
+    LOCALIZATION_HEADER_INCLUDE_TYPES.map(
+        (includeHeaderTypes: LocalizationFormatType) =>
+            <DropdownItem>{
+                id: includeHeaderTypes.id,
+                text: includeHeaderTypes.name,
+            },
+    );
+
 /**Build Localization Format */
 export interface LocalizationFormatType {
     id: number;

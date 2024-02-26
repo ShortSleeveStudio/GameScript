@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Routine } from '@lib/api/db/db-schema';
+    import type { Routine } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { defaultRoutine } from '@lib/stores/settings/settings';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';

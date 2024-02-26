@@ -1,7 +1,7 @@
-<script lang="ts" generics="RowType extends Row">
+<script lang="ts">
     import { db } from '@lib/api/db/db';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import { type Row } from '@lib/api/db/db-schema';
+    import { type Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { Dropdown } from 'carbon-components-svelte';
@@ -9,7 +9,7 @@
     import { onDestroy } from 'svelte';
     import { get } from 'svelte/store';
 
-    export let rowView: IDbRowView<RowType>;
+    export let rowView: IDbRowView<Row>;
     export let columnName: string;
     export let undoText: string;
     export let isDisabled: boolean = false;
@@ -40,25 +40,25 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         undoManager.register(
             new Undoable(
                 `${undoText} changed`,
                 isLoading.wrapFunction(async () => {
                     newRow[columnName] = oldValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
                 isLoading.wrapFunction(async () => {
                     newRow[columnName] = newValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
             ),
         );
     }
 
     onDestroy(
-        rowView.subscribe((row: RowType) => {
+        rowView.subscribe((row: Row) => {
             if (row[columnName] !== currentValue) {
                 boundValue = <number>row[columnName];
                 currentValue = <number>row[columnName];

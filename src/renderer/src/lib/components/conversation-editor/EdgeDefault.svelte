@@ -1,17 +1,10 @@
 <script lang="ts">
-    import type { Edge } from '@lib/api/db/db-schema';
+    import type { Edge } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { EdgeData } from '@lib/graph/graph-data';
     import { getElkPath } from '@lib/graph/graph-path-elk';
     import type { ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
-    import {
-        type EdgeProps,
-        BaseEdge,
-        getBezierPath,
-        EdgeLabelRenderer,
-        getStraightPath,
-        getSmoothStepPath,
-    } from '@xyflow/svelte';
+    import { type EdgeProps, BaseEdge, getBezierPath, EdgeLabelRenderer } from '@xyflow/svelte';
     // import { type EdgeProps, BaseEdge, getBezierPath } from '@lib/vendor/flow/svelte/src/lib';
 
     // SUPPRESS WARNINGS

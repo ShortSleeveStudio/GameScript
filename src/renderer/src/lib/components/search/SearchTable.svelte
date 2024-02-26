@@ -17,7 +17,7 @@
     } from '@common/common-types';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { type Localization, type Locale, type Row, type Routine } from '@lib/api/db/db-schema';
+    import { type Localization, type Locale, type Row, type Routine } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { LAYOUT_ID_SEARCH } from '@lib/constants/default-layout';
     import {
@@ -28,6 +28,7 @@
     } from '@lib/constants/events';
     import {
         GRID_CACHE_BLOCK_SIZE,
+        GRID_CACHE_MAX_BLOCKS,
         GRID_FILTER_PARAMS_NUMBER,
         GRID_FILTER_PARAMS_TEXT,
     } from '@lib/constants/grid';
@@ -41,7 +42,7 @@
     import { TableWatcher } from '@lib/stores/utility/table-watcher';
     import { locales } from '@lib/tables/locales';
     import { wasEnterPressed } from '@lib/utility/keybinding';
-    import { localeIdToColumn } from '@lib/utility/locale';
+    import { localeIdToColumn } from '@common/common-locale';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import {
         Button,
@@ -334,7 +335,7 @@
                 flex: 2,
             },
             cacheBlockSize: GRID_CACHE_BLOCK_SIZE,
-            maxBlocksInCache: GRID_CACHE_BLOCK_SIZE,
+            maxBlocksInCache: GRID_CACHE_MAX_BLOCKS,
             autoSizeStrategy: {
                 type: 'fitCellContents',
             },

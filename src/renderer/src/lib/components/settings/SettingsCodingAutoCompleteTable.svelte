@@ -10,7 +10,7 @@
     import { TrashCan } from 'carbon-icons-svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
     import { autoCompleteTable } from '@lib/tables/auto-complete';
-    import { type AutoComplete } from '@lib/api/db/db-schema';
+    import { type AutoComplete } from '@common/common-schema';
     import { languages } from 'monaco-editor';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';

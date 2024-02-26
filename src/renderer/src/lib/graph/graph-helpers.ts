@@ -1,8 +1,8 @@
+import { type Localization, type Node, type Routine } from '@common/common-schema';
 import { TABLE_CONVERSATIONS, TABLE_NODES } from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import type { Filter } from '@lib/api/db/db-filter-interface';
-import { type Localization, type Node, type Routine } from '@lib/api/db/db-schema';
 import {
     FOCUS_MODE_REPLACE,
     FOCUS_REPLACE,

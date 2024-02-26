@@ -5,7 +5,7 @@
 
     import { db } from '@lib/api/db/db';
 
-    import { type Row, type ProgrammingLanguagePrincipal } from '@lib/api/db/db-schema';
+    import { type Row, type ProgrammingLanguagePrincipal } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isDarkMode } from '@lib/stores/app/darkmode';
     import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
@@ -96,7 +96,7 @@
         // Update column
         const newRow = <Row>{ ...get(rowView) };
         newRow[columnName] = newValue;
-        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         undoManager.register(
             new Undoable(
@@ -104,13 +104,13 @@
                 isLoading.wrapFunction(async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     newRow[columnName] = oldValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                     blurEditor();
                 }),
                 isLoading.wrapFunction(async () => {
                     if (!rowView) throw Error('Database view of routine is missing');
                     newRow[columnName] = newValue;
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                     blurEditor();
                 }),
             ),

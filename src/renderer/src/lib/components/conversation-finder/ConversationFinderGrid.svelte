@@ -18,7 +18,7 @@
         type Node,
         type Localization,
         type Row,
-    } from '@lib/api/db/db-schema';
+    } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridDatasource } from '@lib/grid/grid-datasource';
@@ -44,7 +44,6 @@
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { Reset, TrashCan } from 'carbon-icons-svelte';
-    import type { DbConnection } from 'preload/api-db';
     import { createFilter } from '@lib/api/db/db-filter';
     import {
         GRID_CACHE_BLOCK_SIZE,
@@ -80,6 +79,7 @@
         TABLE_NODES,
         type DatabaseTableType,
     } from '@common/common-types';
+    import type { DbConnection } from '@common/common-types-db';
 
     const CONVERSATION_ID_COLUMN: string = 'id';
     const IS_DELETED_COLUMN: string = 'isDeleted';

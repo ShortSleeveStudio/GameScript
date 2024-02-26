@@ -2,7 +2,7 @@
     import { Select } from 'carbon-components-svelte';
     import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { Row } from '@lib/api/db/db-schema';
+    import type { Row } from '@common/common-schema';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { actorsTable } from '@lib/tables/actors';
     import { db } from '@lib/api/db/db';
@@ -31,17 +31,17 @@
         const oldRow = <Row>{ id: rowView.id };
         newRow[columnName] = newValue;
         oldRow[columnName] = oldValue;
-        await isLoading.wrapPromise(db.updateRow(rowView.tableId, newRow));
+        await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         // Register undo/redo
         undoManager.register(
             new Undoable(
                 `actor selection change`,
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(rowView.tableId, oldRow);
+                    await db.updateRow(rowView.tableType, oldRow);
                 }),
                 isLoading.wrapFunction(async () => {
-                    await db.updateRow(rowView.tableId, newRow);
+                    await db.updateRow(rowView.tableType, newRow);
                 }),
             ),
         );

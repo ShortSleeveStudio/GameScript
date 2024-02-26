@@ -1,7 +1,7 @@
 <script lang="ts">
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { type Localization, type Row } from '@lib/api/db/db-schema';
+    import { type Localization, type Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import { onDestroy, onMount } from 'svelte';

@@ -1,4 +1,4 @@
-import type { Row } from './db-schema';
+import type { Row } from '@common/common-schema';
 
 export const ASC = 'ASC';
 export const DESC = 'DESC';

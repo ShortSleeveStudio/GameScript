@@ -7,8 +7,8 @@ import {
     type Unsubscriber,
     type Writable,
 } from 'svelte/store';
+import type { Row } from '../../../../../common/common-schema';
 import type { RowViewDestructor } from './db-base';
-import type { Row } from './db-schema';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */

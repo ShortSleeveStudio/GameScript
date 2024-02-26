@@ -1,4 +1,4 @@
-import type { Edge, Node } from '@lib/api/db/db-schema';
+import type { Edge, Node } from '@common/common-schema';
 
 export interface GraphContext {
     onDelete: (nodes: Node[], edges: Edge[]) => Promise<void>;

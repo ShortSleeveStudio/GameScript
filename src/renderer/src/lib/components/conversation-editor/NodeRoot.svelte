@@ -4,7 +4,7 @@
     // import { Position, type NodeProps } from '@lib/vendor/flow/svelte/src/lib';
     import NodeBase from './NodeBase.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import type { Node } from '@lib/api/db/db-schema';
+    import type { Node } from '@common/common-schema';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
