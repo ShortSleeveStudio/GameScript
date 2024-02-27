@@ -7,23 +7,20 @@
     import RowColumnInput from '../common/RowColumnInput.svelte';
     import {
         LOCALIZATION_PLACEHOLDER_NICKNAME,
-        LOCALIZATION_PLACEHOLDER_TEXT,
         LOCALIZATION_UNDO_NICKNAME,
-        LOCALIZATION_UNDO_TEXT,
     } from '@lib/constants/settings';
-    import RowColumnText from '../common/RowColumnText.svelte';
-    import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
-    import { localeIdToColumn } from '@common/common-locale';
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
     import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';
     import { APP_NAME } from '@common/constants';
+    import RowColumnLocalizedTextArea from '../common/RowColumnLocalizedTextArea.svelte';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
     export let showNickname: boolean = true;
     export let rowView: IDbRowView<Localization>;
     export let showConversationButton: boolean = false;
+    export let showAccordion: boolean = true;
 
     let primaryLocale: IDbRowView<Locale>;
     let localePrincipalView: IDbRowView<LocalePrincipal>;
@@ -87,33 +84,31 @@
 {/if}
 {#if locales}
     <p>
-        <RowColumnTextArea
-            {rowView}
-            labelText={primaryLocale ? $primaryLocale.name : ''}
-            columnName={localeIdToColumn($primaryLocale.id)}
-            undoText={LOCALIZATION_UNDO_TEXT}
-            placeholder={LOCALIZATION_PLACEHOLDER_TEXT}
-        />
+        <RowColumnLocalizedTextArea {rowView} locale={primaryLocale} />
     </p>
 
     {#if locales && $locales.length > 1}
-        <Accordion size="sm">
-            <AccordionItem title="Other Locales" class="accordion-padding-defeat">
-                {#each $locales as locale (locale.id)}
-                    {#if locale.id !== $primaryLocale.id}
-                        <p>
-                            <sup><RowColumnText rowView={locale} columnName={'name'} /></sup>
-                            <RowColumnTextArea
-                                {rowView}
-                                columnName={localeIdToColumn(locale.id)}
-                                undoText={LOCALIZATION_UNDO_TEXT}
-                                placeholder={LOCALIZATION_PLACEHOLDER_TEXT}
-                            />
-                        </p>
-                    {/if}
-                {/each}
-            </AccordionItem>
-        </Accordion>
+        {#if showAccordion}
+            <Accordion size="sm">
+                <AccordionItem title="Other Locales" class="accordion-padding-defeat">
+                    {#each $locales as locale (locale.id)}
+                        {#if locale.id !== $primaryLocale.id}
+                            <p>
+                                <RowColumnLocalizedTextArea {rowView} {locale} />
+                            </p>
+                        {/if}
+                    {/each}
+                </AccordionItem>
+            </Accordion>
+        {:else}
+            {#each $locales as locale (locale.id)}
+                {#if locale.id !== $primaryLocale.id}
+                    <p>
+                        <RowColumnLocalizedTextArea {rowView} {locale} />
+                    </p>
+                {/if}
+            {/each}
+        {/if}
     {/if}
 {/if}
 {#if showConversationButton && rowView && $rowView.parent}

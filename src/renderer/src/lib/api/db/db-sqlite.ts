@@ -1,15 +1,22 @@
 import {
+    DATABASE_TABLES,
+    DB_OP_ALTER,
+    DB_OP_CREATE,
+    DB_OP_DELETE,
+    DB_OP_UPDATE,
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
     FIELD_TYPE_TEXT,
     type DatabaseTableType,
     type FieldTypeId,
+    type OpTypeId,
 } from '@common/common-types';
 import type {
     DbConnection,
     DbConnectionConfig,
+    DbNotification,
     DbResult,
-    Transaction,
+    DbTransaction,
 } from '@common/common-types-db';
 import {
     FOCUS_MODE_MODIFY,
@@ -21,10 +28,11 @@ import {
 import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
 import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
+import type { IpcRendererEvent } from 'electron';
 import type { DialogResult } from 'preload/api-dialog';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
 import { type Row } from '../../../../../common/common-schema';
-import { Db, OP_ALTER, OP_CREATE, OP_DELETE, OP_UPDATE, type OpType } from './db-base';
+import { Db } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
@@ -33,17 +41,14 @@ import type { IDbRowView } from './db-view-row-interface';
 import type { DbTableView } from './db-view-table';
 
 /**Used to queue notifications when needed. */
-interface DbNotification {
-    op: OpType;
+interface DbQueuedNotification {
+    op: OpTypeId;
     tableType: DatabaseTableType;
     rows?: Row[];
 }
 
 /**
  * SQLite database implementation
- * NOTE:
- * The default database file location is:
- * C:\Users\<username>\AppData\Roaming\com.tauri.dev\GameScript.db
  */
 export class SqliteDb extends Db {
     private _db: DbConnection | undefined;
@@ -53,7 +58,7 @@ export class SqliteDb extends Db {
     private _appInitializationErrors: Writable<Error[]>;
     private _notificationManager: NotificationManager;
     private _focusManager: FocusManager;
-    private _transactionNotifications: DbNotification[];
+    private _transactionNotifications: DbQueuedNotification[];
 
     constructor(
         isConnected: Writable<boolean>,
@@ -73,7 +78,7 @@ export class SqliteDb extends Db {
         this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
     }
 
-    async executeTransaction(transaction: Transaction): Promise<void> {
+    async executeTransaction(transaction: DbTransaction): Promise<void> {
         let wasError: boolean = false;
         const dbFile: DialogResult = get(this._sqlitePathStore);
         let conn: DbConnection;
@@ -91,14 +96,14 @@ export class SqliteDb extends Db {
             // Preserve and reset notifications. If you don't clear these before notifying,
             // transactions in the notifications will end up looping over these irrelevant
             // notifications
-            const preservedTransactions: DbNotification[] = this._transactionNotifications;
+            const preservedTransactions: DbQueuedNotification[] = this._transactionNotifications;
             this._transactionNotifications = [];
             if (!wasError) {
                 await window.api.sqlite.exec(conn, 'COMMIT;');
                 await window.api.sqlite.close(conn);
                 // Only notify if there were no errors
                 for (let i = 0; i < preservedTransactions.length; i++) {
-                    const notification: DbNotification = preservedTransactions[i];
+                    const notification: DbQueuedNotification = preservedTransactions[i];
                     await this.notify(
                         notification.op,
                         notification.tableType,
@@ -144,7 +149,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableType, undefined, connection);
+        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
     }
 
     async deleteColumn(
@@ -164,7 +169,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableType, undefined, connection);
+        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
     }
 
     async createRow<RowType extends Row>(
@@ -219,7 +224,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_CREATE, tableType, rows, connection);
+        await this.notify<RowType>(DB_OP_CREATE, tableType, rows, connection);
 
         // Return new id
         return rows;
@@ -325,7 +330,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_UPDATE, tableType, rows, connection);
+        await this.notify<RowType>(DB_OP_UPDATE, tableType, rows, connection);
     }
 
     async updateRow<RowType extends Row>(
@@ -369,7 +374,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(OP_DELETE, tableType, rows, connection);
+        await this.notify<RowType>(DB_OP_DELETE, tableType, rows, connection);
     }
 
     async searchAndReplace<RowType extends Row>(
@@ -395,7 +400,7 @@ export class SqliteDb extends Db {
         await wait(300);
 
         // Notify
-        await this.notify(OP_ALTER, tableType, undefined, connection);
+        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
     }
 
     async shutdown(): Promise<void> {
@@ -404,9 +409,8 @@ export class SqliteDb extends Db {
         this._unsubscribeDbConnected();
     }
 
-    // This will look very different for postgres
     private async notify<RowType extends Row>(
-        op: OpType,
+        op: OpTypeId,
         tableType: DatabaseTableType,
         rows?: RowType[],
         connection?: DbConnection,
@@ -421,24 +425,44 @@ export class SqliteDb extends Db {
             return;
         }
 
-        switch (op) {
-            case OP_CREATE:
-            case OP_DELETE: {
-                await this.notifyOnRowLifecycleEvent(tableType, rows);
+        // Fire notification
+        await window.api.sqlite.notify(undefined, <DbNotification>{
+            tableId: tableType.id,
+            opType: op,
+            rows: rows,
+        });
+    }
+
+    private onNotification: (
+        event: IpcRendererEvent,
+        notification: DbNotification,
+    ) => Promise<void> = async (_event: IpcRendererEvent, notification: DbNotification) => {
+        switch (notification.opType) {
+            case DB_OP_CREATE:
+            case DB_OP_DELETE: {
+                await this.notifyOnRowLifecycleEvent(
+                    DATABASE_TABLES[notification.tableId],
+                    notification.rows,
+                );
                 break;
             }
-            case OP_UPDATE: {
-                await this.notifyOnRowsUpdated(tableType, rows);
+            case DB_OP_UPDATE: {
+                await this.notifyOnRowsUpdated(
+                    DATABASE_TABLES[notification.tableId],
+                    notification.rows,
+                );
                 break;
             }
-            case OP_ALTER: {
-                await this.notifyOnTableAltered(tableType);
+            case DB_OP_ALTER: {
+                await this.notifyOnTableAltered(DATABASE_TABLES[notification.tableId]);
                 break;
             }
             default:
-                throw new Error(`Unknown database operation type encountered: ${op}`);
+                throw new Error(
+                    `Unknown database operation type encountered: ${notification.opType}`,
+                );
         }
-    }
+    };
 
     private async notifyOnRowLifecycleEvent<RowType extends Row>(
         tableType: DatabaseTableType,
@@ -446,7 +470,7 @@ export class SqliteDb extends Db {
     ): Promise<void> {
         const tableViews = super.getTableViewsForTable<RowType>(tableType);
         for (const tableView of tableViews.values()) {
-            if (tableView.filter.wouldAffectRows(rows)) {
+            if (tableView.filter.wouldAffectRows(rows, true)) {
                 await (<DbTableView<RowType>>tableView).onReloadRequired();
             }
         }
@@ -507,6 +531,9 @@ export class SqliteDb extends Db {
 
             // Ensure schema
             await this.initializeSchema();
+
+            // Listen for changes
+            await window.api.sqlite.listen(undefined, this.onNotification);
 
             // Notify connected
             this._isConnected.set(true);
@@ -570,6 +597,7 @@ export class SqliteDb extends Db {
 
     private async destroyConnection(): Promise<void> {
         this._isConnected.set(false);
+        await window.api.sqlite.unlisten(undefined, this.onNotification);
         await window.api.sqlite.closeAll();
         this._db = undefined;
     }

@@ -12,6 +12,7 @@ import {
     LS_KEY_BUILD_EXPORT_PATH_DATA,
     LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION,
     LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
+    LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
@@ -62,6 +63,10 @@ export const buildExportLocalizationHeaderInclude: Writable<number> = persisted(
 export const buildExportLocalizationFormat: Writable<number> = persisted(
     LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
     LOCALIZATION_FORMAT_CSV.id,
+);
+export const buildImportPathLocalization: Writable<DialogResult> = persisted(
+    LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
+    <DialogResult>{},
 );
 
 ///

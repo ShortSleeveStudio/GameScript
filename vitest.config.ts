@@ -8,6 +8,10 @@ export default defineConfig({
                 find: '@lib',
                 replacement: path.resolve(__dirname, './src/renderer/src/lib'),
             },
+            {
+                find: '@common',
+                replacement: path.resolve(__dirname, './src/common'),
+            },
             // {
             //     find: /^monaco-editor$/,
             //     replacement: __dirname + '/node_modules/monaco-editor/esm/vs/editor/editor.api',

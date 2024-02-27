@@ -205,8 +205,10 @@ export interface LocalizationFormatType {
     name: string;
 }
 export const LOCALIZATION_FORMAT_CSV: LocalizationFormatType = { id: 0, name: 'CSV' };
+export const LOCALIZATION_FORMAT_JSON: LocalizationFormatType = { id: 1, name: 'JSON' };
 export const LOCALIZATION_FORMAT_TYPES: LocalizationFormatType[] = [
     LOCALIZATION_FORMAT_CSV,
+    LOCALIZATION_FORMAT_JSON,
 ] as const;
 export type LocalizationFormatTypeId = (typeof LOCALIZATION_FORMAT_TYPES)[number]['id'];
 export type LocalizationFormatTypeName = (typeof LOCALIZATION_FORMAT_TYPES)[number]['name'];
@@ -217,3 +219,15 @@ export const LOCALIZATION_FORMAT_DROPDOWN_ITEMS: DropdownItem[] = LOCALIZATION_F
             text: formatType.name,
         },
 );
+
+/**Db Operation Type */
+export interface DbOpType {
+    id: number;
+    name: string;
+}
+export const DB_OP_CREATE: OpTypeId = 0;
+export const DB_OP_DELETE: OpTypeId = 1;
+export const DB_OP_UPDATE: OpTypeId = 2;
+export const DB_OP_ALTER: OpTypeId = 3;
+export const DB_OPS: number[] = [DB_OP_CREATE, DB_OP_DELETE, DB_OP_UPDATE, DB_OP_ALTER] as const;
+export type OpTypeId = (typeof DB_OPS)[number];

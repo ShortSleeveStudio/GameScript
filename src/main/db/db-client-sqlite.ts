@@ -1,14 +1,23 @@
 import Database, { Database as Db, RunResult, Statement } from 'better-sqlite3';
-import { DbConnection, DbConnectionConfig, DbResult } from '../../common/common-types-db';
-import { DbClient } from './db-client';
+import { BrowserWindow } from 'electron';
+import {
+    DbClient,
+    DbConnection,
+    DbConnectionConfig,
+    DbNotification,
+    DbResult,
+} from '../../common/common-types-db';
+import { API_SQLITE_ON_NOTIFICATION } from '../../common/constants';
 
 export class DbClientSqlite implements DbClient {
     private _nextConnectionId: number;
     private _connectionMap: Map<number, Db>;
+    private _listening: boolean;
 
     constructor() {
         this._nextConnectionId = 0;
         this._connectionMap = new Map();
+        this._listening = false;
     }
 
     async open(config: DbConnectionConfig): Promise<DbConnection> {
@@ -63,11 +72,11 @@ export class DbClientSqlite implements DbClient {
         });
     }
 
-    async all(
+    async all<T = unknown[]>(
         connectionId: DbConnection,
         query: string,
         bindValues?: unknown[],
-    ): Promise<unknown[]> {
+    ): Promise<T> {
         return new Promise((resolve, reject) => {
             const connection: Db = <Db>this._connectionMap.get(connectionId.id);
             if (!connection) {
@@ -76,11 +85,15 @@ export class DbClientSqlite implements DbClient {
             }
             const statement: Statement = connection.prepare(query);
             const results: unknown[] = bindValues ? statement.all(...bindValues) : statement.all();
-            resolve(results);
+            resolve(<T>results);
         });
     }
 
-    async get(connectionId: DbConnection, query: string, bindValues?: unknown[]): Promise<unknown> {
+    async get<T = unknown>(
+        connectionId: DbConnection,
+        query: string,
+        bindValues?: unknown[],
+    ): Promise<T> {
         return new Promise((resolve, reject) => {
             const connection: Db = <Db>this._connectionMap.get(connectionId.id);
             if (!connection) {
@@ -89,7 +102,7 @@ export class DbClientSqlite implements DbClient {
             }
             const statement: Statement = connection.prepare(query);
             const result: unknown = bindValues ? statement.get(...bindValues) : statement.get();
-            resolve(result);
+            resolve(<T>result);
         });
     }
 
@@ -103,6 +116,26 @@ export class DbClientSqlite implements DbClient {
             connection.exec(query);
             resolve();
         });
+    }
+
+    async notify(_connection: DbConnection, notification: DbNotification): Promise<void> {
+        if (!this._listening) throw new Error('Tried to notify while not listening in SQLite');
+        const mainWindow: BrowserWindow = this.getMainWindow();
+        mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notification);
+    }
+
+    async listen(): Promise<void> {
+        this._listening = true;
+    }
+
+    async unlisten(): Promise<void> {
+        this._listening = false;
+    }
+
+    private getMainWindow(): BrowserWindow {
+        const windows: BrowserWindow[] = BrowserWindow.getAllWindows();
+        if (windows.length !== 1) throw new Error('Could not find main application window');
+        return windows[0];
     }
 }
 export const sqlite: DbClientSqlite = new DbClientSqlite();

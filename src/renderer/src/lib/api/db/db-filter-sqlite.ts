@@ -12,7 +12,7 @@ import type {
 } from './db-filter-interface';
 
 interface Condition<RowType extends Row> {
-    execute(row: RowType): boolean;
+    execute(row: RowType, missingColumnsAffected: boolean): boolean;
 }
 
 /**This is used to capture scopes for evaluation later (DFS) */
@@ -42,7 +42,7 @@ class Scope<RowType extends Row> implements Condition<RowType> {
         return this._parent;
     }
 
-    addCondition(condition: (row: RowType) => boolean): void {
+    addCondition(condition: (row: RowType, missingColumnsAffected: boolean) => boolean): void {
         this._conditions.push({ execute: condition });
     }
 
@@ -54,23 +54,23 @@ class Scope<RowType extends Row> implements Condition<RowType> {
         this._andOrList.push(false);
     }
 
-    execute(row: RowType): boolean {
+    execute(row: RowType, missingColumnsAffected: boolean): boolean {
         let result: boolean;
         if (this._conditions.length === 0) {
             return true;
         }
         if (this._conditions.length === 1) {
-            return this._conditions[0].execute(row);
+            return this._conditions[0].execute(row, missingColumnsAffected);
         }
-        result = this._conditions[0].execute(row);
+        result = this._conditions[0].execute(row, missingColumnsAffected);
         for (let i = 1; i < this._conditions.length; i++) {
             const andOrIndex = Math.floor(i / 2);
             if (this._andOrList[andOrIndex]) {
                 // AND
-                result &&= this._conditions[i].execute(row);
+                result &&= this._conditions[i].execute(row, missingColumnsAffected);
             } else {
                 // OR
-                result ||= this._conditions[i].execute(row);
+                result ||= this._conditions[i].execute(row, missingColumnsAffected);
             }
         }
         return result;
@@ -104,9 +104,11 @@ export class FilterBuilderSqlite<RowType extends Row>
         this._scope = new Scope<RowType>(undefined);
         this._order = new Map();
     }
+
     eq(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return this.castUnacceptableType(row[currentWhere]) === value;
         });
 
@@ -116,7 +118,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     ne(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return this.castUnacceptableType(row[currentWhere]) !== value;
         });
 
@@ -126,7 +129,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     like(value: string): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             const regexString = value.replaceAll('%', '.*?').replaceAll('_', '.{1}');
             const regExp: RegExp = new RegExp(regexString);
             return regExp.test(String(row[currentWhere]));
@@ -137,7 +141,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     notLike(value: string): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             const regexString = value.replaceAll('%', '.*?').replaceAll('_', '.{1}');
             const regExp: RegExp = new RegExp(regexString);
             return !regExp.test(String(row[currentWhere]));
@@ -148,7 +153,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     lt(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return row[currentWhere] < value;
         });
 
@@ -158,7 +164,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     lte(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return row[currentWhere] <= value;
         });
 
@@ -168,7 +175,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     gt(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return row[currentWhere] > value;
         });
 
@@ -178,7 +186,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     gte(value: FilterColumnType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return row[currentWhere] >= value;
         });
 
@@ -188,7 +197,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     in(value: FilterColumnListType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return value.indexOf(<FilterColumnType>row[currentWhere]) !== -1;
         });
 
@@ -202,7 +212,8 @@ export class FilterBuilderSqlite<RowType extends Row>
     }
     notIn(value: FilterColumnListType): FilterBuilderSqlite<RowType> {
         const currentWhere = this._currentWhere;
-        this._scope.addCondition((row: RowType): boolean => {
+        this._scope.addCondition((row: RowType, missingColumnsAffected: boolean): boolean => {
+            if (!(currentWhere in row)) return missingColumnsAffected;
             return value.indexOf(<FilterColumnType>row[currentWhere]) === -1;
         });
 
@@ -288,13 +299,13 @@ export class FilterBuilderSqlite<RowType extends Row>
         return this._whereClause;
     }
 
-    wouldAffectRow(row: RowType): boolean {
-        return this._scope.execute(row);
+    wouldAffectRow(row: RowType, missingColumnsAffected): boolean {
+        return this._scope.execute(row, missingColumnsAffected);
     }
-    wouldAffectRows(rows: RowType[]): boolean {
+    wouldAffectRows(rows: RowType[], missingColumnsAffected): boolean {
         if (!rows) throw Error('Passed in a null or empty array to filter');
         for (let i = 0; i < rows.length; i++) {
-            if (this._scope.execute(rows[i])) {
+            if (this._scope.execute(rows[i], missingColumnsAffected)) {
                 return true;
             }
         }

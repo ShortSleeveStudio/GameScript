@@ -1,13 +1,21 @@
 import { IpcMainInvokeEvent, ipcMain } from 'electron';
-import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-types-db';
+import {
+    DbConnection,
+    DbConnectionConfig,
+    DbNotification,
+    DbResult,
+} from '../common/common-types-db';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,
     API_SQLITE_CLOSE_ALL,
     API_SQLITE_EXEC,
     API_SQLITE_GET,
+    API_SQLITE_LISTEN,
+    API_SQLITE_NOTIFY,
     API_SQLITE_OPEN,
     API_SQLITE_RUN,
+    API_SQLITE_UNLISTEN,
 } from '../common/constants';
 import { sqlite } from './db/db-client-sqlite';
 
@@ -38,7 +46,7 @@ ipcMain.handle(
         connectionId: DbConnection,
         query: string,
         bindValues?: unknown[],
-    ): Promise<unknown[]> => sqlite.all(connectionId, query, bindValues),
+    ): Promise<unknown[]> => await sqlite.all(connectionId, query, bindValues),
 );
 ipcMain.handle(
     API_SQLITE_GET,
@@ -47,10 +55,20 @@ ipcMain.handle(
         connectionId: DbConnection,
         query: string,
         bindValues?: unknown[],
-    ): Promise<unknown> => sqlite.get(connectionId, query, bindValues),
+    ): Promise<unknown> => await sqlite.get(connectionId, query, bindValues),
 );
 ipcMain.handle(
     API_SQLITE_EXEC,
     async (_: IpcMainInvokeEvent, connectionId: DbConnection, query: string): Promise<void> =>
-        sqlite.exec(connectionId, query),
+        await sqlite.exec(connectionId, query),
 );
+ipcMain.handle(
+    API_SQLITE_NOTIFY,
+    async (
+        _: IpcMainInvokeEvent,
+        connectionId: DbConnection,
+        notification: DbNotification,
+    ): Promise<void> => await sqlite.notify(connectionId, notification),
+);
+ipcMain.handle(API_SQLITE_LISTEN, async (): Promise<void> => await sqlite.listen());
+ipcMain.handle(API_SQLITE_UNLISTEN, async (): Promise<void> => await sqlite.unlisten());

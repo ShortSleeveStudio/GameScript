@@ -39,7 +39,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
             this._firstLoadHappened = true;
             return;
         }
-        this._context.getGridApi().refreshInfiniteCache();
+        this._context?.getGridApi().refreshInfiniteCache();
     };
 
     private async getRowsAsync(params: IGetRowsParams): Promise<void> {

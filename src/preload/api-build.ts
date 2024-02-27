@@ -17,8 +17,8 @@ export interface LocalizationExportRequest {
     database: DatabaseInfo;
     format: LocalizationFormatTypeId;
     division: LocalizationDivisionTypeId;
-    headerInclude: LocalizationHeaderIncludeTypeId;
     location: string; // full path
+    csvHeaderInclude: LocalizationHeaderIncludeTypeId;
 }
 
 export interface BuildApi {

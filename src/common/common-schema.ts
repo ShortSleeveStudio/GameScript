@@ -21,6 +21,9 @@ export interface Principaled {
 export interface Deletable {
     isDeleted: boolean;
 }
+export interface ConversationChild {
+    parent: number; // FK Conversation
+}
 
 ///
 /// Tables
@@ -50,10 +53,9 @@ export interface ProgrammingLanguagePrincipal extends Row, Principaled {}
 ///
 /// Routines
 ///
-export interface Routine extends Row, Annotated, SystemCreatable {
+export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild {
     code: string;
     type: RoutineTypeId;
-    parent: number; // FK Conversations
 }
 
 ///
@@ -82,8 +84,7 @@ export interface LocalePrincipal extends Row, Principaled {}
 ///
 /// Localization
 ///
-export interface Localization extends Row, SystemCreatable {
-    parent: number; // FK Conversations
+export interface Localization extends Row, SystemCreatable, ConversationChild {
     // 'name' is used for nicknames
 }
 
@@ -103,8 +104,7 @@ export interface ActorPrincipal extends Row, Principaled {}
 ///
 /// Nodes
 ///
-export interface Node extends Row, Annotated, SystemCreatable {
-    parent: number; // FK Conversation
+export interface Node extends Row, Annotated, SystemCreatable, ConversationChild {
     actor: number; // FK Actors
     voiceText: number; // FK Localizations
     uiResponseText: number; // FK Localizations
@@ -123,8 +123,7 @@ export interface Node extends Row, Annotated, SystemCreatable {
 ///
 /// Edges
 ///
-export interface Edge extends Row, Annotated {
-    parent: number; // FK Conversations
+export interface Edge extends Row, Annotated, ConversationChild {
     priority: number;
 
     // Graph Stuff

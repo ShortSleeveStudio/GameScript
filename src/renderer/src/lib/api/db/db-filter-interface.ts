@@ -52,8 +52,8 @@ export type OrderLimitOffsetBuild<RowType extends Row> = {
 export interface Filter<RowType extends Row> {
     toString(): string;
     whereClause(): string;
-    wouldAffectRow(row: RowType): boolean;
-    wouldAffectRows(rows: RowType[]): boolean;
+    wouldAffectRow(row: RowType, missingColumnsAffected: boolean): boolean;
+    wouldAffectRows(rows: RowType[], missingColumnsAffected: boolean): boolean;
     equals(other: Filter<RowType>): boolean;
     getOffset(): number;
     getLimit(): number;

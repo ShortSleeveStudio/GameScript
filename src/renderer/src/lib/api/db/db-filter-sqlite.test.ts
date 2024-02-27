@@ -1,4 +1,5 @@
-import { ROUTINE_TYPE_ID_USER, type Conversation, type Routine } from '@common/common-schema';
+import { type Conversation, type Routine } from '@common/common-schema';
+import { ROUTINE_TYPE_USER_CREATED } from '@common/common-types';
 import { createFilter } from '@lib/api/db/db-filter';
 import { expect, test } from 'vitest';
 import { ASC, DESC } from './db-filter-interface';
@@ -7,11 +8,11 @@ test('eq', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .build();
     expect(result.toString()).toBe('WHERE type = 0');
-    expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_ID_USER })).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_USER_CREATED.id })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(false);
 });
 
@@ -27,15 +28,27 @@ test('eq boolean number', () => {
     expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(false);
 });
 
+test('eq missing fields', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE type = 0');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
+});
+
 test('ne', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .ne(ROUTINE_TYPE_ID_USER)
+        .ne(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .build();
     expect(result.toString()).toBe('WHERE type != 0');
-    expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_ID_USER })).toBe(false);
+    expect(result.wouldAffectRow(<Routine>{ type: ROUTINE_TYPE_USER_CREATED.id })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ type: -1 })).toBe(true);
 });
 
@@ -51,6 +64,18 @@ test('ne boolean number', () => {
     expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(true);
 });
 
+test('ne missing fields', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('type')
+        .ne(ROUTINE_TYPE_USER_CREATED.id)
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE type != 0');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
+});
+
 test('like', () => {
     const result = createFilter<Routine>()
         .where()
@@ -61,6 +86,18 @@ test('like', () => {
     expect(result.toString()).toBe("WHERE name LIKE '%Eric_Fulton%'");
     expect(result.wouldAffectRow(<Routine>{ name: 'asdfasdfaEric&Fultona2342' })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ name: 'asdErc&Fultona2342' })).toBe(false);
+});
+
+test('like missing field', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('name')
+        .like('%Eric_Fulton%')
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe("WHERE name LIKE '%Eric_Fulton%'");
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
 });
 
 test('not like', () => {
@@ -75,11 +112,30 @@ test('not like', () => {
     expect(result.wouldAffectRow(<Routine>{ name: 'asdErc&Fultona2342' })).toBe(true);
 });
 
+test('not like missing fields', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('name')
+        .notLike('%Eric_Fulton%')
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe("WHERE name NOT LIKE '%Eric_Fulton%'");
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
+});
+
 test('gt', () => {
     const result = createFilter<Routine>().where().column('id').gt(100).endWhere().build();
     expect(result.toString()).toBe('WHERE id > 100');
     expect(result.wouldAffectRow(<Routine>{ id: 101 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 100 })).toBe(false);
+});
+
+test('gt missing fields', () => {
+    const result = createFilter<Routine>().where().column('id').gt(100).endWhere().build();
+    expect(result.toString()).toBe('WHERE id > 100');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
 });
 
 test('gte', () => {
@@ -90,11 +146,25 @@ test('gte', () => {
     expect(result.wouldAffectRow(<Routine>{ id: 100 })).toBe(true);
 });
 
+test('gte missing fields', () => {
+    const result = createFilter<Routine>().where().column('id').gte(100).endWhere().build();
+    expect(result.toString()).toBe('WHERE id >= 100');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
+});
+
 test('lt', () => {
     const result = createFilter<Routine>().where().column('id').lt(100).endWhere().build();
     expect(result.toString()).toBe('WHERE id < 100');
     expect(result.wouldAffectRow(<Routine>{ id: 99 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 100 })).toBe(false);
+});
+
+test('lt missing fields', () => {
+    const result = createFilter<Routine>().where().column('id').lt(100).endWhere().build();
+    expect(result.toString()).toBe('WHERE id < 100');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
 });
 
 test('lte', () => {
@@ -103,6 +173,13 @@ test('lte', () => {
     expect(result.wouldAffectRow(<Routine>{ id: 99 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 100 })).toBe(true);
     expect(result.wouldAffectRow(<Routine>{ id: 101 })).toBe(false);
+});
+
+test('lte missing fields', () => {
+    const result = createFilter<Routine>().where().column('id').lte(100).endWhere().build();
+    expect(result.toString()).toBe('WHERE id <= 100');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
 });
 
 test('in', () => {
@@ -119,6 +196,18 @@ test('in', () => {
     expect(result.wouldAffectRow(<Routine>{ id: 1 })).toBe(false);
 });
 
+test('in missing fields', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('id')
+        .in([44, 100, 99])
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE id IN (44, 100, 99)');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
+});
+
 test('not in', () => {
     const result = createFilter<Routine>()
         .where()
@@ -131,6 +220,18 @@ test('not in', () => {
     expect(result.wouldAffectRow(<Routine>{ id: 100 })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ id: 44 })).toBe(false);
     expect(result.wouldAffectRow(<Routine>{ id: 1 })).toBe(true);
+});
+
+test('not in missing fields', () => {
+    const result = createFilter<Routine>()
+        .where()
+        .column('id')
+        .notIn([44, 100, 99])
+        .endWhere()
+        .build();
+    expect(result.toString()).toBe('WHERE id NOT IN (44, 100, 99)');
+    expect(result.wouldAffectRow(<Routine>{}, true)).toBe(true);
+    expect(result.wouldAffectRow(<Routine>{}, false)).toBe(false);
 });
 
 test('multiple conditions', () => {
@@ -194,7 +295,7 @@ test('limit', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .limit(5)
         .limit(10)
@@ -206,7 +307,7 @@ test('limit 0', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .limit(0)
         .build();
@@ -217,7 +318,7 @@ test('getLimit', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .limit(5)
         .build();
@@ -228,7 +329,7 @@ test('offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .offset(5)
         .offset(10)
@@ -240,7 +341,7 @@ test('getOffset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .offset(5)
         .build();
@@ -251,7 +352,7 @@ test('offset 0', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .offset(0)
         .build();
@@ -262,7 +363,7 @@ test('limit offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .offset(5)
         .offset(10)
@@ -276,7 +377,7 @@ test('orderBy ASC', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .orderBy('type', ASC)
         .orderBy('type', DESC)
@@ -288,7 +389,7 @@ test('orderBy DESC', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('type', ASC)
@@ -300,7 +401,7 @@ test('mulitple orderBy', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('ID', ASC)
@@ -312,7 +413,7 @@ test('orderBy and limit and offset', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .orderBy('type', DESC)
         .orderBy('ID', ASC)
@@ -326,7 +427,7 @@ test('eq', () => {
     const result = createFilter<Routine>()
         .where()
         .column('type')
-        .eq(ROUTINE_TYPE_ID_USER)
+        .eq(ROUTINE_TYPE_USER_CREATED.id)
         .endWhere()
         .limit(100)
         .offset(0)

@@ -122,6 +122,7 @@
                             <InspectorLocalization
                                 {rowView}
                                 showTitle={true}
+                                showAccordion={false}
                                 showConversationButton={true}
                             />
                         {:else if inspectedTableId === TABLE_NODES.id}

@@ -35,3 +35,4 @@ export const LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION: string =
 export const LS_KEY_BUILD_EXPORT_LOCALIZATION_HEADER_INCLUDE: string =
     'build-export-localization-header-include';
 export const LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT: string = 'build-export-localization-format';
+export const LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION: string = 'build-import-path-localization';

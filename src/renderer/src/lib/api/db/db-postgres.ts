@@ -1,6 +1,6 @@
 import type { Row } from '@common/common-schema';
 import type { DatabaseTableType, FieldTypeId } from '@common/common-types';
-import type { Transaction } from '@common/common-types-db';
+import type { DbTransaction } from '@common/common-types-db';
 import type { Writable } from 'svelte/store';
 import { Db } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -11,7 +11,7 @@ export class PostgresDb extends Db {
     constructor(isConnected: Writable<boolean>) {
         super(isConnected);
     }
-    executeTransaction(transaction: Transaction): Promise<void> {
+    executeTransaction(transaction: DbTransaction): Promise<void> {
         throw new Error(`Method not implemented. ${transaction}`);
     }
     createColumn(tableType: DatabaseTableType, name: string, type: FieldTypeId): Promise<void> {

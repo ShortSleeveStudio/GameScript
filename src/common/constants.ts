@@ -26,6 +26,10 @@ export const API_SQLITE_RUN = '/api/sqlite/run';
 export const API_SQLITE_ALL = '/api/sqlite/all';
 export const API_SQLITE_GET = '/api/sqlite/get';
 export const API_SQLITE_EXEC = '/api/sqlite/exec';
+export const API_SQLITE_NOTIFY = '/api/sqlite/notify';
+export const API_SQLITE_LISTEN = '/api/sqlite/listen';
+export const API_SQLITE_UNLISTEN = '/api/sqlite/unlisten';
+export const API_SQLITE_ON_NOTIFICATION = '/api/sqlite/on-notification';
 
 // Build
 export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';

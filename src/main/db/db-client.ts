@@ -1,24 +1,14 @@
 import {
+    DbClient,
     DbConnection,
     DbConnectionConfig,
-    DbResult,
-    Transaction,
+    DbTransaction,
 } from '../../common/common-types-db';
-
-export interface DbClient {
-    open(config: DbConnectionConfig): Promise<DbConnection>;
-    close(connectionId: DbConnection): Promise<void>;
-    closeAll(): Promise<void>;
-    run(connectionId: DbConnection, query: string, bindValues?: unknown[]): Promise<DbResult>;
-    all(connectionId: DbConnection, query: string, bindValues?: unknown[]): Promise<unknown[]>;
-    get(connectionId: DbConnection, query: string, bindValues?: unknown[]): Promise<unknown>;
-    exec(connectionId: DbConnection, query: string): Promise<void>;
-}
 
 export async function executeTransaction(
     db: DbClient,
     config: DbConnectionConfig,
-    transaction: Transaction,
+    transaction: DbTransaction,
 ): Promise<void> {
     let wasError: boolean = false;
     let conn: DbConnection | undefined;

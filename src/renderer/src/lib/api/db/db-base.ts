@@ -1,20 +1,12 @@
 import type { Row } from '@common/common-schema';
 import { DATABASE_TABLES, type DatabaseTableType, type FieldTypeId } from '@common/common-types';
-import type { DbConnection, Transaction } from '@common/common-types-db';
+import type { DbConnection, DbTransaction } from '@common/common-types-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
 import type { IDbTableView } from './db-view-table-interface';
-
-// Operation types
-export const OPS = [0, 1, 2];
-export type OpType = (typeof OPS)[number];
-export const OP_CREATE: OpType = 0;
-export const OP_DELETE: OpType = 1;
-export const OP_UPDATE: OpType = 2;
-export const OP_ALTER: OpType = 3;
 
 // Row view destructor
 export type RowViewDestructor = () => void;
@@ -82,7 +74,7 @@ export abstract class Db {
      * Execute a function within a database transaction.
      * @param transaction A function to execute within a database transaction
      */
-    abstract executeTransaction(transaction: Transaction): Promise<void>;
+    abstract executeTransaction(transaction: DbTransaction): Promise<void>;
 
     /**
      * Add a column to a table.
