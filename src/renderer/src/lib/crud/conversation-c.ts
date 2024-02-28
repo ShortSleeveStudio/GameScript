@@ -10,42 +10,48 @@ import { nodeDelete } from './node-d';
 export async function conversationCreate(
     newConversation: Conversation,
     isLoading: IsLoadingStore,
+    connection?: DbConnection,
 ): Promise<Conversation> {
-    const node: Node = <Node>{
+    // Create converation
+    let newNode: Node = <Node>{
         type: NODE_TYPE_ROOT.name,
         isSystemCreated: true,
     };
 
-    // Create converation
-    let newNode: Node;
-    await isLoading.wrapPromise(
-        db.executeTransaction(async (conn: DbConnection) => {
-            // Create conversation
-            newConversation = await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
+    const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
+        // Create conversation
+        newConversation = await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
 
-            // Create root node
-            node.parent = newConversation.id;
-            newNode = await nodeCreate(node, undefined, conn);
-        }),
-    );
+        // Create root node
+        newNode.parent = newConversation.id;
+        newNode = await nodeCreate(newNode, undefined, conn);
+    };
+
+    if (connection) {
+        await isLoading.wrapPromise(createOperation(connection));
+    } else {
+        await isLoading.wrapPromise(db.executeTransaction(createOperation));
+    }
 
     // Register undo/redo
-    undoManager.register(
-        new Undoable(
-            'conversation creation',
-            isLoading.wrapFunction(async () => {
-                await db.executeTransaction(async (conn: DbConnection) => {
-                    await nodeDelete(newNode, [], undefined, conn);
-                    await db.deleteRow(TABLE_CONVERSATIONS, newConversation, conn);
-                });
-            }),
-            isLoading.wrapFunction(async () => {
-                await db.executeTransaction(async (conn: DbConnection) => {
-                    await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
-                    await nodeCreate(newNode, undefined, conn);
-                });
-            }),
-        ),
-    );
+    if (!connection) {
+        undoManager.register(
+            new Undoable(
+                'conversation creation',
+                isLoading.wrapFunction(async () => {
+                    await db.executeTransaction(async (conn: DbConnection) => {
+                        await nodeDelete(newNode, [], undefined, conn);
+                        await db.deleteRow(TABLE_CONVERSATIONS, newConversation, conn);
+                    });
+                }),
+                isLoading.wrapFunction(async () => {
+                    await db.executeTransaction(async (conn: DbConnection) => {
+                        await db.createRow(TABLE_CONVERSATIONS, newConversation, conn);
+                        await nodeCreate(newNode, undefined, conn);
+                    });
+                }),
+            ),
+        );
+    }
     return newConversation;
 }

@@ -2,16 +2,15 @@ import {
     DATABASE_TYPES,
     LOCALIZATION_DIVISION_SINGLE,
     LOCALIZATION_FORMAT_CSV,
-    LOCALIZATION_HEADER_INCLUDE_TRUE,
     type DatabaseTypeId,
 } from '@common/common-types';
 import {
     LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION,
     LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
-    LS_KEY_BUILD_EXPORT_LOCALIZATION_HEADER_INCLUDE,
     LS_KEY_BUILD_EXPORT_PATH_DATA,
     LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION,
     LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
+    LS_KEY_BUILD_IMPORT_LOCALIZATION_FORMAT,
     LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
     LS_KEY_SETTINGS_DB_SQLITE_PATH,
     LS_KEY_SETTINGS_DB_TYPE,
@@ -56,10 +55,6 @@ export const buildExportLocalizationDivision: Writable<number> = persisted(
     LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION,
     LOCALIZATION_DIVISION_SINGLE.id,
 );
-export const buildExportLocalizationHeaderInclude: Writable<number> = persisted(
-    LS_KEY_BUILD_EXPORT_LOCALIZATION_HEADER_INCLUDE,
-    LOCALIZATION_HEADER_INCLUDE_TRUE.id,
-);
 export const buildExportLocalizationFormat: Writable<number> = persisted(
     LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
     LOCALIZATION_FORMAT_CSV.id,
@@ -67,6 +62,10 @@ export const buildExportLocalizationFormat: Writable<number> = persisted(
 export const buildImportPathLocalization: Writable<DialogResult> = persisted(
     LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
     <DialogResult>{},
+);
+export const buildImportLocalizationFormat: Writable<number> = persisted(
+    LS_KEY_BUILD_IMPORT_LOCALIZATION_FORMAT,
+    LOCALIZATION_FORMAT_CSV.id,
 );
 
 ///

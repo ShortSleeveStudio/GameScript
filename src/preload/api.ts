@@ -2,6 +2,7 @@ import { BuildApi, buildApi } from './api-build';
 import { DialogApi, dialogApi } from './api-dialog';
 import { FileSystemApi, fsApi } from './api-filesystem';
 import { SqliteApi, sqliteApi } from './api-sqlite';
+import { SystemApi, systemApi } from './api-system';
 import { windowApi, type WindowApi } from './api-window';
 
 export interface API {
@@ -10,6 +11,7 @@ export interface API {
     window: WindowApi;
     sqlite: SqliteApi;
     build: BuildApi;
+    system: SystemApi;
 }
 
 export const api = <API>{
@@ -18,4 +20,5 @@ export const api = <API>{
     window: windowApi,
     sqlite: sqliteApi,
     build: buildApi,
+    system: systemApi,
 };

@@ -1,24 +1,22 @@
+import { Options, stringify } from 'csv-stringify/sync';
 import fs, { FileHandle } from 'fs/promises';
-import Papa, { UnparseConfig } from 'papaparse';
 import path from 'path';
 import { Localization } from '../../common/common-schema';
-import {
-    LOCALIZATION_DIVISION_PER_CONVERSATION,
-    LOCALIZATION_HEADER_INCLUDE_TRUE,
-} from '../../common/common-types';
+import { LOCALIZATION_DIVISION_PER_CONVERSATION } from '../../common/common-types';
 import { LocalizationExportRequest } from '../../preload/api-build';
 import {
     ColumnDescriptor,
+    EXPORTER_CHARACTER_DELIMITER,
+    EXPORTER_CHARACTER_ENCODING,
     EXPORTER_FILENAME_PREFIX_MISC,
     EXPORTER_FILENAME_PREFIX_PER_CONVERSATION,
     EXPORTER_FILENAME_PREFIX_SINGLE,
     Exporter,
-} from './exporter';
+} from './build-common';
 
 export class ExporterCsv implements Exporter {
     private _fileHandle: FileHandle | undefined;
     private _exportRequest: LocalizationExportRequest | undefined;
-    private _isFirstLineOfFile: boolean;
     private _headers: string[] | undefined;
     private _headersContainer: string[][] | undefined;
     private _columns: ColumnDescriptor[] | undefined;
@@ -29,7 +27,6 @@ export class ExporterCsv implements Exporter {
     constructor() {
         this._fileHandle = undefined;
         this._exportRequest = undefined;
-        this._isFirstLineOfFile = false;
         this._headers = undefined;
         this._headersContainer = undefined;
         this._columns = undefined;
@@ -73,15 +70,9 @@ export class ExporterCsv implements Exporter {
                         ),
                         'a',
                     );
-                    this._isFirstLineOfFile = true;
 
                     // Write header
-                    if (
-                        this._exportRequest!.csvHeaderInclude ===
-                        LOCALIZATION_HEADER_INCLUDE_TRUE.id
-                    ) {
-                        await this.writeLineToFile(this._headersContainer!);
-                    }
+                    await this.writeLineToFile(this._headersContainer!);
                 }
             } else {
                 // Single file mode
@@ -94,15 +85,9 @@ export class ExporterCsv implements Exporter {
                         ),
                         'a',
                     );
-                    this._isFirstLineOfFile = true;
 
                     // Write header
-                    if (
-                        this._exportRequest!.csvHeaderInclude ===
-                        LOCALIZATION_HEADER_INCLUDE_TRUE.id
-                    ) {
-                        await this.writeLineToFile(this._headersContainer!);
-                    }
+                    await this.writeLineToFile(this._headersContainer!);
                 }
             }
 
@@ -121,7 +106,6 @@ export class ExporterCsv implements Exporter {
             this._fileHandle = undefined;
         }
         this._exportRequest = undefined;
-        this._isFirstLineOfFile = false;
         this._headers = undefined;
         this._headersContainer = undefined;
         this._columns = undefined;
@@ -130,13 +114,11 @@ export class ExporterCsv implements Exporter {
     }
 
     private async writeLineToFile(list: unknown[]): Promise<void> {
-        let csvLine: string = Papa.unparse(list, <UnparseConfig>{
-            header: false,
-            quotes: true,
+        const csvLine = stringify(list, <Options>{
+            encoding: EXPORTER_CHARACTER_ENCODING,
+            delimiter: EXPORTER_CHARACTER_DELIMITER,
         });
-        if (!this._isFirstLineOfFile) csvLine = '\n' + csvLine;
         await this._fileHandle!.write(csvLine, undefined, 'utf-8');
-        this._isFirstLineOfFile = false;
     }
 }
 

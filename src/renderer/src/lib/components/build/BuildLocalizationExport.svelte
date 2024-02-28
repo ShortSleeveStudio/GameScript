@@ -6,7 +6,6 @@
     import {
         buildExportLocalizationDivision,
         buildExportLocalizationFormat,
-        buildExportLocalizationHeaderInclude,
         buildExportPathLocalization,
         dbSqlitePath,
         dbType,
@@ -16,9 +15,7 @@
         DATABASE_TYPE_POSTGRES,
         DATABASE_TYPE_SQLITE,
         LOCALIZATION_DIVISION_DROPDOWN_ITEMS,
-        LOCALIZATION_FORMAT_CSV,
         LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
-        LOCALIZATION_HEADER_INCLUDE_DROPDOWN_ITEMS,
     } from '@common/common-types';
 
     export let isLoading: IsLoadingStore;
@@ -47,7 +44,6 @@
                 database: database,
                 format: $buildExportLocalizationFormat,
                 division: $buildExportLocalizationDivision,
-                csvHeaderInclude: $buildExportLocalizationHeaderInclude,
                 location: $buildExportPathLocalization.path,
             }),
         );
@@ -101,19 +97,6 @@
             items={LOCALIZATION_FORMAT_DROPDOWN_ITEMS}
         />
     </p>
-    {#if $buildExportLocalizationFormat === LOCALIZATION_FORMAT_CSV.id}
-        <p>
-            <Tooltip triggerText="Export Include Header" align="start" direction="bottom">
-                <p>This settings decides whether your CSV files will include a header or not.</p>
-            </Tooltip>
-            <Dropdown
-                size="sm"
-                disabled={$isLoading}
-                bind:selectedId={$buildExportLocalizationHeaderInclude}
-                items={LOCALIZATION_HEADER_INCLUDE_DROPDOWN_ITEMS}
-            />
-        </p>
-    {/if}
     <p>
         <sup>Export</sup>
         <br />

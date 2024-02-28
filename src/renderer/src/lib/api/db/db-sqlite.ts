@@ -1,3 +1,4 @@
+import { updateRowQuery } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -303,22 +304,7 @@ export class SqliteDb extends Db {
         this.assertConnected();
         for (let i = 0; i < rows.length; i++) {
             const row: RowType = rows[i];
-
-            // Generate query arguments
-            let keyValuePairs: string = '';
-            const argumentArray: unknown[] = [];
-            for (const prop in row) {
-                // We add id last
-                if (prop === 'id') continue;
-                if (argumentArray.length >= 1) keyValuePairs += ', ';
-                keyValuePairs += `${prop} = ?`;
-                const value: unknown = row[prop];
-                argumentArray.push(typeof value === 'boolean' ? (value ? 1 : 0) : value);
-            }
-            argumentArray.push(row.id);
-
-            // Execute
-            const query = `UPDATE ${tableType.name} SET ${keyValuePairs} WHERE id = ?;`;
+            const [query, argumentArray]: [string, unknown[]] = updateRowQuery(tableType, row);
             try {
                 await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
             } catch (err) {

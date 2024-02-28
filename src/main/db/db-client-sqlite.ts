@@ -8,6 +8,7 @@ import {
     DbResult,
 } from '../../common/common-types-db';
 import { API_SQLITE_ON_NOTIFICATION } from '../../common/constants';
+import { getMainWindow } from '../common/common-helpers';
 
 export class DbClientSqlite implements DbClient {
     private _nextConnectionId: number;
@@ -120,7 +121,7 @@ export class DbClientSqlite implements DbClient {
 
     async notify(_connection: DbConnection, notification: DbNotification): Promise<void> {
         if (!this._listening) throw new Error('Tried to notify while not listening in SQLite');
-        const mainWindow: BrowserWindow = this.getMainWindow();
+        const mainWindow: BrowserWindow = getMainWindow();
         mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notification);
     }
 
@@ -130,12 +131,6 @@ export class DbClientSqlite implements DbClient {
 
     async unlisten(): Promise<void> {
         this._listening = false;
-    }
-
-    private getMainWindow(): BrowserWindow {
-        const windows: BrowserWindow[] = BrowserWindow.getAllWindows();
-        if (windows.length !== 1) throw new Error('Could not find main application window');
-        return windows[0];
     }
 }
 export const sqlite: DbClientSqlite = new DbClientSqlite();

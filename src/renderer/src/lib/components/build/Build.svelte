@@ -11,8 +11,8 @@
     <DockableRow>
         <DockableColumn>
             {#if $dbConnected}
-                <BuildGame />
                 <BuildLocalization />
+                <BuildGame />
             {/if}
         </DockableColumn>
     </DockableRow>

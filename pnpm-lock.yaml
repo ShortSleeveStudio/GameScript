@@ -70,6 +70,12 @@ devDependencies:
   carbon-preprocess-svelte:
     specifier: ^0.10.0
     version: 0.10.0(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.9)
+  csv-parse:
+    specifier: ^5.5.4
+    version: 5.5.4
+  csv-stringify:
+    specifier: ^6.4.6
+    version: 6.4.6
   electron:
     specifier: ^28.1.1
     version: 28.1.3
@@ -91,9 +97,6 @@ devDependencies:
   mousetrap:
     specifier: ^1.6.5
     version: 1.6.5
-  papaparse:
-    specifier: ^5.4.1
-    version: 5.4.1
   prettier:
     specifier: ^3.1.1
     version: 3.1.1
@@ -2105,6 +2108,14 @@ packages:
     hasBin: true
     dev: true
 
+  /csv-parse@5.5.4:
+    resolution: {integrity: sha512-sPkvzL64UHoHZMj10z3r0RxwpjaY/vhM4vcAv+t+SDS6p9Joq8IFHe2TVUj4NDXy8l1Q7q8g/2ehtRTHmsU8ig==}
+    dev: true
+
+  /csv-stringify@6.4.6:
+    resolution: {integrity: sha512-h2V2XZ3uOTLilF5dPIptgUfN/o2ia/80Ie0Lly18LAnw5s8Eb7kt8rfxSUy24AztJZas9f6DPZpVlzDUtFt/ag==}
+    dev: true
+
   /d3-color@3.1.0:
     resolution: {integrity: sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==}
     engines: {node: '>=12'}
@@ -3624,10 +3635,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       p-limit: 3.1.0
-    dev: true
-
-  /papaparse@5.4.1:
-    resolution: {integrity: sha512-HipMsgJkZu8br23pW15uvo6sib6wne/4woLZPlFf3rpDyMe9ywEXUsuD7+6K9PRkJlVT51j/sCOYDKGGS3ZJrw==}
     dev: true
 
   /parent-module@1.0.1:

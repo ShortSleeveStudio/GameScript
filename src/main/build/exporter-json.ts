@@ -9,7 +9,7 @@ import {
     EXPORTER_FILENAME_PREFIX_PER_CONVERSATION,
     EXPORTER_FILENAME_PREFIX_SINGLE,
     Exporter,
-} from './exporter';
+} from './build-common';
 
 export class ExporterJson implements Exporter {
     private _fileHandle: FileHandle | undefined;

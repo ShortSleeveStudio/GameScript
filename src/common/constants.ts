@@ -1,6 +1,9 @@
 // Constants
 export const APP_NAME = 'GameScript';
 
+// System
+export const API_SYSTEM_ON_ERROR = '/api/system/on-error';
+
 // Dialog
 export const API_DIALOG_OPEN = '/api/dialog/open';
 export const API_DIALOG_SAVE = '/api/dialog/save';
@@ -33,3 +36,4 @@ export const API_SQLITE_ON_NOTIFICATION = '/api/sqlite/on-notification';
 
 // Build
 export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';
+export const API_BUILD_LOCALIZATION_IMPORT = '/api/build/localization/import';

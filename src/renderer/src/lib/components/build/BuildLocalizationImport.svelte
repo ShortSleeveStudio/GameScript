@@ -1,16 +1,32 @@
 <script lang="ts">
     import {
-        buildExportLocalizationFormat,
+        buildImportLocalizationFormat,
         buildImportPathLocalization,
+        dbSqlitePath,
+        dbType,
     } from '@lib/stores/settings/settings';
-    import { Dropdown, OverflowMenuItem, Tile, Tooltip } from 'carbon-components-svelte';
+    import {
+        Button,
+        Dropdown,
+        Modal,
+        OverflowMenuItem,
+        Tile,
+        Tooltip,
+    } from 'carbon-components-svelte';
     import FileSelector from '../common/FileSelector.svelte';
-    import { LOCALIZATION_FORMAT_DROPDOWN_ITEMS } from '@common/common-types';
+    import {
+        DATABASE_TYPE_POSTGRES,
+        DATABASE_TYPE_SQLITE,
+        LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
+    } from '@common/common-types';
     import { APP_NAME } from '@common/constants';
     import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { DialogResult } from 'preload/api-dialog';
+    import type { DatabaseInfo, LocalizationImportRequest } from 'preload/api-build';
 
     export let isLoading: IsLoadingStore;
+
+    let isModalOpen: boolean = false;
 
     async function onSelectLocalizationImportLocation(): Promise<void> {
         const openResult: DialogResult = await isLoading.wrapPromise(
@@ -19,13 +35,42 @@
         if (openResult.cancelled) return;
         $buildImportPathLocalization = openResult;
     }
+
+    async function onImport(): Promise<void> {
+        const database: DatabaseInfo = <DatabaseInfo>{};
+        if ($dbType === DATABASE_TYPE_SQLITE.id) {
+            database.database = DATABASE_TYPE_SQLITE.id;
+            database.databaseConfig = {
+                sqliteFile: $dbSqlitePath.fullPath,
+            };
+        } else {
+            database.database = DATABASE_TYPE_POSTGRES.id;
+            // TODO
+        }
+        await isLoading.wrapPromise(
+            window.api.build.localizationImport(<LocalizationImportRequest>{
+                database: database,
+                format: $buildImportLocalizationFormat,
+                location: $buildImportPathLocalization.path,
+            }),
+        );
+    }
+
+    async function onConfirmImport(): Promise<void> {
+        isModalOpen = false;
+        await onImport();
+    }
 </script>
 
 <Tile>
     <h3>Import</h3>
     <p>
         <Tooltip triggerText="Import Location" align="start" direction="bottom">
-            <p>This setting decides which folder to import your localized text data from.</p>
+            <p>
+                This setting decides which folder to import your localized text from. {APP_NAME}
+                will scan the directory you select for files with extensions that match the format you
+                select (eg. CSV files are expected to have the .csv extension).
+            </p>
         </Tooltip>
         <FileSelector
             buttonDisabled={$isLoading}
@@ -56,8 +101,31 @@
         <Dropdown
             size="sm"
             disabled={$isLoading}
-            bind:selectedId={$buildExportLocalizationFormat}
+            bind:selectedId={$buildImportLocalizationFormat}
             items={LOCALIZATION_FORMAT_DROPDOWN_ITEMS}
         />
     </p>
+    <p>
+        <sup>Import</sup>
+        <br />
+        <Button size="small" on:click={() => (isModalOpen = true)} disabled={$isLoading}
+            >Import</Button
+        >
+    </p>
 </Tile>
+
+<Modal
+    size="sm"
+    danger
+    bind:open={isModalOpen}
+    modalHeading="Are you sure?"
+    primaryButtonText="Import Localizations"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (isModalOpen = false)}
+    on:submit={onConfirmImport}
+>
+    <p>
+        This will import all localizations found in the localization file or files found in the
+        specified directory. This operation cannot be undone so it might be wise to backup first.
+    </p>
+</Modal>

@@ -1,7 +1,8 @@
 import { is } from '@electron-toolkit/utils';
 import { BrowserWindow, app } from 'electron';
 import { join } from 'path';
-import { API_WINDOW_ON_RESIZE } from '../common/constants';
+import { API_SYSTEM_ON_ERROR, API_WINDOW_ON_RESIZE } from '../common/constants';
+import { getMainWindow } from './common/common-helpers';
 
 function createWindow(): void {
     // Create the browser window.
@@ -103,7 +104,7 @@ import './ipc-window';
 /**
  * Unhandled Errors
  */
-process.on('unhandledRejection', function (reason, promise) {
-    console.log(`Unhandled rejection for promise: ${promise} reason: ${reason}`);
-    app.quit();
+process.on('unhandledRejection', function (reason) {
+    const mainWindow: BrowserWindow = getMainWindow();
+    mainWindow.webContents.send(API_SYSTEM_ON_ERROR, `${reason}`);
 });

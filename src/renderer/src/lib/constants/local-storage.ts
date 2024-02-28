@@ -32,7 +32,6 @@ export const LS_KEY_BUILD_EXPORT_PATH_ROUTINES: string = 'build-export-path-rout
 export const LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION: string = 'build-export-path-localization';
 export const LS_KEY_BUILD_EXPORT_LOCALIZATION_DIVISION: string =
     'build-export-localization-division';
-export const LS_KEY_BUILD_EXPORT_LOCALIZATION_HEADER_INCLUDE: string =
-    'build-export-localization-header-include';
 export const LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT: string = 'build-export-localization-format';
 export const LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION: string = 'build-import-path-localization';
+export const LS_KEY_BUILD_IMPORT_LOCALIZATION_FORMAT: string = 'build-import-localization-format';
