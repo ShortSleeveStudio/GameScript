@@ -1,7 +1,12 @@
 import fs, { ReadStream } from 'fs';
 import { localeIdToColumn } from '../../common/common-locale';
 import { Locale } from '../../common/common-schema';
-import { DB_OP_ALTER, TABLE_LOCALES, TABLE_LOCALIZATIONS } from '../../common/common-types';
+import {
+    DB_OP_ALTER,
+    LOCALIZATION_FORMAT_CSV,
+    TABLE_LOCALES,
+    TABLE_LOCALIZATIONS,
+} from '../../common/common-types';
 import { DbClient, DbConnection, DbNotification } from '../../common/common-types-db';
 import { LocalizationImportRequest } from '../../preload/api-build';
 import { executeTransaction } from '../db/db-client';
@@ -12,6 +17,7 @@ import {
     listFilesWithExtension,
 } from './build-common';
 import { importerCsv } from './importer-csv';
+import { importerJson } from './importer-json';
 
 export async function localizationImport(
     db: DbClient,
@@ -25,9 +31,8 @@ export async function localizationImport(
     const filePaths: string[] = await listFilesWithExtension(payload.location, payload.format);
 
     // Start transaction
-    // const importer: Importer =
-    // payload.format === LOCALIZATION_FORMAT_CSV.id ? importerCsv : importerJson;
-    const importer: Importer = importerCsv;
+    const importer: Importer =
+        payload.format === LOCALIZATION_FORMAT_CSV.id ? importerCsv : importerJson;
     await executeTransaction(db, payload.database.databaseConfig, async (conn: DbConnection) => {
         try {
             // Grab locale names

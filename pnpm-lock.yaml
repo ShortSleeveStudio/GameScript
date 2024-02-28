@@ -55,6 +55,9 @@ devDependencies:
   '@types/papaparse':
     specifier: ^5.3.14
     version: 5.3.14
+  '@types/stream-json':
+    specifier: ^1.7.7
+    version: 1.7.7
   '@xyflow/svelte':
     specifier: ^0.0.35
     version: 0.0.35(svelte@4.2.9)
@@ -103,6 +106,9 @@ devDependencies:
   prettier-plugin-svelte:
     specifier: ^3.1.2
     version: 3.1.2(prettier@3.1.1)(svelte@4.2.9)
+  stream-json:
+    specifier: ^1.8.0
+    version: 1.8.0
   svelte:
     specifier: ^4.2.9
     version: 4.2.9
@@ -1308,6 +1314,19 @@ packages:
 
   /@types/semver@7.5.6:
     resolution: {integrity: sha512-dn1l8LaMea/IjDoHNd9J52uBbInB796CDffS6VdIxvqYCPSG0V0DzHp76GpaWnlhg88uYyPbXCDIowa86ybd5A==}
+    dev: true
+
+  /@types/stream-chain@2.0.4:
+    resolution: {integrity: sha512-V7TsWLHrx79KumkHqSD7F8eR6POpEuWb6PuXJ7s/dRHAf3uVst3Jkp1yZ5XqIfECZLQ4a28vBVstTErmsMBvaQ==}
+    dependencies:
+      '@types/node': 18.19.6
+    dev: true
+
+  /@types/stream-json@1.7.7:
+    resolution: {integrity: sha512-hHG7cLQ09H/m9i0jzL6UJAeLLxIWej90ECn0svO4T8J0nGcl89xZDQ2ujT4WKlvg0GWkcxJbjIDzW/v7BYUM6Q==}
+    dependencies:
+      '@types/node': 18.19.6
+      '@types/stream-chain': 2.0.4
     dev: true
 
   /@types/verror@1.10.9:
@@ -4169,6 +4188,16 @@ packages:
 
   /std-env@3.7.0:
     resolution: {integrity: sha512-JPbdCEQLj1w5GilpiHAx3qJvFndqybBysA3qUOnznweH4QbNYUsW/ea8QzSrnh0vNsezMMw5bcVool8lM0gwzg==}
+    dev: true
+
+  /stream-chain@2.2.5:
+    resolution: {integrity: sha512-1TJmBx6aSWqZ4tx7aTpBDXK0/e2hhcNSTV8+CbFJtDjbb+I1mZ8lHit0Grw9GRT+6JbIrrDd8esncgBi8aBXGA==}
+    dev: true
+
+  /stream-json@1.8.0:
+    resolution: {integrity: sha512-HZfXngYHUAr1exT4fxlbc1IOce1RYxp2ldeaf97LYCOPSoOqY/1Psp7iGvpb+6JIOgkra9zDYnPX01hGAHzEPw==}
+    dependencies:
+      stream-chain: 2.2.5
     dev: true
 
   /string-width@4.2.3:
