@@ -6,7 +6,7 @@ import {
     DbConnectionConfig,
     DbNotification,
     DbResult,
-} from '../../common/common-types-db';
+} from '../../common/common-db-types';
 import { API_SQLITE_ON_NOTIFICATION } from '../../common/constants';
 import { getMainWindow } from '../common/common-helpers';
 

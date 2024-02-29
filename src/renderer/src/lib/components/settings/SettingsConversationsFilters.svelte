@@ -20,9 +20,8 @@
     import { filters } from '@lib/tables/filters';
     import { db } from '@lib/api/db/db';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
     import { FIELD_TYPE_TEXT, TABLE_CONVERSATIONS, TABLE_FILTERS } from '@common/common-types';
-    import type { DbConnection } from '@common/common-types-db';
+    import type { DbConnection } from '@common/common-db-types';
     import { filterIdToColumn } from '@common/common-filter';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
@@ -51,13 +50,6 @@
     }
 
     async function deleteFilter(toDelete: Filter, conn: DbConnection): Promise<void> {
-        // Notify anyone interested
-        dispatchEvent(
-            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableType: TABLE_FILTERS },
-            }),
-        );
-
         // Delete Column
         await db.deleteColumn(TABLE_CONVERSATIONS, filterIdToColumn(toDelete.id), conn);
 

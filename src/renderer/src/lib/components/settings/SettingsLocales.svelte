@@ -11,7 +11,6 @@
     import FocusButton from '../common/FocusButton.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import RowNameInput from '../common/RowNameInput.svelte';
-    import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { type LocalePrincipal, type Locale } from '@common/common-schema';
     import type { FocusPayloadLocale } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
@@ -22,22 +21,12 @@
         LOCALE_UNDO_PRIMARY,
     } from '@lib/constants/settings';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import { db } from '@lib/api/db/db';
     import { locales } from '@lib/tables/locales';
     import RowColumnRadio from '../common/RowColumnRadio.svelte';
     import { localePrincipalTableView } from '@lib/tables/locale-principal';
     import { get } from 'svelte/store';
-    import { localeIdToColumn } from '@common/common-locale';
-    import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
-    import {
-        FIELD_TYPE_TEXT,
-        TABLE_LOCALES,
-        TABLE_LOCALE_PRINCIPAL,
-        TABLE_LOCALIZATIONS,
-    } from '@common/common-types';
-    import type { DbConnection } from '@common/common-types-db';
+    import { localeCreate, localesDelete } from '@lib/crud/locale-crud';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
@@ -51,108 +40,20 @@
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
-    async function createLocale(toCreate: Locale, conn: DbConnection): Promise<Locale> {
-        // Create Locale
-        toCreate = await db.createRow(TABLE_LOCALES, toCreate, conn);
-
-        // Create Column
-        await db.createColumn(
-            TABLE_LOCALIZATIONS,
-            localeIdToColumn(toCreate.id),
-            FIELD_TYPE_TEXT.id,
-            conn,
-        );
-        return toCreate;
-    }
-
-    async function deleteLocale(toDelete: Locale, conn: DbConnection): Promise<void> {
-        // If this is primary, switch to another
-        if (get(localePrincipalRowView).principal === toDelete.id) {
-            await db.updateRow(
-                TABLE_LOCALE_PRINCIPAL,
-                <LocalePrincipal>{ id: 0, principal: get(systemCreatedLocaleRowView).id },
-                conn,
-            );
-        }
-
-        // Notify anyone interested
-        dispatchEvent(
-            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableType: TABLE_LOCALES },
-            }),
-        );
-
-        // Delete Column
-        await db.deleteColumn(TABLE_LOCALIZATIONS, localeIdToColumn(toDelete.id), conn);
-
-        // Delete Locale
-        await db.deleteRow(TABLE_LOCALES, toDelete, conn);
-    }
-
     async function addRow(): Promise<void> {
-        let newLocale: Locale = <Locale>{
-            name: 'New Locale',
-            isSystemCreated: false,
-        };
-
-        await isLoading.wrapPromise(
-            db.executeTransaction(async (conn: DbConnection) => {
-                newLocale = await createLocale(newLocale, conn);
-            }),
-        );
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                `locale creation`,
-                isLoading.wrapFunction(async () => {
-                    await db.executeTransaction(async (conn: DbConnection) => {
-                        await deleteLocale(newLocale, conn);
-                    });
-                }),
-                isLoading.wrapFunction(async () => {
-                    await db.executeTransaction(async (conn: DbConnection) => {
-                        newLocale = await createLocale(newLocale, conn);
-                    });
-                }),
-            ),
+        await localeCreate(
+            <Locale>{
+                name: 'New Locale',
+                isSystemCreated: false,
+            },
+            isLoading,
         );
     }
 
     async function deleteRows(): Promise<void> {
-        // Grab rows to delete
         let rowsToDelete: Locale[] = locales.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
-
-        // Delete Rows
-        await isLoading.wrapPromise(
-            db.executeTransaction(async (conn: DbConnection) => {
-                for (let i = 0; i < rowsToDelete.length; i++) {
-                    await deleteLocale(rowsToDelete[i], conn);
-                }
-            }),
-        );
-
-        // Register undo/redo
-        undoManager.register(
-            new Undoable(
-                'locale deletion',
-                isLoading.wrapFunction(async () => {
-                    await db.executeTransaction(async (conn: DbConnection) => {
-                        for (let i = 0; i < rowsToDelete.length; i++) {
-                            await createLocale(rowsToDelete[i], conn);
-                        }
-                    });
-                }),
-                isLoading.wrapFunction(async () => {
-                    await db.executeTransaction(async (conn: DbConnection) => {
-                        for (let i = 0; i < rowsToDelete.length; i++) {
-                            await deleteLocale(rowsToDelete[i], conn);
-                        }
-                    });
-                }),
-            ),
-        );
+        await localesDelete(rowsToDelete, isLoading);
     }
 
     // TODO

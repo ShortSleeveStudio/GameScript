@@ -2,7 +2,7 @@
     import {
         buildImportLocalizationFormat,
         buildImportPathLocalization,
-        dbSqlitePath,
+        dbConnectionConfig,
         dbType,
     } from '@lib/stores/settings/settings';
     import {
@@ -23,6 +23,7 @@
     import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { DialogResult } from 'preload/api-dialog';
     import type { DatabaseInfo, LocalizationImportRequest } from 'preload/api-build';
+    import { get } from 'svelte/store';
 
     export let isLoading: IsLoadingStore;
 
@@ -40,9 +41,7 @@
         const database: DatabaseInfo = <DatabaseInfo>{};
         if ($dbType === DATABASE_TYPE_SQLITE.id) {
             database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = {
-                sqliteFile: $dbSqlitePath.fullPath,
-            };
+            database.databaseConfig = get(dbConnectionConfig);
         } else {
             database.database = DATABASE_TYPE_POSTGRES.id;
             // TODO

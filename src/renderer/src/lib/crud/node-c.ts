@@ -1,3 +1,4 @@
+import type { DbConnection } from '@common/common-db-types';
 import { type Localization, type Node, type Routine } from '@common/common-schema';
 import {
     ROUTINE_TYPE_USER_CREATED,
@@ -5,7 +6,6 @@ import {
     TABLE_NODES,
     TABLE_ROUTINES,
 } from '@common/common-types';
-import type { DbConnection } from '@common/common-types-db';
 import { db } from '@lib/api/db/db';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';

@@ -1,6 +1,6 @@
+import type { DbConnection } from '@common/common-db-types';
 import type { Row } from '@common/common-schema';
 import type { DatabaseTableId, DatabaseTableName, DatabaseTableType } from '@common/common-types';
-import type { DbConnection } from '@common/common-types-db';
 import { get } from 'svelte/store';
 import { db } from './db';
 import type { Filter } from './db-filter-interface';

@@ -1,4 +1,4 @@
-import { DbClient, DbConnection } from '../../common/common-types-db';
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { GameExportRequest } from '../../preload/api-build';
 import { GameCodeExporter } from './build-common';
 

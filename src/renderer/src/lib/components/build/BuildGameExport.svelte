@@ -7,12 +7,13 @@
     import {
         buildExportPathData,
         buildExportPathRoutines,
-        dbSqlitePath,
+        dbConnectionConfig,
         dbType,
     } from '@lib/stores/settings/settings';
     import type { DialogResult } from 'preload/api-dialog';
     import { DATABASE_TYPE_POSTGRES, DATABASE_TYPE_SQLITE } from '@common/common-types';
     import type { DatabaseInfo, GameExportRequest } from 'preload/api-build';
+    import { get } from 'svelte/store';
 
     export let isLoading: IsLoadingStore;
 
@@ -36,9 +37,7 @@
         const database: DatabaseInfo = <DatabaseInfo>{};
         if ($dbType === DATABASE_TYPE_SQLITE.id) {
             database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = {
-                sqliteFile: $dbSqlitePath.fullPath,
-            };
+            database.databaseConfig = get(dbConnectionConfig);
         } else {
             database.database = DATABASE_TYPE_POSTGRES.id;
             // TODO

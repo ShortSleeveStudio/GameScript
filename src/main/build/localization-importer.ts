@@ -1,4 +1,5 @@
 import fs, { ReadStream } from 'fs';
+import { DbClient, DbConnection, DbNotification } from '../../common/common-db-types';
 import { localeIdToColumn } from '../../common/common-locale';
 import { Locale } from '../../common/common-schema';
 import {
@@ -7,7 +8,6 @@ import {
     TABLE_LOCALES,
     TABLE_LOCALIZATIONS,
 } from '../../common/common-types';
-import { DbClient, DbConnection, DbNotification } from '../../common/common-types-db';
 import { LocalizationImportRequest } from '../../preload/api-build';
 import { executeTransaction } from '../db/db-client';
 import {

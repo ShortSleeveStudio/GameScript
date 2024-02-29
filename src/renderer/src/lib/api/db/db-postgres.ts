@@ -1,6 +1,6 @@
+import type { DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { Row } from '@common/common-schema';
 import type { DatabaseTableType, FieldTypeId } from '@common/common-types';
-import type { DbTransaction } from '@common/common-types-db';
 import type { Writable } from 'svelte/store';
 import { Db } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -10,6 +10,18 @@ import type { IDbRowView } from './db-view-row-interface';
 export class PostgresDb extends Db {
     constructor(isConnected: Writable<boolean>) {
         super(isConnected);
+    }
+    initializeSchema(): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    connect(config: DbConnectionConfig): Promise<void> {
+        throw new Error(`Method not implemented. ${config}`);
+    }
+    disconnect(): Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    initialize(): Promise<void> {
+        throw new Error('Method not implemented.');
     }
     executeTransaction(transaction: DbTransaction): Promise<void> {
         throw new Error(`Method not implemented. ${transaction}`);
@@ -69,8 +81,5 @@ export class PostgresDb extends Db {
         throw new Error(
             `Method not implemented. ${tableType} ${filter} ${field} ${search} ${replace}`,
         );
-    }
-    shutdown(): Promise<void> {
-        throw new Error('Method not implemented.');
     }
 }

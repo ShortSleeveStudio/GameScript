@@ -7,7 +7,7 @@
         buildExportLocalizationDivision,
         buildExportLocalizationFormat,
         buildExportPathLocalization,
-        dbSqlitePath,
+        dbConnectionConfig,
         dbType,
     } from '@lib/stores/settings/settings';
     import type { DatabaseInfo, LocalizationExportRequest } from 'preload/api-build';
@@ -17,6 +17,7 @@
         LOCALIZATION_DIVISION_DROPDOWN_ITEMS,
         LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
     } from '@common/common-types';
+    import { get } from 'svelte/store';
 
     export let isLoading: IsLoadingStore;
 
@@ -32,9 +33,7 @@
         const database: DatabaseInfo = <DatabaseInfo>{};
         if ($dbType === DATABASE_TYPE_SQLITE.id) {
             database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = {
-                sqliteFile: $dbSqlitePath.fullPath,
-            };
+            database.databaseConfig = get(dbConnectionConfig);
         } else {
             database.database = DATABASE_TYPE_POSTGRES.id;
             // TODO

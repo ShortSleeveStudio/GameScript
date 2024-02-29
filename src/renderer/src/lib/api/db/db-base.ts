@@ -1,6 +1,6 @@
+import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { Row } from '@common/common-schema';
 import { DATABASE_TABLES, type DatabaseTableType, type FieldTypeId } from '@common/common-types';
-import type { DbConnection, DbTransaction } from '@common/common-types-db';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import type { DbRowView } from './db-view-row';
@@ -10,6 +10,7 @@ import type { IDbTableView } from './db-view-table-interface';
 
 // Row view destructor
 export type RowViewDestructor = () => void;
+export type Initializer = () => Promise<void>;
 
 /**The interface all databases must implement */
 export abstract class Db {
@@ -27,6 +28,22 @@ export abstract class Db {
     constructor(isConnected: Writable<boolean>) {
         this._isConnected = isConnected;
     }
+
+    /**
+     * Initialize all tables.
+     */
+    abstract initializeSchema(): Promise<void>;
+
+    /**
+     * Connect to the database.
+     * @param config Connection configuration
+     */
+    abstract connect(config: DbConnectionConfig, initializer?: Initializer): Promise<void>;
+
+    /**
+     * Disconnect from the database.
+     */
+    abstract disconnect(): Promise<void>;
 
     /**
      * Creates a table view.
@@ -60,14 +77,6 @@ export abstract class Db {
 
         // Dispose of table
         (<DbTableView<RowType>>tableView).dispose();
-    }
-
-    protected destroyRowView<RowType extends Row>(
-        tableType: DatabaseTableType,
-        rowId: number,
-    ): void {
-        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
-        rowViews.delete(rowId);
     }
 
     /**
@@ -236,10 +245,13 @@ export abstract class Db {
         connection?: DbConnection,
     ): Promise<void>;
 
-    /**
-     * Shutdown this database connection.
-     */
-    abstract shutdown(): Promise<void>;
+    protected destroyRowView<RowType extends Row>(
+        tableType: DatabaseTableType,
+        rowId: number,
+    ): void {
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
+        rowViews.delete(rowId);
+    }
 
     protected getTableViewsForTable<RowType extends Row>(
         tableType: DatabaseTableType,
@@ -262,11 +274,6 @@ export abstract class Db {
 
     protected assertQueryResult(result: unknown, errorMessage: string): void {
         if (!result) throw new Error(errorMessage);
-    }
-
-    protected assertConnected(): void {
-        if (this.isConnected()) return;
-        throw new Error('Operation failed: no database connection');
     }
 
     protected isConnected(): boolean {

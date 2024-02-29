@@ -1,3 +1,4 @@
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { filterIdToColumn } from '../../common/common-filter';
 import { localeIdToColumn } from '../../common/common-locale';
 import {
@@ -18,14 +19,11 @@ import {
     TABLE_LOCALIZATIONS,
     TABLE_PROGRAMMING_LANGUAGES,
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
-    TABLE_TABLES,
 } from '../../common/common-types';
-import { DbClient, DbConnection } from '../../common/common-types-db';
 import { GameExportRequest } from '../../preload/api-build';
 import { EXPORTER_BATCH_SIZE, GameHelperDbExporter } from './build-common';
 
 const IGNORED_TABLE_SET: Set<DatabaseTableType> = new Set();
-IGNORED_TABLE_SET.add(TABLE_TABLES);
 IGNORED_TABLE_SET.add(TABLE_AUTO_COMPLETES);
 IGNORED_TABLE_SET.add(TABLE_PROGRAMMING_LANGUAGES);
 IGNORED_TABLE_SET.add(TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL);
@@ -44,6 +42,9 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
 
         // Remap Foreign Keys
         await this.remapForeignKeys(db, mainConn, helperConn);
+
+        // Create Remapped Tables
+        await this.createRemappedTables(db, mainConn, helperConn);
     }
 
     async teardown(): Promise<void> {}
@@ -157,7 +158,39 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
         db: DbClient,
         mainConn: DbConnection,
         helperConn: DbConnection,
-    ): Promise<void> {}
+    ): Promise<void> {
+        // make use of CREATE_TABLE_INFOS
+        // Routines
+        // - type - routine_types
+        // - parent - conversations
+        // Localizations
+        // - parent - conversations
+        // Locales
+        // - localizedName - localizations
+        // Actors
+        // - localizedName - localizations
+        // Nodes
+        // - uiResponseText - localizations
+        // - actor - actors
+        // - voiceText - localizations
+        // - parent - conversations
+        // - condition - routines
+        // - code - routines
+        // - link - nodes
+        // Edges
+        // - parent - conversation
+        // - source - node
+        // - target - node
+        // REMEMBER TO MAP LINK NODES TO EDGES
+    }
+
+    private async createRemappedTables(
+        db: DbClient,
+        mainConn: DbConnection,
+        helperConn: DbConnection,
+    ): Promise<void> {
+        // REMEMBER TO DROP LINK COLUMN ON NODES
+    }
 }
 export const gameHelperDbExporterDefault: GameHelperDbExporterDefault =
     new GameHelperDbExporterDefault();

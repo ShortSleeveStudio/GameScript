@@ -4,7 +4,7 @@ import {
     DbConnectionConfig,
     DbNotification,
     DbResult,
-} from '../common/common-types-db';
+} from '../common/common-db-types';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,

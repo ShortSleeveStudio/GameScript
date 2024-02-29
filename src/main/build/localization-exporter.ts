@@ -1,3 +1,4 @@
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { localeIdToColumn } from '../../common/common-locale';
 import { Locale, Localization } from '../../common/common-schema';
 import {
@@ -5,7 +6,6 @@ import {
     TABLE_LOCALES,
     TABLE_LOCALIZATIONS,
 } from '../../common/common-types';
-import { DbClient, DbConnection } from '../../common/common-types-db';
 import { LocalizationExportRequest } from '../../preload/api-build';
 import { executeTransaction } from '../db/db-client';
 import {

@@ -1,5 +1,3 @@
-import type { EdgeTypeName, NodeTypeName, RoutineTypeId } from './common-types';
-
 ///
 /// Rows
 ///
@@ -26,11 +24,6 @@ export interface ConversationChild {
 }
 
 ///
-/// Tables
-///
-export interface Table extends Row {}
-
-///
 /// Auto-Completes
 ///
 export interface AutoComplete extends Row {
@@ -51,11 +44,16 @@ export interface ProgrammingLanguage extends Row {}
 export interface ProgrammingLanguagePrincipal extends Row, Principaled {}
 
 ///
+/// Routine Types
+///
+export interface RoutineType extends Row {}
+
+///
 /// Routines
 ///
 export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild {
     code: string;
-    type: RoutineTypeId;
+    type: number;
 }
 
 ///
@@ -74,7 +72,9 @@ export interface Conversation extends Row, SystemCreatable, Annotated, Deletable
 ///
 /// Locales
 ///
-export interface Locale extends Row, SystemCreatable {}
+export interface Locale extends Row, SystemCreatable {
+    localizedName: number; // FK Localization
+}
 
 ///
 /// Locale Principal
@@ -115,7 +115,7 @@ export interface Node extends Row, Annotated, SystemCreatable, ConversationChild
     link: number; // FK Nodes
 
     // Graph Stuff
-    type: NodeTypeName;
+    type: string;
     positionX: number;
     positionY: number;
 }
@@ -127,7 +127,7 @@ export interface Edge extends Row, Annotated, ConversationChild {
     priority: number;
 
     // Graph Stuff
-    type: EdgeTypeName;
+    type: string;
     source: number; // FK Nodes
     target: number; // FK Nodes
     // UNIQUE(parent, source, target)

@@ -1,10 +1,10 @@
 import { ipcRenderer } from 'electron';
+import { DbConnectionConfig } from '../common/common-db-types';
 import {
     DatabaseTypeId,
     LocalizationDivisionTypeId,
     LocalizationFormatTypeId,
 } from '../common/common-types';
-import { DbConnectionConfig } from '../common/common-types-db';
 import {
     API_BUILD_GAME_EXPORT,
     API_BUILD_LOCALIZATION_EXPORT,

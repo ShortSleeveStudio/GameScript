@@ -1,6 +1,5 @@
 import { localeIdToColumn } from './common-locale';
 import {
-    DATABASE_TABLES,
     PROGRAMMING_LANGUAGE_CS,
     PROGRAMMING_LANGUAGE_TYPES,
     ROUTINE_TYPES,
@@ -19,9 +18,7 @@ import {
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
-    TABLE_TABLES,
     type DatabaseTableType,
-    type ProgrammingLanguageType,
 } from './common-types';
 import { ACTORS_DEFAULT_COLOR } from './constants';
 
@@ -29,8 +26,13 @@ import { ACTORS_DEFAULT_COLOR } from './constants';
 /// Constants
 ///
 export type TableCreationQueryCreator = (isExport: boolean) => string;
+export interface TableForeignKeyInfo {
+    fieldName: string;
+    foreignTable: DatabaseTableType;
+}
 export interface TableCreateInfo {
     type: DatabaseTableType;
+    fkInfo: TableForeignKeyInfo[];
     creator: TableCreationQueryCreator;
 }
 export const EXPORT_ORIGINAL_ID_COLUMN_NAME: string = 'originalId';
@@ -39,19 +41,25 @@ const DEFAULT_LOCALE_ID: number = 0;
 const EXPORT_ORIGINAL_ID_COLUMN_CLAUSE: string = `"${EXPORT_ORIGINAL_ID_COLUMN_NAME}"	INTEGER,`;
 
 ///
+/// Table Definitions
+///
+export interface ColumnDefinition {
+    name: string;
+
+    // TRY:
+    // type OptionsFlags<Type> = {
+    //     [Property in keyof Type]: boolean;
+    //   };
+    // TODO - HERE
+}
+export interface TableDefinition {
+    name: string;
+    columns: ColumnDefinition[];
+}
+
+///
 /// Table Creation
 ///
-export function createTableTables(isHelperDb: boolean = false): string {
-    return `
-	CREATE TABLE IF NOT EXISTS "${TABLE_TABLES.name + (isHelperDb ? EXPORT_DUMMY_TABLE_PREFIX : '')}" (
-		"id"	INTEGER,
-		"name"	TEXT NOT NULL UNIQUE,
-		${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
-		PRIMARY KEY("id" AUTOINCREMENT),
-		UNIQUE("name")
-	);
-	`;
-}
 export function createTableAutoCompletes(isHelperDb: boolean = false): string {
     return `
 	CREATE TABLE IF NOT EXISTS "${
@@ -162,36 +170,6 @@ export function createTableRoutines(isHelperDb: boolean = false): string {
         }
     );`;
 }
-export function createTableLocales(isHelperDb: boolean = false): string {
-    return `
-    CREATE TABLE IF NOT EXISTS "${
-        TABLE_LOCALES.name + (isHelperDb ? EXPORT_DUMMY_TABLE_PREFIX : '')
-    }" (
-        "id"    INTEGER,
-        "name"  TEXT NOT NULL,
-        "isSystemCreated"   INTEGER NOT NULL,
-        ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
-        PRIMARY KEY("id" AUTOINCREMENT)
-    );`;
-}
-export function createTableLocalePrincipal(isHelperDb: boolean = false): string {
-    return `
-    CREATE TABLE IF NOT EXISTS "${
-        TABLE_LOCALE_PRINCIPAL.name + (isHelperDb ? EXPORT_DUMMY_TABLE_PREFIX : '')
-    }" (
-        "id"    INTEGER,
-        "principal" INTEGER,
-        ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
-        PRIMARY KEY("id" AUTOINCREMENT)
-        ${
-            isHelperDb
-                ? ''
-                : `
-        , FOREIGN KEY("principal") REFERENCES "${TABLE_LOCALES.name}"
-        `
-        }
-    );`;
-}
 export function createTableLocalizations(isHelperDb: boolean = false): string {
     return `
     CREATE TABLE IF NOT EXISTS "${
@@ -213,6 +191,44 @@ export function createTableLocalizations(isHelperDb: boolean = false): string {
         }
     );`;
 }
+export function createTableLocales(isHelperDb: boolean = false): string {
+    return `
+    CREATE TABLE IF NOT EXISTS "${
+        TABLE_LOCALES.name + (isHelperDb ? EXPORT_DUMMY_TABLE_PREFIX : '')
+    }" (
+        "id"    INTEGER,
+        "name"  TEXT NOT NULL,
+        "isSystemCreated"   INTEGER NOT NULL,
+        "localizedName"   INTEGER NOT NULL,
+        ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
+        PRIMARY KEY("id" AUTOINCREMENT)
+        ${
+            isHelperDb
+                ? ''
+                : `
+        , FOREIGN KEY("localizedName") REFERENCES "${TABLE_LOCALIZATIONS.name}"
+        `
+        }
+    );`;
+}
+export function createTableLocalePrincipal(isHelperDb: boolean = false): string {
+    return `
+    CREATE TABLE IF NOT EXISTS "${
+        TABLE_LOCALE_PRINCIPAL.name + (isHelperDb ? EXPORT_DUMMY_TABLE_PREFIX : '')
+    }" (
+        "id"    INTEGER,
+        "principal" INTEGER,
+        ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
+        PRIMARY KEY("id" AUTOINCREMENT)
+        ${
+            isHelperDb
+                ? ''
+                : `
+        , FOREIGN KEY("principal") REFERENCES "${TABLE_LOCALES.name}"
+        `
+        }
+    );`;
+}
 export function createTableActors(isHelperDb: boolean = false): string {
     return `
     CREATE TABLE IF NOT EXISTS "${
@@ -221,7 +237,7 @@ export function createTableActors(isHelperDb: boolean = false): string {
         "id"    INTEGER,
         "name"  TEXT NOT NULL,
         "color" TEXT NOT NULL,
-        "localizedName" INTEGER,
+        "localizedName" INTEGER NOT NULL,
         "isSystemCreated"   INTEGER NOT NULL,
         ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
         PRIMARY KEY("id" AUTOINCREMENT)
@@ -279,8 +295,8 @@ export function createTableNodes(isHelperDb: boolean = false): string {
             isHelperDb
                 ? ''
                 : `
-        , FOREIGN KEY("uiResponseText") REFERENCES "${TABLE_LOCALIZATIONS.name}"
         , FOREIGN KEY("actor") REFERENCES "${TABLE_ACTORS.name}"
+        , FOREIGN KEY("uiResponseText") REFERENCES "${TABLE_LOCALIZATIONS.name}"
         , FOREIGN KEY("voiceText") REFERENCES "${TABLE_LOCALIZATIONS.name}"
         , FOREIGN KEY("parent") REFERENCES "${TABLE_CONVERSATIONS.name}"
         , FOREIGN KEY("condition") REFERENCES "${TABLE_ROUTINES.name}"
@@ -318,40 +334,146 @@ export function createTableEdges(isHelperDb: boolean = false): string {
         }
     );`;
 }
+
 export const CREATE_TABLE_INFOS: TableCreateInfo[] = [
-    { type: TABLE_TABLES, creator: createTableTables },
-    { type: TABLE_AUTO_COMPLETES, creator: createTableAutoCompletes },
-    { type: TABLE_PROGRAMMING_LANGUAGES, creator: createTableProgrammingLanguages },
+    { type: TABLE_AUTO_COMPLETES, creator: createTableAutoCompletes, fkInfo: [] },
+    { type: TABLE_PROGRAMMING_LANGUAGES, creator: createTableProgrammingLanguages, fkInfo: [] },
     {
         type: TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
         creator: createTableProgrammingLanguagePrincipal,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'principal',
+                foreignTable: TABLE_PROGRAMMING_LANGUAGES,
+            },
+        ],
     },
-    { type: TABLE_FILTERS, creator: createTableFilters },
-    { type: TABLE_CONVERSATIONS, creator: createTableConversations },
-    { type: TABLE_ROUTINE_TYPES, creator: createTableRoutineTypes },
-    { type: TABLE_ROUTINES, creator: createTableRoutines },
-    { type: TABLE_LOCALES, creator: createTableLocales },
-    { type: TABLE_LOCALE_PRINCIPAL, creator: createTableLocalePrincipal },
-    { type: TABLE_LOCALIZATIONS, creator: createTableLocalizations },
-    { type: TABLE_ACTORS, creator: createTableActors },
-    { type: TABLE_ACTOR_PRINCIPAL, creator: createTableActorPrincipal },
-    { type: TABLE_NODES, creator: createTableNodes },
-    { type: TABLE_EDGES, creator: createTableEdges },
+    { type: TABLE_FILTERS, creator: createTableFilters, fkInfo: [] },
+    { type: TABLE_CONVERSATIONS, creator: createTableConversations, fkInfo: [] },
+    { type: TABLE_ROUTINE_TYPES, creator: createTableRoutineTypes, fkInfo: [] },
+    {
+        type: TABLE_ROUTINES,
+        creator: createTableRoutines,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'type',
+                foreignTable: TABLE_ROUTINE_TYPES,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'parent',
+                foreignTable: TABLE_CONVERSATIONS,
+            },
+        ],
+    },
+    {
+        type: TABLE_LOCALIZATIONS,
+        creator: createTableLocalizations,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'parent',
+                foreignTable: TABLE_CONVERSATIONS,
+            },
+        ],
+    },
+    {
+        type: TABLE_LOCALES,
+        creator: createTableLocales,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'localizedName',
+                foreignTable: TABLE_LOCALIZATIONS,
+            },
+        ],
+    },
+    {
+        type: TABLE_LOCALE_PRINCIPAL,
+        creator: createTableLocalePrincipal,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'principal',
+                foreignTable: TABLE_LOCALES,
+            },
+        ],
+    },
+    {
+        type: TABLE_ACTORS,
+        creator: createTableActors,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'localizedName',
+                foreignTable: TABLE_LOCALIZATIONS,
+            },
+        ],
+    },
+    {
+        type: TABLE_ACTOR_PRINCIPAL,
+        creator: createTableActorPrincipal,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'principal',
+                foreignTable: TABLE_ACTORS,
+            },
+        ],
+    },
+    {
+        type: TABLE_NODES,
+        creator: createTableNodes,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'actor',
+                foreignTable: TABLE_ACTORS,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'uiResponseText',
+                foreignTable: TABLE_LOCALIZATIONS,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'voiceText',
+                foreignTable: TABLE_LOCALIZATIONS,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'parent',
+                foreignTable: TABLE_CONVERSATIONS,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'condition',
+                foreignTable: TABLE_ROUTINES,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'code',
+                foreignTable: TABLE_ROUTINES,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'link',
+                foreignTable: TABLE_NODES,
+            },
+        ],
+    },
+    {
+        type: TABLE_EDGES,
+        creator: createTableEdges,
+        fkInfo: [
+            <TableForeignKeyInfo>{
+                fieldName: 'parent',
+                foreignTable: TABLE_CONVERSATIONS,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'source',
+                foreignTable: TABLE_NODES,
+            },
+            <TableForeignKeyInfo>{
+                fieldName: 'target',
+                foreignTable: TABLE_NODES,
+            },
+        ],
+    },
 ];
 
 ///
 /// Table Initialization
 ///
+
 let rowIndex: number;
-// Tables
-const INITIALIZE_TABLES = `
-BEGIN TRANSACTION;
-${DATABASE_TABLES.map(
-    (table: DatabaseTableType) =>
-        `INSERT OR IGNORE INTO ${TABLE_TABLES.name} (id, name) VALUES (${table.id}, '${table.name}');`,
-).join('\n')}
-COMMIT;
-`;
 // Auto-Completes
 // Programming Languages
 const INITIALIZE_PROGRAMMING_LANGUAGES = `
@@ -390,6 +512,15 @@ INSERT OR IGNORE INTO ${
 COMMIT;
 `;
 // Conversations
+// Localizations
+rowIndex = 0;
+const DEFAULT_LOCALIZATION_ID = rowIndex;
+const INITIALIZE_LOCALIZATIONS = `
+INSERT OR IGNORE INTO ${
+    TABLE_LOCALIZATIONS.name
+} (id, parent, isSystemCreated, name, '${localeIdToColumn(
+    DEFAULT_LOCALE_ID,
+)}') VALUES (${rowIndex++}, NULL, true, 'Player Name', 'Player');`;
 // Locales
 rowIndex = DEFAULT_LOCALE_ID;
 const INITIALIZE_LOCALES = `
@@ -402,15 +533,6 @@ const INITIALIZE_LOCALE_PRINCIPAL = `
 INSERT OR IGNORE INTO ${
     TABLE_LOCALE_PRINCIPAL.name
 } (id, principal) VALUES (${rowIndex++}, ${DEFAULT_LOCALE_ID});`;
-// Localizations
-rowIndex = 0;
-const DEFAULT_LOCALIZATION_ID = rowIndex;
-const INITIALIZE_LOCALIZATIONS = `
-INSERT OR IGNORE INTO ${
-    TABLE_LOCALIZATIONS.name
-} (id, parent, isSystemCreated, name, '${localeIdToColumn(
-    DEFAULT_LOCALE_ID,
-)}') VALUES (${rowIndex++}, NULL, true, 'Player Name', 'Player');`;
 // Actors
 rowIndex = 0;
 const DEFAULT_ACTOR_ID = rowIndex;
@@ -426,7 +548,6 @@ INSERT OR IGNORE INTO ${
 } (id, principal) VALUES (${rowIndex++}, ${DEFAULT_ACTOR_ID});`;
 // Nodes
 export const INITIALIZE_TABLE_QUERIES = [
-    INITIALIZE_TABLES,
     INITIALIZE_PROGRAMMING_LANGUAGES,
     INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     INITIALIZE_ROUTINE_TYPES,

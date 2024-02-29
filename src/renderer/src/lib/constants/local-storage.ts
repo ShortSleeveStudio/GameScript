@@ -6,7 +6,7 @@ export const LS_KEY_DARKMODE: string = 'darkmode';
 
 // Settings
 export const LS_KEY_SETTINGS_DB_TYPE: string = 'settings-database-type';
-export const LS_KEY_SETTINGS_DB_SQLITE_PATH: string = 'settings-database-sqlite-path';
+export const LS_KEY_SETTINGS_DB_CONNECTION_CONFIG: string = 'settings-database-connection-config';
 export const LS_KEY_SETTINGS_DEFAULT_ROUTINE: string = 'settings-coding-default-routine';
 
 // Finder

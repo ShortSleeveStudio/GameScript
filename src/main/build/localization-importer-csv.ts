@@ -1,10 +1,10 @@
 import { CastingContext, Options, Parser, parse } from 'csv-parse';
 import { ReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { Localization } from '../../common/common-schema';
 import { updateRowQuery } from '../../common/common-sql';
 import { TABLE_LOCALIZATIONS } from '../../common/common-types';
-import { DbClient, DbConnection } from '../../common/common-types-db';
 import { LocalizationImportRequest } from '../../preload/api-build';
 import {
     ColumnDescriptor,

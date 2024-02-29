@@ -1,4 +1,10 @@
-import { CREATE_TABLE_INFOS, INITIALIZE_TABLE_QUERIES } from '@common/common-queries-sqlite';
+import type {
+    DbConnection,
+    DbConnectionConfig,
+    DbNotification,
+    DbResult,
+    DbTransaction,
+} from '@common/common-db-types';
 import { type Row } from '@common/common-schema';
 import { updateRowQuery } from '@common/common-sql';
 import {
@@ -14,13 +20,7 @@ import {
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
-import type {
-    DbConnection,
-    DbConnectionConfig,
-    DbNotification,
-    DbResult,
-    DbTransaction,
-} from '@common/common-types-db';
+import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import {
     FOCUS_MODE_MODIFY,
     FOCUS_REMOVE,
@@ -28,13 +28,10 @@ import {
     type FocusManager,
     type FocusRequests,
 } from '@lib/stores/app/focus';
-import { NotificationItem, NotificationManager } from '@lib/stores/app/notifications';
-import { dialogResultReset } from '@lib/utility/dialog';
 import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
-import type { DialogResult } from 'preload/api-dialog';
-import { get, type Unsubscriber, type Writable } from 'svelte/store';
-import { Db } from './db-base';
+import { get, type Readable, type Writable } from 'svelte/store';
+import { Db, type Initializer } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import { DbRowView } from './db-view-row';
@@ -53,40 +50,66 @@ interface DbQueuedNotification {
  */
 export class SqliteDb extends Db {
     private _db: DbConnection | undefined;
-    private _unsubscribeSqlitePath: Unsubscriber;
-    private _unsubscribeDbConnected: Unsubscriber;
-    private _sqlitePathStore: Writable<DialogResult>;
-    private _appInitializationErrors: Writable<Error[]>;
-    private _notificationManager: NotificationManager;
     private _focusManager: FocusManager;
+    private _dbConnectionConfig: Readable<DbConnectionConfig>;
     private _transactionNotifications: DbQueuedNotification[];
 
     constructor(
         isConnected: Writable<boolean>,
-        sqlitePathStore: Writable<DialogResult>,
-        appInitializationError: Writable<Error[]>,
-        notificationManager: NotificationManager,
+        dbConnectionConfig: Readable<DbConnectionConfig>,
         focusManager: FocusManager,
     ) {
         super(isConnected);
-
-        this._sqlitePathStore = sqlitePathStore;
-        this._appInitializationErrors = appInitializationError;
-        this._notificationManager = notificationManager;
+        this._dbConnectionConfig = dbConnectionConfig;
         this._focusManager = focusManager;
         this._transactionNotifications = [];
-        this._unsubscribeDbConnected = this._isConnected.subscribe(this.onDbConnectedChanged);
-        this._unsubscribeSqlitePath = this._sqlitePathStore.subscribe(this.onDbPathChanged);
+    }
+
+    async initializeSchema(): Promise<void> {
+        // TODO ____________
+        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
+            const query = CREATE_TABLE_INFOS[i].creator(false);
+            await window.api.sqlite.exec(this._db, query);
+        }
+    }
+
+    async connect(config: DbConnectionConfig, initializer?: Initializer): Promise<void> {
+        // Only attempt to connect if we have a valid path
+        if (!config || !config.sqliteFile) {
+            return;
+        }
+
+        // Attempt connection
+        this._db = await window.api.sqlite.open(<DbConnectionConfig>{
+            sqliteFile: config.sqliteFile,
+        });
+
+        // Initialize if necessary
+        if (initializer) initializer();
+
+        // Listen for changes
+        await window.api.sqlite.listen(undefined, this.onNotification);
+
+        // Notify connected
+        this._isConnected.set(true);
+    }
+
+    async disconnect(): Promise<void> {
+        this.destroyConnection();
+
+        // Notify tables
+        Db._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
+            for (const tableView of tableViewMap.values()) {
+                tableView.onReloadRequired();
+            }
+        });
     }
 
     async executeTransaction(transaction: DbTransaction): Promise<void> {
         let wasError: boolean = false;
-        const dbFile: DialogResult = get(this._sqlitePathStore);
         let conn: DbConnection;
         try {
-            conn = await window.api.sqlite.open(<DbConnectionConfig>{
-                sqliteFile: dbFile.fullPath,
-            });
+            conn = await window.api.sqlite.open(get(this._dbConnectionConfig));
             await window.api.sqlite.exec(conn, 'BEGIN;');
             await transaction(conn);
         } catch (err) {
@@ -159,6 +182,11 @@ export class SqliteDb extends Db {
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
+        dispatchEvent(
+            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
+                detail: <DbColumnDeleting>{ tableType: tableType },
+            }),
+        );
         const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name}`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
@@ -389,18 +417,15 @@ export class SqliteDb extends Db {
         await this.notify(DB_OP_ALTER, tableType, undefined, connection);
     }
 
-    async shutdown(): Promise<void> {
-        this.destroyConnection();
-        this._unsubscribeSqlitePath();
-        this._unsubscribeDbConnected();
-    }
-
     private async notify<RowType extends Row>(
         op: OpTypeId,
         tableType: DatabaseTableType,
         rows?: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
+        // Don't do notifications if we're initializing
+        if (!get(this._isConnected)) return;
+
         // Cache the notification for later if we're in a transaction
         if (connection) {
             this._transactionNotifications.push({
@@ -480,59 +505,6 @@ export class SqliteDb extends Db {
         }
     }
 
-    private onDbConnectedChanged: (v: boolean) => void = (isConnected) => {
-        // Notify user
-        if (isConnected) {
-            this._notificationManager.showNotification(
-                new NotificationItem('success', '', 'Connected to database'),
-            );
-        } else {
-            this._notificationManager.showNotification(
-                new NotificationItem('warning', '', 'Disconnected from database'),
-            );
-        }
-
-        // Notify tables
-        Db._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
-            for (const tableView of tableViewMap.values()) {
-                tableView.onReloadRequired();
-            }
-        });
-    };
-
-    private onDbPathChanged: (v: DialogResult) => Promise<void> = async (fileDetails) => {
-        // Destroy previous connection/s
-        await this.destroyConnection();
-
-        // Only attempt to connect if we have a valid path
-        if (!fileDetails || !fileDetails.fullPath) {
-            return;
-        }
-
-        try {
-            // Attempt to connect
-            this._db = await window.api.sqlite.open(<DbConnectionConfig>{
-                sqliteFile: fileDetails.fullPath,
-            });
-
-            // Ensure schema
-            await this.initializeSchema();
-
-            // Listen for changes
-            await window.api.sqlite.listen(undefined, this.onNotification);
-
-            // Notify connected
-            this._isConnected.set(true);
-        } catch (e) {
-            this._sqlitePathStore.update(dialogResultReset);
-            this.isError(e);
-            // https://svelte-5-preview.vercel.app/status
-            const errors: Error[] = get(this._appInitializationErrors);
-            errors.push(<Error>e);
-            this._appInitializationErrors.set(errors);
-        }
-    };
-
     private removeRowViews<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType[],
@@ -562,30 +534,14 @@ export class SqliteDb extends Db {
         }
     }
 
-    private async initializeSchema(): Promise<void> {
-        // Ensure tables exist
-        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
-            const query = CREATE_TABLE_INFOS[i].creator(false);
-            console.log(query);
-            await window.api.sqlite.exec(this._db, query);
-        }
-
-        // Ensure static tables are populated
-        for (let i = 0; i < INITIALIZE_TABLE_QUERIES.length; i++) {
-            const query = INITIALIZE_TABLE_QUERIES[i];
-            await window.api.sqlite.exec(this._db, query);
-        }
-    }
-
-    private isError(value: unknown): asserts value is Error {
-        if (typeof value !== 'object' || !('message' in <object>value))
-            throw new Error('Caught a non-error');
-    }
-
     private async destroyConnection(): Promise<void> {
         this._isConnected.set(false);
         await window.api.sqlite.unlisten(undefined, this.onNotification);
         await window.api.sqlite.closeAll();
         this._db = undefined;
+    }
+
+    private assertConnected(): void {
+        if (!this._db) throw new Error('Operation failed: no database connection');
     }
 }

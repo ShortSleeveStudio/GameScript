@@ -2,10 +2,10 @@ import { ReadStream } from 'fs';
 import { Parser, parser } from 'stream-json';
 import StreamArray, { streamArray } from 'stream-json/streamers/StreamArray';
 import { pipeline } from 'stream/promises';
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { Localization } from '../../common/common-schema';
 import { updateRowQuery } from '../../common/common-sql';
 import { TABLE_LOCALIZATIONS } from '../../common/common-types';
-import { DbClient, DbConnection } from '../../common/common-types-db';
 import { LocalizationImporter } from './build-common';
 
 export class LocalizationImporterJson implements LocalizationImporter {

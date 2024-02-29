@@ -1,6 +1,6 @@
 import { IpcMainInvokeEvent, ipcMain } from 'electron';
+import { DbClient } from '../common/common-db-types';
 import { DATABASE_TYPE_SQLITE } from '../common/common-types';
-import { DbClient } from '../common/common-types-db';
 import {
     API_BUILD_GAME_EXPORT,
     API_BUILD_LOCALIZATION_EXPORT,

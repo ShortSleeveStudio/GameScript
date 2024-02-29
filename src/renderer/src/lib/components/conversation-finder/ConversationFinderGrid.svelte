@@ -78,7 +78,7 @@
         TABLE_NODES,
         type DatabaseTableType,
     } from '@common/common-types';
-    import type { DbConnection } from '@common/common-types-db';
+    import type { DbConnection } from '@common/common-db-types';
     import { filterIdToColumn } from '@common/common-filter';
 
     const CONVERSATION_ID_COLUMN: string = 'id';

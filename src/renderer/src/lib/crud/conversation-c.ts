@@ -1,6 +1,6 @@
+import type { DbConnection } from '@common/common-db-types';
 import { type Conversation, type Node } from '@common/common-schema';
 import { NODE_TYPE_ROOT, TABLE_CONVERSATIONS } from '@common/common-types';
-import type { DbConnection } from '@common/common-types-db';
 import { db } from '@lib/api/db/db';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';

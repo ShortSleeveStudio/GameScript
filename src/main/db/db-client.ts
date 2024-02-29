@@ -3,7 +3,7 @@ import {
     DbConnection,
     DbConnectionConfig,
     DbTransaction,
-} from '../../common/common-types-db';
+} from '../../common/common-db-types';
 
 export async function executeTransaction(
     db: DbClient,

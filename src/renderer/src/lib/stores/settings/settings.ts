@@ -1,3 +1,4 @@
+import type { DbConnectionConfig } from '@common/common-db-types';
 import {
     DATABASE_TYPES,
     LOCALIZATION_DIVISION_SINGLE,
@@ -12,7 +13,7 @@ import {
     LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
     LS_KEY_BUILD_IMPORT_LOCALIZATION_FORMAT,
     LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
-    LS_KEY_SETTINGS_DB_SQLITE_PATH,
+    LS_KEY_SETTINGS_DB_CONNECTION_CONFIG,
     LS_KEY_SETTINGS_DB_TYPE,
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
 } from '@lib/constants/local-storage';
@@ -30,10 +31,9 @@ export const dbType: Writable<DatabaseTypeId> = persisted(
     LS_KEY_SETTINGS_DB_TYPE,
     DATABASE_TYPES[0].id,
 );
-/**SQLite database file path */
-export const dbSqlitePath: Writable<DialogResult> = persisted(
-    LS_KEY_SETTINGS_DB_SQLITE_PATH,
-    <DialogResult>{},
+export const dbConnectionConfig: Writable<DbConnectionConfig> = persisted(
+    LS_KEY_SETTINGS_DB_CONNECTION_CONFIG,
+    <DbConnectionConfig>{},
 );
 
 ///
