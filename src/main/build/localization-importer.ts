@@ -12,12 +12,12 @@ import { LocalizationImportRequest } from '../../preload/api-build';
 import { executeTransaction } from '../db/db-client';
 import {
     ColumnDescriptor,
-    Importer,
+    LocalizationImporter,
     doesFolderExist,
     listFilesWithExtension,
 } from './build-common';
-import { importerCsv } from './importer-csv';
-import { importerJson } from './importer-json';
+import { localizationImporterCsv } from './localization-importer-csv';
+import { localizationImporterJson } from './localization-importer-json';
 
 export async function localizationImport(
     db: DbClient,
@@ -31,8 +31,10 @@ export async function localizationImport(
     const filePaths: string[] = await listFilesWithExtension(payload.location, payload.format);
 
     // Start transaction
-    const importer: Importer =
-        payload.format === LOCALIZATION_FORMAT_CSV.id ? importerCsv : importerJson;
+    const importer: LocalizationImporter =
+        payload.format === LOCALIZATION_FORMAT_CSV.id
+            ? localizationImporterCsv
+            : localizationImporterJson;
     await executeTransaction(db, payload.database.databaseConfig, async (conn: DbConnection) => {
         try {
             // Grab locale names

@@ -8,8 +8,14 @@ import {
     LocalizationFormatTypeId,
 } from '../../common/common-types';
 import { DbClient, DbConnection } from '../../common/common-types-db';
-import { LocalizationExportRequest, LocalizationImportRequest } from '../../preload/api-build';
+import {
+    GameExportRequest,
+    LocalizationExportRequest,
+    LocalizationImportRequest,
+} from '../../preload/api-build';
 
+export const EXPORTER_FILENAME_HELPER_DB: string = 'HELPER_DB___DO_NOT_SHIP.db';
+export const EXPORTER_FILENAME_DATA_FILE: string = 'game.dat';
 export const EXPORTER_FILENAME_PREFIX_MISC: string = 'miscellaneous';
 export const EXPORTER_FILENAME_PREFIX_SINGLE: string = 'localizations';
 export const EXPORTER_FILENAME_PREFIX_PER_CONVERSATION: string = 'conversation_';
@@ -23,7 +29,7 @@ export interface ColumnDescriptor {
     name: string;
 }
 
-export interface Exporter {
+export interface LocalizationExporter {
     setup(
         exportRequest: LocalizationExportRequest,
         columns: ColumnDescriptor[],
@@ -33,13 +39,43 @@ export interface Exporter {
     teardown(): Promise<void>;
 }
 
-export interface Importer {
+export interface LocalizationImporter {
     setup(
         importRequest: LocalizationImportRequest,
         columns: ColumnDescriptor[],
         headers: string[],
     ): Promise<void>;
     handleBatch(db: DbClient, fileStream: ReadStream, conn: DbConnection): Promise<void>;
+    teardown(): Promise<void>;
+}
+
+export interface GameCodeExporter {
+    export(
+        db: DbClient,
+        importRequest: GameExportRequest,
+        mainConn: DbConnection,
+        helperConn: DbConnection,
+    ): Promise<void>;
+    teardown(): Promise<void>;
+}
+
+export interface GameDataExporter {
+    export(
+        db: DbClient,
+        importRequest: GameExportRequest,
+        mainConn: DbConnection,
+        helperConn: DbConnection,
+    ): Promise<void>;
+    teardown(): Promise<void>;
+}
+
+export interface GameHelperDbExporter {
+    export(
+        db: DbClient,
+        importRequest: GameExportRequest,
+        mainConn: DbConnection,
+        helperConn: DbConnection,
+    ): Promise<void>;
     teardown(): Promise<void>;
 }
 

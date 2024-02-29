@@ -19,11 +19,11 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { filters } from '@lib/tables/filters';
     import { db } from '@lib/api/db/db';
-    import { filterIdToColumn } from '@lib/utility/filters';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
     import { FIELD_TYPE_TEXT, TABLE_CONVERSATIONS, TABLE_FILTERS } from '@common/common-types';
     import type { DbConnection } from '@common/common-types-db';
+    import { filterIdToColumn } from '@common/common-filter';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadFilter = <FocusPayloadFilter>{

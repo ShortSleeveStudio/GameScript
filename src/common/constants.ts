@@ -1,6 +1,9 @@
 // Constants
 export const APP_NAME = 'GameScript';
 
+// Style
+export const ACTORS_DEFAULT_COLOR = '#11856C';
+
 // System
 export const API_SYSTEM_ON_ERROR = '/api/system/on-error';
 
@@ -37,3 +40,4 @@ export const API_SQLITE_ON_NOTIFICATION = '/api/sqlite/on-notification';
 // Build
 export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';
 export const API_BUILD_LOCALIZATION_IMPORT = '/api/build/localization/import';
+export const API_BUILD_GAME_EXPORT = '/api/build/game/export';

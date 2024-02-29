@@ -6,9 +6,9 @@ import { Localization } from '../../common/common-schema';
 import { updateRowQuery } from '../../common/common-sql';
 import { TABLE_LOCALIZATIONS } from '../../common/common-types';
 import { DbClient, DbConnection } from '../../common/common-types-db';
-import { Importer } from './build-common';
+import { LocalizationImporter } from './build-common';
 
-export class ImporterJson implements Importer {
+export class LocalizationImporterJson implements LocalizationImporter {
     async setup(): Promise<void> {}
     async handleBatch(db: DbClient, fileStream: ReadStream, conn: DbConnection): Promise<void> {
         const jsonParser: Parser = parser();
@@ -26,4 +26,4 @@ export class ImporterJson implements Importer {
     async teardown(): Promise<void> {}
 }
 
-export const importerJson: ImporterJson = new ImporterJson();
+export const localizationImporterJson: LocalizationImporterJson = new LocalizationImporterJson();

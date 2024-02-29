@@ -24,7 +24,6 @@
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
     import { filters } from '@lib/tables/filters';
-    import { filterIdToColumn } from '@lib/utility/filters';
     import { Button, InlineLoading, OverflowMenuItem, Modal } from 'carbon-components-svelte';
     import { onDestroy, onMount } from 'svelte';
     import { get } from 'svelte/store';
@@ -80,6 +79,7 @@
         type DatabaseTableType,
     } from '@common/common-types';
     import type { DbConnection } from '@common/common-types-db';
+    import { filterIdToColumn } from '@common/common-filter';
 
     const CONVERSATION_ID_COLUMN: string = 'id';
     const IS_DELETED_COLUMN: string = 'isDeleted';

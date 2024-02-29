@@ -11,10 +11,10 @@ import {
     EXPORTER_FILENAME_PREFIX_MISC,
     EXPORTER_FILENAME_PREFIX_PER_CONVERSATION,
     EXPORTER_FILENAME_PREFIX_SINGLE,
-    Exporter,
+    LocalizationExporter,
 } from './build-common';
 
-export class ExporterCsv implements Exporter {
+export class LocalizationExporterCsv implements LocalizationExporter {
     private _fileHandle: FileHandle | undefined;
     private _exportRequest: LocalizationExportRequest | undefined;
     private _headers: string[] | undefined;
@@ -122,4 +122,4 @@ export class ExporterCsv implements Exporter {
     }
 }
 
-export const exporterCsv = new ExporterCsv();
+export const localizationExporterCsv = new LocalizationExporterCsv();

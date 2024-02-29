@@ -16,7 +16,6 @@
     import type { FocusPayloadActor } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import {
-        ACTORS_DEFAULT_COLOR,
         ACTORS_DEFAULT_NAME,
         ACTORS_PLACEHOLDER_NAME,
         ACTORS_UNDO_NAME,
@@ -27,7 +26,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { APP_NAME } from '@common/constants';
+    import { ACTORS_DEFAULT_COLOR, APP_NAME } from '@common/constants';
     import { TABLE_ACTORS, TABLE_LOCALIZATIONS } from '@common/common-types';
     import type { DbConnection } from '@common/common-types-db';
 

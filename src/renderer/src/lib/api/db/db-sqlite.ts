@@ -1,3 +1,5 @@
+import { CREATE_TABLE_INFOS, INITIALIZE_TABLE_QUERIES } from '@common/common-queries-sqlite';
+import { type Row } from '@common/common-schema';
 import { updateRowQuery } from '@common/common-sql';
 import {
     DATABASE_TABLES,
@@ -32,11 +34,9 @@ import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
 import type { DialogResult } from 'preload/api-dialog';
 import { get, type Unsubscriber, type Writable } from 'svelte/store';
-import { type Row } from '../../../../../common/common-schema';
 import { Db } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
-import { CREATE_TABLE_QUERIES, INITIALIZE_TABLE_QUERIES } from './db-sqlite-queries';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import type { DbTableView } from './db-view-table';
@@ -564,8 +564,9 @@ export class SqliteDb extends Db {
 
     private async initializeSchema(): Promise<void> {
         // Ensure tables exist
-        for (let i = 0; i < CREATE_TABLE_QUERIES.length; i++) {
-            const query = CREATE_TABLE_QUERIES[i];
+        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
+            const query = CREATE_TABLE_INFOS[i].creator(false);
+            console.log(query);
             await window.api.sqlite.exec(this._db, query);
         }
 

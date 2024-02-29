@@ -3,10 +3,13 @@ import {
     DatabaseTypeId,
     LocalizationDivisionTypeId,
     LocalizationFormatTypeId,
-    LocalizationHeaderIncludeTypeId,
 } from '../common/common-types';
 import { DbConnectionConfig } from '../common/common-types-db';
-import { API_BUILD_LOCALIZATION_EXPORT, API_BUILD_LOCALIZATION_IMPORT } from '../common/constants';
+import {
+    API_BUILD_GAME_EXPORT,
+    API_BUILD_LOCALIZATION_EXPORT,
+    API_BUILD_LOCALIZATION_IMPORT,
+} from '../common/constants';
 
 export interface DatabaseInfo {
     database: DatabaseTypeId;
@@ -24,12 +27,18 @@ export interface LocalizationImportRequest {
     database: DatabaseInfo;
     format: LocalizationFormatTypeId;
     location: string; // full path
-    csvHeaderInclude: LocalizationHeaderIncludeTypeId;
+}
+
+export interface GameExportRequest {
+    database: DatabaseInfo;
+    dataLocation: string; // full path
+    codeLocation: string; // full path
 }
 
 export interface BuildApi {
     localizationExport(request: LocalizationExportRequest): Promise<void>;
     localizationImport(request: LocalizationImportRequest): Promise<void>;
+    gameExport(request: GameExportRequest): Promise<void>;
 }
 
 export const buildApi: BuildApi = {
@@ -38,5 +47,8 @@ export const buildApi: BuildApi = {
     },
     localizationImport: async (request: LocalizationImportRequest) => {
         return await ipcRenderer.invoke(API_BUILD_LOCALIZATION_IMPORT, request);
+    },
+    gameExport: async (request: GameExportRequest) => {
+        return await ipcRenderer.invoke(API_BUILD_GAME_EXPORT, request);
     },
 };

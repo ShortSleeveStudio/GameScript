@@ -10,10 +10,10 @@ import {
     ColumnDescriptor,
     EXPORTER_CHARACTER_DELIMITER,
     EXPORTER_CHARACTER_ENCODING,
-    Importer,
+    LocalizationImporter,
 } from './build-common';
 
-export class ImporterCsv implements Importer {
+export class LocalizationImporterCsv implements LocalizationImporter {
     private _columns: ColumnDescriptor[] | undefined;
     private _parseConfig: Options;
     private _headerNameToId: Map<string, string>;
@@ -95,4 +95,4 @@ export class ImporterCsv implements Importer {
     };
 }
 
-export const importerCsv: ImporterCsv = new ImporterCsv();
+export const localizationImporterCsv: LocalizationImporterCsv = new LocalizationImporterCsv();

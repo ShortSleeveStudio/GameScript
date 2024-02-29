@@ -8,9 +8,14 @@ import {
 import { DbClient, DbConnection } from '../../common/common-types-db';
 import { LocalizationExportRequest } from '../../preload/api-build';
 import { executeTransaction } from '../db/db-client';
-import { ColumnDescriptor, EXPORTER_BATCH_SIZE, Exporter, doesFolderExist } from './build-common';
-import { exporterCsv } from './exporter-csv';
-import { exporterJson } from './exporter-json';
+import {
+    ColumnDescriptor,
+    EXPORTER_BATCH_SIZE,
+    LocalizationExporter,
+    doesFolderExist,
+} from './build-common';
+import { localizationExporterCsv } from './localization-exporter-csv';
+import { localizationExporterJson } from './localization-exporter-json';
 
 export async function localizationExport(
     db: DbClient,
@@ -21,8 +26,10 @@ export async function localizationExport(
     if (!folderExists) throw new Error('Selected export folder no longer exists');
 
     // Start transaction
-    const exporter: Exporter =
-        payload.format === LOCALIZATION_FORMAT_CSV.id ? exporterCsv : exporterJson;
+    const exporter: LocalizationExporter =
+        payload.format === LOCALIZATION_FORMAT_CSV.id
+            ? localizationExporterCsv
+            : localizationExporterJson;
     await executeTransaction(db, payload.database.databaseConfig, async (conn: DbConnection) => {
         try {
             // Grab locale names
