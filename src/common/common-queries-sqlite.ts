@@ -1,9 +1,4 @@
-import { localeIdToColumn } from './common-locale';
 import {
-    PROGRAMMING_LANGUAGE_CS,
-    PROGRAMMING_LANGUAGE_TYPES,
-    ROUTINE_TYPES,
-    ROUTINE_TYPE_IMPORT,
     TABLE_ACTORS,
     TABLE_ACTOR_PRINCIPAL,
     TABLE_AUTO_COMPLETES,
@@ -20,7 +15,6 @@ import {
     TABLE_ROUTINE_TYPES,
     type DatabaseTableType,
 } from './common-types';
-import { ACTORS_DEFAULT_COLOR } from './constants';
 
 ///
 /// Constants
@@ -180,7 +174,6 @@ export function createTableLocalizations(isHelperDb: boolean = false): string {
         "parent"    INTEGER,
         "isSystemCreated"   INTEGER NOT NULL,
         ${isHelperDb ? EXPORT_ORIGINAL_ID_COLUMN_CLAUSE : ''}
-        "${localeIdToColumn(DEFAULT_LOCALE_ID)}"    TEXT,
         PRIMARY KEY("id" AUTOINCREMENT)
         ${
             isHelperDb
@@ -469,92 +462,92 @@ export const CREATE_TABLE_INFOS: TableCreateInfo[] = [
     },
 ];
 
-///
-/// Table Initialization
-///
+// ///
+// /// Table Initialization
+// ///
 
-let rowIndex: number;
-// Auto-Completes
-// Programming Languages
-const INITIALIZE_PROGRAMMING_LANGUAGES = `
-BEGIN TRANSACTION;
-${PROGRAMMING_LANGUAGE_TYPES.map(
-    (languageType: ProgrammingLanguageType) =>
-        `INSERT OR IGNORE INTO ${TABLE_PROGRAMMING_LANGUAGES.name} (id, name) VALUES (${languageType.id}, '${languageType.name}');`,
-).join('\n')}
-COMMIT;
-`;
-// Programming Language Principal
-rowIndex = 0;
-const INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL = `
-INSERT OR IGNORE INTO ${
-    TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL.name
-} (id, principal) VALUES (${rowIndex++}, ${PROGRAMMING_LANGUAGE_CS.id});`;
-// Routine Types
-rowIndex = 0;
-const INITIALIZE_ROUTINE_TYPES = `
-BEGIN TRANSACTION;
-${ROUTINE_TYPES.map(
-    (routineType) =>
-        `INSERT OR IGNORE INTO ${TABLE_ROUTINE_TYPES.name} (id, name) VALUES (${routineType.id}, '${routineType.name}');`,
-).join('\n')}
-COMMIT;
-`;
-// Routines
-rowIndex = 0;
-const INITIALIZE_ROUTINES = `
-BEGIN TRANSACTION;
-INSERT OR IGNORE INTO ${
-    TABLE_ROUTINES.name
-} (id, name, code, type, isSystemCreated) VALUES (${rowIndex++}, 'Import Statements', '', ${
-    ROUTINE_TYPE_IMPORT.id
-}, true);
-COMMIT;
-`;
-// Conversations
-// Localizations
-rowIndex = 0;
-const DEFAULT_LOCALIZATION_ID = rowIndex;
-const INITIALIZE_LOCALIZATIONS = `
-INSERT OR IGNORE INTO ${
-    TABLE_LOCALIZATIONS.name
-} (id, parent, isSystemCreated, name, '${localeIdToColumn(
-    DEFAULT_LOCALE_ID,
-)}') VALUES (${rowIndex++}, NULL, true, 'Player Name', 'Player');`;
-// Locales
-rowIndex = DEFAULT_LOCALE_ID;
-const INITIALIZE_LOCALES = `
-INSERT OR IGNORE INTO ${
-    TABLE_LOCALES.name
-} (id, name, isSystemCreated) VALUES (${rowIndex++}, 'en_US', true);`;
-// Locale Principal
-rowIndex = 0;
-const INITIALIZE_LOCALE_PRINCIPAL = `
-INSERT OR IGNORE INTO ${
-    TABLE_LOCALE_PRINCIPAL.name
-} (id, principal) VALUES (${rowIndex++}, ${DEFAULT_LOCALE_ID});`;
-// Actors
-rowIndex = 0;
-const DEFAULT_ACTOR_ID = rowIndex;
-const INITIALIZE_ACTORS = `
-INSERT OR IGNORE INTO ${
-    TABLE_ACTORS.name
-} (id, name, color, localizedName, isSystemCreated) VALUES (${rowIndex++}, 'Player', '${ACTORS_DEFAULT_COLOR}', ${DEFAULT_LOCALIZATION_ID}, true);`;
-// Actor Principal
-rowIndex = 0;
-const INITIALIZE_ACTOR_PRINCIPAL = `
-INSERT OR IGNORE INTO ${
-    TABLE_ACTOR_PRINCIPAL.name
-} (id, principal) VALUES (${rowIndex++}, ${DEFAULT_ACTOR_ID});`;
-// Nodes
-export const INITIALIZE_TABLE_QUERIES = [
-    INITIALIZE_PROGRAMMING_LANGUAGES,
-    INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL,
-    INITIALIZE_ROUTINE_TYPES,
-    INITIALIZE_ROUTINES,
-    INITIALIZE_LOCALES,
-    INITIALIZE_LOCALE_PRINCIPAL,
-    INITIALIZE_LOCALIZATIONS,
-    INITIALIZE_ACTORS,
-    INITIALIZE_ACTOR_PRINCIPAL,
-];
+// let rowIndex: number;
+// // Auto-Completes
+// // Programming Languages
+// const INITIALIZE_PROGRAMMING_LANGUAGES = `
+// BEGIN TRANSACTION;
+// ${PROGRAMMING_LANGUAGE_TYPES.map(
+//     (languageType: ProgrammingLanguage) =>
+//         `INSERT OR IGNORE INTO ${TABLE_PROGRAMMING_LANGUAGES.name} (id, name) VALUES (${languageType.id}, '${languageType.name}');`,
+// ).join('\n')}
+// COMMIT;
+// `;
+// // Programming Language Principal
+// rowIndex = 0;
+// const INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL.name
+// } (id, principal) VALUES (${rowIndex++}, ${PROGRAMMING_LANGUAGE_CS.id});`;
+// // Routine Types
+// rowIndex = 0;
+// const INITIALIZE_ROUTINE_TYPES = `
+// BEGIN TRANSACTION;
+// ${ROUTINE_TYPES.map(
+//     (routineType) =>
+//         `INSERT OR IGNORE INTO ${TABLE_ROUTINE_TYPES.name} (id, name) VALUES (${routineType.id}, '${routineType.name}');`,
+// ).join('\n')}
+// COMMIT;
+// `;
+// // Routines
+// rowIndex = 0;
+// const INITIALIZE_ROUTINES = `
+// BEGIN TRANSACTION;
+// INSERT OR IGNORE INTO ${
+//     TABLE_ROUTINES.name
+// } (id, name, code, type, isSystemCreated) VALUES (${rowIndex++}, 'Import Statements', '', ${
+//     ROUTINE_TYPE_IMPORT.id
+// }, true);
+// COMMIT;
+// `;
+// // Conversations
+// // Localizations
+// rowIndex = 0;
+// const DEFAULT_LOCALIZATION_ID = rowIndex;
+// const INITIALIZE_LOCALIZATIONS = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_LOCALIZATIONS.name
+// } (id, parent, isSystemCreated, name, '${localeIdToColumn(
+//     DEFAULT_LOCALE_ID,
+// )}') VALUES (${rowIndex++}, NULL, true, 'Player Name', 'Player');`;
+// // Locales
+// rowIndex = DEFAULT_LOCALE_ID;
+// const INITIALIZE_LOCALES = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_LOCALES.name
+// } (id, name, isSystemCreated) VALUES (${rowIndex++}, 'en_US', true);`;
+// // Locale Principal
+// rowIndex = 0;
+// const INITIALIZE_LOCALE_PRINCIPAL = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_LOCALE_PRINCIPAL.name
+// } (id, principal) VALUES (${rowIndex++}, ${DEFAULT_LOCALE_ID});`;
+// // Actors
+// rowIndex = 0;
+// const DEFAULT_ACTOR_ID = rowIndex;
+// const INITIALIZE_ACTORS = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_ACTORS.name
+// } (id, name, color, localizedName, isSystemCreated) VALUES (${rowIndex++}, 'Player', '${ACTORS_DEFAULT_COLOR}', ${DEFAULT_LOCALIZATION_ID}, true);`;
+// // Actor Principal
+// rowIndex = 0;
+// const INITIALIZE_ACTOR_PRINCIPAL = `
+// INSERT OR IGNORE INTO ${
+//     TABLE_ACTOR_PRINCIPAL.name
+// } (id, principal) VALUES (${rowIndex++}, ${DEFAULT_ACTOR_ID});`;
+// // Nodes
+// export const INITIALIZE_TABLE_QUERIES = [
+//     INITIALIZE_PROGRAMMING_LANGUAGES,
+//     INITIALIZE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+//     INITIALIZE_ROUTINE_TYPES,
+//     INITIALIZE_ROUTINES,
+//     INITIALIZE_LOCALES,
+//     INITIALIZE_LOCALE_PRINCIPAL,
+//     INITIALIZE_LOCALIZATIONS,
+//     INITIALIZE_ACTORS,
+//     INITIALIZE_ACTOR_PRINCIPAL,
+// ];

@@ -29,13 +29,15 @@ export interface InitialTableRows {
     rows: Row[];
 }
 
+export const DB_DEFAULT_LOCALE_ID: number = 1;
+
 export const DB_INITIAL_ROWS: InitialTableRows[] = [
     { table: TABLE_PROGRAMMING_LANGUAGES, rows: PROGRAMMING_LANGUAGE_TYPES },
     {
         table: TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
         rows: [
             <ProgrammingLanguagePrincipal>{
-                id: 0,
+                id: 1,
                 principal: PROGRAMMING_LANGUAGE_CS.id,
             },
         ],
@@ -45,7 +47,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ROUTINES,
         rows: [
             <Routine>{
-                id: 0,
+                id: 1,
                 name: 'Import Statements',
                 code: '',
                 type: ROUTINE_TYPE_IMPORT.id,
@@ -57,7 +59,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_LOCALES,
         rows: [
             <Locale>{
-                id: 0,
+                id: DB_DEFAULT_LOCALE_ID,
                 name: 'en_US',
                 isSystemCreated: true,
             },
@@ -67,7 +69,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_LOCALE_PRINCIPAL,
         rows: [
             <LocalePrincipal>{
-                id: 0,
+                id: 1,
                 principal: 0,
             },
         ],
@@ -76,7 +78,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ACTORS,
         rows: [
             <Actor>{
-                id: 0,
+                id: 1,
                 name: 'Player',
                 color: ACTORS_DEFAULT_COLOR,
                 isSystemCreated: true,
@@ -87,7 +89,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ACTOR_PRINCIPAL,
         rows: [
             <ActorPrincipal>{
-                id: 0,
+                id: 1,
                 principal: 0,
             },
         ],

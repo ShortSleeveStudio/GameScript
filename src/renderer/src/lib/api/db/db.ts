@@ -8,7 +8,7 @@ import { focusManager } from '@lib/stores/app/focus';
 import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
 import { dbConnected, dbConnectionConfig, dbType } from '@lib/stores/settings/settings';
 import { type Unsubscriber } from 'svelte/store';
-import type { Db } from './db-base';
+import type { Db } from './db-interface';
 import { PostgresDb } from './db-postgres';
 import { SqliteDb } from './db-sqlite';
 

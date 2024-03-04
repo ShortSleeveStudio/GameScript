@@ -5,27 +5,10 @@
     import FileSelector from '../common/FileSelector.svelte';
     import DockableRow from '../app/DockableRow.svelte';
     import DockableColumn from '../app/DockableColumn.svelte';
-    import {
-        DATABASE_TYPE_DROPDOWN_ITEMS,
-        DATABASE_TYPE_SQLITE,
-        TABLE_ACTORS,
-        TABLE_ACTOR_PRINCIPAL,
-        TABLE_LOCALES,
-        TABLE_LOCALE_PRINCIPAL,
-        TABLE_PROGRAMMING_LANGUAGES,
-        TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
-        TABLE_ROUTINES,
-        TABLE_ROUTINE_TYPES,
-    } from '@common/common-types';
+    import { DATABASE_TYPE_DROPDOWN_ITEMS, DATABASE_TYPE_SQLITE } from '@common/common-types';
     import type { DbConnectionConfig } from '@common/common-db-types';
     import { db } from '@lib/api/db/db';
     import { get } from 'svelte/store';
-    import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initialization';
-    import type { Actor, Locale } from '@common/common-schema';
-    import { actorsCreate } from '@lib/crud/actor-crud';
-    import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import { localesCreate } from '@lib/crud/locale-crud';
-    import { CREATE_TABLE_INFOS } from '@common/common-queries-sqlite';
 
     // TODO - connection failures
     //         this._sqlitePathStore.update(dialogResultReset);
@@ -35,8 +18,6 @@
     //         errors.push(<Error>e);
     //         this._appInitializationErrors.set(errors);
 
-    const isLoading: IsLoadingStore = new IsLoadingStore();
-
     async function sqliteDatabaseDialogNew(): Promise<void> {
         const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
         if (saveResult.cancelled) return;
@@ -45,7 +26,7 @@
             return config;
         });
         try {
-            await db.connect(get(dbConnectionConfig), initializeSqlite);
+            await db.connect(get(dbConnectionConfig), true);
         } catch (error) {
             resetConnectionConfig();
             throw error;
@@ -60,7 +41,7 @@
             return config;
         });
         try {
-            await db.connect(get(dbConnectionConfig));
+            await db.connect(get(dbConnectionConfig), false);
         } catch (error) {
             resetConnectionConfig();
             throw error;
@@ -79,41 +60,16 @@
         });
     }
 
-    async function initializeSqlite(): Promise<void> {
-        await db.initializeSchema();
-        await initializeRows();
-    }
-
-    // TODO - find a better place for this
-    async function initializeRows(): Promise<void> {
-        for (let i = 0; i < DB_INITIAL_ROWS.length; i++) {
-            const initialTableRows: InitialTableRows = DB_INITIAL_ROWS[i];
-            switch (initialTableRows.table.id) {
-                case TABLE_PROGRAMMING_LANGUAGES.id:
-                case TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL.id:
-                case TABLE_ROUTINE_TYPES.id:
-                case TABLE_ROUTINES.id:
-                case TABLE_LOCALE_PRINCIPAL.id:
-                case TABLE_ACTOR_PRINCIPAL.id: {
-                    await db.createRows(initialTableRows.table, initialTableRows.rows);
-                    break;
-                }
-                case TABLE_LOCALES.id: {
-                    await localesCreate(<Locale[]>initialTableRows.rows, isLoading, false);
-                    break;
-                }
-                case TABLE_ACTORS.id: {
-                    await actorsCreate(<Actor[]>initialTableRows.rows, isLoading, false);
-                    break;
-                }
-                default: {
-                    throw new Error(
-                        `Tried to initialize unknown table: ${initialTableRows.table.name}`,
-                    );
-                }
-            }
+    // Attempt connection on startup if schema exists
+    async function attemptConnection(): Promise<void> {
+        if (await db.isDbInitialized(get(dbConnectionConfig))) {
+            db.connect(get(dbConnectionConfig), false).catch((error) => {
+                resetConnectionConfig();
+                throw error;
+            });
         }
     }
+    attemptConnection();
 </script>
 
 <DockableRow isFullHeight={false}>

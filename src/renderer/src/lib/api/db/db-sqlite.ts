@@ -5,6 +5,7 @@ import type {
     DbResult,
     DbTransaction,
 } from '@common/common-db-types';
+import { CREATE_TABLE_INFOS } from '@common/common-queries-sqlite';
 import { type Row } from '@common/common-schema';
 import { updateRowQuery } from '@common/common-sql';
 import {
@@ -16,6 +17,7 @@ import {
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
     FIELD_TYPE_TEXT,
+    TABLE_ACTORS,
     type DatabaseTableType,
     type FieldTypeId,
     type OpTypeId,
@@ -31,8 +33,8 @@ import {
 import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
 import { get, type Readable, type Writable } from 'svelte/store';
-import { Db, type Initializer } from './db-base';
-import { createFilter } from './db-filter';
+import { DbBase } from './db-base';
+import { createEmptyFilter, createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -48,7 +50,7 @@ interface DbQueuedNotification {
 /**
  * SQLite database implementation
  */
-export class SqliteDb extends Db {
+export class SqliteDb extends DbBase {
     private _db: DbConnection | undefined;
     private _focusManager: FocusManager;
     private _dbConnectionConfig: Readable<DbConnectionConfig>;
@@ -65,15 +67,24 @@ export class SqliteDb extends Db {
         this._transactionNotifications = [];
     }
 
-    async initializeSchema(): Promise<void> {
-        // TODO ____________
-        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
-            const query = CREATE_TABLE_INFOS[i].creator(false);
-            await window.api.sqlite.exec(this._db, query);
+    async isDbInitialized(config: DbConnectionConfig): Promise<boolean> {
+        let conn: DbConnection;
+        try {
+            conn = await window.api.sqlite.open(<DbConnectionConfig>{
+                sqliteFile: config.sqliteFile,
+            });
+            // TODO - query for checking if table exists
+            await this.fetchRowCount(TABLE_ACTORS, createEmptyFilter(), conn);
+        } catch {
+            // do nothing
+            return false;
+        } finally {
+            if (conn) await window.api.sqlite.close(conn);
         }
+        return true;
     }
 
-    async connect(config: DbConnectionConfig, initializer?: Initializer): Promise<void> {
+    async connect(config: DbConnectionConfig, initialize: boolean): Promise<void> {
         // Only attempt to connect if we have a valid path
         if (!config || !config.sqliteFile) {
             return;
@@ -85,20 +96,30 @@ export class SqliteDb extends Db {
         });
 
         // Initialize if necessary
-        if (initializer) initializer();
+        if (initialize) {
+            await this.initializeSchema();
+            await this.initializeDefaultRows();
+        }
 
         // Listen for changes
         await window.api.sqlite.listen(undefined, this.onNotification);
 
         // Notify connected
         this._isConnected.set(true);
+
+        // Notify tables
+        DbBase._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
+            for (const tableView of tableViewMap.values()) {
+                tableView.onReloadRequired();
+            }
+        });
     }
 
     async disconnect(): Promise<void> {
         this.destroyConnection();
 
         // Notify tables
-        Db._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
+        DbBase._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
             for (const tableView of tableViewMap.values()) {
                 tableView.onReloadRequired();
             }
@@ -415,6 +436,14 @@ export class SqliteDb extends Db {
 
         // Notify
         await this.notify(DB_OP_ALTER, tableType, undefined, connection);
+    }
+
+    protected async initializeSchema(): Promise<void> {
+        // TODO ____________
+        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
+            const query = CREATE_TABLE_INFOS[i].creator(false);
+            await window.api.sqlite.exec(this._db, query);
+        }
     }
 
     private async notify<RowType extends Row>(

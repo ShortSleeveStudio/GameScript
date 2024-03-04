@@ -1,8 +1,25 @@
+import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initialization';
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
-import type { Row } from '@common/common-schema';
-import { DATABASE_TABLES, type DatabaseTableType, type FieldTypeId } from '@common/common-types';
+import type { Actor, Locale, Row } from '@common/common-schema';
+import {
+    DATABASE_TABLES,
+    TABLE_ACTORS,
+    TABLE_ACTOR_PRINCIPAL,
+    TABLE_LOCALES,
+    TABLE_LOCALE_PRINCIPAL,
+    TABLE_PROGRAMMING_LANGUAGES,
+    TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_ROUTINES,
+    TABLE_ROUTINE_TYPES,
+    type DatabaseTableType,
+    type FieldTypeId,
+} from '@common/common-types';
+import { actorsCreate } from '@lib/crud/actor-crud';
+import { localesCreate } from '@lib/crud/locale-crud';
+import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { get, type Writable } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
+import type { Db } from './db-interface';
 import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
@@ -10,15 +27,19 @@ import type { IDbTableView } from './db-view-table-interface';
 
 // Row view destructor
 export type RowViewDestructor = () => void;
-export type Initializer = () => Promise<void>;
+
+// TODO
+const DUMMY_IS_LOADING: IsLoadingStore = new IsLoadingStore();
 
 /**The interface all databases must implement */
-export abstract class Db {
+export abstract class DbBase implements Db {
     protected static _tableToRowView: Map<number, DbRowView<Row>>[]; // Lookup table using table id
     protected static _tableToTableView: Map<number, DbTableView<Row>>[]; // Lookup table using table id
     static {
-        Db._tableToRowView = <Map<number, DbRowView<Row>>[]>DATABASE_TABLES.map(() => new Map());
-        Db._tableToTableView = <Map<number, DbTableView<Row>>[]>(
+        DbBase._tableToRowView = <Map<number, DbRowView<Row>>[]>(
+            DATABASE_TABLES.map(() => new Map())
+        );
+        DbBase._tableToTableView = <Map<number, DbTableView<Row>>[]>(
             DATABASE_TABLES.map(() => new Map())
         );
     }
@@ -29,16 +50,13 @@ export abstract class Db {
         this._isConnected = isConnected;
     }
 
-    /**
-     * Initialize all tables.
-     */
-    abstract initializeSchema(): Promise<void>;
+    abstract isDbInitialized(config: DbConnectionConfig): Promise<boolean>;
 
     /**
      * Connect to the database.
      * @param config Connection configuration
      */
-    abstract connect(config: DbConnectionConfig, initializer?: Initializer): Promise<void>;
+    abstract connect(config: DbConnectionConfig, initialize: boolean): Promise<void>;
 
     /**
      * Disconnect from the database.
@@ -245,6 +263,54 @@ export abstract class Db {
         connection?: DbConnection,
     ): Promise<void>;
 
+    /**
+     * Initialize all tables.
+     */
+    protected abstract initializeSchema(): Promise<void>;
+
+    /**
+     * Initialize the default rows.
+     */
+    protected async initializeDefaultRows(): Promise<void> {
+        for (let i = 0; i < DB_INITIAL_ROWS.length; i++) {
+            const initialTableRows: InitialTableRows = DB_INITIAL_ROWS[i];
+            switch (initialTableRows.table.id) {
+                case TABLE_PROGRAMMING_LANGUAGES.id:
+                case TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL.id:
+                case TABLE_ROUTINE_TYPES.id:
+                case TABLE_ROUTINES.id:
+                case TABLE_LOCALE_PRINCIPAL.id:
+                case TABLE_ACTOR_PRINCIPAL.id: {
+                    await this.createRows(initialTableRows.table, initialTableRows.rows);
+                    break;
+                }
+                case TABLE_LOCALES.id: {
+                    await localesCreate(
+                        this,
+                        <Locale[]>initialTableRows.rows,
+                        DUMMY_IS_LOADING,
+                        false,
+                    );
+                    break;
+                }
+                case TABLE_ACTORS.id: {
+                    await actorsCreate(
+                        this,
+                        <Actor[]>initialTableRows.rows,
+                        DUMMY_IS_LOADING,
+                        false,
+                    );
+                    break;
+                }
+                default: {
+                    throw new Error(
+                        `Tried to initialize unknown table: ${initialTableRows.table.name}`,
+                    );
+                }
+            }
+        }
+    }
+
     protected destroyRowView<RowType extends Row>(
         tableType: DatabaseTableType,
         rowId: number,
@@ -256,18 +322,18 @@ export abstract class Db {
     protected getTableViewsForTable<RowType extends Row>(
         tableType: DatabaseTableType,
     ): Map<number, DbTableView<RowType>> {
-        return <Map<number, DbTableView<RowType>>>Db._tableToTableView[tableType.id];
+        return <Map<number, DbTableView<RowType>>>DbBase._tableToTableView[tableType.id];
     }
 
     protected getRowViewsForTable<RowType extends Row>(
         tableType: DatabaseTableType,
     ): Map<number, DbRowView<RowType>> {
         let rowViewMap: Map<number, DbRowView<RowType>> = <Map<number, DbRowView<RowType>>>(
-            Db._tableToRowView[tableType.id]
+            DbBase._tableToRowView[tableType.id]
         );
         if (!rowViewMap) {
             rowViewMap = new Map();
-            Db._tableToRowView[tableType.id] = rowViewMap;
+            DbBase._tableToRowView[tableType.id] = rowViewMap;
         }
         return rowViewMap;
     }

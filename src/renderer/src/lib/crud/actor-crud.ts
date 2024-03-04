@@ -1,8 +1,8 @@
 import type { DbConnection } from '@common/common-db-types';
 import type { Actor, Localization } from '@common/common-schema';
 import { TABLE_ACTORS, TABLE_LOCALIZATIONS } from '@common/common-types';
-import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
+import type { Db } from '@lib/api/db/db-interface';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 
@@ -12,14 +12,16 @@ interface ActorInfo {
 }
 
 export async function actorCreate(
+    db: Db,
     toCreate: Actor,
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<Actor> {
-    return await actorsCreate([toCreate], isLoading, isUndoable)[0];
+    return await actorsCreate(db, [toCreate], isLoading, isUndoable)[0];
 }
 
 export async function actorsCreate(
+    db: Db,
     toCreate: Actor[],
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
@@ -38,7 +40,9 @@ export async function actorsCreate(
 
     await isLoading.wrapPromise(
         db.executeTransaction(async (conn: DbConnection) => {
-            actorInfos = await createOperation(actorsToCreate, conn);
+            actorInfos = await createOperation(db, actorsToCreate, conn);
+            console.log('CREATED:');
+            console.log(actorInfos);
         }),
     );
 
@@ -49,12 +53,12 @@ export async function actorsCreate(
                 'actor creation',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await deleteOperation(actorInfos, conn);
+                        await deleteOperation(db, actorInfos, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await createOperation(actorInfos, conn);
+                        await createOperation(db, actorInfos, conn);
                     });
                 }),
             ),
@@ -64,14 +68,16 @@ export async function actorsCreate(
 }
 
 export async function actorDelete(
+    db: Db,
     toDelete: Actor,
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<void> {
-    await actorsDelete([toDelete], isLoading, isUndoable);
+    await actorsDelete(db, [toDelete], isLoading, isUndoable);
 }
 
 export async function actorsDelete(
+    db: Db,
     toDelete: Actor[],
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
@@ -96,7 +102,7 @@ export async function actorsDelete(
                     localizedName: localizationToDelete,
                 });
             }
-            await deleteOperation(info, conn);
+            await deleteOperation(db, info, conn);
         }),
     );
 
@@ -107,12 +113,12 @@ export async function actorsDelete(
                 'actor deletion',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await createOperation(info, conn);
+                        await createOperation(db, info, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await deleteOperation(info, conn);
+                        await deleteOperation(db, info, conn);
                     });
                 }),
             ),
@@ -121,6 +127,7 @@ export async function actorsDelete(
 }
 
 async function createOperation(
+    db: Db,
     toCreate: ActorInfo[],
     connection: DbConnection,
 ): Promise<ActorInfo[]> {
@@ -148,7 +155,11 @@ async function createOperation(
     return newActorInfos;
 }
 
-async function deleteOperation(toDelete: ActorInfo[], connection: DbConnection): Promise<void> {
+async function deleteOperation(
+    db: Db,
+    toDelete: ActorInfo[],
+    connection: DbConnection,
+): Promise<void> {
     for (let i = 0; i < toDelete.length; i++) {
         const actorInfo: ActorInfo = toDelete[i];
         await db.deleteRow(TABLE_ACTORS, actorInfo.actor, connection);

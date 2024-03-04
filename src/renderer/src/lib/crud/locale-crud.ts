@@ -1,3 +1,4 @@
+import { DB_DEFAULT_LOCALE_ID } from '@common/common-db-initialization';
 import type { DbConnection } from '@common/common-db-types';
 import { localeIdToColumn } from '@common/common-locale';
 import type { Locale, LocalePrincipal, Localization } from '@common/common-schema';
@@ -7,13 +8,10 @@ import {
     TABLE_LOCALE_PRINCIPAL,
     TABLE_LOCALIZATIONS,
 } from '@common/common-types';
-import { db } from '@lib/api/db/db';
-import { createFilter } from '@lib/api/db/db-filter';
+import { createEmptyFilter, createFilter } from '@lib/api/db/db-filter';
+import type { Db } from '@lib/api/db/db-interface';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-import { localePrincipalTableView } from '@lib/tables/locale-principal';
-import { systemCreatedLocaleRowView } from '@lib/tables/locale-system-created';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
-import { get } from 'svelte/store';
 
 interface LocaleInfo {
     locale: Locale;
@@ -21,14 +19,16 @@ interface LocaleInfo {
 }
 
 export async function localeCreate(
+    db: Db,
     toCreate: Locale,
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<Locale> {
-    return await localesCreate([toCreate], isLoading, isUndoable)[0];
+    return await localesCreate(db, [toCreate], isLoading, isUndoable)[0];
 }
 
 export async function localesCreate(
+    db: Db,
     toCreate: Locale[],
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
@@ -46,7 +46,7 @@ export async function localesCreate(
                     },
                 });
             }
-            info = await createOperation(localesToCreate, conn);
+            info = await createOperation(db, localesToCreate, conn);
         }),
     );
 
@@ -57,12 +57,12 @@ export async function localesCreate(
                 'locale creation',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await deleteOperation(info, conn);
+                        await deleteOperation(db, info, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await createOperation(info, conn);
+                        await createOperation(db, info, conn);
                     });
                 }),
             ),
@@ -72,14 +72,16 @@ export async function localesCreate(
 }
 
 export async function localeDelete(
+    db: Db,
     toDelete: Locale,
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<void> {
-    await localesDelete([toDelete], isLoading, isUndoable);
+    await localesDelete(db, [toDelete], isLoading, isUndoable);
 }
 
 export async function localesDelete(
+    db: Db,
     toDelete: Locale[],
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
@@ -105,7 +107,7 @@ export async function localesDelete(
                     localizedName: localizationToDelete,
                 });
             }
-            await deleteOperation(info, conn);
+            await deleteOperation(db, info, conn);
         }),
     );
 
@@ -116,12 +118,12 @@ export async function localesDelete(
                 'locale deletion',
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await createOperation(info, conn);
+                        await createOperation(db, info, conn);
                     });
                 }),
                 isLoading.wrapFunction(async () => {
                     await db.executeTransaction(async (conn: DbConnection) => {
-                        await deleteOperation(info, conn);
+                        await deleteOperation(db, info, conn);
                     });
                 }),
             ),
@@ -130,6 +132,7 @@ export async function localesDelete(
 }
 
 async function createOperation(
+    db: Db,
     localeInfos: LocaleInfo[],
     connection: DbConnection,
 ): Promise<LocaleInfo[]> {
@@ -163,15 +166,24 @@ async function createOperation(
     return newLocaleInfos;
 }
 
-async function deleteOperation(localeInfos: LocaleInfo[], connection: DbConnection): Promise<void> {
+async function deleteOperation(
+    db: Db,
+    localeInfos: LocaleInfo[],
+    connection: DbConnection,
+): Promise<void> {
     // Ensure the principal is adjusted if needed
-    const principal: LocalePrincipal = get(get(localePrincipalTableView)[0]);
+    const principal: LocalePrincipal = db.fetchRowsRaw(
+        TABLE_LOCALE_PRINCIPAL,
+        createEmptyFilter(),
+        connection,
+    )[0];
+
     for (let i = 0; i < localeInfos.length; i++) {
         const localeInfo: LocaleInfo = localeInfos[i];
         if (principal.principal === localeInfo.locale.id) {
             await db.updateRow(
                 TABLE_LOCALE_PRINCIPAL,
-                <LocalePrincipal>{ id: 0, principal: systemCreatedLocaleRowView.id },
+                <LocalePrincipal>{ id: 0, principal: DB_DEFAULT_LOCALE_ID },
                 connection,
             );
         }

@@ -2,20 +2,23 @@ import type { DbConnectionConfig, DbTransaction } from '@common/common-db-types'
 import type { Row } from '@common/common-schema';
 import type { DatabaseTableType, FieldTypeId } from '@common/common-types';
 import type { Writable } from 'svelte/store';
-import { Db } from './db-base';
+import { DbBase } from './db-base';
 import type { Filter } from './db-filter-interface';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**PostgreSQL database implementation */
-export class PostgresDb extends Db {
+export class PostgresDb extends DbBase {
     constructor(isConnected: Writable<boolean>) {
         super(isConnected);
+    }
+    isDbInitialized(): Promise<boolean> {
+        throw new Error('Method not implemented.');
     }
     initializeSchema(): Promise<void> {
         throw new Error('Method not implemented.');
     }
-    connect(config: DbConnectionConfig): Promise<void> {
-        throw new Error(`Method not implemented. ${config}`);
+    connect(config: DbConnectionConfig, initialize: boolean): Promise<void> {
+        throw new Error(`Method not implemented. ${config} ${initialize}`);
     }
     disconnect(): Promise<void> {
         throw new Error('Method not implemented.');

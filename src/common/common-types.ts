@@ -96,7 +96,7 @@ export type FieldTypeName = (typeof FIELD_TYPES)[number]['name'];
 
 /**Programming Languages */
 export const PROGRAMMING_LANGUAGE_CS: ProgrammingLanguage = { id: 0, name: 'C#' };
-export const PROGRAMMING_LANGUAGE_CPP: ProgrammingLanguage = { id: 0, name: 'C++' };
+export const PROGRAMMING_LANGUAGE_CPP: ProgrammingLanguage = { id: 1, name: 'C++' };
 export const PROGRAMMING_LANGUAGE_TYPES: ProgrammingLanguage[] = [
     PROGRAMMING_LANGUAGE_CS,
     PROGRAMMING_LANGUAGE_CPP,
