@@ -14,9 +14,6 @@ import { TABLE_DEFINITION_ROUTINE_TYPES } from '../table-definitions/table-defin
 import { TABLE_DEFINITION_ROUTINES } from '../table-definitions/table-definition-routines';
 import { TableDefinition } from '../table-definitions/table-definitions';
 
-export const EXPORT_ORIGINAL_ID_COLUMN_NAME: string = 'originalId';
-export const EXPORT_DUMMY_TABLE_PREFIX: string = '_DUMMY';
-
 export const TABLE_DEFINITIONS: TableDefinition[] = [
     TABLE_DEFINITION_AUTO_COMPLETES,
     TABLE_DEFINITION_PROGRAMMING_LANGUAGES,

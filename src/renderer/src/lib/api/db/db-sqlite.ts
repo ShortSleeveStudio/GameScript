@@ -32,7 +32,7 @@ import {
 } from '@lib/stores/app/focus';
 import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
-import { get, type Readable, type Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import { DbBase } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
@@ -53,16 +53,11 @@ interface DbQueuedNotification {
 export class SqliteDb extends DbBase {
     private _db: DbConnection | undefined;
     private _focusManager: FocusManager;
-    private _dbConnectionConfig: Readable<DbConnectionConfig>;
+    private _dbConnectionConfig: DbConnectionConfig | undefined;
     private _transactionNotifications: DbQueuedNotification[];
 
-    constructor(
-        isConnected: Writable<boolean>,
-        dbConnectionConfig: Readable<DbConnectionConfig>,
-        focusManager: FocusManager,
-    ) {
+    constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
         super(isConnected);
-        this._dbConnectionConfig = dbConnectionConfig;
         this._focusManager = focusManager;
         this._transactionNotifications = [];
     }
@@ -100,10 +95,16 @@ export class SqliteDb extends DbBase {
             return;
         }
 
+        // Ensure we don't connect without disconnecting
+        if (this._db !== undefined || this._dbConnectionConfig !== undefined) {
+            throw new Error('You must disconnect before changing connections');
+        }
+
         // Attempt connection
         this._db = await window.api.sqlite.open(<DbConnectionConfig>{
             sqliteFile: config.sqliteFile,
         });
+        this._dbConnectionConfig = config;
 
         // Initialize if necessary
         if (initialize) {
@@ -118,29 +119,19 @@ export class SqliteDb extends DbBase {
         this._isConnected.set(true);
 
         // Notify tables
-        DbBase._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
-            for (const tableView of tableViewMap.values()) {
-                tableView.onReloadRequired();
-            }
-        });
+        await this.reloadAllTables();
     }
 
     async disconnect(): Promise<void> {
-        this.destroyConnection();
-
-        // Notify tables
-        DbBase._tableToTableView.forEach((tableViewMap: Map<number, DbTableView<Row>>) => {
-            for (const tableView of tableViewMap.values()) {
-                tableView.onReloadRequired();
-            }
-        });
+        await this.destroyConnection();
+        await this.reloadAllTables();
     }
 
     async executeTransaction(transaction: DbTransaction): Promise<void> {
         let wasError: boolean = false;
         let conn: DbConnection;
         try {
-            conn = await window.api.sqlite.open(get(this._dbConnectionConfig));
+            conn = await window.api.sqlite.open(this._dbConnectionConfig);
             await window.api.sqlite.exec(conn, 'BEGIN;');
             await transaction(conn);
         } catch (err) {
@@ -450,7 +441,7 @@ export class SqliteDb extends DbBase {
 
     protected async initializeSchema(): Promise<void> {
         for (let i = 0; i < TABLE_DEFINITIONS.length; i++) {
-            const tableDefString: string = generateTableSqlite(TABLE_DEFINITIONS[i], false);
+            const tableDefString: string = generateTableSqlite(TABLE_DEFINITIONS[i]);
             await window.api.sqlite.exec(this._db, tableDefString);
         }
     }
@@ -577,6 +568,7 @@ export class SqliteDb extends DbBase {
         await window.api.sqlite.unlisten(undefined, this.onNotification);
         await window.api.sqlite.closeAll();
         this._db = undefined;
+        this._dbConnectionConfig = undefined;
     }
 
     private assertConnected(): void {

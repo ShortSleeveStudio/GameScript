@@ -11,13 +11,10 @@ import type {
     TableDefinition,
     UniqueDefinition,
 } from '../table-definitions/table-definitions';
-import { EXPORT_DUMMY_TABLE_PREFIX, EXPORT_ORIGINAL_ID_COLUMN_NAME } from './table-generator';
 
-export function generateTableSqlite(table: TableDefinition, isExportHelper: boolean): string {
+export function generateTableSqlite(table: TableDefinition): string {
     let createString: string = '';
-    createString += `CREATE TABLE IF NOT EXISTS "${
-        table.tableType.name + (isExportHelper ? EXPORT_DUMMY_TABLE_PREFIX : '')
-    }"\n`;
+    createString += `CREATE TABLE IF NOT EXISTS "${table.tableType.name}"\n`;
     // Columns
     createString += `(\n`;
     for (let i = 0; i < table.columns.length; i++) {
@@ -47,10 +44,6 @@ export function generateTableSqlite(table: TableDefinition, isExportHelper: bool
                 break;
             }
         }
-        if (isExportHelper && i === table.columns.length - 1) {
-            createString += ',\n';
-            createString += `"${EXPORT_ORIGINAL_ID_COLUMN_NAME}" INTEGER`;
-        }
         createString += ',\n';
     }
 
@@ -60,11 +53,10 @@ export function generateTableSqlite(table: TableDefinition, isExportHelper: bool
         createString += `UNIQUE(${definition.columns.join(',')}),\n`;
     }
     // Foreign Keys
-    if (!isExportHelper) {
-        for (let i = 0; i < table.foreignKeys.length; i++) {
-            const definition: ForeignKeyDefinition = table.foreignKeys[i];
-            createString += `FOREIGN KEY("${definition.column}") REFERENCES "${definition.table.name}",\n`;
-        }
+    for (let i = 0; i < table.foreignKeys.length; i++) {
+        const definition: ForeignKeyDefinition = table.foreignKeys[i];
+        createString += `
+        FOREIGN KEY("${definition.column}") REFERENCES "${definition.table.name}",\n`;
     }
 
     // Primary Key

@@ -141,6 +141,7 @@
         transform: none;
         border: none;
         opacity: 100;
-        background-color: transparent;
+        background-color: var(--cds-ui-01, #f4f4f4);
+        /* background-color: transparent; */
     }
 </style>

@@ -26,6 +26,7 @@
             return config;
         });
         try {
+            await db.disconnect();
             await db.connect(get(dbConnectionConfig), true);
         } catch (error) {
             resetConnectionConfig();
@@ -41,6 +42,7 @@
             return config;
         });
         try {
+            await db.disconnect();
             await db.connect(get(dbConnectionConfig), false);
         } catch (error) {
             resetConnectionConfig();
@@ -63,10 +65,13 @@
     // Attempt connection on startup if schema exists
     async function attemptConnection(): Promise<void> {
         if (await db.isDbInitialized(get(dbConnectionConfig))) {
-            db.connect(get(dbConnectionConfig), false).catch((error) => {
+            await db.disconnect();
+            try {
+                await db.connect(get(dbConnectionConfig), false);
+            } catch (error) {
                 resetConnectionConfig();
                 throw error;
-            });
+            }
         }
     }
     attemptConnection();

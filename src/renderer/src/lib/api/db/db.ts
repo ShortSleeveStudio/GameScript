@@ -6,7 +6,7 @@ import {
 import { EVENT_SHUTDOWN } from '@lib/constants/events';
 import { focusManager } from '@lib/stores/app/focus';
 import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
-import { dbConnected, dbConnectionConfig, dbType } from '@lib/stores/settings/settings';
+import { dbConnected, dbType } from '@lib/stores/settings/settings';
 import { type Unsubscriber } from 'svelte/store';
 import type { Db } from './db-interface';
 import { PostgresDb } from './db-postgres';
@@ -28,7 +28,7 @@ function onDbTypeChange(newDbtype: DatabaseTypeId): void {
     // Create new DB instance
     switch (newDbtype) {
         case DATABASE_TYPE_SQLITE.id:
-            db = new SqliteDb(dbConnected, dbConnectionConfig, focusManager);
+            db = new SqliteDb(dbConnected, focusManager);
             break;
         case DATABASE_TYPE_POSTGRES.id:
             db = new PostgresDb(dbConnected);

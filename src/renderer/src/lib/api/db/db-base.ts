@@ -338,6 +338,15 @@ export abstract class DbBase implements Db {
         return rowViewMap;
     }
 
+    protected async reloadAllTables(): Promise<void> {
+        for (let i = 0; i < DbBase._tableToTableView.length; i++) {
+            const tableViewMap: Map<number, DbTableView<Row>> = DbBase._tableToTableView[i];
+            for (const tableView of tableViewMap.values()) {
+                await tableView.onReloadRequired();
+            }
+        }
+    }
+
     protected assertQueryResult(result: unknown, errorMessage: string): void {
         if (!result) throw new Error(errorMessage);
     }
