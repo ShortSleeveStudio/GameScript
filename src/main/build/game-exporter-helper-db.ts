@@ -1,9 +1,10 @@
 import { DbClient, DbConnection } from '../../common/common-db-types';
 import { filterIdToColumn } from '../../common/common-filter';
 import { localeIdToColumn } from '../../common/common-locale';
-import { Filter, Locale, Node, Row } from '../../common/common-schema';
+import { Edge, Filter, Locale, Node, Row } from '../../common/common-schema';
 import {
     DatabaseTableType,
+    NODE_TYPE_LINK,
     TABLE_CONVERSATIONS,
     TABLE_EDGES,
     TABLE_FILTERS,
@@ -175,7 +176,7 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
                 helperConn,
                 `SELECT COUNT(*) as count FROM ${
                     TABLE_NODES.name + EXPORT_DUMMY_TABLE_PREFIX
-                } WHERE link IS NOT NULL;`,
+                } WHERE type = '${NODE_TYPE_LINK.name}';`,
             )
         )).count;
         for (let i = 0; i < count; i += EXPORTER_BATCH_SIZE) {
@@ -188,29 +189,70 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
             for (let j = 0; j < rows.length; j++) {
                 const linkNode: Node = <Node>rows[j];
 
-                // Fetch all incoming edges
-                const updateQuery = `UPDATE ${TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX}
-                SET target = ${linkNode.link}
-                WHERE target = ${linkNode.id}`;
-                await db.exec(helperConn, updateQuery);
-                console.log(updateQuery);
+                if (linkNode.link) {
+                    // Fetch all incoming edges
+                    const fetchIncomingEdgeQuery: string = `
+                    SELECT * FROM ${TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX}
+                    WHERE target = ${linkNode.id};
+                    `;
+                    const incomingEdges: Edge[] = await db.all(helperConn, fetchIncomingEdgeQuery);
+                    for (let k = 0; k < incomingEdges.length; k++) {
+                        const incomingEdge: Edge = incomingEdges[k];
+
+                        // Fetch all source nodes for incoming edges
+                        const sourceNodeQuery: string = `
+                        SELECT * FROM ${TABLE_NODES.name + EXPORT_DUMMY_TABLE_PREFIX}
+                        WHERE id = ${incomingEdge.source};
+                        `;
+                        const sourceNode: Node = await db.get(helperConn, sourceNodeQuery);
+
+                        // Fetch all edges from source nodes to the link node's target
+                        const sourceToLinkQuery: string = `
+                        SELECT * FROM ${TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX} 
+                        WHERE source = ${sourceNode.id}
+                        AND target = ${linkNode.link};
+                        `;
+                        const edgeToLinkTarget: Edge = await db.get(helperConn, sourceToLinkQuery);
+
+                        if (edgeToLinkTarget) {
+                            // If edges are found, make sure to update their priority such that it
+                            // matches the highest priority incoming edge from that source node.
+                            // Then skip updating the edge (it will be deleted in a moment).
+                            if (edgeToLinkTarget.priority < incomingEdge.priority) {
+                                const updateQuery = `UPDATE ${
+                                    TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX
+                                }
+                                SET priority = ${incomingEdge.priority}
+                                WHERE id = ${edgeToLinkTarget.id};`;
+                                await db.exec(helperConn, updateQuery);
+                                console.log(updateQuery);
+                            }
+                        } else {
+                            // If edges are NOT found, then update the incoming edge to point
+                            // directly at the link node target
+                            const updateQuery = `UPDATE ${
+                                TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX
+                            }
+                            SET target = ${linkNode.link}
+                            WHERE id = ${incomingEdge.id};`;
+                            await db.exec(helperConn, updateQuery);
+                            console.log(updateQuery);
+                        }
+                    }
+                }
 
                 // Destroy node (see: node-d)
                 const deleteQuery: string = `
-                BEGIN
                 DELETE FROM ${TABLE_EDGES.name + EXPORT_DUMMY_TABLE_PREFIX} 
                 WHERE target = ${linkNode.id};
-
                 DELETE FROM ${TABLE_NODES.name + EXPORT_DUMMY_TABLE_PREFIX} 
                 WHERE id = ${linkNode.id};
-
                 DELETE FROM ${TABLE_ROUTINES.name + EXPORT_DUMMY_TABLE_PREFIX} 
-                WHERE id in ${[linkNode.code, linkNode.condition].join(',')};
-
+                WHERE id in (${[linkNode.code, linkNode.condition].join(',')});
                 DELETE FROM ${TABLE_LOCALIZATIONS.name + EXPORT_DUMMY_TABLE_PREFIX} 
-                WHERE id in ${[linkNode.voiceText, linkNode.uiResponseText].join(',')};
-                COMMIT;
+                WHERE id in (${[linkNode.voiceText, linkNode.uiResponseText].join(',')});
                 `;
+                console.log(deleteQuery);
                 await db.exec(helperConn, deleteQuery);
                 console.log(deleteQuery);
             }

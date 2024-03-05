@@ -511,6 +511,11 @@
                 node.draggable = true;
             } else {
                 node.draggable = false;
+                if (node.computed.height === undefined || node.computed.height === undefined) {
+                    await updateNodeInternals([node.id], get(domNode), updateNodeDimensions);
+                    await onLayout();
+                    return;
+                }
                 width = node.computed.width;
                 height = node.computed.height;
             }
@@ -564,6 +569,11 @@
         const newPositions = [];
         const oldPositions = [];
         for (let i = 0; i < laidOut.children.length; i++) {
+            // Ensure flow node exists since the await
+            if (i >= flowNodes.length) {
+                await onLayout();
+                return;
+            }
             const elkNode: CustomElkNode = <CustomElkNode>laidOut.children[i];
             const flowNode: FlowNode = flowNodes[i];
             // Skip updating disconnected nodes
@@ -716,7 +726,7 @@
         return [source, target];
     }
 
-    async function runReconciliation(isForNodes: boolean): Promise<void> {
+    function runReconciliation(isForNodes: boolean): void {
         let graphFunctions: GraphFunctions;
         let localWritable: Writable<LocalObject[]>;
         let remoteWritable: IDbTableView<RemoteObject>;
@@ -753,7 +763,7 @@
             } else if (localId < remoteId) {
                 // Delete Local
                 // Simply don't add to list
-                console.log(`Delete local ${isForNodes ? 'node' : 'edge'}`);
+                console.log(`Delete local ${isForNodes ? 'node' : 'edge'} - ${localId}`);
                 l++;
                 wasCreationOrDeletion = true;
             } else {
