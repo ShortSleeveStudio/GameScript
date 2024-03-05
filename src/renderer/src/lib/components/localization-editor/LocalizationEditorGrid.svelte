@@ -150,10 +150,20 @@
     }
 
     async function onCreate(): Promise<void> {
+        // If a single conversation is selected, add to that
+        let conversationId: number | null = null;
+        const filterModel: FilterModel = api.getFilterModel();
+        if ('parent' in filterModel) {
+            const filter: NumberFilterModel = <NumberFilterModel>filterModel['parent'];
+            if (filter.type === 'equals' && filter.filter) {
+                conversationId = filter.filter;
+            }
+        }
+
         let newLocalization: Localization = <Localization>{
             name: '',
             isSystemCreated: false,
-            parent: null,
+            parent: conversationId,
         };
 
         // Create localization
@@ -306,6 +316,7 @@
                 enableRowGroup: false,
                 enablePivot: false,
                 flex: 2,
+                maxWidth: 300,
             },
             sideBar: {
                 toolPanels: [
@@ -365,9 +376,9 @@
 
 <WidgetContainer
     title="Localizations"
-    header="This is a list of all localized text. It is possible to associate localizations you
-            create with arbitrary conversations by changing the conversation ID. This feature is 
-            for organizational purposes only."
+    header="For organization, you can associate localizations with arbitrary 
+            conversations by changing the conversation ID, or creating a new localization while you 
+            have an 'equals' table filter in place for the conversation ID column."
 >
     <svelte:fragment slot="toolbar">
         <GridToolbar elementsSelected={selectedRows.length} on:cancel={onCancel}>
