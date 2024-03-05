@@ -15,6 +15,7 @@ export const API_DIALOG_AUTO_COMPLETE_OPEN = '/api/dialog/auto-complete-open';
 // FileSystem
 export const API_FS_APP_DATA_DIRECTORY = '/api/fs/app-data-directory';
 export const API_FS_DEFAULT_SQLITE_FILE = '/api/fs/default-sqlite-file';
+export const API_FS_DOES_FILE_EXIST = '/api/fs/does-file-exist';
 
 // Window
 export const API_WINDOW_CLOSE = '/api/window/close';

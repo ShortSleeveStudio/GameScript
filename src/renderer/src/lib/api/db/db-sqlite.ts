@@ -5,7 +5,6 @@ import type {
     DbResult,
     DbTransaction,
 } from '@common/common-db-types';
-import { CREATE_TABLE_INFOS } from '@common/common-queries-sqlite';
 import { type Row } from '@common/common-schema';
 import { updateRowQuery } from '@common/common-sql';
 import {
@@ -17,11 +16,12 @@ import {
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
     FIELD_TYPE_TEXT,
-    TABLE_ACTORS,
     type DatabaseTableType,
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
+import { TABLE_DEFINITIONS } from '@common/table-generators/table-generator';
+import { generateTableSqlite } from '@common/table-generators/table-generator-sqlite';
 import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import {
     FOCUS_MODE_MODIFY,
@@ -34,7 +34,7 @@ import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
 import { get, type Readable, type Writable } from 'svelte/store';
 import { DbBase } from './db-base';
-import { createEmptyFilter, createFilter } from './db-filter';
+import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
@@ -70,11 +70,21 @@ export class SqliteDb extends DbBase {
     async isDbInitialized(config: DbConnectionConfig): Promise<boolean> {
         let conn: DbConnection;
         try {
+            if (!config.sqliteFile || !(await window.api.fs.doesFileExist(config.sqliteFile))) {
+                return false;
+            }
             conn = await window.api.sqlite.open(<DbConnectionConfig>{
                 sqliteFile: config.sqliteFile,
             });
-            // TODO - query for checking if table exists
-            await this.fetchRowCount(TABLE_ACTORS, createEmptyFilter(), conn);
+            const tablesNames: { name: string }[] = await window.api.sqlite.all(
+                conn,
+                `SELECT name FROM sqlite_master WHERE type='table';`,
+            );
+            const nameSet: Set<string> = new Set();
+            for (let i = 0; i < tablesNames.length; i++) nameSet.add(tablesNames[i].name);
+            for (let i = 0; i < DATABASE_TABLES.length; i++) {
+                if (!nameSet.has(DATABASE_TABLES[i].name)) return false;
+            }
         } catch {
             // do nothing
             return false;
@@ -439,10 +449,9 @@ export class SqliteDb extends DbBase {
     }
 
     protected async initializeSchema(): Promise<void> {
-        // TODO ____________
-        for (let i = 0; i < CREATE_TABLE_INFOS.length; i++) {
-            const query = CREATE_TABLE_INFOS[i].creator(false);
-            await window.api.sqlite.exec(this._db, query);
+        for (let i = 0; i < TABLE_DEFINITIONS.length; i++) {
+            const tableDefString: string = generateTableSqlite(TABLE_DEFINITIONS[i], false);
+            await window.api.sqlite.exec(this._db, tableDefString);
         }
     }
 

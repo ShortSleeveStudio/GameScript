@@ -29,7 +29,12 @@ export interface InitialTableRows {
     rows: Row[];
 }
 
+export const DB_DEFAULT_ACTOR_ID: number = 1;
+export const DB_DEFAULT_ACTOR_PRINCIPAL_ID: number = 1;
 export const DB_DEFAULT_LOCALE_ID: number = 1;
+export const DB_DEFAULT_LOCALE_PRINCIPAL_ID: number = 1;
+export const DB_DEFAULT_ROUTINE_ID: number = 1;
+export const DB_DEFAULT_ROUTINE_PRINCIPAL_ID: number = 1;
 
 export const DB_INITIAL_ROWS: InitialTableRows[] = [
     { table: TABLE_PROGRAMMING_LANGUAGES, rows: PROGRAMMING_LANGUAGE_TYPES },
@@ -37,7 +42,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
         rows: [
             <ProgrammingLanguagePrincipal>{
-                id: 1,
+                id: DB_DEFAULT_ROUTINE_PRINCIPAL_ID,
                 principal: PROGRAMMING_LANGUAGE_CS.id,
             },
         ],
@@ -47,7 +52,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ROUTINES,
         rows: [
             <Routine>{
-                id: 1,
+                id: DB_DEFAULT_ROUTINE_ID,
                 name: 'Import Statements',
                 code: '',
                 type: ROUTINE_TYPE_IMPORT.id,
@@ -69,8 +74,8 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_LOCALE_PRINCIPAL,
         rows: [
             <LocalePrincipal>{
-                id: 1,
-                principal: 0,
+                id: DB_DEFAULT_LOCALE_PRINCIPAL_ID,
+                principal: DB_DEFAULT_LOCALE_ID,
             },
         ],
     },
@@ -78,7 +83,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ACTORS,
         rows: [
             <Actor>{
-                id: 1,
+                id: DB_DEFAULT_ACTOR_ID,
                 name: 'Player',
                 color: ACTORS_DEFAULT_COLOR,
                 isSystemCreated: true,
@@ -89,8 +94,8 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         table: TABLE_ACTOR_PRINCIPAL,
         rows: [
             <ActorPrincipal>{
-                id: 1,
-                principal: 0,
+                id: DB_DEFAULT_ACTOR_PRINCIPAL_ID,
+                principal: DB_DEFAULT_ACTOR_ID,
             },
         ],
     },

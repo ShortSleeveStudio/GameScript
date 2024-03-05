@@ -7,13 +7,9 @@ import {
     TABLE_LOCALIZATIONS,
 } from '../../common/common-types';
 import { LocalizationExportRequest } from '../../preload/api-build';
+import { doesFileExist } from '../common/common-helpers';
 import { executeTransaction } from '../db/db-client';
-import {
-    ColumnDescriptor,
-    EXPORTER_BATCH_SIZE,
-    LocalizationExporter,
-    doesFolderExist,
-} from './build-common';
+import { ColumnDescriptor, EXPORTER_BATCH_SIZE, LocalizationExporter } from './build-common';
 import { localizationExporterCsv } from './localization-exporter-csv';
 import { localizationExporterJson } from './localization-exporter-json';
 
@@ -22,7 +18,7 @@ export async function localizationExport(
     payload: LocalizationExportRequest,
 ): Promise<void> {
     // Ensure folder exists
-    const folderExists: boolean = await doesFolderExist(payload.location);
+    const folderExists: boolean = await doesFileExist(payload.location);
     if (!folderExists) throw new Error('Selected export folder no longer exists');
 
     // Start transaction

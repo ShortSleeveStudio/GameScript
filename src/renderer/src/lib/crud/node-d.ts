@@ -11,8 +11,17 @@ import { createFilter } from '@lib/api/db/db-filter';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 
+export async function nodeDelete(
+    node: Node,
+    edges: Edge[],
+    isLoading: IsLoadingStore,
+    connection?: DbConnection,
+): Promise<void> {
+    await nodesDelete([node], edges, isLoading, connection);
+}
+
 /**
- * Delete nodes
+ * Delete nodes (see: game-exporter-helper-db)
  * @param nodes nodes to delete (these should be clones)
  * @param edges edges to delete (these should be clones)
  * @param isLoading is loading
@@ -132,15 +141,6 @@ export async function nodesDelete(
     } else {
         undoManager.register(new Undoable('node deletion', undo, redo));
     }
-}
-
-export async function nodeDelete(
-    node: Node,
-    edges: Edge[],
-    isLoading: IsLoadingStore,
-    connection?: DbConnection,
-): Promise<void> {
-    await nodesDelete([node], edges, isLoading, connection);
 }
 
 function gatherNodeData(

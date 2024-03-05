@@ -1,4 +1,7 @@
-import { DB_DEFAULT_LOCALE_ID } from '@common/common-db-initialization';
+import {
+    DB_DEFAULT_LOCALE_ID,
+    DB_DEFAULT_LOCALE_PRINCIPAL_ID,
+} from '@common/common-db-initialization';
 import type { DbConnection } from '@common/common-db-types';
 import { localeIdToColumn } from '@common/common-locale';
 import type { Locale, LocalePrincipal, Localization } from '@common/common-schema';
@@ -183,7 +186,10 @@ async function deleteOperation(
         if (principal.principal === localeInfo.locale.id) {
             await db.updateRow(
                 TABLE_LOCALE_PRINCIPAL,
-                <LocalePrincipal>{ id: 0, principal: DB_DEFAULT_LOCALE_ID },
+                <LocalePrincipal>{
+                    id: DB_DEFAULT_LOCALE_PRINCIPAL_ID,
+                    principal: DB_DEFAULT_LOCALE_ID,
+                },
                 connection,
             );
         }

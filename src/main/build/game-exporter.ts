@@ -1,13 +1,13 @@
 import path from 'path';
 import { DbClient, DbConnection, DbConnectionConfig } from '../../common/common-db-types';
 import { GameExportRequest } from '../../preload/api-build';
+import { doesFileExist } from '../common/common-helpers';
 import { executeTransaction } from '../db/db-client';
 import {
     EXPORTER_FILENAME_HELPER_DB,
     GameCodeExporter as GameExporterCode,
     GameDataExporter as GameExporterData,
     GameHelperDbExporter as GameExporterHelperDb,
-    doesFolderExist,
 } from './build-common';
 import { gameExporterCodeAntlr } from './game-exporter-code-antlr';
 import { gameExporterDataMsgPack } from './game-exporter-data-msgpack';
@@ -24,9 +24,9 @@ import { gameHelperDbExporterDefault as gameExporterHelperDbDefault } from './ga
  */
 export async function gameExport(db: DbClient, payload: GameExportRequest): Promise<void> {
     // Ensure folders exist
-    const dataDirExists: boolean = await doesFolderExist(payload.dataLocation);
+    const dataDirExists: boolean = await doesFileExist(payload.dataLocation);
     if (!dataDirExists) throw new Error('Selected data export folder no longer exists');
-    const codeDirExists: boolean = await doesFolderExist(payload.codeLocation);
+    const codeDirExists: boolean = await doesFileExist(payload.codeLocation);
     if (!codeDirExists) throw new Error('Selected routine export folder no longer exists');
 
     // Name files

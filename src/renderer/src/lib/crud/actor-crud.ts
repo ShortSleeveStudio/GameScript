@@ -41,8 +41,6 @@ export async function actorsCreate(
     await isLoading.wrapPromise(
         db.executeTransaction(async (conn: DbConnection) => {
             actorInfos = await createOperation(db, actorsToCreate, conn);
-            console.log('CREATED:');
-            console.log(actorInfos);
         }),
     );
 

@@ -86,10 +86,12 @@ export interface FieldType {
 export const FIELD_TYPE_DECIMAL: FieldType = { id: 0, name: 'Decimal' };
 export const FIELD_TYPE_INTEGER: FieldType = { id: 1, name: 'Integer' };
 export const FIELD_TYPE_TEXT: FieldType = { id: 2, name: 'Text' };
+export const FIELD_TYPE_BOOLEAN: FieldType = { id: 3, name: 'Boolean' };
 export const FIELD_TYPES: FieldType[] = [
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
     FIELD_TYPE_TEXT,
+    FIELD_TYPE_BOOLEAN,
 ] as const;
 export type FieldTypeId = (typeof FIELD_TYPES)[number]['id'];
 export type FieldTypeName = (typeof FIELD_TYPES)[number]['name'];

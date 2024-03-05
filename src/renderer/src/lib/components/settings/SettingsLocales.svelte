@@ -27,6 +27,7 @@
     import { get } from 'svelte/store';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { localeCreate, localesDelete } from '@lib/crud/locale-crud';
+    import { db } from '@lib/api/db/db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadLocale = <FocusPayloadLocale>{
@@ -42,6 +43,7 @@
 
     async function addRow(): Promise<void> {
         await localeCreate(
+            db,
             <Locale>{
                 name: 'New Locale',
                 isSystemCreated: false,
@@ -53,7 +55,7 @@
     async function deleteRows(): Promise<void> {
         let rowsToDelete: Locale[] = locales.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
-        await localesDelete(rowsToDelete, isLoading);
+        await localesDelete(db, rowsToDelete, isLoading);
     }
 
     // TODO

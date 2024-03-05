@@ -9,13 +9,9 @@ import {
     TABLE_LOCALIZATIONS,
 } from '../../common/common-types';
 import { LocalizationImportRequest } from '../../preload/api-build';
+import { doesFileExist } from '../common/common-helpers';
 import { executeTransaction } from '../db/db-client';
-import {
-    ColumnDescriptor,
-    LocalizationImporter,
-    doesFolderExist,
-    listFilesWithExtension,
-} from './build-common';
+import { ColumnDescriptor, LocalizationImporter, listFilesWithExtension } from './build-common';
 import { localizationImporterCsv } from './localization-importer-csv';
 import { localizationImporterJson } from './localization-importer-json';
 
@@ -24,7 +20,7 @@ export async function localizationImport(
     payload: LocalizationImportRequest,
 ): Promise<void> {
     // Ensure folder exists
-    const folderExists: boolean = await doesFolderExist(payload.location);
+    const folderExists: boolean = await doesFileExist(payload.location);
     if (!folderExists) throw new Error('Selected export folder no longer exists');
 
     // Grab file list

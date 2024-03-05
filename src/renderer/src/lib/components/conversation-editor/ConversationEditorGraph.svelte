@@ -465,6 +465,8 @@
         const connectedNodeIds: Set<string> = new Set();
         const elkEdges: ElkExtendedEdge[] = [];
         const nodeIdToPorts: Map<string, ElkPort[]> = new Map();
+        const sourcePortSide: string = isVertical ? 'SOUTH' : 'EAST';
+        const targetPortSide: string = isVertical ? 'NORTH' : 'WEST';
         for (let i = 0; i < flowEdges.length; i++) {
             const edge: FlowEdge = flowEdges[i];
             // Record connected nodes
@@ -476,14 +478,14 @@
             addToNodeToPortMap(nodeIdToPorts, edge.source, <ElkPort>{
                 id: sourcePort,
                 layoutOptions: {
-                    'elk.port.side': isVertical ? 'SOUTH' : 'EAST',
+                    'elk.port.side': sourcePortSide,
                 },
             });
             const targetPort: string = portIdFromSourceAndTarget(edge.target, edge.source);
             addToNodeToPortMap(nodeIdToPorts, edge.target, <ElkPort>{
                 id: targetPort,
                 layoutOptions: {
-                    'elk.port.side': isVertical ? 'NORTH' : 'WEST',
+                    'elk.port.side': targetPortSide,
                 },
             });
 
@@ -541,9 +543,10 @@
             'elk.edgeLabels.placement:': 'CENTER',
             'elk.spacing.edgeLabel': '0',
             'elk.spacing.edgeEdge': '40',
+            'elk.spacing.edgeNode': '40',
             'elk.layered.spacing.edgeEdgeBetweenLayers': '40',
+            'elk.layered.spacing.edgeNodeBetweenLayers': '40',
             // 'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
-            // 'elk.aspectRatio': `1.7`,
         };
         const laidOut: ElkNode = await ELK_LAYOUT.layout({
             id: 'root',

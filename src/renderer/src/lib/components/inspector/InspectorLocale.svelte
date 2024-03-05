@@ -10,6 +10,7 @@
         LOCALE_UNDO_PRIMARY,
     } from '@lib/constants/settings';
     import RowColumnRadio from '../common/RowColumnRadio.svelte';
+    import RowColumnLocalization from '../common/RowColumnLocalization.svelte';
 
     export let rowView: IDbRowView<Locale>;
     export let payload: FocusPayloadLocale;
@@ -37,4 +38,8 @@
         undoText={LOCALE_UNDO_PRIMARY}
         principalStore={payload.localePrincipalRowView}
     />
+</p>
+<p>
+    <sup>Localized Name</sup>
+    <RowColumnLocalization {rowView} columnName={'localizedName'} />
 </p>

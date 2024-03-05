@@ -26,8 +26,6 @@
     import { ACTORS_DEFAULT_COLOR, APP_NAME } from '@common/constants';
     import { actorCreate, actorsDelete } from '@lib/crud/actor-crud';
     import { db } from '@lib/api/db/db';
-    import { TABLE_ACTORS } from '@common/common-types';
-    import { createEmptyFilter, createFilter } from '@lib/api/db/db-filter';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [

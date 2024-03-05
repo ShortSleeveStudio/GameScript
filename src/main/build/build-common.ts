@@ -13,6 +13,7 @@ import {
     LocalizationExportRequest,
     LocalizationImportRequest,
 } from '../../preload/api-build';
+import { isFolder } from '../common/common-helpers';
 
 export const EXPORTER_FILENAME_HELPER_DB: string = 'HELPER_DB___DO_NOT_SHIP.db';
 export const EXPORTER_FILENAME_DATA_FILE: string = 'game.dat';
@@ -77,19 +78,6 @@ export interface GameHelperDbExporter {
         helperConn: DbConnection,
     ): Promise<void>;
     teardown(): Promise<void>;
-}
-
-export async function doesFolderExist(path: string): Promise<boolean> {
-    try {
-        await fs.stat(path);
-        return true;
-    } catch (err) {
-        return false;
-    }
-}
-
-export async function isFolder(path: string): Promise<boolean> {
-    return (await fs.stat(path)).isDirectory();
 }
 
 export async function listFilesWithExtension(

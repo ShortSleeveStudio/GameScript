@@ -1,3 +1,4 @@
+import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
 import type { DbConnection } from '@common/common-db-types';
 import { type Localization, type Node, type Routine } from '@common/common-schema';
 import {
@@ -39,6 +40,7 @@ export async function nodeCreate(
             },
             conn,
         );
+
         // Create condition
         newCondition = await db.createRow(
             TABLE_ROUTINES,
@@ -66,7 +68,7 @@ export async function nodeCreate(
             TABLE_NODES,
             <Node>{
                 parent: newNode.parent,
-                actor: 0,
+                actor: DB_DEFAULT_ACTOR_ID,
                 uiResponseText: newUiResponseText.id,
                 voiceText: newVoiceText.id,
                 condition: newCondition.id,
