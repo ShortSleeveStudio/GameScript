@@ -5,7 +5,6 @@
     import DockableContent from '../app/DockableContent.svelte';
     import DockableRow from '../app/DockableRow.svelte';
     import DockableColumn from '../app/DockableColumn.svelte';
-    // import { SvelteFlowProvider } from '@lib/vendor/flow/svelte/src/lib';
 </script>
 
 <DockableContent minWidth={70 * 8}>

@@ -3,13 +3,13 @@ import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
 import type { ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
 
-export interface NodeData {
+export interface NodeData extends Record<string, unknown> {
     rowView: IDbRowView<Node>;
     localizations: IDbTableView<Localization>;
     selected: boolean;
 }
 
-export interface EdgeData {
+export interface EdgeData extends Record<string, unknown> {
     rowView: IDbRowView<Edge>;
     localizations: IDbTableView<Localization>;
     selected: boolean;

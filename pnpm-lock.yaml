@@ -59,8 +59,8 @@ devDependencies:
     specifier: ^1.7.7
     version: 1.7.7
   '@xyflow/svelte':
-    specifier: ^0.0.35
-    version: 0.0.35(svelte@4.2.9)
+    specifier: ^0.0.37
+    version: 0.0.37(svelte@4.2.9)
   carbon-components-svelte:
     specifier: ^0.82.8
     version: 0.82.8
@@ -1523,19 +1523,19 @@ packages:
     requiresBuild: true
     dev: true
 
-  /@xyflow/svelte@0.0.35(svelte@4.2.9):
-    resolution: {integrity: sha512-dYYGDr7KJRViXpP7/Qj8cvGZVGleZvDaweaVMZY7EaFiyfPLmnk5BX46uzISvcU1TXoa3tjxLRrB82d6W6oixQ==}
+  /@xyflow/svelte@0.0.37(svelte@4.2.9):
+    resolution: {integrity: sha512-7aXtKB2rdifwY+ifL7J5ofbX6wvUUZrIvvwCl4RcLtlC5QKqtpGmz/UDVQKTJJjiY1qTXvXyajrPT2qKNZL3aQ==}
     peerDependencies:
       svelte: ^3.0.0 || ^4.0.0
     dependencies:
       '@svelte-put/shortcut': 3.1.0
-      '@xyflow/system': 0.0.16
+      '@xyflow/system': 0.0.18
       classcat: 5.0.4
       svelte: 4.2.9
     dev: true
 
-  /@xyflow/system@0.0.16:
-    resolution: {integrity: sha512-pVWaBHAE1Ew9acmNGEdsVLNh8Z+TEBbsdaIojV+SDbmolYlCQ1UJ6Sse4k+K3rr7kgX/1GRsiEcWxOFIx0wt+w==}
+  /@xyflow/system@0.0.18:
+    resolution: {integrity: sha512-OPRax1cKJLstvDrrb2sIxWZS+OhggP1cd9NA40ZAGTWDHTZLtVenujp3VrU6wyx0JQ4S8bN3InTQ6wuH3JTrzQ==}
     dependencies:
       '@types/d3': 7.4.3
       '@types/d3-drag': 3.0.7

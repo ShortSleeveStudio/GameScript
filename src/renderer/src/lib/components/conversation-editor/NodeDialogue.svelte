@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Position, type NodeProps } from '@xyflow/svelte';
-    // import { Position, type NodeProps } from '@lib/vendor/flow/svelte/src/lib';
     import type { NodeData } from '@lib/graph/graph-data';
     import type { Actor, Localization, Node } from '@common/common-schema';
     import { actorsTable } from '@lib/tables/actors';

@@ -1,6 +1,5 @@
 import type { ElkEdgeSection, ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
 import { Position, type XYPosition } from '@xyflow/svelte';
-// import { Position, type XYPosition } from '@lib/vendor/flow/svelte/src/lib';
 
 export interface GetSmoothStepPathParams {
     sourceX: number;

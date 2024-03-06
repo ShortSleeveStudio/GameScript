@@ -44,6 +44,7 @@
     import { TAG_DISTANCE_TO_NODE, TAG_HEIGHT, TAG_WIDTH } from '@lib/constants/graph';
     import type { EdgeData } from '@lib/graph/graph-data';
     import { getElkPath } from '@lib/graph/graph-path-elk';
+    import { useHandleEdgeSelect } from '@lib/graph/graph-temporary';
     import type { ElkExtendedEdge, ElkPoint } from '@lib/vendor/elkjs/elk-api';
     import {
         type EdgeProps,
@@ -54,7 +55,6 @@
     } from '@xyflow/svelte';
     import { onDestroy, onMount } from 'svelte';
     import { get, writable, type Writable } from 'svelte/store';
-    // import { type EdgeProps, BaseEdge, getBezierPath } from '@lib/vendor/flow/svelte/src/lib';
 
     // SUPPRESS WARNINGS
     type $$Props = EdgeProps;
@@ -96,9 +96,10 @@
     sourceHandleId;
     export let targetHandleId: $$Props['targetHandleId'] = undefined;
     targetHandleId;
+    export let data: $$Props['data'] = undefined;
     // SUPPRESS WARNINGS
 
-    export let data: EdgeData = undefined;
+    const handleEdgeSelect: (id: string) => void = useHandleEdgeSelect();
 
     let rowView: IDbRowView<Edge>;
     let elkEdge: ElkExtendedEdge;
@@ -106,8 +107,8 @@
     let isVertical: boolean = false;
     let currentTargetX: number;
     let currentTargetY: number;
-    $: rowView = data?.rowView;
-    $: elkEdge = data?.elkEdge;
+    $: rowView = (<EdgeData>data)?.rowView;
+    $: elkEdge = (<EdgeData>data)?.elkEdge;
     $: elkEdgeEndpoint = elkEdge?.sections[elkEdge.sections.length - 1].endPoint;
     $: isVertical = sourcePosition === Position.Bottom;
 
@@ -120,7 +121,7 @@
             sourcePosition,
             targetPosition,
         },
-        data.elkEdge,
+        (<EdgeData>data).elkEdge,
         $hiddenEdgeToIndex,
     );
 
@@ -183,6 +184,10 @@
         }
     }
 
+    function onLabelClick(): void {
+        handleEdgeSelect(id);
+    }
+
     onMount(() => {
         addToHiddenEdges(get(rowView).source, id);
     });
@@ -209,21 +214,31 @@
     {#if elkEdge && elkEdge.labels}
         <EdgeLabelRenderer>
             {#if $rowView.priority !== 0}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-interactive-supports-focus -->
                 <div
                     style:transform="translate(-50%, -50%) translate({elkEdge.labels[0]
                         .x}px,{elkEdge.labels[0].y}px)"
+                    style={'pointer-events: all;' + style}
                     class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
+                    role="button"
+                    on:click={onLabelClick}
                 >
                     {$rowView.priority}
                 </div>
             {/if}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-interactive-supports-focus -->
             <div
                 style:transform="translate({isVertical ? '-50%' : '0%'}, {isVertical
                     ? '0%'
                     : '-50%'}) translate({elkEdgeEndpoint.x}px,{elkEdgeEndpoint.y}px)"
-                class="edge-target nodrag nopan {selected ? 'edge-target-selected' : ''}"
+                style={'pointer-events: all;' + style}
                 style:width={'calc(var(--graph-node-width) / 2)'}
                 style:height={'var(--graph-node-title-height)'}
+                class="edge-target nodrag nopan {selected ? 'edge-target-selected' : ''}"
+                role="button"
+                on:click={onLabelClick}
             >
                 <div class="edge-target-text">
                     {$rowView.target}
@@ -233,20 +248,30 @@
     {:else}
         <EdgeLabelRenderer>
             {#if $rowView.priority !== 0}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-interactive-supports-focus -->
                 <div
                     style:transform="translate(-50%, -50%) translate({labelX}px,{labelY}px)"
+                    style={'pointer-events: all;' + style}
                     class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
+                    role="button"
+                    on:click={onLabelClick}
                 >
                     {$rowView.priority}
                 </div>
             {/if}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-interactive-supports-focus -->
             <div
                 style:transform="translate({isVertical ? '-50%' : '0%'}, {isVertical
                     ? '0%'
                     : '-50%'}) translate({currentTargetX}px,{currentTargetY}px)"
-                class="edge-target nodrag nopan {selected ? 'edge-target-selected' : ''}"
+                style={'pointer-events: all;' + style}
                 style:width={'calc(var(--graph-node-width) / 2)'}
                 style:height={'var(--graph-node-title-height)'}
+                class="edge-target nodrag nopan {selected ? 'edge-target-selected' : ''}"
+                role="button"
+                on:click={onLabelClick}
             >
                 <div class="edge-target-text">
                     {$rowView.target}
@@ -264,6 +289,7 @@
         justify-items: center;
         background-color: var(--cds-layer-accent, #e0e0e0);
         border: 1px solid var(--cds-ui-04, #8d8d8d);
+        cursor: pointer;
     }
 
     .edge-target-selected {
@@ -281,6 +307,7 @@
         position: absolute;
         background: var(--cds-layer-accent, #e0e0e0);
         padding: 10px;
+        cursor: pointer;
         /* border-radius: 5px; */
     }
     .edge-label-selected {

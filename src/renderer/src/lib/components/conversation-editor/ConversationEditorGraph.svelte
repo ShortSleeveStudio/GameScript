@@ -17,22 +17,6 @@
         useStore,
         type FitViewOptions,
     } from '@xyflow/svelte';
-    // import {
-    //     SvelteFlow,
-    //     Controls,
-    //     Background,
-    //     MiniMap,
-    //     type SnapGrid,
-    //     BackgroundVariant,
-    //     type Node as FlowNode,
-    //     type Edge as FlowEdge,
-    //     type Viewport,
-    //     type DefaultEdgeOptions,
-    //     ConnectionLineType,
-    //     type Connection,
-    //     Position,
-    //     useStore,
-    // } from '@lib/vendor/flow/svelte/src/lib';
     import { onDestroy, onMount, setContext, tick } from 'svelte';
     import type { ActionUnsubscriber } from '@lib/utility/action';
     import {
@@ -113,6 +97,7 @@
         updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => boolean;
     }
 
+    const SHADOW_NODE_SUFFIX: string = '_';
     const MIN_ZOOM: number = 0.1;
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
     const DEFAULT_EDGE_TYPE: EdgeTypeName = EDGE_TYPE_DEFAULT.name;
@@ -298,14 +283,17 @@
         });
     }
 
-    function onBeforeDelete(params: { nodes: FlowNode[]; edges: FlowEdge[] }): boolean {
+    async function onBeforeDelete(params: {
+        nodes: FlowNode[];
+        edges: FlowEdge[];
+    }): Promise<boolean> {
         // Grab nodes and edges to delete, this must happen before deselect since we're reusing the
         // same lists passed in
         const nodes: Node[] = params.nodes.map(
-            (flowNode: FlowNode) => <Node>{ ...get(flowNode.data.rowView) },
+            (flowNode: FlowNode) => <Node>{ ...get((<NodeData>flowNode.data).rowView) },
         );
         const edges: Edge[] = params.edges.map(
-            (flowEdge: FlowEdge) => <Edge>{ ...get(flowEdge.data.rowView) },
+            (flowEdge: FlowEdge) => <Edge>{ ...get((<EdgeData>flowEdge.data).rowView) },
         );
 
         // Delete
@@ -326,7 +314,7 @@
         const newNodes: Node[] = [];
         for (let i = 0; i < flowNodes.length; i++) {
             const flowNode: FlowNode = flowNodes[i];
-            const originalNode: Node = get(flowNode.data.rowView);
+            const originalNode: Node = get((<NodeData>flowNode.data).rowView);
             // Skip nodes that haven't moved
             if (
                 flowNode.position.x === originalNode.positionX &&
@@ -361,14 +349,14 @@
         NODE_FOCUS_REQUEST.focus = new Map();
         EDGE_FOCUS_REQUEST.focus = new Map();
         for (let i = 0; i < eventNodes.length; i++) {
-            NODE_FOCUS_REQUEST.focus.set(eventNodes[i].data.rowView.id, <Focus>{
-                rowId: eventNodes[i].data.rowView.id,
+            NODE_FOCUS_REQUEST.focus.set((<NodeData>eventNodes[i].data).rowView.id, <Focus>{
+                rowId: (<NodeData>eventNodes[i].data).rowView.id,
                 payload: GRAPH_FOCUS_PAYLOAD,
             });
         }
         for (let i = 0; i < eventEdges.length; i++) {
-            EDGE_FOCUS_REQUEST.focus.set(eventEdges[i].data.rowView.id, <Focus>{
-                rowId: eventEdges[i].data.rowView.id,
+            EDGE_FOCUS_REQUEST.focus.set((<EdgeData>eventEdges[i].data).rowView.id, <Focus>{
+                rowId: (<EdgeData>eventEdges[i].data).rowView.id,
                 payload: GRAPH_FOCUS_PAYLOAD,
             });
         }
@@ -427,7 +415,6 @@
         list.push(port);
     }
 
-    const SHADOW_NODE_SUFFIX: string = '_';
     async function onLayout(): Promise<void> {
         // Don't layout if we're not doing auto-layout
         if (!focusedRowView || !get(focusedRowView).layoutAuto) return;
@@ -591,12 +578,12 @@
             // Skip nodes that are already in the same position
             if (elkNode.x === flowNode.position.x && elkNode.y === flowNode.position.y) continue;
             newPositions.push(<Node>{
-                id: flowNode.data.rowView.id,
+                id: (<NodeData>flowNode.data).rowView.id,
                 positionX: elkNode.x,
                 positionY: elkNode.y,
             });
             oldPositions.push(<Node>{
-                id: flowNode.data.rowView.id,
+                id: (<NodeData>flowNode.data).rowView.id,
                 positionX: flowNode.position.x,
                 positionY: flowNode.position.y,
             });

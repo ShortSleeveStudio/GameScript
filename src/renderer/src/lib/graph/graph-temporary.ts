@@ -1,5 +1,6 @@
-// import type { NodeDimensionUpdate } from '@lib/vendor/flow/system/src';
+import { useStore } from '@xyflow/svelte';
 import type { NodeDimensionUpdate } from '@xyflow/system';
+import { get } from 'svelte/store';
 
 export async function updateNodeInternals(
     id: string | string[],
@@ -25,4 +26,39 @@ export async function updateNodeInternals(
             resolve();
         });
     });
+}
+
+export function useHandleEdgeSelect(): (id: string) => void {
+    const {
+        edgeLookup,
+        selectionRect,
+        selectionRectMode,
+        multiselectionKeyPressed,
+        addSelectedEdges,
+        unselectNodesAndEdges,
+        elementsSelectable,
+    } = useStore();
+
+    return (id: string) => {
+        const edge = get(edgeLookup).get(id);
+
+        if (!edge) {
+            console.warn('Edge was missing for edge select');
+            return;
+        }
+
+        const selectable =
+            edge.selectable || (get(elementsSelectable) && typeof edge.selectable === 'undefined');
+
+        if (selectable) {
+            selectionRect.set(null);
+            selectionRectMode.set(null);
+
+            if (!edge.selected) {
+                addSelectedEdges([id]);
+            } else if (edge.selected && get(multiselectionKeyPressed)) {
+                unselectNodesAndEdges({ nodes: [], edges: [edge] });
+            }
+        }
+    };
 }

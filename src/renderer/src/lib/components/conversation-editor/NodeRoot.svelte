@@ -1,7 +1,6 @@
 <script lang="ts">
     import type { NodeData } from '@lib/graph/graph-data';
     import { Position, type NodeProps } from '@xyflow/svelte';
-    // import { Position, type NodeProps } from '@lib/vendor/flow/svelte/src/lib';
     import NodeBase from './NodeBase.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { Node } from '@common/common-schema';

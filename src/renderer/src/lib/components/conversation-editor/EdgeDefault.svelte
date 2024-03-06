@@ -3,9 +3,9 @@
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { EdgeData } from '@lib/graph/graph-data';
     import { getElkPath } from '@lib/graph/graph-path-elk';
+    import { useHandleEdgeSelect } from '@lib/graph/graph-temporary';
     import type { ElkExtendedEdge } from '@lib/vendor/elkjs/elk-api';
     import { type EdgeProps, BaseEdge, getBezierPath, EdgeLabelRenderer } from '@xyflow/svelte';
-    // import { type EdgeProps, BaseEdge, getBezierPath } from '@lib/vendor/flow/svelte/src/lib';
 
     // SUPPRESS WARNINGS
     type $$Props = EdgeProps;
@@ -47,13 +47,15 @@
     sourceHandleId;
     export let targetHandleId: $$Props['targetHandleId'] = undefined;
     targetHandleId;
+    export let data: $$Props['data'] = undefined;
     // SUPPRESS WARNINGS
 
-    export let data: EdgeData = undefined;
+    const handleEdgeSelect: (id: string) => void = useHandleEdgeSelect();
+
     let rowView: IDbRowView<Edge>;
     let elkEdge: ElkExtendedEdge;
-    $: rowView = data?.rowView;
-    $: elkEdge = data?.elkEdge;
+    $: rowView = (<EdgeData>data)?.rowView;
+    $: elkEdge = (<EdgeData>data)?.elkEdge;
 
     $: [path, labelX, labelY] = getPath(
         {
@@ -64,7 +66,7 @@
             sourcePosition,
             targetPosition,
         },
-        data.elkEdge,
+        (<EdgeData>data).elkEdge,
     );
 
     function getPath(
@@ -86,6 +88,10 @@
             // return getSmoothStepPath(params);
         }
     }
+
+    function onLabelClick(): void {
+        handleEdgeSelect(id);
+    }
 </script>
 
 <BaseEdge
@@ -104,19 +110,29 @@
 {#if rowView && $rowView.priority !== 0}
     {#if elkEdge && elkEdge.labels}
         <EdgeLabelRenderer>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-interactive-supports-focus -->
             <div
                 style:transform="translate(-50%, -50%) translate({elkEdge.labels[0].x}px,{elkEdge
                     .labels[0].y}px)"
+                style={'pointer-events: all;' + style}
                 class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
+                role="button"
+                on:click={onLabelClick}
             >
                 {$rowView.priority}
             </div>
         </EdgeLabelRenderer>
     {:else}
         <EdgeLabelRenderer>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-interactive-supports-focus -->
             <div
                 style:transform="translate(-50%, -50%) translate({labelX}px,{labelY}px)"
+                style={'pointer-events: all;' + style}
                 class="edge-label {selected ? 'edge-label-selected' : ''} nodrag nopan"
+                role="button"
+                on:click={onLabelClick}
             >
                 {$rowView.priority}
             </div>
@@ -129,7 +145,7 @@
         position: absolute;
         background: var(--cds-layer-accent, #e0e0e0);
         padding: 10px;
-        /* border-radius: 5px; */
+        cursor: pointer;
     }
     .edge-label-selected {
         background-color: var(--xy-edge-stroke-selected-default);

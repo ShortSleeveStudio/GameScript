@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Handle, Position } from '@xyflow/svelte';
-    // import { Handle, Position } from '@lib/vendor/flow/svelte/src/lib';
     import { PortInput, PortOutput, Settings } from 'carbon-icons-svelte';
     import { GRAPH_CONTEXT, PORT_CONTAINER_THICKNESS } from '@lib/graph/graph-constants';
     import OverflowMenuCustom from '../carbon/OverflowMenuCustom.svelte';

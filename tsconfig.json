@@ -23,7 +23,8 @@
     "baseUrl": "./src",
     "paths": {
       "@lib/*": ["renderer/src/lib/*"],
-      "@common/*": ["common/*"]
+      "@common/*": ["common/*"],
+      // "@xyflow/*": ["renderer/src/lib/vendor/xyflow/*"]
     },
     "types": ["vitest/globals"]
   },

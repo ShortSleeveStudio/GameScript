@@ -18,6 +18,7 @@ export default defineConfig({
             alias: {
                 '@lib': path.resolve(__dirname, './src/renderer/src/lib'),
                 '@common': path.resolve(__dirname, './src/common'),
+                // '@xyflow': path.resolve(__dirname, './src/renderer/src/lib/vendor/xyflow'),
             },
         },
     },
