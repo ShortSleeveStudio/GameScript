@@ -118,10 +118,9 @@ export interface NodeType {
     id: number;
     name: string;
 }
-export const NODE_TYPE_LINK: NodeType = { id: 0, name: 'link' };
-export const NODE_TYPE_ROOT: NodeType = { id: 1, name: 'root' };
-export const NODE_TYPE_DIALOGUE: NodeType = { id: 2, name: 'dialogue' };
-export const NODE_TYPES: NodeType[] = [NODE_TYPE_LINK, NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
+export const NODE_TYPE_ROOT: NodeType = { id: 0, name: 'root' };
+export const NODE_TYPE_DIALOGUE: NodeType = { id: 1, name: 'dialogue' };
+export const NODE_TYPES: NodeType[] = [NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
 export type NodeTypeId = (typeof NODE_TYPES)[number]['id'];
 export type NodeTypeName = (typeof NODE_TYPES)[number]['name'];
 
@@ -131,9 +130,17 @@ export interface EdgeType {
     name: string;
 }
 export const EDGE_TYPE_DEFAULT: EdgeType = { id: 0, name: 'default' };
-export const EDGE_TYPES: EdgeType[] = [EDGE_TYPE_DEFAULT] as const;
+export const EDGE_TYPE_HIDDEN: EdgeType = { id: 1, name: 'hidden' };
+export const EDGE_TYPES: EdgeType[] = [EDGE_TYPE_DEFAULT, EDGE_TYPE_HIDDEN] as const;
 export type EdgeTypeId = (typeof EDGE_TYPES)[number]['id'];
 export type EdgeTypeName = (typeof EDGE_TYPES)[number]['name'];
+export const EDGE_TYPE_DROPDOWN_ITEMS: DropdownItem[] = EDGE_TYPES.map(
+    (edgeType: EdgeType) =>
+        <DropdownItem>{
+            id: edgeType.name,
+            text: edgeType.name.charAt(0).toUpperCase() + edgeType.name.slice(1),
+        },
+);
 
 /**Build Localization Division */
 export interface LocalizationDivisionType {

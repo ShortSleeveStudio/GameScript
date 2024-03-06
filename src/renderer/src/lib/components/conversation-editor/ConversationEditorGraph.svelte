@@ -87,7 +87,6 @@
     import EdgeDefault from './EdgeDefault.svelte';
     import { conversationUpdate } from '@lib/crud/conversation-u';
     import { updateNodeInternals } from '@lib/graph/graph-temporary';
-    import NodeLink from './NodeLink.svelte';
     import { GRAPH_CONTEXT } from '@lib/graph/graph-constants';
     import type { GraphContext } from '@lib/graph/graph-context';
     import { LAYOUT_ID_CONVERSATION_EDITOR } from '@lib/constants/default-layout';
@@ -98,18 +97,20 @@
         TABLE_LOCALIZATIONS,
         TABLE_NODES,
         type EdgeTypeName,
-        NODE_TYPE_LINK,
         NODE_TYPE_DIALOGUE,
         NODE_TYPE_ROOT,
         type NodeTypeName,
+        EDGE_TYPE_HIDDEN,
     } from '@common/common-types';
+    import EdgeHidden from './EdgeHidden.svelte';
+    import { TAG_HEIGHT, TAG_WIDTH } from '@lib/constants/graph';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
     interface GraphFunctions {
         localObjectStore: Writable<LocalObject[]>;
         creatorLocal: (remoteObject: IDbRowView<RemoteObject>) => LocalObject;
-        updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => void;
+        updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => boolean;
     }
 
     const MIN_ZOOM: number = 0.1;
@@ -146,9 +147,9 @@
     const nodeTypes = {};
     nodeTypes[NODE_TYPE_ROOT.name] = NodeRoot;
     nodeTypes[NODE_TYPE_DIALOGUE.name] = NodeDialogue;
-    nodeTypes[NODE_TYPE_LINK.name] = NodeLink;
     const edgeTypes = {};
     edgeTypes[EDGE_TYPE_DEFAULT.name] = EdgeDefault;
+    edgeTypes[EDGE_TYPE_HIDDEN.name] = EdgeHidden;
 
     let currentLayoutAuto: boolean = false;
     let currentLayoutVertical: boolean = false;
@@ -253,17 +254,6 @@
         // Ensure no self-connection
         if (edge.source === edge.target) return false;
 
-        // Ensure link node don't connect to link nodes
-        const sourceNode: FlowNode = get(nodeLookup)?.get(edge.source);
-        const targetNode: FlowNode = get(nodeLookup)?.get(edge.target);
-        if (
-            !targetNode ||
-            !sourceNode ||
-            (sourceNode.type === NODE_TYPE_LINK.name && targetNode.type === NODE_TYPE_LINK.name)
-        ) {
-            return false;
-        }
-
         // Ensure no duplicate edges
         const flowEdges: FlowEdge[] = get(edges);
         for (let i = 0; i < flowEdges.length; i++) {
@@ -277,20 +267,6 @@
 
     function onEdgeCreate(connection: Connection): FlowEdge {
         const [source, target] = parseConnection(connection);
-
-        // If source is a link node, update the node and don't create an edge
-        const sourceFlowNode: FlowNode = get(nodeLookup)?.get(connection.source);
-        if (!sourceFlowNode) throw new Error('Could not find source node to create connection.');
-        if (sourceFlowNode.type === NODE_TYPE_LINK.name) {
-            const sourceNode: Node = get((<NodeData>sourceFlowNode.data).rowView);
-            const newNode: Node = <Node>{ id: sourceNode.id, link: target };
-            const oldNode: Node = <Node>{ id: sourceNode.id, link: sourceNode.link };
-            nodesUpdate([oldNode], [newNode], isLoading).catch((error) => {
-                blur();
-                throw error;
-            });
-            return undefined;
-        }
 
         // Create edge
         edgeCreate(
@@ -451,6 +427,7 @@
         list.push(port);
     }
 
+    const SHADOW_NODE_SUFFIX: string = '_';
     async function onLayout(): Promise<void> {
         // Don't layout if we're not doing auto-layout
         if (!focusedRowView || !get(focusedRowView).layoutAuto) return;
@@ -459,6 +436,8 @@
         let flowNodes: FlowNode[] = get(nodes);
         if (flowNodes.length === 0) return;
         let flowEdges: FlowEdge[] = get(edges);
+        let shadowNodes: FlowNode[] = [];
+        let allNodes: FlowNode[] = [...flowNodes];
 
         // Create all elk edges and remember all connected nodes
         const isVertical: boolean = get(focusedRowView).layoutVertical;
@@ -467,11 +446,30 @@
         const nodeIdToPorts: Map<string, ElkPort[]> = new Map();
         const sourcePortSide: string = isVertical ? 'SOUTH' : 'EAST';
         const targetPortSide: string = isVertical ? 'NORTH' : 'WEST';
+
         for (let i = 0; i < flowEdges.length; i++) {
             const edge: FlowEdge = flowEdges[i];
+
+            // Hidden edges have shadow nodes
+            const isHidden: boolean = edge.type === EDGE_TYPE_HIDDEN.name;
+
             // Record connected nodes
             connectedNodeIds.add(edge.source);
-            connectedNodeIds.add(edge.target);
+            let shadowNodeId: string;
+            if (isHidden) {
+                // Create shadow node for layout of hidden edges
+                shadowNodeId = edge.source + '_' + edge.target + SHADOW_NODE_SUFFIX;
+                shadowNodes.push(<FlowNode>{
+                    id: shadowNodeId,
+                    computed: {
+                        width: TAG_WIDTH,
+                        height: TAG_HEIGHT,
+                    },
+                });
+                connectedNodeIds.add(shadowNodeId);
+            } else {
+                connectedNodeIds.add(edge.target);
+            }
 
             // Record ports
             const sourcePort: string = portIdFromSourceAndTarget(edge.source, edge.target);
@@ -481,8 +479,9 @@
                     'elk.port.side': sourcePortSide,
                 },
             });
-            const targetPort: string = portIdFromSourceAndTarget(edge.target, edge.source);
-            addToNodeToPortMap(nodeIdToPorts, edge.target, <ElkPort>{
+            const edgeTarget: string = isHidden ? shadowNodeId : edge.target;
+            const targetPort: string = portIdFromSourceAndTarget(edgeTarget, edge.source);
+            addToNodeToPortMap(nodeIdToPorts, edgeTarget, <ElkPort>{
                 id: targetPort,
                 layoutOptions: {
                     'elk.port.side': targetPortSide,
@@ -496,13 +495,14 @@
                 labels: <ElkLabel[]>[{ text: ' ' }],
             });
         }
+        allNodes.push(...shadowNodes);
 
         // Create elk edges to be laid out
         const elkNodes: ElkNode[] = [];
         let computedWidth: number = 100;
         let computedHeight: number = 100;
-        for (let i = 0; i < flowNodes.length; i++) {
-            const node: FlowNode = flowNodes[i];
+        for (let i = 0; i < allNodes.length; i++) {
+            const node: FlowNode = allNodes[i];
             // Disconnected nodes don't get layout, and remain draggable
             let width: number = 0;
             let height: number = 0;
@@ -565,19 +565,24 @@
         flowNodes = get(nodes);
         flowEdges = get(edges);
 
+        // Add in shadow nodes created for hidden edges
+        allNodes = [...flowNodes, ...shadowNodes];
+
         // Store positions for undo/redo
         const newPositions = [];
         const oldPositions = [];
         for (let i = 0; i < laidOut.children.length; i++) {
             // Ensure flow node exists since the await
-            if (i >= flowNodes.length) {
+            if (i >= allNodes.length) {
                 await onLayout();
                 return;
             }
             const elkNode: CustomElkNode = <CustomElkNode>laidOut.children[i];
-            const flowNode: FlowNode = flowNodes[i];
+            const flowNode: FlowNode = allNodes[i];
             // Skip updating disconnected nodes
             if (!connectedNodeIds.has(flowNode.id)) continue;
+            // Skip updating shadow nodes
+            if (flowNode.id.endsWith(SHADOW_NODE_SUFFIX)) continue;
             // Nodes have gone out of sync during the layout
             if (elkNode.id !== flowNode.id) {
                 await onLayout();
@@ -649,26 +654,24 @@
         };
     }
 
-    function nodeUpdateLocal(local: FlowNode, remoteView: IDbRowView<Node>): void {
+    function nodeUpdateLocal(local: FlowNode, remoteView: IDbRowView<Node>): boolean {
         const remote: Node = get(remoteView);
         // Skip equality
-        if (nodeIsEqual(local, remote)) return;
+        if (
+            local.type === remote.type &&
+            local.position.x === remote.positionX &&
+            local.position.y === remote.positionY
+        )
+            return false;
         console.log(`Update local node`);
         const isNotRoot: boolean = remote.type !== NODE_TYPE_ROOT.name;
         local.type = remote.type;
         local.deletable = isNotRoot;
         local.selectable = isNotRoot;
-        if (isNodeDragging()) return; // TODO - test using just this node's dragging flag
+        if (isNodeDragging()) return true; // TODO - test using just this node's dragging flag
         local.position.x = remote.positionX;
         local.position.y = remote.positionY;
-    }
-
-    function nodeIsEqual(local: FlowNode, remote: Node): boolean {
-        return (
-            local.type === remote.type &&
-            local.position.x === remote.positionX &&
-            local.position.y === remote.positionY
-        );
+        return true;
     }
 
     function isNodeDragging(): boolean {
@@ -697,22 +700,20 @@
         };
     }
 
-    function edgeUpdateLocal(local: FlowEdge, remoteView: IDbRowView<Edge>): void {
+    function edgeUpdateLocal(local: FlowEdge, remoteView: IDbRowView<Edge>): boolean {
         const remote: Edge = get(remoteView);
         // Skip equality
-        if (edgeIsEqual(local, remote)) return;
+        if (
+            local.type === remote.type &&
+            local.source === remote.source.toString() &&
+            local.target === remote.target.toString()
+        )
+            return false;
         console.log(`Update local edge`);
         local.type = remote.type;
         local.source = remote.source.toString();
         local.target = remote.target.toString();
-    }
-
-    function edgeIsEqual(local: FlowEdge, remote: Edge): boolean {
-        return (
-            local.type === remote.type &&
-            local.source === remote.source.toString() &&
-            local.target === remote.target.toString()
-        );
+        return true;
     }
 
     function parseConnection(connection: Connection): readonly [source: number, target: number] {
@@ -746,6 +747,7 @@
         let l: number = 0;
         let r: number = 0;
         let wasCreationOrDeletion: boolean = false;
+        let wasUpdate: boolean = false;
         for (; l < localObjects.length || r < remoteObjects.length; ) {
             const localObject: LocalObject = l < localObjects.length ? localObjects[l] : undefined;
             const remoteObject: IDbRowView<RemoteObject> =
@@ -756,7 +758,7 @@
             const remoteId: number = remoteObject ? remoteObject.id : Infinity;
             if (localId === remoteId) {
                 // Update Local (if not equal)
-                graphFunctions.updatorLocal(localObject, remoteObject);
+                wasUpdate = graphFunctions.updatorLocal(localObject, remoteObject) || wasUpdate;
                 newObjects.push(localObject);
                 l++;
                 r++;
@@ -780,7 +782,7 @@
         graphFunctions.localObjectStore.set(newObjects);
 
         // Update layout if edges were created or deleted
-        if (wasCreationOrDeletion && !isForNodes && isConversationInitialized) {
+        if ((wasCreationOrDeletion || wasUpdate) && !isForNodes && isConversationInitialized) {
             onLayout();
         }
     }
@@ -1188,15 +1190,9 @@
             <span slot="create">
                 <Button
                     size="small"
-                    on:click={() => onCreateNode(NODE_TYPE_LINK.name)}
-                    disabled={$isLoading || !isConversationInitialized}
-                    icon={$isLoading ? InlineLoading : undefined}>Add Link Node</Button
-                >
-                <Button
-                    size="small"
                     on:click={() => onCreateNode(NODE_TYPE_DIALOGUE.name)}
                     disabled={$isLoading || !isConversationInitialized}
-                    icon={$isLoading ? InlineLoading : undefined}>Add Dialogue Node</Button
+                    icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
                 >
             </span>
 

@@ -85,12 +85,6 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'link',
-    type: FIELD_TYPE_BOOLEAN,
-    notNull: false,
-    defaultValue: undefined,
-});
-TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'type',
     type: FIELD_TYPE_TEXT,
     notNull: true,
@@ -132,8 +126,4 @@ TABLE_DEFINITION_NODES.addForeignKey({
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'code',
     table: TABLE_ROUTINES,
-});
-TABLE_DEFINITION_NODES.addForeignKey({
-    column: 'link',
-    table: TABLE_NODES,
 });

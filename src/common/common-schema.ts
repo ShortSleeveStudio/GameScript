@@ -112,7 +112,6 @@ export interface Node extends Row, Annotated, SystemCreatable, ConversationChild
     code: number; // FK Routines
     codeOverride: number | null;
     preventResponse: boolean;
-    link: number; // FK Nodes
 
     // Graph Stuff
     type: string;

@@ -13,7 +13,7 @@ export interface ColumnDefinition {
     name: string;
     type: FieldType;
     notNull: boolean;
-    defaultValue: string | number | null | undefined;
+    defaultValue: string | boolean | number | null | undefined;
 }
 
 export class TableDefinition {

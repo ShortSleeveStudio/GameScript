@@ -73,3 +73,4 @@ export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';
 /**Edges */
 export const EDGE_UNDO_PRIORITY = 'priority';
 export const EDGE_PLACEHOLDER_PRIORITY = 'Enter a priority...';
+export const EDGE_UNDO_TYPE = 'edge type';

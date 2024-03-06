@@ -47,16 +47,8 @@ export async function nodesDelete(
     let localizationsToDelete: Localization[];
 
     const deleteOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
-        // Find Link Nodes
-        gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
-        const linkNodesToDelete = await db.fetchRowsRaw<Node>(
-            TABLE_NODES,
-            createFilter().where().column('link').in(nodeIds).endWhere().build(),
-            conn,
-        );
-        gatherNodeData(linkNodesToDelete, nodesToDelete, nodeIds, routineIds, localizationIds);
-
         // Delete Edges
+        gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
         edgesToDelete = await db.fetchRowsRaw<Edge>(
             TABLE_EDGES,
             createFilter()
