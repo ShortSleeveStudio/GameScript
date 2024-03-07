@@ -1,0 +1,1 @@
+antlr4 -Dlanguage=TypeScript .\CSharpRoutineLexer.g4 .\CSharpRoutineParser.g4 -o ..\..\src\main\generated\csharp

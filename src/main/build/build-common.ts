@@ -51,12 +51,7 @@ export interface LocalizationImporter {
 }
 
 export interface GameCodeExporter {
-    export(
-        db: DbClient,
-        importRequest: GameExportRequest,
-        mainConn: DbConnection,
-        helperConn: DbConnection,
-    ): Promise<void>;
+    export(db: DbClient, importRequest: GameExportRequest, conn: DbConnection): Promise<void>;
     teardown(): Promise<void>;
 }
 
