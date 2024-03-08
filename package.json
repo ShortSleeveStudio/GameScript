@@ -53,7 +53,7 @@
         "electron-vite": "^2.0.0",
         "eslint": "^8.56.0",
         "eslint-plugin-svelte": "^2.35.1",
-        "monaco-editor": "^0.45.0",
+        "monaco-editor": "^0.46.0",
         "mousetrap": "^1.6.5",
         "prettier": "^3.1.1",
         "prettier-plugin-svelte": "^3.1.2",

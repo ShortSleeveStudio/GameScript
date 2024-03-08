@@ -14,7 +14,6 @@ export interface DialogResult {
 
 export interface DialogApi {
     exportLocationDataSelect(): Promise<DialogResult>;
-    exportLocationRoutinesSelect(): Promise<DialogResult>;
     exportLocationLocalizationSelect(): Promise<DialogResult>;
     importLocationLocalizationSelect(): Promise<DialogResult>;
     sqliteDbOpen(): Promise<DialogResult>;
@@ -26,13 +25,6 @@ export const dialogApi: DialogApi = {
     exportLocationDataSelect: async () => {
         return await ipcRenderer.invoke(API_DIALOG_OPEN, <OpenDialogOptions>{
             title: 'Select the Data Export Location',
-            buttonLabel: 'Select Location',
-            properties: ['openDirectory'],
-        });
-    },
-    exportLocationRoutinesSelect: async () => {
-        return await ipcRenderer.invoke(API_DIALOG_OPEN, <OpenDialogOptions>{
-            title: 'Select the Routines Export Location',
             buttonLabel: 'Select Location',
             properties: ['openDirectory'],
         });

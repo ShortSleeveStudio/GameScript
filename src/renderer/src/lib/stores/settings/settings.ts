@@ -10,7 +10,6 @@ import {
     LS_KEY_BUILD_EXPORT_LOCALIZATION_FORMAT,
     LS_KEY_BUILD_EXPORT_PATH_DATA,
     LS_KEY_BUILD_EXPORT_PATH_LOCALIZATION,
-    LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
     LS_KEY_BUILD_IMPORT_LOCALIZATION_FORMAT,
     LS_KEY_BUILD_IMPORT_PATH_LOCALIZATION,
     LS_KEY_SETTINGS_DB_CONNECTION_CONFIG,
@@ -41,10 +40,6 @@ export const dbConnectionConfig: Writable<DbConnectionConfig> = persisted(
 ///
 export const buildExportPathData: Writable<DialogResult> = persisted(
     LS_KEY_BUILD_EXPORT_PATH_DATA,
-    <DialogResult>{},
-);
-export const buildExportPathRoutines: Writable<DialogResult> = persisted(
-    LS_KEY_BUILD_EXPORT_PATH_ROUTINES,
     <DialogResult>{},
 );
 export const buildExportPathLocalization: Writable<DialogResult> = persisted(

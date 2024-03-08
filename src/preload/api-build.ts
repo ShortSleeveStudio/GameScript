@@ -33,7 +33,6 @@ export interface GameExportRequest {
     language: number;
     database: DatabaseInfo;
     dataLocation: string; // full path
-    codeLocation: string; // full path
 }
 
 export interface BuildApi {

@@ -2,7 +2,7 @@ import { ReadStream } from 'fs';
 import fs from 'fs/promises';
 import path from 'path';
 import { DbClient, DbConnection } from '../../common/common-db-types';
-import { Localization, Routine } from '../../common/common-schema';
+import { Localization } from '../../common/common-schema';
 import {
     LOCALIZATION_FORMAT_CSV,
     LOCALIZATION_FORMAT_JSON,
@@ -14,7 +14,6 @@ import {
     LocalizationImportRequest,
 } from '../../preload/api-build';
 import { isFolder } from '../common/common-helpers';
-import { FlagCache } from './game-exporter-code-flagcache';
 
 export const EXPORTER_FILENAME_HELPER_DB: string = 'HELPER_DB___DO_NOT_SHIP.db';
 export const EXPORTER_FILENAME_DATA_FILE: string = 'game.dat';
@@ -54,10 +53,6 @@ export interface LocalizationImporter {
 export interface GameCodeExporter {
     export(db: DbClient, importRequest: GameExportRequest, conn: DbConnection): Promise<void>;
     teardown(): Promise<void>;
-}
-
-export interface GameExporterCodeTranspiler {
-    transpile(routine: Routine, flagCache: FlagCache): string;
 }
 
 export interface GameDataExporter {

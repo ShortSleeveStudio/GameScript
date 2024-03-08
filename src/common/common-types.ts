@@ -47,6 +47,7 @@ export const TABLE_ACTORS: DatabaseTableType = { id: 10, name: 'actors' };
 export const TABLE_ACTOR_PRINCIPAL: DatabaseTableType = { id: 11, name: 'actor_principal' };
 export const TABLE_NODES: DatabaseTableType = { id: 12, name: 'nodes' };
 export const TABLE_EDGES: DatabaseTableType = { id: 13, name: 'edges' };
+export const TABLE_SYSTEM: DatabaseTableType = { id: 14, name: 'system' };
 export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_AUTO_COMPLETES,
     TABLE_PROGRAMMING_LANGUAGES,
@@ -62,6 +63,7 @@ export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_ACTOR_PRINCIPAL,
     TABLE_NODES,
     TABLE_EDGES,
+    TABLE_SYSTEM,
 ] as const;
 export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
 export type DatabaseTableName = (typeof DATABASE_TABLES)[number]['name'];

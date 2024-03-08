@@ -6,6 +6,7 @@ import type {
     ProgrammingLanguagePrincipal,
     Routine,
     Row,
+    System,
 } from './common-schema';
 import {
     PROGRAMMING_LANGUAGE_CS,
@@ -20,6 +21,7 @@ import {
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
+    TABLE_SYSTEM,
     type DatabaseTableType,
 } from './common-types';
 import { ACTORS_DEFAULT_COLOR } from './constants';
@@ -35,6 +37,7 @@ export const DB_DEFAULT_LOCALE_ID: number = 1;
 export const DB_DEFAULT_LOCALE_PRINCIPAL_ID: number = 1;
 export const DB_DEFAULT_ROUTINE_ID: number = 1;
 export const DB_DEFAULT_ROUTINE_PRINCIPAL_ID: number = 1;
+export const DB_DEFAULT_SYSTEM_ID: number = 1;
 
 export const DB_INITIAL_ROWS: InitialTableRows[] = [
     { table: TABLE_PROGRAMMING_LANGUAGES, rows: PROGRAMMING_LANGUAGE_TYPES },
@@ -97,6 +100,15 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
             <ActorPrincipal>{
                 id: DB_DEFAULT_ACTOR_PRINCIPAL_ID,
                 principal: DB_DEFAULT_ACTOR_ID,
+            },
+        ],
+    },
+    {
+        table: TABLE_SYSTEM,
+        rows: [
+            <System>{
+                id: DB_DEFAULT_SYSTEM_ID,
+                version: '0.0.0',
             },
         ],
     },

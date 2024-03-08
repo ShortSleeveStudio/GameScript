@@ -11,6 +11,7 @@ import {
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
+    TABLE_SYSTEM,
     type DatabaseTableType,
     type FieldTypeId,
 } from '@common/common-types';
@@ -280,6 +281,7 @@ export abstract class DbBase implements Db {
                 case TABLE_ROUTINE_TYPES.id:
                 case TABLE_ROUTINES.id:
                 case TABLE_LOCALE_PRINCIPAL.id:
+                case TABLE_SYSTEM.id:
                 case TABLE_ACTOR_PRINCIPAL.id: {
                     await this.createRows(initialTableRows.table, initialTableRows.rows);
                     break;

@@ -4,17 +4,11 @@
     import { Button, OverflowMenuItem, Tile, Tooltip } from 'carbon-components-svelte';
     import FileSelector from '../common/FileSelector.svelte';
     import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import {
-        buildExportPathData,
-        buildExportPathRoutines,
-        dbConnectionConfig,
-        dbType,
-    } from '@lib/stores/settings/settings';
+    import { buildExportPathData, dbConnectionConfig, dbType } from '@lib/stores/settings/settings';
     import type { DialogResult } from 'preload/api-dialog';
     import { DATABASE_TYPE_POSTGRES, DATABASE_TYPE_SQLITE } from '@common/common-types';
     import type { DatabaseInfo, GameExportRequest } from 'preload/api-build';
     import { get } from 'svelte/store';
-    import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
 
     export let isLoading: IsLoadingStore;
 
@@ -24,14 +18,6 @@
         );
         if (openResult.cancelled) return;
         $buildExportPathData = openResult;
-    }
-
-    async function onSelectRoutineLocation(): Promise<void> {
-        const openResult: DialogResult = await isLoading.wrapPromise(
-            window.api.dialog.exportLocationRoutinesSelect(),
-        );
-        if (openResult.cancelled) return;
-        $buildExportPathRoutines = openResult;
     }
 
     async function onExport(): Promise<void> {
@@ -45,10 +31,8 @@
         }
         await isLoading.wrapPromise(
             window.api.build.gameExport(<GameExportRequest>{
-                language: get(get(programmingLanguagePrincipalTable)[0]).principal,
                 database: database,
                 dataLocation: $buildExportPathData.path,
-                codeLocation: $buildExportPathRoutines.path,
             }),
         );
     }
@@ -59,9 +43,8 @@
     <p>
         <Tooltip triggerText="Data Export Location" align="start" direction="bottom">
             <p>
-                {APP_NAME} exports all localization and conversation graph data to a single compressed
-                file that is used by the {APP_NAME} engine modules at runtime. This setting dictates
-                which folder the data file will be exported to.
+                This folder is where {APP_NAME} will export all localization and conversation graph data
+                to be used by the {APP_NAME} engine modules which ultimately build your game.
             </p>
         </Tooltip>
         <FileSelector
@@ -78,32 +61,6 @@
                     disabled={$buildExportPathData.path === '' || $isLoading}
                     on:click={() => {
                         $buildExportPathData.path = '';
-                    }}
-                />
-            </svelte:fragment>
-        </FileSelector>
-    </p>
-    <p>
-        <Tooltip triggerText="Routine Export Location" align="start" direction="bottom">
-            <p>
-                {APP_NAME} transpiles all routines to the language of your choosing and then exports
-                all generated code this directory.
-            </p>
-        </Tooltip>
-        <FileSelector
-            buttonText={'Select Location'}
-            buttonDisabled={$isLoading}
-            on:click={onSelectRoutineLocation}
-            fieldText={$buildExportPathRoutines.path}
-            fieldPlaceholder={'Routines export path...'}
-        >
-            <svelte:fragment slot="overflow">
-                <OverflowMenuItem
-                    text="Clear"
-                    danger
-                    disabled={$buildExportPathRoutines.path === '' || $isLoading}
-                    on:click={() => {
-                        $buildExportPathRoutines.path = '';
                     }}
                 />
             </svelte:fragment>

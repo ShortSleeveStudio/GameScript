@@ -132,3 +132,10 @@ export interface Edge extends Row, Annotated, ConversationChild {
     target: number; // FK Nodes
     // UNIQUE(parent, source, target)
 }
+
+///
+/// System
+///
+export interface System extends Row {
+    version: string;
+}
