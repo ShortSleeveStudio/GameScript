@@ -88,7 +88,7 @@ export class ToastManager {
         return this._toastsReadable;
     }
 
-    showToast(toast: ToastItem) {
+    showToast(toast: ToastItem): void {
         this._toastsWritable.update((value: ToastItem[]) => {
             value.unshift(toast);
             return value;
@@ -96,7 +96,7 @@ export class ToastManager {
     }
 
     // This allows us to pass this method around as a callback while retaining 'this'
-    hideToast = (toast: ToastItem) => {
+    hideToast: (toast: ToastItem) => void = (toast: ToastItem) => {
         this._toastsWritable.update((value: ToastItem[]) => {
             const index: number = value.findIndex((item: ToastItem) => item.id === toast.id);
             if (index !== -1) {

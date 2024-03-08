@@ -29,6 +29,7 @@
             (rowViews: IDbRowView<ProgrammingLanguagePrincipal>[]) => {
                 if (rowViews.length === 1 && languagePrincipalRowView !== rowViews[0]) {
                     languagePrincipalRowView = rowViews[0];
+                    if (languagePrincipalRowUnsubscriber) languagePrincipalRowUnsubscriber();
                     languagePrincipalRowUnsubscriber = languagePrincipalRowView.subscribe(
                         onProgrammingLanguageChanged,
                     );

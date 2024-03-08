@@ -49,6 +49,7 @@ export async function nodeCreate(
                 type: ROUTINE_TYPE_USER_CREATED.id,
                 isSystemCreated: true,
                 parent: newNode.parent,
+                isCondition: true,
             },
             conn,
         );
@@ -60,6 +61,7 @@ export async function nodeCreate(
                 type: ROUTINE_TYPE_USER_CREATED.id,
                 isSystemCreated: true,
                 parent: newNode.parent,
+                isCondition: false,
             },
             conn,
         );

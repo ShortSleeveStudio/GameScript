@@ -30,6 +30,7 @@ export interface LocalizationImportRequest {
 }
 
 export interface GameExportRequest {
+    language: number;
     database: DatabaseInfo;
     dataLocation: string; // full path
     codeLocation: string; // full path

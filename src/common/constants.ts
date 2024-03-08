@@ -42,3 +42,6 @@ export const API_SQLITE_ON_NOTIFICATION = '/api/sqlite/on-notification';
 export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';
 export const API_BUILD_LOCALIZATION_IMPORT = '/api/build/localization/import';
 export const API_BUILD_GAME_EXPORT = '/api/build/game/export';
+
+// Transpile
+export const API_TRANSPILE_VALIDATE = '/api/transpile/validate';

@@ -5,7 +5,7 @@ options {
 }
 
 // Entry Point
-routine: scheduled_block* EOF;
+routine: scheduled_block* EOF | block EOF;
 
 // Scheduled Blocks
 scheduled_block

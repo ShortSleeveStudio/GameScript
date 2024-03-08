@@ -57,6 +57,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
                 code: '',
                 type: ROUTINE_TYPE_IMPORT.id,
                 isSystemCreated: true,
+                isCondition: false,
             },
         ],
     },

@@ -9,7 +9,7 @@ import {
     GameDataExporter as GameExporterData,
     GameHelperDbExporter as GameExporterHelperDb,
 } from './build-common';
-import { gameExporterCodeAntlr } from './game-exporter-code-antlr';
+import { gameExporterCodeAntlr } from './game-exporter-code';
 import { gameExporterDataMsgPack } from './game-exporter-data-msgpack';
 import { gameHelperDbExporterDefault as gameExporterHelperDbDefault } from './game-exporter-helper-db';
 
@@ -33,10 +33,10 @@ export async function gameExport(db: DbClient, payload: GameExportRequest): Prom
     const helperDbConfig: DbConnectionConfig = <DbConnectionConfig>{
         sqliteFile: path.join(payload.dataLocation, EXPORTER_FILENAME_HELPER_DB),
     };
-    const dbExists: boolean = await doesFileExist(helperDbConfig.sqliteFile);
-    if (dbExists) {
-        throw new Error('Helper database already exists. Please export to an empty folder');
-    }
+    // const dbExists: boolean = await doesFileExist(helperDbConfig.sqliteFile);
+    // if (dbExists) {
+    //     throw new Error('Helper database already exists. Please export to an empty folder');
+    // }
 
     // Name files
     const exporterGameHelperDb: GameExporterHelperDb = gameExporterHelperDbDefault;
@@ -45,13 +45,13 @@ export async function gameExport(db: DbClient, payload: GameExportRequest): Prom
     try {
         await executeTransaction(db, helperDbConfig, async (helperConn: DbConnection) => {
             // Create Helper DB
-            await executeTransaction(
-                db,
-                payload.database.databaseConfig,
-                async (mainConn: DbConnection) => {
-                    await exporterGameHelperDb.export(db, payload, mainConn, helperConn);
-                },
-            );
+            // await executeTransaction(
+            //     db,
+            //     payload.database.databaseConfig,
+            //     async (mainConn: DbConnection) => {
+            //         await exporterGameHelperDb.export(db, payload, mainConn, helperConn);
+            //     },
+            // );
 
             // Code Export
             await exporterGameCode.export(db, payload, helperConn);

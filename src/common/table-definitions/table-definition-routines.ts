@@ -34,6 +34,12 @@ TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
+    name: 'isCondition',
+    type: FIELD_TYPE_BOOLEAN,
+    notNull: true,
+    defaultValue: false,
+});
+TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
     name: 'notes',
     type: FIELD_TYPE_TEXT,
     notNull: false,

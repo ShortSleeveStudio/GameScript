@@ -3,6 +3,7 @@ import { DialogApi, dialogApi } from './api-dialog';
 import { FileSystemApi, fsApi } from './api-filesystem';
 import { SqliteApi, sqliteApi } from './api-sqlite';
 import { SystemApi, systemApi } from './api-system';
+import { TranspileApi, transpileApi } from './api-transpile';
 import { windowApi, type WindowApi } from './api-window';
 
 export interface API {
@@ -12,6 +13,7 @@ export interface API {
     sqlite: SqliteApi;
     build: BuildApi;
     system: SystemApi;
+    transpile: TranspileApi;
 }
 
 export const api = <API>{
@@ -21,4 +23,5 @@ export const api = <API>{
     sqlite: sqliteApi,
     build: buildApi,
     system: systemApi,
+    transpile: transpileApi,
 };

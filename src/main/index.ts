@@ -99,6 +99,7 @@ import './ipc-build';
 import './ipc-dialog';
 import './ipc-fs';
 import './ipc-sqlite';
+import './ipc-transpile';
 import './ipc-window';
 
 /**

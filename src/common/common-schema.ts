@@ -54,6 +54,7 @@ export interface RoutineType extends Row {}
 export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild {
     code: string;
     type: number;
+    isCondition: boolean;
 }
 
 ///

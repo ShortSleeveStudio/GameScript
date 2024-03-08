@@ -14,6 +14,7 @@
     import { DATABASE_TYPE_POSTGRES, DATABASE_TYPE_SQLITE } from '@common/common-types';
     import type { DatabaseInfo, GameExportRequest } from 'preload/api-build';
     import { get } from 'svelte/store';
+    import { programmingLanguagePrincipalTable } from '@lib/tables/programming-language-principal';
 
     export let isLoading: IsLoadingStore;
 
@@ -44,6 +45,7 @@
         }
         await isLoading.wrapPromise(
             window.api.build.gameExport(<GameExportRequest>{
+                language: get(get(programmingLanguagePrincipalTable)[0]).principal,
                 database: database,
                 dataLocation: $buildExportPathData.path,
                 codeLocation: $buildExportPathRoutines.path,
