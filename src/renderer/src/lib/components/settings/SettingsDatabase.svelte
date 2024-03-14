@@ -72,6 +72,8 @@
                 resetConnectionConfig();
                 throw error;
             }
+        } else {
+            resetConnectionConfig();
         }
     }
     attemptConnection();

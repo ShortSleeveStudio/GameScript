@@ -19,12 +19,6 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'name',
-    type: FIELD_TYPE_TEXT,
-    notNull: false,
-    defaultValue: undefined,
-});
-TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'parent',
     type: FIELD_TYPE_INTEGER,
     notNull: true,
@@ -67,7 +61,7 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'preventResponse',
+    name: 'isPreventResponse',
     type: FIELD_TYPE_BOOLEAN,
     notNull: false,
     defaultValue: 0,

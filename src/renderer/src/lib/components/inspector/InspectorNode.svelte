@@ -131,7 +131,7 @@
     </Tooltip>
     <RowColumnBoolean
         {rowView}
-        columnName={'preventResponse'}
+        columnName={'isPreventResponse'}
         undoText={NODE_UNDO_PREVENT_RESPONSE}
     />
 </p>

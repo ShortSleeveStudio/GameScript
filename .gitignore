@@ -4,4 +4,4 @@ out
 .DS_Store
 *.log*
 src/common/TEMPORARY
-dsl/grammar/.antlr
+test_scripts

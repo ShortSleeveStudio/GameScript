@@ -141,8 +141,8 @@
             isSystemCreated: false,
             notes: '',
             isDeleted: false,
-            layoutAuto: get(graphLayoutAutoLayoutDefault),
-            layoutVertical: get(graphLayoutVerticalDefault),
+            isLayoutAuto: get(graphLayoutAutoLayoutDefault),
+            isLayoutVertical: get(graphLayoutVerticalDefault),
         };
         await conversationCreate(conversation, isLoading);
     }

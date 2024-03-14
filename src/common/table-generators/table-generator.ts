@@ -12,7 +12,7 @@ import { TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL } from '../table-defini
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGES } from '../table-definitions/table-definition-programming-languages';
 import { TABLE_DEFINITION_ROUTINE_TYPES } from '../table-definitions/table-definition-routine-types';
 import { TABLE_DEFINITION_ROUTINES } from '../table-definitions/table-definition-routines';
-import { TABLE_DEFINITION_SYSTEM } from '../table-definitions/table-definition-system';
+import { TABLE_DEFINITION_VERSION } from '../table-definitions/table-definition-version';
 import { TableDefinition } from '../table-definitions/table-definitions';
 
 export const TABLE_DEFINITIONS: TableDefinition[] = [
@@ -30,5 +30,5 @@ export const TABLE_DEFINITIONS: TableDefinition[] = [
     TABLE_DEFINITION_ACTOR_PRINCIPAL,
     TABLE_DEFINITION_NODES,
     TABLE_DEFINITION_EDGES,
-    TABLE_DEFINITION_SYSTEM,
+    TABLE_DEFINITION_VERSION,
 ];

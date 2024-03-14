@@ -1,1 +1,1 @@
-antlr4-parse.exe .\CSharpRoutineLexer.g4 .\CSharpRoutineParser.g4 routine ..\demo.gs -gui
+antlr4-parse.exe .\CSharpRoutineLexer.g4 .\CSharpRoutineParser.g4 routine test_scripts\test.gs -gui

@@ -15,12 +15,6 @@ TABLE_DEFINITION_EDGES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_EDGES.addColumn(<ColumnDefinition>{
-    name: 'name',
-    type: FIELD_TYPE_TEXT,
-    notNull: false,
-    defaultValue: undefined,
-});
-TABLE_DEFINITION_EDGES.addColumn(<ColumnDefinition>{
     name: 'parent',
     type: FIELD_TYPE_INTEGER,
     notNull: true,
@@ -40,7 +34,7 @@ TABLE_DEFINITION_EDGES.addColumn(<ColumnDefinition>{
 });
 TABLE_DEFINITION_EDGES.addColumn(<ColumnDefinition>{
     name: 'type',
-    type: FIELD_TYPE_INTEGER,
+    type: FIELD_TYPE_TEXT,
     notNull: true,
     defaultValue: undefined,
 });

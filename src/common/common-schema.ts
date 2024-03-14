@@ -4,7 +4,6 @@
 export interface Row {
     // This is ignored during serialization for inserts/updates
     id: number;
-    name: string;
     [key: string]: unknown; // helpful for dictionary-style lookups
 }
 export interface Annotated {
@@ -22,11 +21,14 @@ export interface Deletable {
 export interface ConversationChild {
     parent: number; // FK Conversation
 }
+export interface Named {
+    name: string;
+}
 
 ///
 /// Auto-Completes
 ///
-export interface AutoComplete extends Row {
+export interface AutoComplete extends Row, Named {
     icon: number;
     rule: number;
     insertion: string;
@@ -36,7 +38,7 @@ export interface AutoComplete extends Row {
 ///
 /// Programming Languages
 ///
-export interface ProgrammingLanguage extends Row {}
+export interface ProgrammingLanguage extends Row, Named {}
 
 ///
 /// Programming Language Principal
@@ -46,12 +48,12 @@ export interface ProgrammingLanguagePrincipal extends Row, Principaled {}
 ///
 /// Routine Types
 ///
-export interface RoutineType extends Row {}
+export interface RoutineType extends Row, Named {}
 
 ///
 /// Routines
 ///
-export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild {
+export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild, Named {
     code: string;
     type: number;
     isCondition: boolean;
@@ -60,20 +62,20 @@ export interface Routine extends Row, Annotated, SystemCreatable, ConversationCh
 ///
 /// Filters
 ///
-export interface Filter extends Row, Annotated {}
+export interface Filter extends Row, Annotated, Named {}
 
 ///
 /// Conversations
 ///
-export interface Conversation extends Row, SystemCreatable, Annotated, Deletable {
-    layoutAuto: boolean;
-    layoutVertical: boolean;
+export interface Conversation extends Row, SystemCreatable, Annotated, Deletable, Named {
+    isLayoutAuto: boolean;
+    isLayoutVertical: boolean;
 }
 
 ///
 /// Locales
 ///
-export interface Locale extends Row, SystemCreatable {
+export interface Locale extends Row, SystemCreatable, Named {
     localizedName: number; // FK Localization
 }
 
@@ -85,14 +87,14 @@ export interface LocalePrincipal extends Row, Principaled {}
 ///
 /// Localization
 ///
-export interface Localization extends Row, SystemCreatable, ConversationChild {
+export interface Localization extends Row, SystemCreatable, ConversationChild, Named {
     // 'name' is used for nicknames
 }
 
 ///
 /// Actors
 ///
-export interface Actor extends Row, Annotated, SystemCreatable {
+export interface Actor extends Row, Annotated, SystemCreatable, Named {
     color: string;
     localizedName: number; // FK Localization
 }
@@ -112,7 +114,7 @@ export interface Node extends Row, Annotated, SystemCreatable, ConversationChild
     condition: number; // FK Routines
     code: number; // FK Routines
     codeOverride: number | null;
-    preventResponse: boolean;
+    isPreventResponse: boolean;
 
     // Graph Stuff
     type: string;

@@ -21,7 +21,7 @@ import {
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
-    TABLE_SYSTEM,
+    TABLE_VERSION,
     type DatabaseTableType,
 } from './common-types';
 import { ACTORS_DEFAULT_COLOR } from './constants';
@@ -104,7 +104,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
         ],
     },
     {
-        table: TABLE_SYSTEM,
+        table: TABLE_VERSION,
         rows: [
             <System>{
                 id: DB_DEFAULT_SYSTEM_ID,

@@ -40,13 +40,13 @@ TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'layoutAuto',
+    name: 'isLayoutAuto',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'layoutVertical',
+    name: 'isLayoutVertical',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
