@@ -98,6 +98,8 @@
         undoText={EDGE_UNDO_PRIORITY}
         inputPlaceholder={EDGE_PLACEHOLDER_PRIORITY}
         isNumber={true}
+        numberMax={255}
+        numberMin={0}
     />
 </p>
 {#if $rowView.type === EDGE_TYPE_HIDDEN.name}

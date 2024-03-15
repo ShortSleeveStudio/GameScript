@@ -33,25 +33,25 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'uiResponseText',
     type: FIELD_TYPE_INTEGER,
-    notNull: true,
+    notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'voiceText',
     type: FIELD_TYPE_INTEGER,
-    notNull: true,
+    notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'condition',
     type: FIELD_TYPE_INTEGER,
-    notNull: true,
+    notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'code',
     type: FIELD_TYPE_INTEGER,
-    notNull: true,
+    notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{

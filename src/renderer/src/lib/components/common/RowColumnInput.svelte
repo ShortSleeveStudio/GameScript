@@ -15,6 +15,8 @@
     export let columnName: string;
     export let inputPlaceholder: string;
     export let isNumber: boolean = false;
+    export let numberMin: number = Number.NEGATIVE_INFINITY;
+    export let numberMax: number = Number.POSITIVE_INFINITY;
 
     const NON_NUMBERS = /\D/g;
     const isLoading: IsLoadingStore = new IsLoadingStore();
@@ -37,6 +39,7 @@
     });
 
     async function syncOnBlur(): Promise<void> {
+        sanitizeBoundValue();
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;
@@ -69,7 +72,17 @@
 
     function onInput(): void {
         if (!isNumber) return;
-        boundValue = boundValue.replace(NON_NUMBERS, '');
+        if (boundValue === '' || boundValue === '-') return;
+        sanitizeBoundValue();
+    }
+
+    function sanitizeBoundValue(): void {
+        let num: number = parseInt(boundValue);
+        if (isNaN(num)) {
+            num = 0;
+        }
+        const newNum = num > 0 ? Math.min(numberMax, num) : Math.max(numberMin, num);
+        boundValue = newNum.toString();
     }
 </script>
 

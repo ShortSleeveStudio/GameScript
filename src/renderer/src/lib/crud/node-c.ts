@@ -2,6 +2,7 @@ import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
 import type { DbConnection } from '@common/common-db-types';
 import { type Localization, type Node, type Routine } from '@common/common-schema';
 import {
+    NODE_TYPE_ROOT,
     ROUTINE_TYPE_USER_CREATED,
     TABLE_LOCALIZATIONS,
     TABLE_NODES,
@@ -22,59 +23,61 @@ export async function nodeCreate(
     let newCode: Routine;
 
     const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
-        // Create uiResponseText
-        newUiResponseText = await db.createRow(
-            TABLE_LOCALIZATIONS,
-            <Localization>{
-                parent: newNode.parent,
-                isSystemCreated: true,
-            },
-            conn,
-        );
-        // Create voiceText
-        newVoiceText = await db.createRow(
-            TABLE_LOCALIZATIONS,
-            <Localization>{
-                parent: newNode.parent,
-                isSystemCreated: true,
-            },
-            conn,
-        );
-
-        // Create condition
-        newCondition = await db.createRow(
-            TABLE_ROUTINES,
-            <Routine>{
-                code: '',
-                type: ROUTINE_TYPE_USER_CREATED.id,
-                isSystemCreated: true,
-                parent: newNode.parent,
-                isCondition: true,
-            },
-            conn,
-        );
-        // Create code
-        newCode = await db.createRow(
-            TABLE_ROUTINES,
-            <Routine>{
-                code: '',
-                type: ROUTINE_TYPE_USER_CREATED.id,
-                isSystemCreated: true,
-                parent: newNode.parent,
-                isCondition: false,
-            },
-            conn,
-        );
+        // Don't bother creating routines/localizations for the root node
+        if (newNode.type !== NODE_TYPE_ROOT.name) {
+            // Create uiResponseText
+            newUiResponseText = await db.createRow(
+                TABLE_LOCALIZATIONS,
+                <Localization>{
+                    parent: newNode.parent,
+                    isSystemCreated: true,
+                },
+                conn,
+            );
+            // Create voiceText
+            newVoiceText = await db.createRow(
+                TABLE_LOCALIZATIONS,
+                <Localization>{
+                    parent: newNode.parent,
+                    isSystemCreated: true,
+                },
+                conn,
+            );
+            // Create condition
+            newCondition = await db.createRow(
+                TABLE_ROUTINES,
+                <Routine>{
+                    code: '',
+                    type: ROUTINE_TYPE_USER_CREATED.id,
+                    isSystemCreated: true,
+                    parent: newNode.parent,
+                    isCondition: true,
+                },
+                conn,
+            );
+            // Create code
+            newCode = await db.createRow(
+                TABLE_ROUTINES,
+                <Routine>{
+                    code: '',
+                    type: ROUTINE_TYPE_USER_CREATED.id,
+                    isSystemCreated: true,
+                    parent: newNode.parent,
+                    isCondition: false,
+                },
+                conn,
+            );
+        }
         // Create Node
         newNode = await db.createRow(
             TABLE_NODES,
             <Node>{
                 parent: newNode.parent,
                 actor: DB_DEFAULT_ACTOR_ID,
-                uiResponseText: newUiResponseText.id,
-                voiceText: newVoiceText.id,
-                condition: newCondition.id,
-                code: newCode.id,
+                uiResponseText: newUiResponseText ? newUiResponseText.id : null,
+                voiceText: newVoiceText ? newVoiceText.id : null,
+                condition: newCondition ? newCondition.id : null,
+                code: newCode ? newCode.id : null,
                 isSystemCreated: newNode.isSystemCreated,
                 // Graph Stuff
                 type: newNode.type,
