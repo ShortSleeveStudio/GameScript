@@ -40,7 +40,7 @@
         "@types/node": "^18.19.5",
         "@types/papaparse": "^5.3.14",
         "@types/stream-json": "^1.7.7",
-        "@xyflow/svelte": "^0.0.37",
+        "@xyflow/svelte": "^0.0.39",
         "antlr4": "4.13.1-patch-1",
         "carbon-components-svelte": "^0.82.8",
         "carbon-icons-svelte": "^12.4.2",

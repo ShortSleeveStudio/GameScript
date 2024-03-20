@@ -59,8 +59,8 @@ devDependencies:
     specifier: ^1.7.7
     version: 1.7.7
   '@xyflow/svelte':
-    specifier: ^0.0.37
-    version: 0.0.37(svelte@4.2.9)
+    specifier: ^0.0.39
+    version: 0.0.39(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.9)(typescript@5.3.3)
   antlr4:
     specifier: 4.13.1-patch-1
     version: 4.13.1-patch-1
@@ -1144,8 +1144,8 @@ packages:
       '@types/geojson': 7946.0.14
     dev: true
 
-  /@types/d3-hierarchy@3.1.6:
-    resolution: {integrity: sha512-qlmD/8aMk5xGorUvTUWHCiumvgaUXYldYjNVOWtYoTYY/L+WwIEAmJxUmTgr9LoGNG0PPAOmqMDJVDPc7DOpPw==}
+  /@types/d3-hierarchy@3.1.7:
+    resolution: {integrity: sha512-tJFtNoYBtRtkNysX1Xq4sxtjK8YgoWUNpIiUee0/jHGRwqvzYxkq0hGVbbOGSz+JgFxxRu4K8nb3YpG3CMARtg==}
     dev: true
 
   /@types/d3-interpolate@3.0.4:
@@ -1233,7 +1233,7 @@ packages:
       '@types/d3-force': 3.0.9
       '@types/d3-format': 3.0.4
       '@types/d3-geo': 3.1.0
-      '@types/d3-hierarchy': 3.1.6
+      '@types/d3-hierarchy': 3.1.7
       '@types/d3-interpolate': 3.0.4
       '@types/d3-path': 3.1.0
       '@types/d3-polygon': 3.0.2
@@ -1526,19 +1526,31 @@ packages:
     requiresBuild: true
     dev: true
 
-  /@xyflow/svelte@0.0.37(svelte@4.2.9):
-    resolution: {integrity: sha512-7aXtKB2rdifwY+ifL7J5ofbX6wvUUZrIvvwCl4RcLtlC5QKqtpGmz/UDVQKTJJjiY1qTXvXyajrPT2qKNZL3aQ==}
+  /@xyflow/svelte@0.0.39(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.9)(typescript@5.3.3):
+    resolution: {integrity: sha512-Kam9VMXIrKjIpBvalJLNrxqbI/ASHaYHj6ZRkdGsnAx3aYgB+de0McAqiJToKdlOeZyHoQtxzSRX9D+ZTSEVZw==}
     peerDependencies:
       svelte: ^3.0.0 || ^4.0.0
     dependencies:
       '@svelte-put/shortcut': 3.1.0
-      '@xyflow/system': 0.0.18
+      '@xyflow/system': 0.0.20
       classcat: 5.0.4
       svelte: 4.2.9
+      svelte-preprocess: 5.1.3(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.9)(typescript@5.3.3)
+    transitivePeerDependencies:
+      - '@babel/core'
+      - coffeescript
+      - less
+      - postcss
+      - postcss-load-config
+      - pug
+      - sass
+      - stylus
+      - sugarss
+      - typescript
     dev: true
 
-  /@xyflow/system@0.0.18:
-    resolution: {integrity: sha512-OPRax1cKJLstvDrrb2sIxWZS+OhggP1cd9NA40ZAGTWDHTZLtVenujp3VrU6wyx0JQ4S8bN3InTQ6wuH3JTrzQ==}
+  /@xyflow/system@0.0.20:
+    resolution: {integrity: sha512-OQ9irX0HtZqAzOKtnNi7WpDT6SEp7VpR16VRatd7oImw5vahyjmggUSY7as9XvJnAz0D9H0g1qjRX99moabvQA==}
     dependencies:
       '@types/d3': 7.4.3
       '@types/d3-drag': 3.0.7
