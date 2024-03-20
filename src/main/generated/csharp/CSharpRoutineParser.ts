@@ -19,81 +19,79 @@ type int = number;
 export default class CSharpRoutineParser extends Parser {
 	public static readonly TYPE_BOOLEAN = 1;
 	public static readonly TYPE_CHAR = 2;
-	public static readonly TYPE_FLOAT_DEFAULT = 3;
-	public static readonly TYPE_FLOAT32 = 4;
-	public static readonly TYPE_FLOAT64 = 5;
-	public static readonly TYPE_INT_DEFAULT = 6;
-	public static readonly TYPE_INT8 = 7;
-	public static readonly TYPE_INT16 = 8;
-	public static readonly TYPE_INT32 = 9;
-	public static readonly TYPE_INT64 = 10;
-	public static readonly TYPE_UINT_DEFAULT = 11;
-	public static readonly TYPE_UINT8 = 12;
-	public static readonly TYPE_UINT16 = 13;
-	public static readonly TYPE_UINT32 = 14;
-	public static readonly TYPE_UINT64 = 15;
-	public static readonly TYPE_STRING = 16;
-	public static readonly NODE = 17;
-	public static readonly LEASE = 18;
-	public static readonly BREAK = 19;
-	public static readonly CASE = 20;
-	public static readonly DEFAULT = 21;
-	public static readonly IF = 22;
-	public static readonly ELSE = 23;
-	public static readonly SWITCH = 24;
-	public static readonly INTEGER_LITERAL = 25;
-	public static readonly FLOATING_POINT_LITERAL = 26;
-	public static readonly BOOLEAN_LITERAL = 27;
-	public static readonly CHARACTER_LITERAL = 28;
-	public static readonly STRING_LITERAL = 29;
-	public static readonly NULL_LITERAL = 30;
-	public static readonly LPAREN = 31;
-	public static readonly RPAREN = 32;
-	public static readonly LBRACE = 33;
-	public static readonly RBRACE = 34;
-	public static readonly LBRACK = 35;
-	public static readonly RBRACK = 36;
-	public static readonly SEMI = 37;
-	public static readonly COMMA = 38;
-	public static readonly DOT = 39;
-	public static readonly COLON = 40;
-	public static readonly COLONCOLON = 41;
-	public static readonly ASSIGN = 42;
-	public static readonly ADD_ASSIGN = 43;
-	public static readonly SUB_ASSIGN = 44;
-	public static readonly MUL_ASSIGN = 45;
-	public static readonly DIV_ASSIGN = 46;
-	public static readonly AND_ASSIGN = 47;
-	public static readonly OR_ASSIGN = 48;
-	public static readonly XOR_ASSIGN = 49;
-	public static readonly MOD_ASSIGN = 50;
-	public static readonly LSHIFT_ASSIGN = 51;
-	public static readonly RSHIFT_ASSIGN = 52;
-	public static readonly GT = 53;
-	public static readonly LT = 54;
-	public static readonly EQUAL = 55;
-	public static readonly LE = 56;
-	public static readonly GE = 57;
-	public static readonly NOTEQUAL = 58;
-	public static readonly NOT = 59;
-	public static readonly BIT_NOT = 60;
-	public static readonly BIT_AND = 61;
-	public static readonly BIT_OR = 62;
-	public static readonly BIT_XOR = 63;
-	public static readonly AND = 64;
-	public static readonly OR = 65;
-	public static readonly INC = 66;
-	public static readonly DEC = 67;
-	public static readonly ADD = 68;
-	public static readonly SUB = 69;
-	public static readonly MUL = 70;
-	public static readonly DIV = 71;
-	public static readonly MOD = 72;
-	public static readonly TERNARY = 73;
-	public static readonly IDENTIFIER = 74;
-	public static readonly WHITESPACE = 75;
-	public static readonly COMMENT_BLOCK = 76;
-	public static readonly COMMENT_LINE = 77;
+	public static readonly TYPE_FLOAT32 = 3;
+	public static readonly TYPE_FLOAT64 = 4;
+	public static readonly TYPE_FLOAT128 = 5;
+	public static readonly TYPE_INT8 = 6;
+	public static readonly TYPE_INT16 = 7;
+	public static readonly TYPE_INT32 = 8;
+	public static readonly TYPE_INT64 = 9;
+	public static readonly TYPE_UINT8 = 10;
+	public static readonly TYPE_UINT16 = 11;
+	public static readonly TYPE_UINT32 = 12;
+	public static readonly TYPE_UINT64 = 13;
+	public static readonly TYPE_STRING = 14;
+	public static readonly NODE = 15;
+	public static readonly LEASE = 16;
+	public static readonly BREAK = 17;
+	public static readonly CASE = 18;
+	public static readonly DEFAULT = 19;
+	public static readonly IF = 20;
+	public static readonly ELSE = 21;
+	public static readonly SWITCH = 22;
+	public static readonly INTEGER_LITERAL = 23;
+	public static readonly FLOATING_POINT_LITERAL = 24;
+	public static readonly BOOLEAN_LITERAL = 25;
+	public static readonly CHARACTER_LITERAL = 26;
+	public static readonly STRING_LITERAL = 27;
+	public static readonly NULL_LITERAL = 28;
+	public static readonly LPAREN = 29;
+	public static readonly RPAREN = 30;
+	public static readonly LBRACE = 31;
+	public static readonly RBRACE = 32;
+	public static readonly LBRACK = 33;
+	public static readonly RBRACK = 34;
+	public static readonly SEMI = 35;
+	public static readonly COMMA = 36;
+	public static readonly DOT = 37;
+	public static readonly COLON = 38;
+	public static readonly COLONCOLON = 39;
+	public static readonly ASSIGN = 40;
+	public static readonly ADD_ASSIGN = 41;
+	public static readonly SUB_ASSIGN = 42;
+	public static readonly MUL_ASSIGN = 43;
+	public static readonly DIV_ASSIGN = 44;
+	public static readonly AND_ASSIGN = 45;
+	public static readonly OR_ASSIGN = 46;
+	public static readonly XOR_ASSIGN = 47;
+	public static readonly MOD_ASSIGN = 48;
+	public static readonly LSHIFT_ASSIGN = 49;
+	public static readonly RSHIFT_ASSIGN = 50;
+	public static readonly GT = 51;
+	public static readonly LT = 52;
+	public static readonly EQUAL = 53;
+	public static readonly LE = 54;
+	public static readonly GE = 55;
+	public static readonly NOTEQUAL = 56;
+	public static readonly NOT = 57;
+	public static readonly BIT_NOT = 58;
+	public static readonly BIT_AND = 59;
+	public static readonly BIT_OR = 60;
+	public static readonly BIT_XOR = 61;
+	public static readonly AND = 62;
+	public static readonly OR = 63;
+	public static readonly INC = 64;
+	public static readonly DEC = 65;
+	public static readonly ADD = 66;
+	public static readonly SUB = 67;
+	public static readonly MUL = 68;
+	public static readonly DIV = 69;
+	public static readonly MOD = 70;
+	public static readonly TERNARY = 71;
+	public static readonly IDENTIFIER = 72;
+	public static readonly WHITESPACE = 73;
+	public static readonly COMMENT_BLOCK = 74;
+	public static readonly COMMENT_LINE = 75;
 	public static readonly EOF = Token.EOF;
 	public static readonly RULE_routine = 0;
 	public static readonly RULE_scheduled_block = 1;
@@ -122,14 +120,12 @@ export default class CSharpRoutineParser extends Parser {
 	public static readonly RULE_literal = 24;
 	public static readonly literalNames: (string | null)[] = [ null, "'bool'", 
                                                             "'char'", "'float'", 
-                                                            "'float32'", 
-                                                            "'float64'", 
-                                                            "'int'", "'int8'", 
-                                                            "'int16'", "'int32'", 
-                                                            "'int64'", "'uint'", 
-                                                            "'uint8'", "'uint16'", 
-                                                            "'uint32'", 
-                                                            "'uint64'", 
+                                                            "'double'", 
+                                                            "'decimal'", 
+                                                            "'sbyte'", "'short'", 
+                                                            "'int'", "'long'", 
+                                                            "'byte'", "'ushort'", 
+                                                            "'uint'", "'ulong'", 
                                                             "'string'", 
                                                             "'@node'", "'@lease'", 
                                                             "'break'", "'case'", 
@@ -163,15 +159,13 @@ export default class CSharpRoutineParser extends Parser {
                                                             "'?'" ];
 	public static readonly symbolicNames: (string | null)[] = [ null, "TYPE_BOOLEAN", 
                                                              "TYPE_CHAR", 
-                                                             "TYPE_FLOAT_DEFAULT", 
                                                              "TYPE_FLOAT32", 
                                                              "TYPE_FLOAT64", 
-                                                             "TYPE_INT_DEFAULT", 
+                                                             "TYPE_FLOAT128", 
                                                              "TYPE_INT8", 
                                                              "TYPE_INT16", 
                                                              "TYPE_INT32", 
                                                              "TYPE_INT64", 
-                                                             "TYPE_UINT_DEFAULT", 
                                                              "TYPE_UINT8", 
                                                              "TYPE_UINT16", 
                                                              "TYPE_UINT32", 
@@ -256,7 +250,7 @@ export default class CSharpRoutineParser extends Parser {
 				this.state = 53;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
-				while (_la===54) {
+				while (_la===52) {
 					{
 					{
 					this.state = 50;
@@ -338,7 +332,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 68;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			if (_la===74) {
+			if (_la===72) {
 				{
 				this.state = 67;
 				this.flag_list();
@@ -376,7 +370,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 74;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			if (_la===74) {
+			if (_la===72) {
 				{
 				this.state = 73;
 				this.flag_list();
@@ -520,7 +514,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 94;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4283432958) !== 0) || ((((_la - 33)) & ~0x1F) === 0 && ((1 << (_la - 33)) & 201326593) !== 0) || ((((_la - 66)) & ~0x1F) === 0 && ((1 << (_la - 66)) & 271) !== 0)) {
+			if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 3218341886) !== 0) || ((((_la - 57)) & ~0x1F) === 0 && ((1 << (_la - 57)) & 34691) !== 0)) {
 				{
 				this.state = 93;
 				this.statement_list();
@@ -566,7 +560,7 @@ export default class CSharpRoutineParser extends Parser {
 				this.state = 101;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
-			} while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4283432958) !== 0) || ((((_la - 33)) & ~0x1F) === 0 && ((1 << (_la - 33)) & 201326593) !== 0) || ((((_la - 66)) & ~0x1F) === 0 && ((1 << (_la - 66)) & 271) !== 0));
+			} while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 3218341886) !== 0) || ((((_la - 57)) & ~0x1F) === 0 && ((1 << (_la - 57)) & 34691) !== 0));
 			}
 		}
 		catch (re) {
@@ -701,7 +695,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 125;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while (_la===20 || _la===21) {
+			while (_la===18 || _la===19) {
 				{
 				{
 				this.state = 122;
@@ -739,7 +733,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 147;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
-			case 20:
+			case 18:
 				this.enterOuterAlt(localctx, 1);
 				{
 				this.state = 130;
@@ -751,7 +745,7 @@ export default class CSharpRoutineParser extends Parser {
 				this.state = 136;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
-				while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4283432958) !== 0) || ((((_la - 33)) & ~0x1F) === 0 && ((1 << (_la - 33)) & 201326593) !== 0) || ((((_la - 66)) & ~0x1F) === 0 && ((1 << (_la - 66)) & 271) !== 0)) {
+				while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 3218341886) !== 0) || ((((_la - 57)) & ~0x1F) === 0 && ((1 << (_la - 57)) & 34691) !== 0)) {
 					{
 					{
 					this.state = 133;
@@ -764,7 +758,7 @@ export default class CSharpRoutineParser extends Parser {
 				}
 				}
 				break;
-			case 21:
+			case 19:
 				this.enterOuterAlt(localctx, 2);
 				{
 				this.state = 139;
@@ -774,7 +768,7 @@ export default class CSharpRoutineParser extends Parser {
 				this.state = 144;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
-				while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4283432958) !== 0) || ((((_la - 33)) & ~0x1F) === 0 && ((1 << (_la - 33)) & 201326593) !== 0) || ((((_la - 66)) & ~0x1F) === 0 && ((1 << (_la - 66)) & 271) !== 0)) {
+				while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 3218341886) !== 0) || ((((_la - 57)) & ~0x1F) === 0 && ((1 << (_la - 57)) & 34691) !== 0)) {
 					{
 					{
 					this.state = 141;
@@ -847,7 +841,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 156;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			if (_la===42) {
+			if (_la===40) {
 				{
 				this.state = 154;
 				this.match(CSharpRoutineParser.ASSIGN);
@@ -937,7 +931,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 168;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while (_la===38) {
+			while (_la===36) {
 				{
 				{
 				this.state = 164;
@@ -1029,43 +1023,43 @@ export default class CSharpRoutineParser extends Parser {
 				this.state = 188;
 				this._errHandler.sync(this);
 				switch (this._input.LA(1)) {
-				case 69:
+				case 67:
 					{
 					this.state = 178;
 					this.match(CSharpRoutineParser.SUB);
 					}
 					break;
-				case 68:
+				case 66:
 					{
 					this.state = 179;
 					this.match(CSharpRoutineParser.ADD);
 					}
 					break;
-				case 59:
+				case 57:
 					{
 					this.state = 180;
 					this.match(CSharpRoutineParser.NOT);
 					}
 					break;
-				case 60:
+				case 58:
 					{
 					this.state = 181;
 					this.match(CSharpRoutineParser.BIT_NOT);
 					}
 					break;
-				case 67:
+				case 65:
 					{
 					this.state = 182;
 					this.match(CSharpRoutineParser.DEC);
 					}
 					break;
-				case 66:
+				case 64:
 					{
 					this.state = 183;
 					this.match(CSharpRoutineParser.INC);
 					}
 					break;
-				case 31:
+				case 29:
 					{
 					this.state = 184;
 					this.match(CSharpRoutineParser.LPAREN);
@@ -1395,7 +1389,7 @@ export default class CSharpRoutineParser extends Parser {
 						}
 						this.state = 260;
 						_la = this._input.LA(1);
-						if(!(_la===66 || _la===67)) {
+						if(!(_la===64 || _la===65)) {
 						this._errHandler.recoverInline(this);
 						}
 						else {
@@ -1433,7 +1427,7 @@ export default class CSharpRoutineParser extends Parser {
 						this.state = 269;
 						this._errHandler.sync(this);
 						_la = this._input.LA(1);
-						if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 4261806080) !== 0) || ((((_la - 59)) & ~0x1F) === 0 && ((1 << (_la - 59)) & 34691) !== 0)) {
+						if ((((_la) & ~0x1F) === 0 && ((1 << _la) & 1065451520) !== 0) || ((((_la - 57)) & ~0x1F) === 0 && ((1 << (_la - 57)) & 34691) !== 0)) {
 							{
 							this.state = 268;
 							this.expression_list();
@@ -1477,7 +1471,7 @@ export default class CSharpRoutineParser extends Parser {
 			{
 			this.state = 277;
 			_la = this._input.LA(1);
-			if(!(((((_la - 42)) & ~0x1F) === 0 && ((1 << (_la - 42)) & 2047) !== 0))) {
+			if(!(((((_la - 40)) & ~0x1F) === 0 && ((1 << (_la - 40)) & 2047) !== 0))) {
 			this._errHandler.recoverInline(this);
 			}
 			else {
@@ -1537,14 +1531,12 @@ export default class CSharpRoutineParser extends Parser {
 			case 12:
 			case 13:
 			case 14:
-			case 15:
-			case 16:
 				{
 				this.state = 280;
 				this.primitive_type();
 				}
 				break;
-			case 74:
+			case 72:
 				{
 				this.state = 281;
 				this.name();
@@ -1560,7 +1552,7 @@ export default class CSharpRoutineParser extends Parser {
 					this.state = 288;
 					this._errHandler.sync(this);
 					_la = this._input.LA(1);
-					while (_la===38) {
+					while (_la===36) {
 						{
 						{
 						this.state = 284;
@@ -1638,7 +1630,7 @@ export default class CSharpRoutineParser extends Parser {
 			{
 			this.state = 305;
 			_la = this._input.LA(1);
-			if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 131070) !== 0))) {
+			if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 32766) !== 0))) {
 			this._errHandler.recoverInline(this);
 			}
 			else {
@@ -1718,7 +1710,7 @@ export default class CSharpRoutineParser extends Parser {
 			this.state = 320;
 			this._errHandler.sync(this);
 			_la = this._input.LA(1);
-			while (_la===38) {
+			while (_la===36) {
 				{
 				{
 				this.state = 316;
@@ -1757,7 +1749,7 @@ export default class CSharpRoutineParser extends Parser {
 			{
 			this.state = 323;
 			_la = this._input.LA(1);
-			if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 2114322432) !== 0))) {
+			if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 528580608) !== 0))) {
 			this._errHandler.recoverInline(this);
 			}
 			else {
@@ -1849,7 +1841,7 @@ export default class CSharpRoutineParser extends Parser {
 		return true;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,77,326,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,75,326,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,7,7,2,8,7,8,2,9,7,9,2,
 	10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,2,14,7,14,2,15,7,15,2,16,7,16,2,17,
 	7,17,2,18,7,18,2,19,7,19,2,20,7,20,2,21,7,21,2,22,7,22,2,23,7,23,2,24,7,
@@ -1874,8 +1866,8 @@ export default class CSharpRoutineParser extends Parser {
 	8,20,1,20,1,20,1,20,5,20,301,8,20,10,20,12,20,304,9,20,1,21,1,21,1,22,1,
 	22,1,22,5,22,311,8,22,10,22,12,22,314,9,22,1,23,1,23,1,23,5,23,319,8,23,
 	10,23,12,23,322,9,23,1,24,1,24,1,24,0,2,36,40,25,0,2,4,6,8,10,12,14,16,
-	18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,0,4,1,0,66,67,1,0,42,52,
-	1,0,1,16,2,0,17,18,25,30,358,0,60,1,0,0,0,2,62,1,0,0,0,4,66,1,0,0,0,6,72,
+	18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48,0,4,1,0,64,65,1,0,40,50,
+	1,0,1,14,2,0,15,16,23,28,358,0,60,1,0,0,0,2,62,1,0,0,0,4,66,1,0,0,0,6,72,
 	1,0,0,0,8,81,1,0,0,0,10,90,1,0,0,0,12,92,1,0,0,0,14,99,1,0,0,0,16,103,1,
 	0,0,0,18,106,1,0,0,0,20,115,1,0,0,0,22,121,1,0,0,0,24,147,1,0,0,0,26,149,
 	1,0,0,0,28,153,1,0,0,0,30,158,1,0,0,0,32,160,1,0,0,0,34,163,1,0,0,0,36,
@@ -1884,76 +1876,76 @@ export default class CSharpRoutineParser extends Parser {
 	53,51,1,0,0,0,53,54,1,0,0,0,54,56,1,0,0,0,55,53,1,0,0,0,56,61,5,0,0,1,57,
 	58,3,8,4,0,58,59,5,0,0,1,59,61,1,0,0,0,60,53,1,0,0,0,60,57,1,0,0,0,61,1,
 	1,0,0,0,62,63,3,4,2,0,63,64,3,8,4,0,64,65,3,6,3,0,65,3,1,0,0,0,66,68,5,
-	54,0,0,67,69,3,46,23,0,68,67,1,0,0,0,68,69,1,0,0,0,69,70,1,0,0,0,70,71,
-	5,69,0,0,71,5,1,0,0,0,72,74,5,69,0,0,73,75,3,46,23,0,74,73,1,0,0,0,74,75,
-	1,0,0,0,75,76,1,0,0,0,76,77,5,53,0,0,77,7,1,0,0,0,78,80,3,10,5,0,79,78,
+	52,0,0,67,69,3,46,23,0,68,67,1,0,0,0,68,69,1,0,0,0,69,70,1,0,0,0,70,71,
+	5,67,0,0,71,5,1,0,0,0,72,74,5,67,0,0,73,75,3,46,23,0,74,73,1,0,0,0,74,75,
+	1,0,0,0,75,76,1,0,0,0,76,77,5,51,0,0,77,7,1,0,0,0,78,80,3,10,5,0,79,78,
 	1,0,0,0,80,83,1,0,0,0,81,79,1,0,0,0,81,82,1,0,0,0,82,9,1,0,0,0,83,81,1,
 	0,0,0,84,91,3,18,9,0,85,91,3,20,10,0,86,91,3,12,6,0,87,91,3,16,8,0,88,91,
 	3,26,13,0,89,91,3,32,16,0,90,84,1,0,0,0,90,85,1,0,0,0,90,86,1,0,0,0,90,
-	87,1,0,0,0,90,88,1,0,0,0,90,89,1,0,0,0,91,11,1,0,0,0,92,94,5,33,0,0,93,
-	95,3,14,7,0,94,93,1,0,0,0,94,95,1,0,0,0,95,96,1,0,0,0,96,97,5,34,0,0,97,
+	87,1,0,0,0,90,88,1,0,0,0,90,89,1,0,0,0,91,11,1,0,0,0,92,94,5,31,0,0,93,
+	95,3,14,7,0,94,93,1,0,0,0,94,95,1,0,0,0,95,96,1,0,0,0,96,97,5,32,0,0,97,
 	13,1,0,0,0,98,100,3,10,5,0,99,98,1,0,0,0,100,101,1,0,0,0,101,99,1,0,0,0,
-	101,102,1,0,0,0,102,15,1,0,0,0,103,104,3,36,18,0,104,105,5,37,0,0,105,17,
-	1,0,0,0,106,107,5,22,0,0,107,108,5,31,0,0,108,109,3,36,18,0,109,110,5,32,
-	0,0,110,113,3,10,5,0,111,112,5,23,0,0,112,114,3,10,5,0,113,111,1,0,0,0,
-	113,114,1,0,0,0,114,19,1,0,0,0,115,116,5,24,0,0,116,117,5,31,0,0,117,118,
-	3,36,18,0,118,119,5,32,0,0,119,120,3,22,11,0,120,21,1,0,0,0,121,125,5,33,
+	101,102,1,0,0,0,102,15,1,0,0,0,103,104,3,36,18,0,104,105,5,35,0,0,105,17,
+	1,0,0,0,106,107,5,20,0,0,107,108,5,29,0,0,108,109,3,36,18,0,109,110,5,30,
+	0,0,110,113,3,10,5,0,111,112,5,21,0,0,112,114,3,10,5,0,113,111,1,0,0,0,
+	113,114,1,0,0,0,114,19,1,0,0,0,115,116,5,22,0,0,116,117,5,29,0,0,117,118,
+	3,36,18,0,118,119,5,30,0,0,119,120,3,22,11,0,120,21,1,0,0,0,121,125,5,31,
 	0,0,122,124,3,24,12,0,123,122,1,0,0,0,124,127,1,0,0,0,125,123,1,0,0,0,125,
-	126,1,0,0,0,126,128,1,0,0,0,127,125,1,0,0,0,128,129,5,34,0,0,129,23,1,0,
-	0,0,130,131,5,20,0,0,131,132,3,36,18,0,132,136,5,40,0,0,133,135,3,10,5,
+	126,1,0,0,0,126,128,1,0,0,0,127,125,1,0,0,0,128,129,5,32,0,0,129,23,1,0,
+	0,0,130,131,5,18,0,0,131,132,3,36,18,0,132,136,5,38,0,0,133,135,3,10,5,
 	0,134,133,1,0,0,0,135,138,1,0,0,0,136,134,1,0,0,0,136,137,1,0,0,0,137,148,
-	1,0,0,0,138,136,1,0,0,0,139,140,5,21,0,0,140,144,5,40,0,0,141,143,3,10,
+	1,0,0,0,138,136,1,0,0,0,139,140,5,19,0,0,140,144,5,38,0,0,141,143,3,10,
 	5,0,142,141,1,0,0,0,143,146,1,0,0,0,144,142,1,0,0,0,144,145,1,0,0,0,145,
 	148,1,0,0,0,146,144,1,0,0,0,147,130,1,0,0,0,147,139,1,0,0,0,148,25,1,0,
-	0,0,149,150,3,40,20,0,150,151,3,28,14,0,151,152,5,37,0,0,152,27,1,0,0,0,
-	153,156,3,30,15,0,154,155,5,42,0,0,155,157,3,36,18,0,156,154,1,0,0,0,156,
-	157,1,0,0,0,157,29,1,0,0,0,158,159,5,74,0,0,159,31,1,0,0,0,160,161,5,19,
-	0,0,161,162,5,37,0,0,162,33,1,0,0,0,163,168,3,36,18,0,164,165,5,38,0,0,
+	0,0,149,150,3,40,20,0,150,151,3,28,14,0,151,152,5,35,0,0,152,27,1,0,0,0,
+	153,156,3,30,15,0,154,155,5,40,0,0,155,157,3,36,18,0,156,154,1,0,0,0,156,
+	157,1,0,0,0,157,29,1,0,0,0,158,159,5,72,0,0,159,31,1,0,0,0,160,161,5,17,
+	0,0,161,162,5,35,0,0,162,33,1,0,0,0,163,168,3,36,18,0,164,165,5,36,0,0,
 	165,167,3,36,18,0,166,164,1,0,0,0,167,170,1,0,0,0,168,166,1,0,0,0,168,169,
 	1,0,0,0,169,35,1,0,0,0,170,168,1,0,0,0,171,172,6,18,-1,0,172,192,3,44,22,
-	0,173,192,3,48,24,0,174,175,5,31,0,0,175,176,3,36,18,0,176,177,5,32,0,0,
-	177,192,1,0,0,0,178,189,5,69,0,0,179,189,5,68,0,0,180,189,5,59,0,0,181,
-	189,5,60,0,0,182,189,5,67,0,0,183,189,5,66,0,0,184,185,5,31,0,0,185,186,
-	3,40,20,0,186,187,5,32,0,0,187,189,1,0,0,0,188,178,1,0,0,0,188,179,1,0,
+	0,173,192,3,48,24,0,174,175,5,29,0,0,175,176,3,36,18,0,176,177,5,30,0,0,
+	177,192,1,0,0,0,178,189,5,67,0,0,179,189,5,66,0,0,180,189,5,57,0,0,181,
+	189,5,58,0,0,182,189,5,65,0,0,183,189,5,64,0,0,184,185,5,29,0,0,185,186,
+	3,40,20,0,186,187,5,30,0,0,187,189,1,0,0,0,188,178,1,0,0,0,188,179,1,0,
 	0,0,188,180,1,0,0,0,188,181,1,0,0,0,188,182,1,0,0,0,188,183,1,0,0,0,188,
 	184,1,0,0,0,189,190,1,0,0,0,190,192,3,36,18,21,191,171,1,0,0,0,191,173,
 	1,0,0,0,191,174,1,0,0,0,191,188,1,0,0,0,192,274,1,0,0,0,193,194,10,20,0,
-	0,194,195,5,70,0,0,195,273,3,36,18,21,196,197,10,19,0,0,197,198,5,71,0,
-	0,198,273,3,36,18,20,199,200,10,18,0,0,200,201,5,72,0,0,201,273,3,36,18,
-	19,202,203,10,17,0,0,203,204,5,68,0,0,204,273,3,36,18,18,205,206,10,16,
-	0,0,206,207,5,69,0,0,207,273,3,36,18,17,208,209,10,15,0,0,209,210,5,54,
-	0,0,210,211,5,54,0,0,211,273,3,36,18,16,212,213,10,14,0,0,213,214,5,53,
-	0,0,214,215,5,53,0,0,215,273,3,36,18,15,216,217,10,13,0,0,217,218,5,54,
-	0,0,218,273,3,36,18,14,219,220,10,12,0,0,220,221,5,53,0,0,221,273,3,36,
-	18,13,222,223,10,11,0,0,223,224,5,56,0,0,224,273,3,36,18,12,225,226,10,
-	10,0,0,226,227,5,57,0,0,227,273,3,36,18,11,228,229,10,9,0,0,229,230,5,55,
-	0,0,230,273,3,36,18,10,231,232,10,8,0,0,232,233,5,58,0,0,233,273,3,36,18,
-	9,234,235,10,7,0,0,235,236,5,61,0,0,236,273,3,36,18,8,237,238,10,6,0,0,
-	238,239,5,62,0,0,239,273,3,36,18,7,240,241,10,5,0,0,241,242,5,63,0,0,242,
-	273,3,36,18,6,243,244,10,4,0,0,244,245,5,64,0,0,245,273,3,36,18,5,246,247,
-	10,3,0,0,247,248,5,65,0,0,248,273,3,36,18,4,249,250,10,2,0,0,250,251,5,
-	73,0,0,251,252,3,36,18,0,252,253,5,40,0,0,253,254,3,36,18,2,254,273,1,0,
+	0,194,195,5,68,0,0,195,273,3,36,18,21,196,197,10,19,0,0,197,198,5,69,0,
+	0,198,273,3,36,18,20,199,200,10,18,0,0,200,201,5,70,0,0,201,273,3,36,18,
+	19,202,203,10,17,0,0,203,204,5,66,0,0,204,273,3,36,18,18,205,206,10,16,
+	0,0,206,207,5,67,0,0,207,273,3,36,18,17,208,209,10,15,0,0,209,210,5,52,
+	0,0,210,211,5,52,0,0,211,273,3,36,18,16,212,213,10,14,0,0,213,214,5,51,
+	0,0,214,215,5,51,0,0,215,273,3,36,18,15,216,217,10,13,0,0,217,218,5,52,
+	0,0,218,273,3,36,18,14,219,220,10,12,0,0,220,221,5,51,0,0,221,273,3,36,
+	18,13,222,223,10,11,0,0,223,224,5,54,0,0,224,273,3,36,18,12,225,226,10,
+	10,0,0,226,227,5,55,0,0,227,273,3,36,18,11,228,229,10,9,0,0,229,230,5,53,
+	0,0,230,273,3,36,18,10,231,232,10,8,0,0,232,233,5,56,0,0,233,273,3,36,18,
+	9,234,235,10,7,0,0,235,236,5,59,0,0,236,273,3,36,18,8,237,238,10,6,0,0,
+	238,239,5,60,0,0,239,273,3,36,18,7,240,241,10,5,0,0,241,242,5,61,0,0,242,
+	273,3,36,18,6,243,244,10,4,0,0,244,245,5,62,0,0,245,273,3,36,18,5,246,247,
+	10,3,0,0,247,248,5,63,0,0,248,273,3,36,18,4,249,250,10,2,0,0,250,251,5,
+	71,0,0,251,252,3,36,18,0,252,253,5,38,0,0,253,254,3,36,18,2,254,273,1,0,
 	0,0,255,256,10,1,0,0,256,257,3,38,19,0,257,258,3,36,18,2,258,273,1,0,0,
-	0,259,260,10,24,0,0,260,273,7,0,0,0,261,262,10,23,0,0,262,263,5,35,0,0,
-	263,264,3,36,18,0,264,265,5,36,0,0,265,273,1,0,0,0,266,267,10,22,0,0,267,
-	269,5,31,0,0,268,270,3,34,17,0,269,268,1,0,0,0,269,270,1,0,0,0,270,271,
-	1,0,0,0,271,273,5,32,0,0,272,193,1,0,0,0,272,196,1,0,0,0,272,199,1,0,0,
+	0,259,260,10,24,0,0,260,273,7,0,0,0,261,262,10,23,0,0,262,263,5,33,0,0,
+	263,264,3,36,18,0,264,265,5,34,0,0,265,273,1,0,0,0,266,267,10,22,0,0,267,
+	269,5,29,0,0,268,270,3,34,17,0,269,268,1,0,0,0,269,270,1,0,0,0,270,271,
+	1,0,0,0,271,273,5,30,0,0,272,193,1,0,0,0,272,196,1,0,0,0,272,199,1,0,0,
 	0,272,202,1,0,0,0,272,205,1,0,0,0,272,208,1,0,0,0,272,212,1,0,0,0,272,216,
 	1,0,0,0,272,219,1,0,0,0,272,222,1,0,0,0,272,225,1,0,0,0,272,228,1,0,0,0,
 	272,231,1,0,0,0,272,234,1,0,0,0,272,237,1,0,0,0,272,240,1,0,0,0,272,243,
 	1,0,0,0,272,246,1,0,0,0,272,249,1,0,0,0,272,255,1,0,0,0,272,259,1,0,0,0,
 	272,261,1,0,0,0,272,266,1,0,0,0,273,276,1,0,0,0,274,272,1,0,0,0,274,275,
 	1,0,0,0,275,37,1,0,0,0,276,274,1,0,0,0,277,278,7,1,0,0,278,39,1,0,0,0,279,
-	280,6,20,-1,0,280,296,3,42,21,0,281,293,3,44,22,0,282,283,5,54,0,0,283,
-	288,3,40,20,0,284,285,5,38,0,0,285,287,3,40,20,0,286,284,1,0,0,0,287,290,
+	280,6,20,-1,0,280,296,3,42,21,0,281,293,3,44,22,0,282,283,5,52,0,0,283,
+	288,3,40,20,0,284,285,5,36,0,0,285,287,3,40,20,0,286,284,1,0,0,0,287,290,
 	1,0,0,0,288,286,1,0,0,0,288,289,1,0,0,0,289,291,1,0,0,0,290,288,1,0,0,0,
-	291,292,5,53,0,0,292,294,1,0,0,0,293,282,1,0,0,0,293,294,1,0,0,0,294,296,
+	291,292,5,51,0,0,292,294,1,0,0,0,293,282,1,0,0,0,293,294,1,0,0,0,294,296,
 	1,0,0,0,295,279,1,0,0,0,295,281,1,0,0,0,296,302,1,0,0,0,297,298,10,2,0,
-	0,298,299,5,35,0,0,299,301,5,36,0,0,300,297,1,0,0,0,301,304,1,0,0,0,302,
+	0,298,299,5,33,0,0,299,301,5,34,0,0,300,297,1,0,0,0,301,304,1,0,0,0,302,
 	300,1,0,0,0,302,303,1,0,0,0,303,41,1,0,0,0,304,302,1,0,0,0,305,306,7,2,
-	0,0,306,43,1,0,0,0,307,312,5,74,0,0,308,309,5,39,0,0,309,311,5,74,0,0,310,
+	0,0,306,43,1,0,0,0,307,312,5,72,0,0,308,309,5,37,0,0,309,311,5,72,0,0,310,
 	308,1,0,0,0,311,314,1,0,0,0,312,310,1,0,0,0,312,313,1,0,0,0,313,45,1,0,
-	0,0,314,312,1,0,0,0,315,320,5,74,0,0,316,317,5,38,0,0,317,319,5,74,0,0,
+	0,0,314,312,1,0,0,0,315,320,5,72,0,0,316,317,5,36,0,0,317,319,5,72,0,0,
 	318,316,1,0,0,0,319,322,1,0,0,0,320,318,1,0,0,0,320,321,1,0,0,0,321,47,
 	1,0,0,0,322,320,1,0,0,0,323,324,7,3,0,0,324,49,1,0,0,0,26,53,60,68,74,81,
 	90,94,101,113,125,136,144,147,156,168,188,191,269,272,274,288,293,295,302,
@@ -3369,17 +3361,14 @@ export class Primitive_typeContext extends ParserRuleContext {
 	public TYPE_CHAR(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_CHAR, 0);
 	}
-	public TYPE_FLOAT_DEFAULT(): TerminalNode {
-		return this.getToken(CSharpRoutineParser.TYPE_FLOAT_DEFAULT, 0);
-	}
 	public TYPE_FLOAT32(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_FLOAT32, 0);
 	}
 	public TYPE_FLOAT64(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_FLOAT64, 0);
 	}
-	public TYPE_INT_DEFAULT(): TerminalNode {
-		return this.getToken(CSharpRoutineParser.TYPE_INT_DEFAULT, 0);
+	public TYPE_FLOAT128(): TerminalNode {
+		return this.getToken(CSharpRoutineParser.TYPE_FLOAT128, 0);
 	}
 	public TYPE_INT8(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_INT8, 0);
@@ -3392,9 +3381,6 @@ export class Primitive_typeContext extends ParserRuleContext {
 	}
 	public TYPE_INT64(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_INT64, 0);
-	}
-	public TYPE_UINT_DEFAULT(): TerminalNode {
-		return this.getToken(CSharpRoutineParser.TYPE_UINT_DEFAULT, 0);
 	}
 	public TYPE_UINT8(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.TYPE_UINT8, 0);
