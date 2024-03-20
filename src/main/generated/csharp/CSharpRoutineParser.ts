@@ -34,7 +34,7 @@ export default class CSharpRoutineParser extends Parser {
 	public static readonly TYPE_UINT64 = 15;
 	public static readonly TYPE_STRING = 16;
 	public static readonly NODE = 17;
-	public static readonly LESSOR = 18;
+	public static readonly LEASE = 18;
 	public static readonly BREAK = 19;
 	public static readonly CASE = 20;
 	public static readonly DEFAULT = 21;
@@ -131,7 +131,7 @@ export default class CSharpRoutineParser extends Parser {
                                                             "'uint32'", 
                                                             "'uint64'", 
                                                             "'string'", 
-                                                            "'@node'", "'@lessor'", 
+                                                            "'@node'", "'@lease'", 
                                                             "'break'", "'case'", 
                                                             "'default'", 
                                                             "'if'", "'else'", 
@@ -177,7 +177,7 @@ export default class CSharpRoutineParser extends Parser {
                                                              "TYPE_UINT32", 
                                                              "TYPE_UINT64", 
                                                              "TYPE_STRING", 
-                                                             "NODE", "LESSOR", 
+                                                             "NODE", "LEASE", 
                                                              "BREAK", "CASE", 
                                                              "DEFAULT", 
                                                              "IF", "ELSE", 
@@ -3519,8 +3519,8 @@ export class LiteralContext extends ParserRuleContext {
 	public NODE(): TerminalNode {
 		return this.getToken(CSharpRoutineParser.NODE, 0);
 	}
-	public LESSOR(): TerminalNode {
-		return this.getToken(CSharpRoutineParser.LESSOR, 0);
+	public LEASE(): TerminalNode {
+		return this.getToken(CSharpRoutineParser.LEASE, 0);
 	}
     public get ruleIndex(): number {
     	return CSharpRoutineParser.RULE_literal;

@@ -17,7 +17,7 @@ null
 'uint64'
 'string'
 '@node'
-'@lessor'
+'@lease'
 'break'
 'case'
 'default'
@@ -97,7 +97,7 @@ TYPE_UINT32
 TYPE_UINT64
 TYPE_STRING
 NODE
-LESSOR
+LEASE
 BREAK
 CASE
 DEFAULT
