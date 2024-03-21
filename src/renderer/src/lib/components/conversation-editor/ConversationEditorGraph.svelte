@@ -307,7 +307,7 @@
     }
 
     function onNodeDragStop(
-        event: CustomEvent<{ event: MouseEvent; node: FlowNode; nodes: FlowNode[] }>,
+        event: CustomEvent<{ event: MouseEvent; targetNode: FlowNode; nodes: FlowNode[] }>,
     ): void {
         const flowNodes: FlowNode[] = event.detail.nodes;
         const oldNodes: Node[] = [];

@@ -96,6 +96,8 @@
     sourceHandleId;
     export let targetHandleId: $$Props['targetHandleId'] = undefined;
     targetHandleId;
+    export let type: $$Props['type'] = undefined;
+    type;
     export let data: $$Props['data'] = undefined;
     // SUPPRESS WARNINGS
 
