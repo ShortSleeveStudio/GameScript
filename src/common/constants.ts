@@ -38,6 +38,19 @@ export const API_SQLITE_LISTEN = '/api/sqlite/listen';
 export const API_SQLITE_UNLISTEN = '/api/sqlite/unlisten';
 export const API_SQLITE_ON_NOTIFICATION = '/api/sqlite/on-notification';
 
+// Postgres
+export const API_POSTGRES_OPEN = '/api/postgres/open';
+export const API_POSTGRES_CLOSE = '/api/postgres/close';
+export const API_POSTGRES_CLOSE_ALL = '/api/postgres/close-all';
+export const API_POSTGRES_RUN = '/api/postgres/run';
+export const API_POSTGRES_ALL = '/api/postgres/all';
+export const API_POSTGRES_GET = '/api/postgres/get';
+export const API_POSTGRES_EXEC = '/api/postgres/exec';
+export const API_POSTGRES_NOTIFY = '/api/postgres/notify';
+export const API_POSTGRES_LISTEN = '/api/postgres/listen';
+export const API_POSTGRES_UNLISTEN = '/api/postgres/unlisten';
+export const API_POSTGRES_ON_NOTIFICATION = '/api/postgres/on-notification';
+
 // Build
 export const API_BUILD_LOCALIZATION_EXPORT = '/api/build/localization/export';
 export const API_BUILD_LOCALIZATION_IMPORT = '/api/build/localization/import';
@@ -45,3 +58,7 @@ export const API_BUILD_GAME_EXPORT = '/api/build/game/export';
 
 // Transpile
 export const API_TRANSPILE_VALIDATE = '/api/transpile/validate';
+
+// Encryption
+export const API_ENCRYPTION_ENCRYPT = '/api/encryption/encrypt';
+export const API_ENCRYPTION_DECRYPT = '/api/encryption/decrypt';

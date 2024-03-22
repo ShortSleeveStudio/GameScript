@@ -96,8 +96,10 @@ app.on('activate', () => {
  * IPC
  */
 import './ipc-build';
+import './ipc-cryptography';
 import './ipc-dialog';
 import './ipc-fs';
+import './ipc-postgres';
 import './ipc-sqlite';
 import './ipc-transpile';
 import './ipc-window';

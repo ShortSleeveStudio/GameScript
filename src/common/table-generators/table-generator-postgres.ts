@@ -12,15 +12,16 @@ import type {
     UniqueDefinition,
 } from '../table-definitions/table-definitions';
 
-export function generateTableSqlite(table: TableDefinition): string {
+export function generateTablePostgres(table: TableDefinition): string {
     let createString: string = '';
     createString += `CREATE TABLE IF NOT EXISTS "${table.tableType.name}"\n`;
     // Columns
     createString += `(\n`;
     for (let i = 0; i < table.columns.length; i++) {
         const definition: ColumnDefinition = table.columns[i];
+        const isPrimaryKey: boolean = definition.name === table.primaryKey;
         createString += `"${definition.name}"`;
-        createString += ` ${typeForFieldTypeSqlite(definition.type.id)}`;
+        createString += ` ${typeForFieldTypePostgres(definition.type.id, isPrimaryKey)}`;
         if (definition.notNull) {
             createString += ` NOT NULL`;
         }
@@ -37,7 +38,7 @@ export function generateTableSqlite(table: TableDefinition): string {
                 } else if (typeOf === 'number') {
                     createString += ` DEFAULT ${definition.defaultValue}`;
                 } else if (typeOf === 'boolean') {
-                    createString += ` DEFAULT ${definition.defaultValue ? '1' : '0'}`;
+                    createString += ` DEFAULT ${definition.defaultValue ? 'true' : 'false'}`;
                 } else {
                     throw new Error(`Unknown default value type: ${typeOf}`);
                 }
@@ -52,31 +53,33 @@ export function generateTableSqlite(table: TableDefinition): string {
         const definition: UniqueDefinition = table.uniques[i];
         createString += `UNIQUE(${definition.columns.join(',')}),\n`;
     }
+
     // Foreign Keys
     for (let i = 0; i < table.foreignKeys.length; i++) {
         const definition: ForeignKeyDefinition = table.foreignKeys[i];
         createString += `
-        FOREIGN KEY("${definition.column}") REFERENCES "${definition.table.name}",\n`;
+        FOREIGN KEY ("${definition.column}") REFERENCES "${definition.table.name}",\n`;
     }
 
     // Primary Key
-    createString += `PRIMARY KEY("${table.primaryKey}" AUTOINCREMENT)\n`;
+    createString += `PRIMARY KEY("${table.primaryKey}")\n`;
     createString += `);`;
 
     return createString;
 }
 
-export function typeForFieldTypeSqlite(type: FieldTypeId): string {
+export function typeForFieldTypePostgres(type: FieldTypeId, isPrimaryKey: boolean): string {
+    if (isPrimaryKey) return 'serial';
     switch (type) {
         case FIELD_TYPE_DECIMAL.id:
-            return 'NUMERIC';
+            return 'numeric';
         case FIELD_TYPE_INTEGER.id:
-            return 'INTEGER';
+            return 'integer';
         case FIELD_TYPE_TEXT.id:
-            return 'TEXT';
+            return 'text';
         case FIELD_TYPE_BOOLEAN.id:
-            return 'INTEGER';
+            return 'boolean';
         default:
-            throw new Error(`Unknown SQLite type: ${type}`);
+            throw new Error(`Unknown Postgres type: ${type}`);
     }
 }

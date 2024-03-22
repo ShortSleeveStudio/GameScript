@@ -4,7 +4,14 @@ import { DatabaseTableId, OpTypeId } from './common-types';
 export type DbTransaction = (connection: DbConnection) => Promise<void>;
 
 export interface DbConnectionConfig {
-    sqliteFile: string; // used for SQLite
+    // SQLite
+    sqliteFile: string;
+    // Postgres
+    pgAddress: string;
+    pgPort: string;
+    pgDatabase: string;
+    pgUsername: string;
+    pgPassword: string;
 }
 
 export interface DbConnection {

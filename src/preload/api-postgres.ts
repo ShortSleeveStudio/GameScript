@@ -6,20 +6,20 @@ import {
     DbResult,
 } from '../common/common-db-types';
 import {
-    API_SQLITE_ALL,
-    API_SQLITE_CLOSE,
-    API_SQLITE_CLOSE_ALL,
-    API_SQLITE_EXEC,
-    API_SQLITE_GET,
-    API_SQLITE_LISTEN,
-    API_SQLITE_NOTIFY,
-    API_SQLITE_ON_NOTIFICATION,
-    API_SQLITE_OPEN,
-    API_SQLITE_RUN,
-    API_SQLITE_UNLISTEN,
+    API_POSTGRES_ALL,
+    API_POSTGRES_CLOSE,
+    API_POSTGRES_CLOSE_ALL,
+    API_POSTGRES_EXEC,
+    API_POSTGRES_GET,
+    API_POSTGRES_LISTEN,
+    API_POSTGRES_NOTIFY,
+    API_POSTGRES_ON_NOTIFICATION,
+    API_POSTGRES_OPEN,
+    API_POSTGRES_RUN,
+    API_POSTGRES_UNLISTEN,
 } from '../common/constants';
 
-export interface SqliteApi {
+export interface PostgresApi {
     open(config: DbConnectionConfig): Promise<DbConnection>;
     close(connection: DbConnection): Promise<void>;
     closeAll(): Promise<void>;
@@ -38,43 +38,43 @@ export interface SqliteApi {
     ): Promise<void>;
 }
 
-export const sqliteApi: SqliteApi = {
+export const postgresApi: PostgresApi = {
     open: async (config: DbConnectionConfig) => {
-        return await ipcRenderer.invoke(API_SQLITE_OPEN, config);
+        return await ipcRenderer.invoke(API_POSTGRES_OPEN, config);
     },
     close: async (connection: DbConnection) => {
-        await ipcRenderer.invoke(API_SQLITE_CLOSE, connection);
+        await ipcRenderer.invoke(API_POSTGRES_CLOSE, connection);
     },
     closeAll: async (): Promise<void> => {
-        await ipcRenderer.invoke(API_SQLITE_CLOSE_ALL);
+        await ipcRenderer.invoke(API_POSTGRES_CLOSE_ALL);
     },
     run: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
-        return await ipcRenderer.invoke(API_SQLITE_RUN, connection, query, bindValues);
+        return await ipcRenderer.invoke(API_POSTGRES_RUN, connection, query, bindValues);
     },
     all: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
-        return await ipcRenderer.invoke(API_SQLITE_ALL, connection, query, bindValues);
+        return await ipcRenderer.invoke(API_POSTGRES_ALL, connection, query, bindValues);
     },
     get: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
-        return await ipcRenderer.invoke(API_SQLITE_GET, connection, query, bindValues);
+        return await ipcRenderer.invoke(API_POSTGRES_GET, connection, query, bindValues);
     },
     exec: async (connection: DbConnection, query: string) => {
-        await ipcRenderer.invoke(API_SQLITE_EXEC, connection, query);
+        await ipcRenderer.invoke(API_POSTGRES_EXEC, connection, query);
     },
     notify: async (connection: DbConnection, notification: DbNotification) => {
-        await ipcRenderer.invoke(API_SQLITE_NOTIFY, connection, notification);
+        await ipcRenderer.invoke(API_POSTGRES_NOTIFY, connection, notification);
     },
     listen: async (
         connection: DbConnection,
         callback: (event: IpcRendererEvent, notification: DbNotification) => void,
     ) => {
-        ipcRenderer.addListener(API_SQLITE_ON_NOTIFICATION, callback);
-        await ipcRenderer.invoke(API_SQLITE_LISTEN, connection);
+        ipcRenderer.addListener(API_POSTGRES_ON_NOTIFICATION, callback);
+        await ipcRenderer.invoke(API_POSTGRES_LISTEN, connection);
     },
     unlisten: async (
         connection: DbConnection,
         callback: (event: IpcRendererEvent, notification: DbNotification) => void,
     ) => {
-        await ipcRenderer.invoke(API_SQLITE_UNLISTEN, connection);
-        ipcRenderer.removeListener(API_SQLITE_ON_NOTIFICATION, callback);
+        await ipcRenderer.invoke(API_POSTGRES_UNLISTEN, connection);
+        ipcRenderer.removeListener(API_POSTGRES_ON_NOTIFICATION, callback);
     },
 };

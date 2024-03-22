@@ -64,7 +64,7 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'isPreventResponse',
     type: FIELD_TYPE_BOOLEAN,
     notNull: false,
-    defaultValue: 0,
+    defaultValue: false,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'notes',

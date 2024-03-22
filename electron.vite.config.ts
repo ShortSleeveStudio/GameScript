@@ -5,14 +5,29 @@ import path from 'path';
 export default defineConfig({
     main: {
         plugins: [externalizeDepsPlugin()],
+        build: {
+            rollupOptions: {
+                external: ['pg-native'],
+            },
+        },
     },
     preload: {
         plugins: [externalizeDepsPlugin()],
+        build: {
+            rollupOptions: {
+                external: ['pg-native'],
+            },
+        },
     },
     renderer: {
         plugins: [svelte()],
         worker: {
             format: 'es',
+        },
+        build: {
+            rollupOptions: {
+                external: ['pg-native'],
+            },
         },
         resolve: {
             alias: {

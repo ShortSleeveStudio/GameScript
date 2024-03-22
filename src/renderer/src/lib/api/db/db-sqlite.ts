@@ -13,15 +13,15 @@ import {
     DB_OP_CREATE,
     DB_OP_DELETE,
     DB_OP_UPDATE,
-    FIELD_TYPE_DECIMAL,
-    FIELD_TYPE_INTEGER,
-    FIELD_TYPE_TEXT,
     type DatabaseTableType,
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
 import { TABLE_DEFINITIONS } from '@common/table-generators/table-generator';
-import { generateTableSqlite } from '@common/table-generators/table-generator-sqlite';
+import {
+    generateTableSqlite,
+    typeForFieldTypeSqlite,
+} from '@common/table-generators/table-generator-sqlite';
 import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import {
     FOCUS_MODE_MODIFY,
@@ -33,23 +33,14 @@ import {
 import { wait } from '@lib/utility/wait';
 import type { IpcRendererEvent } from 'electron';
 import { get, type Writable } from 'svelte/store';
-import { DbBase } from './db-base';
+import { DbBase, type DbQueuedNotification } from './db-base';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import type { DbTableView } from './db-view-table';
 
-/**Used to queue notifications when needed. */
-interface DbQueuedNotification {
-    op: OpTypeId;
-    tableType: DatabaseTableType;
-    rows?: Row[];
-}
-
-/**
- * SQLite database implementation
- */
+/**SQLite database implementation */
 export class SqliteDb extends DbBase {
     private _db: DbConnection | undefined;
     private _focusManager: FocusManager;
@@ -170,20 +161,8 @@ export class SqliteDb extends DbBase {
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
-        let typeString: string;
-        switch (type) {
-            case FIELD_TYPE_DECIMAL.id:
-                typeString = 'NUMERIC DEFAULT 0';
-                break;
-            case FIELD_TYPE_INTEGER.id:
-                typeString = 'INTEGER DEFAULT 0';
-                break;
-            case FIELD_TYPE_TEXT.id:
-                typeString = 'TEXT';
-                break;
-            default:
-                throw Error(`Unknown column type: ${type}`);
-        }
+        const typeString: string = typeForFieldTypeSqlite(type);
+
         const query: string = `ALTER TABLE ${tableType.name} ADD COLUMN ${name} ${typeString};`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);

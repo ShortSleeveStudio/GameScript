@@ -31,7 +31,7 @@ function onDbTypeChange(newDbtype: DatabaseTypeId): void {
             db = new SqliteDb(dbConnected, focusManager);
             break;
         case DATABASE_TYPE_POSTGRES.id:
-            db = new PostgresDb(dbConnected);
+            db = new PostgresDb(dbConnected, focusManager);
             break;
     }
 }

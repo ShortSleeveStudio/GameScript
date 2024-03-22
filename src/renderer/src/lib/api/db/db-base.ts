@@ -14,6 +14,7 @@ import {
     TABLE_VERSION,
     type DatabaseTableType,
     type FieldTypeId,
+    type OpTypeId,
 } from '@common/common-types';
 import { actorsCreate } from '@lib/crud/actor-crud';
 import { localesCreate } from '@lib/crud/locale-crud';
@@ -28,6 +29,13 @@ import type { IDbTableView } from './db-view-table-interface';
 
 // Row view destructor
 export type RowViewDestructor = () => void;
+
+/**Used to queue notifications when needed. */
+export interface DbQueuedNotification {
+    op: OpTypeId;
+    tableType: DatabaseTableType;
+    rows?: Row[];
+}
 
 // TODO
 const DUMMY_IS_LOADING: IsLoadingStore = new IsLoadingStore();

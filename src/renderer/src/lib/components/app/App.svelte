@@ -11,7 +11,6 @@
     let initializationErrorSubscriber: Unsubscriber;
 
     function toErrorEvent(event: unknown): Error {
-        console.log(event);
         if (typeof event === 'object') {
             if ('error' in event) {
                 if (<Error>(<ErrorEvent>event).error) {
@@ -35,7 +34,7 @@
         const error = toErrorEvent(event);
         toastManager.showToast(new ToastItem('error', error.message));
         console.log('remember to disable this');
-        // throw event;
+        throw event;
     }
 
     // Subscribe to errors

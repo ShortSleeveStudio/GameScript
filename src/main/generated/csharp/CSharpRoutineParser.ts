@@ -1,6 +1,6 @@
 // Generated from ./CSharpRoutineParser.g4 by ANTLR 4.13.1
 // noinspection ES6UnusedImports,JSUnusedGlobalSymbols,JSUnusedLocalSymbols
-
+// @ts-nocheck
 import {
 	ATN,
 	ATNDeserializer, DecisionState, DFA, FailedPredicateException,

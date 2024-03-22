@@ -18,7 +18,6 @@
     export let numberMin: number = Number.NEGATIVE_INFINITY;
     export let numberMax: number = Number.POSITIVE_INFINITY;
 
-    const NON_NUMBERS = /\D/g;
     const isLoading: IsLoadingStore = new IsLoadingStore();
     let boundValue: string = <string>$rowView[columnName];
     let currentValue: string = <string>$rowView[columnName];
@@ -39,7 +38,7 @@
     });
 
     async function syncOnBlur(): Promise<void> {
-        sanitizeBoundValue();
+        if (isNumber) sanitizeBoundValue();
         const newValue = boundValue;
         const oldValue = currentValue;
         if (oldValue === newValue) return;

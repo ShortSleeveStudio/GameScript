@@ -3,6 +3,18 @@ export const CONVERSATIONS_DEFAULT_PROPERTY_UNDO_NAME = 'default property name';
 export const CONVERSATIONS_DEFAULT_PROPERTY_UNDO_TYPE = 'default property type';
 export const CONVERSATIONS_DEFAULT_PROPERTY_PLACEHOLDER_NAME = 'Enter a unique property name';
 
+/**Db Connection Config */
+export const DB_PG_CONFIG_UNDO_ADDRESS = 'Postgres address';
+export const DB_PG_CONFIG_PLACEHOLDER_ADDRESS = 'Enter the address';
+export const DB_PG_CONFIG_UNDO_PORT = 'Postgres port';
+export const DB_PG_CONFIG_PLACEHOLDER_PORT = 'Enter the port';
+export const DB_PG_CONFIG_UNDO_DATABASE = 'Postgres database';
+export const DB_PG_CONFIG_PLACEHOLDER_DATABASE = 'Enter the database name';
+export const DB_PG_CONFIG_UNDO_USERNAME = 'Postgres username';
+export const DB_PG_CONFIG_PLACEHOLDER_USERNAME = 'Enter your username';
+export const DB_PG_CONFIG_UNDO_PASSWORD = 'Postgres password';
+export const DB_PG_CONFIG_PLACEHOLDER_PASSWORD = 'Enter your password';
+
 /**Routines */
 export const ROUTINES_UNDO_NAME = 'routine name';
 export const ROUTINES_UNDO_NOTES = 'routine notes';
@@ -37,12 +49,6 @@ export const LOCALIZATION_UNDO_NICKNAME = 'localization nickname';
 export const LOCALIZATION_PLACEHOLDER_NICKNAME = 'Enter a nickname';
 export const LOCALIZATION_UNDO_TEXT = 'localized text';
 export const LOCALIZATION_PLACEHOLDER_TEXT = 'Enter localized text';
-
-/**Properties */
-export const PROPERTY_UNDO_TEXT = 'text property';
-export const PROPERTY_PLACEHOLDER_TEXT = 'Enter text';
-export const PROPERTY_UNDO_INTEGER = 'integer property';
-export const PROPERTY_UNDO_BOOL = 'boolean property';
 
 /**Locales */
 export const LOCALE_UNDO_PRIMARY = 'primary locale';
