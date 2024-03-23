@@ -68,11 +68,7 @@ ipcMain.handle(
 );
 ipcMain.handle(
     API_POSTGRES_LISTEN,
-    async (_: IpcMainInvokeEvent, connectionId: DbConnection): Promise<void> =>
-        await postgres.listen(connectionId),
+    async (_: IpcMainInvokeEvent, config: DbConnectionConfig): Promise<void> =>
+        await postgres.listen(config),
 );
-ipcMain.handle(
-    API_POSTGRES_UNLISTEN,
-    async (_: IpcMainInvokeEvent, connectionId: DbConnection): Promise<void> =>
-        await postgres.unlisten(connectionId),
-);
+ipcMain.handle(API_POSTGRES_UNLISTEN, async (): Promise<void> => await postgres.unlisten());

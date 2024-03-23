@@ -30,7 +30,7 @@ export async function localizationExport(
         try {
             // Grab locale names
             const locales: Locale[] = <Locale[]>(
-                await db.all(conn, `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC`)
+                await db.all(conn, `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC;`)
             );
             const columns: ColumnDescriptor[] = [
                 { id: 'id', name: 'ID' },
@@ -57,7 +57,7 @@ export async function localizationExport(
                 // Fetch batch
                 const limit: number = EXPORTER_BATCH_SIZE;
                 const offset: number = i;
-                const query: string = `SELECT * FROM ${TABLE_LOCALIZATIONS.name} ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
+                const query: string = `SELECT * FROM ${TABLE_LOCALIZATIONS.name} ORDER BY id ASC LIMIT ${limit} OFFSET ${offset};`;
                 const localizations: Localization[] = <Localization[]>await db.all(conn, query);
 
                 // Handle batch

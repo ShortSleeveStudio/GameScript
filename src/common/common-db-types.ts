@@ -39,6 +39,6 @@ export interface DbClient {
     get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
     notify(connection: DbConnection, notification: AppNotification): Promise<void>;
-    listen(connection: DbConnection): Promise<void>;
-    unlisten(connection: DbConnection): Promise<void>;
+    listen(config: DbConnectionConfig): Promise<void>;
+    unlisten(): Promise<void>;
 }

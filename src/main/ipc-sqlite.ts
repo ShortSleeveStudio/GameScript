@@ -1,10 +1,6 @@
 import { IpcMainInvokeEvent, ipcMain } from 'electron';
-import {
-    DbConnection,
-    DbConnectionConfig,
-    DbResult,
-    NotifyRequest,
-} from '../common/common-db-types';
+import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-db-types';
+import { AppNotification } from '../common/common-notification';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,
@@ -67,8 +63,8 @@ ipcMain.handle(
     async (
         _: IpcMainInvokeEvent,
         connectionId: DbConnection,
-        notifyRequest: NotifyRequest,
-    ): Promise<void> => await sqlite.notify(connectionId, notifyRequest),
+        notification: AppNotification,
+    ): Promise<void> => await sqlite.notify(connectionId, notification),
 );
 ipcMain.handle(API_SQLITE_LISTEN, async (): Promise<void> => await sqlite.listen());
 ipcMain.handle(API_SQLITE_UNLISTEN, async (): Promise<void> => await sqlite.unlisten());

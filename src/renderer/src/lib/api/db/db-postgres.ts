@@ -32,7 +32,6 @@ import type { IDbRowView } from './db-view-row-interface';
 /**PostgreSQL database implementation */
 export class PostgresDb extends DbBase {
     private _db: DbConnection | undefined;
-    private _dbListen: DbConnection | undefined;
     private _dbConnectionConfig: DbConnectionConfig | undefined;
     private _transactionNotifications: AppNotification[];
 
@@ -75,17 +74,12 @@ export class PostgresDb extends DbBase {
         if (!this.isConfigValid(config)) return;
 
         // Ensure we don't connect without disconnecting
-        if (
-            this._db !== undefined ||
-            this._dbListen !== undefined ||
-            this._dbConnectionConfig !== undefined
-        ) {
+        if (this._db !== undefined || this._dbConnectionConfig !== undefined) {
             throw new Error('You must disconnect before changing connections');
         }
 
         // Attempt connection
         this._db = await window.api.postgres.open(config);
-        this._dbListen = await window.api.postgres.open(config);
         this._dbConnectionConfig = config;
 
         // Initialize if necessary
@@ -95,7 +89,7 @@ export class PostgresDb extends DbBase {
         }
 
         // Listen for changes
-        await window.api.postgres.listen(this._dbListen, this.onNotification);
+        await window.api.postgres.listen(this._dbConnectionConfig, this.onNotification);
 
         // Notify connected
         this._isConnected.set(true);
@@ -431,18 +425,14 @@ export class PostgresDb extends DbBase {
 
     private async destroyConnection(): Promise<void> {
         this._isConnected.set(false);
-        if (this._dbListen) {
-            await window.api.postgres.unlisten(this._dbListen, this.onNotification);
-        }
+        await window.api.postgres.unlisten(this.onNotification);
         await window.api.postgres.closeAll();
         this._db = undefined;
-        this._dbListen = undefined;
         this._dbConnectionConfig = undefined;
     }
 
     private assertConnected(): void {
-        if (!this._db || !this._dbListen)
-            throw new Error('Operation failed: no database connection');
+        if (!this._db) throw new Error('Operation failed: no database connection');
     }
 
     private isConfigValid(config: DbConnectionConfig): boolean {

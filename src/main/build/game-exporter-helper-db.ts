@@ -41,7 +41,7 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
             // Grab single row from original database
             const row: Row = await db.get(
                 mainConn,
-                `SELECT * FROM ${tableDefinition.tableType.name} LIMIT 1`,
+                `SELECT * FROM ${tableDefinition.tableType.name} LIMIT 1;`,
             );
 
             // Some tables may be empty and we can ignore them since there's nothing to copy
@@ -67,13 +67,13 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
                 const queryFetchBatch: string = `
                 SELECT ${columns} 
                 FROM ${tableDefinition.tableType.name} 
-                ORDER BY id ASC LIMIT ${limit} OFFSET ${offset}`;
+                ORDER BY id ASC LIMIT ${limit} OFFSET ${offset};`;
                 const rows = await db.all(mainConn, queryFetchBatch);
                 for (let k = 0; k < rows.length; k++) {
                     const valueList: unknown[] = Object.values(<object>rows[k]);
                     const queryInsertBatch = `INSERT INTO ${
                         tableDefinition.tableType.name
-                    } (${columns}) VALUES (${valueList.map(() => '?')})`;
+                    } (${columns}) VALUES (${valueList.map(() => '?')});`;
                     await db.run(helperConn, queryInsertBatch, valueList);
                 }
             }
@@ -94,27 +94,33 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
         if (tableDefinition.tableType.id === TABLE_LOCALIZATIONS.id) {
             // Add columns to locales
             const locales: Locale[] = <Locale[]>(
-                await db.all(mainConn, `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC`)
+                await db.all(
+                    mainConn,
+                    `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC;`,
+                )
             );
             for (let i = 0; i < locales.length; i++) {
                 await db.exec(
                     helperConn,
                     `ALTER TABLE ${TABLE_LOCALIZATIONS.name} ADD COLUMN ${localeIdToColumn(
                         locales[i].id,
-                    )} TEXT`,
+                    )} TEXT;`,
                 );
             }
         } else if (tableDefinition.tableType.id === TABLE_CONVERSATIONS.id) {
             // Add columns to conversations
             const filters: Filter[] = <Filter[]>(
-                await db.all(mainConn, `SELECT id, name FROM ${TABLE_FILTERS.name} ORDER BY id ASC`)
+                await db.all(
+                    mainConn,
+                    `SELECT id, name FROM ${TABLE_FILTERS.name} ORDER BY id ASC;`,
+                )
             );
             for (let i = 0; i < filters.length; i++) {
                 await db.exec(
                     helperConn,
                     `ALTER TABLE ${TABLE_CONVERSATIONS.name} ADD COLUMN ${filterIdToColumn(
                         filters[i].id,
-                    )} TEXT`,
+                    )} TEXT;`,
                 );
             }
         }

@@ -36,7 +36,7 @@ export async function localizationImport(
         try {
             // Grab locale names
             const locales: Locale[] = <Locale[]>(
-                await db.all(conn, `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC`)
+                await db.all(conn, `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC;`)
             );
             const columns: ColumnDescriptor[] = [
                 { id: 'id', name: 'ID' },

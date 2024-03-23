@@ -114,10 +114,10 @@ export class DbClientSqlite implements DbClient {
         });
     }
 
-    async notify(_connection: DbConnection, notifyRequest: AppNotification): Promise<void> {
+    async notify(_connection: DbConnection, notification: AppNotification): Promise<void> {
         if (!this._listening) throw new Error('Tried to notify while not listening in SQLite');
         const mainWindow: BrowserWindow = getMainWindow();
-        mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notifyRequest);
+        mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notification);
     }
 
     async listen(): Promise<void> {

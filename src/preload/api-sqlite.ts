@@ -25,11 +25,10 @@ export interface SqliteApi {
     exec(connection: DbConnection, query: string): Promise<void>;
     notify(connection: DbConnection, notification: AppNotification): Promise<void>;
     listen(
-        connection: DbConnection,
+        config: DbConnectionConfig,
         callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
     unlisten(
-        connection: DbConnection,
         callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
 }
@@ -60,17 +59,16 @@ export const sqliteApi: SqliteApi = {
         await ipcRenderer.invoke(API_SQLITE_NOTIFY, connection, notification);
     },
     listen: async (
-        connection: DbConnection,
+        config: DbConnectionConfig,
         callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
         ipcRenderer.addListener(API_SQLITE_ON_NOTIFICATION, callback);
-        await ipcRenderer.invoke(API_SQLITE_LISTEN, connection);
+        await ipcRenderer.invoke(API_SQLITE_LISTEN, config);
     },
     unlisten: async (
-        connection: DbConnection,
         callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
-        await ipcRenderer.invoke(API_SQLITE_UNLISTEN, connection);
+        await ipcRenderer.invoke(API_SQLITE_UNLISTEN);
         ipcRenderer.removeListener(API_SQLITE_ON_NOTIFICATION, callback);
     },
 };
