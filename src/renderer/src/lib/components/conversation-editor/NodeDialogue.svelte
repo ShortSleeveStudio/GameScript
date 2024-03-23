@@ -63,7 +63,7 @@
 
     function getVoiceText(localizationViews: IDbRowView<Localization>[]): IDbRowView<Localization> {
         if (!localizationViews || localizationViews.length === 0) return undefined;
-        return localizations.getRowViewById(get(rowView).voiceText);
+        return localizations.getRowViewById(get(rowView).voice_text);
     }
 </script>
 

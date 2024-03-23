@@ -37,5 +37,5 @@
 </p>
 <p>
     <sup>Localized Name</sup>
-    <RowColumnLocalization {rowView} columnName={'localizedName'} />
+    <RowColumnLocalization {rowView} columnName={'localized_name'} />
 </p>

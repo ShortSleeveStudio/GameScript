@@ -80,9 +80,10 @@
     } from '@common/common-types';
     import type { DbConnection } from '@common/common-db-types';
     import { filterIdToColumn } from '@common/common-filter';
+    import { BooleanFilter, type BooleanFilterModel } from '@lib/grid/grid-filter-boolean';
 
     const CONVERSATION_ID_COLUMN: string = 'id';
-    const IS_DELETED_COLUMN: string = 'isDeleted';
+    const IS_DELETED_COLUMN: string = 'is_deleted';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
         tableType: TABLE_CONVERSATIONS,
         type: FOCUS_REPLACE,
@@ -112,8 +113,9 @@
         },
         {
             headerName: 'Is Deleted',
-            colId: 'isDeleted',
-            filter: 'agNumberColumnFilter',
+            colId: 'is_deleted',
+            // filter: 'agNumberColumnFilter',
+            filter: BooleanFilter,
             hide: true,
             lockVisible: true,
             suppressFiltersToolPanel: true,
@@ -138,11 +140,11 @@
     async function onCreate(): Promise<void> {
         const conversation: Conversation = <Conversation>{
             name: 'New Conversation',
-            isSystemCreated: false,
+            is_system_created: false,
             notes: '',
-            isDeleted: false,
-            isLayoutAuto: get(graphLayoutAutoLayoutDefault),
-            isLayoutVertical: get(graphLayoutVerticalDefault),
+            is_deleted: false,
+            is_layout_auto: get(graphLayoutAutoLayoutDefault),
+            is_layout_vertical: get(graphLayoutVerticalDefault),
         };
         await conversationCreate(conversation, isLoading);
     }
@@ -230,7 +232,7 @@
             // We have to do this here because the database only knows about REAL deletions
             for (let i = 0; i < conversationsToDelete.length; i++) {
                 const conversationToDelete = conversationsToDelete[i];
-                conversationToDelete.isDeleted = shouldDelete;
+                conversationToDelete.is_deleted = shouldDelete;
                 await db.updateRow(TABLE_CONVERSATIONS, conversationToDelete, conn);
             }
         });
@@ -243,9 +245,9 @@
 
     function showIsDeleted(shouldShow: boolean): void {
         const model: FilterModel = api.getFilterModel();
-        model[IS_DELETED_COLUMN] = <NumberFilterModel>{
-            filterType: 'number',
-            filter: shouldShow ? 1 : 0,
+        model[IS_DELETED_COLUMN] = <BooleanFilterModel>{
+            filterType: 'boolean',
+            filter: shouldShow,
             type: 'equals',
         };
         api.setFilterModel(model);
@@ -270,9 +272,9 @@
         });
     }
 
-    function onFiltersChanged<RowType extends Row>(tableView: IDbTableView<RowType>): void {
+    function onFiltersChanged(tableView: IDbTableView<Conversation>): void {
         // Grab row views
-        const rowViews: IDbRowView<RowType>[] = get(tableView);
+        const rowViews: IDbRowView<Conversation>[] = get(tableView);
         if (rowViews.length === 0) return;
 
         // Purge old columns
@@ -288,7 +290,7 @@
 
         // Add dynamic columns
         for (let i = 0; i < rowViews.length; i++) {
-            const row: RowType = get(rowViews[i]);
+            const row: Conversation = get(rowViews[i]);
             const colId: string = filterIdToColumn(row.id);
             columnIdSet.add(colId);
             columnDefs.push({
@@ -372,7 +374,7 @@
             onSelectionChanged: onSelectionChanged,
             onRowClicked: onRowClicked,
             isRowSelectable: (params: IRowNode<IDbRowView<Conversation>>) => {
-                return !!params.data && !get(params.data).isSystemCreated;
+                return !!params.data && !get(params.data).is_system_created;
             },
             defaultColDef: {
                 suppressMovable: true,
@@ -436,6 +438,9 @@
 
         // Dispose of table watcher
         tableWatcher?.dispose();
+
+        // Clear state
+        columnIdSet.clear();
 
         // Destroy table
         api?.destroy();

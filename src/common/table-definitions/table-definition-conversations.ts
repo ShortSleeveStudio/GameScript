@@ -22,7 +22,7 @@ TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'isSystemCreated',
+    name: 'is_system_created',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
@@ -34,19 +34,19 @@ TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'isDeleted',
+    name: 'is_deleted',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'isLayoutAuto',
+    name: 'is_layout_auto',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_CONVERSATIONS.addColumn(<ColumnDefinition>{
-    name: 'isLayoutVertical',
+    name: 'is_layout_vertical',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,

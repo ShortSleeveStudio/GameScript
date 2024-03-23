@@ -31,13 +31,13 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'uiResponseText',
+    name: 'ui_response_text',
     type: FIELD_TYPE_INTEGER,
     notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'voiceText',
+    name: 'voice_text',
     type: FIELD_TYPE_INTEGER,
     notNull: false,
     defaultValue: undefined,
@@ -55,13 +55,13 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'codeOverride',
+    name: 'code_override',
     type: FIELD_TYPE_INTEGER,
     notNull: false,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'isPreventResponse',
+    name: 'is_prevent_response',
     type: FIELD_TYPE_BOOLEAN,
     notNull: false,
     defaultValue: false,
@@ -73,7 +73,7 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'isSystemCreated',
+    name: 'is_system_created',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
@@ -85,13 +85,13 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'positionX',
+    name: 'position_x',
     type: FIELD_TYPE_DECIMAL,
     notNull: false,
     defaultValue: 0,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
-    name: 'positionY',
+    name: 'position_y',
     type: FIELD_TYPE_DECIMAL,
     notNull: false,
     defaultValue: 0,
@@ -102,11 +102,11 @@ TABLE_DEFINITION_NODES.addForeignKey({
     table: TABLE_ACTORS,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
-    column: 'uiResponseText',
+    column: 'ui_response_text',
     table: TABLE_LOCALIZATIONS,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
-    column: 'voiceText',
+    column: 'voice_text',
     table: TABLE_LOCALIZATIONS,
 });
 TABLE_DEFINITION_NODES.addForeignKey({

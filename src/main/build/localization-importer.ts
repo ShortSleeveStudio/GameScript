@@ -1,6 +1,7 @@
 import fs, { ReadStream } from 'fs';
-import { DbClient, DbConnection, DbNotification } from '../../common/common-db-types';
+import { DbClient, DbConnection } from '../../common/common-db-types';
 import { localeIdToColumn } from '../../common/common-locale';
+import { AppNotification } from '../../common/common-notification';
 import { Locale } from '../../common/common-schema';
 import {
     DB_OP_ALTER,
@@ -66,9 +67,9 @@ export async function localizationImport(
             }
 
             // Notify
-            await db.notify(conn, <DbNotification>{
+            await db.notify(conn, <AppNotification>{
                 tableId: TABLE_LOCALIZATIONS.id,
-                opType: DB_OP_ALTER, // Since we don't know how much has changed
+                operationId: DB_OP_ALTER, // Since we don't know how much has changed
             });
         } finally {
             await importer.teardown();

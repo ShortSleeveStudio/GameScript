@@ -8,6 +8,7 @@ import { TABLE_DEFINITION_LOCALE_PRINCIPAL } from '../table-definitions/table-de
 import { TABLE_DEFINITION_LOCALES } from '../table-definitions/table-definition-locales';
 import { TABLE_DEFINITION_LOCALIZATIONS } from '../table-definitions/table-definition-localizations';
 import { TABLE_DEFINITION_NODES } from '../table-definitions/table-definition-nodes';
+import { TABLE_DEFINITION_NOTIFICATIONS } from '../table-definitions/table-definition-notification';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL } from '../table-definitions/table-definition-programming-language-principal';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGES } from '../table-definitions/table-definition-programming-languages';
 import { TABLE_DEFINITION_ROUTINE_TYPES } from '../table-definitions/table-definition-routine-types';
@@ -31,4 +32,5 @@ export const TABLE_DEFINITIONS: TableDefinition[] = [
     TABLE_DEFINITION_NODES,
     TABLE_DEFINITION_EDGES,
     TABLE_DEFINITION_VERSION,
+    TABLE_DEFINITION_NOTIFICATIONS,
 ];

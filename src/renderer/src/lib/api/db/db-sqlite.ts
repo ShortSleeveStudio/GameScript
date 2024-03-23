@@ -1,12 +1,12 @@
 import type {
     DbConnection,
     DbConnectionConfig,
-    DbNotification,
     DbResult,
     DbTransaction,
 } from '@common/common-db-types';
-import { type Row } from '@common/common-schema';
-import { updateRowQuery } from '@common/common-sql';
+import type { AppNotification } from '@common/common-notification';
+import type { Row } from '@common/common-schema';
+import { updateRowQuerySqlite } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -15,7 +15,6 @@ import {
     DB_OP_UPDATE,
     type DatabaseTableType,
     type FieldTypeId,
-    type OpTypeId,
 } from '@common/common-types';
 import { TABLE_DEFINITIONS } from '@common/table-generators/table-generator';
 import {
@@ -23,33 +22,22 @@ import {
     typeForFieldTypeSqlite,
 } from '@common/table-generators/table-generator-sqlite';
 import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
-import {
-    FOCUS_MODE_MODIFY,
-    FOCUS_REMOVE,
-    type Focus,
-    type FocusManager,
-    type FocusRequests,
-} from '@lib/stores/app/focus';
+import { type FocusManager } from '@lib/stores/app/focus';
 import { wait } from '@lib/utility/wait';
-import type { IpcRendererEvent } from 'electron';
-import { get, type Writable } from 'svelte/store';
-import { DbBase, type DbQueuedNotification } from './db-base';
-import { createFilter } from './db-filter';
+import { type Writable } from 'svelte/store';
+import { DbBase } from './db-base';
 import type { Filter } from './db-filter-interface';
 import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
-import type { DbTableView } from './db-view-table';
 
 /**SQLite database implementation */
 export class SqliteDb extends DbBase {
     private _db: DbConnection | undefined;
-    private _focusManager: FocusManager;
     private _dbConnectionConfig: DbConnectionConfig | undefined;
-    private _transactionNotifications: DbQueuedNotification[];
+    private _transactionNotifications: AppNotification[];
 
     constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
-        super(isConnected);
-        this._focusManager = focusManager;
+        super(isConnected, focusManager);
         this._transactionNotifications = [];
     }
 
@@ -78,6 +66,13 @@ export class SqliteDb extends DbBase {
             if (conn) await window.api.sqlite.close(conn);
         }
         return true;
+    }
+
+    protected async initializeSchema(): Promise<void> {
+        for (let i = 0; i < TABLE_DEFINITIONS.length; i++) {
+            const tableDefString: string = generateTableSqlite(TABLE_DEFINITIONS[i]);
+            await window.api.sqlite.exec(this._db, tableDefString);
+        }
     }
 
     async connect(config: DbConnectionConfig, initialize: boolean): Promise<void> {
@@ -133,21 +128,13 @@ export class SqliteDb extends DbBase {
             // Preserve and reset notifications. If you don't clear these before notifying,
             // transactions in the notifications will end up looping over these irrelevant
             // notifications
-            const preservedTransactions: DbQueuedNotification[] = this._transactionNotifications;
+            const preservedTransactions: AppNotification[] = this._transactionNotifications;
             this._transactionNotifications = [];
+            // Only notify if there were no errors
             if (!wasError) {
                 await window.api.sqlite.exec(conn, 'COMMIT;');
                 await window.api.sqlite.close(conn);
-                // Only notify if there were no errors
-                for (let i = 0; i < preservedTransactions.length; i++) {
-                    const notification: DbQueuedNotification = preservedTransactions[i];
-                    await this.notify(
-                        notification.op,
-                        notification.tableType,
-                        notification.rows,
-                        undefined,
-                    );
-                }
+                await super.combineAndBroadcastNotifications(preservedTransactions);
             } else {
                 await window.api.sqlite.close(conn);
             }
@@ -162,7 +149,6 @@ export class SqliteDb extends DbBase {
     ): Promise<void> {
         this.assertConnected();
         const typeString: string = typeForFieldTypeSqlite(type);
-
         const query: string = `ALTER TABLE ${tableType.name} ADD COLUMN ${name} ${typeString};`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
@@ -174,7 +160,13 @@ export class SqliteDb extends DbBase {
         await wait(300);
 
         // Notify
-        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
+        await this.notify(
+            DB_OP_ALTER,
+            tableType.id,
+            this._transactionNotifications,
+            undefined,
+            connection,
+        );
     }
 
     async deleteColumn(
@@ -188,7 +180,7 @@ export class SqliteDb extends DbBase {
                 detail: <DbColumnDeleting>{ tableType: tableType },
             }),
         );
-        const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name}`;
+        const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name};`;
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
         } catch (err) {
@@ -199,7 +191,13 @@ export class SqliteDb extends DbBase {
         await wait(300);
 
         // Notify
-        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
+        await this.notify(
+            DB_OP_ALTER,
+            tableType.id,
+            this._transactionNotifications,
+            undefined,
+            connection,
+        );
     }
 
     async createRow<RowType extends Row>(
@@ -254,7 +252,13 @@ export class SqliteDb extends DbBase {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(DB_OP_CREATE, tableType, rows, connection);
+        await this.notify(
+            DB_OP_CREATE,
+            tableType.id,
+            this._transactionNotifications,
+            rows,
+            connection,
+        );
 
         // Return new id
         return rows;
@@ -267,7 +271,7 @@ export class SqliteDb extends DbBase {
     ): Promise<number> {
         const query: string = `SELECT COUNT(*) as count FROM ${
             tableType.name
-        } ${filter.whereClause()}`;
+        } ${filter.whereClause()};`;
         let result: number = 0;
         try {
             const resultObj = await window.api.sqlite.get(connection ?? this._db, query);
@@ -285,7 +289,7 @@ export class SqliteDb extends DbBase {
     ): Promise<RowType[]> {
         this.assertConnected();
         // Fetch rows
-        const query: string = `SELECT * FROM ${tableType.name} ${filter.toString()}`;
+        const query: string = `SELECT * FROM ${tableType.name} ${filter.toString()};`;
         let results: RowType[];
         try {
             results = await window.api.sqlite.all(connection ?? this._db, query);
@@ -333,7 +337,10 @@ export class SqliteDb extends DbBase {
         this.assertConnected();
         for (let i = 0; i < rows.length; i++) {
             const row: RowType = rows[i];
-            const [query, argumentArray]: [string, unknown[]] = updateRowQuery(tableType, row);
+            const [query, argumentArray]: [string, unknown[]] = updateRowQuerySqlite(
+                tableType,
+                row,
+            );
             try {
                 await window.api.sqlite.run(connection ?? this._db, query, argumentArray);
             } catch (err) {
@@ -345,7 +352,13 @@ export class SqliteDb extends DbBase {
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(DB_OP_UPDATE, tableType, rows, connection);
+        await this.notify(
+            DB_OP_UPDATE,
+            tableType.id,
+            this._transactionNotifications,
+            rows,
+            connection,
+        );
     }
 
     async updateRow<RowType extends Row>(
@@ -374,7 +387,7 @@ export class SqliteDb extends DbBase {
         if (rows.length === 0) return;
         const query: string = `DELETE FROM ${tableType.name} WHERE id IN (${rows
             .map((row) => row.id)
-            .join(', ')})`;
+            .join(', ')});`;
 
         try {
             await window.api.sqlite.exec(connection ?? this._db, query);
@@ -383,13 +396,19 @@ export class SqliteDb extends DbBase {
         }
 
         // Remove from cache
-        this.removeRowViews(tableType, rows);
+        super.removeRowViews(tableType, rows);
 
         // TODO: REMOVE THIS
         await wait(300);
 
         // Notify
-        await this.notify<RowType>(DB_OP_DELETE, tableType, rows, connection);
+        await this.notify(
+            DB_OP_DELETE,
+            tableType.id,
+            this._transactionNotifications,
+            rows,
+            connection,
+        );
     }
 
     async searchAndReplace<RowType extends Row>(
@@ -415,131 +434,18 @@ export class SqliteDb extends DbBase {
         await wait(300);
 
         // Notify
-        await this.notify(DB_OP_ALTER, tableType, undefined, connection);
-    }
-
-    protected async initializeSchema(): Promise<void> {
-        for (let i = 0; i < TABLE_DEFINITIONS.length; i++) {
-            const tableDefString: string = generateTableSqlite(TABLE_DEFINITIONS[i]);
-            await window.api.sqlite.exec(this._db, tableDefString);
-        }
-    }
-
-    private async notify<RowType extends Row>(
-        op: OpTypeId,
-        tableType: DatabaseTableType,
-        rows?: RowType[],
-        connection?: DbConnection,
-    ): Promise<void> {
-        // Don't do notifications if we're initializing
-        if (!get(this._isConnected)) return;
-
-        // Cache the notification for later if we're in a transaction
-        if (connection) {
-            this._transactionNotifications.push({
-                op: op,
-                tableType: tableType,
-                rows: rows,
-            });
-            return;
-        }
-
-        // Fire notification
-        await window.api.sqlite.notify(undefined, <DbNotification>{
-            tableId: tableType.id,
-            opType: op,
-            rows: rows,
-        });
-    }
-
-    private onNotification: (
-        event: IpcRendererEvent,
-        notification: DbNotification,
-    ) => Promise<void> = async (_event: IpcRendererEvent, notification: DbNotification) => {
-        switch (notification.opType) {
-            case DB_OP_CREATE:
-            case DB_OP_DELETE: {
-                await this.notifyOnRowLifecycleEvent(
-                    DATABASE_TABLES[notification.tableId],
-                    notification.rows,
-                );
-                break;
-            }
-            case DB_OP_UPDATE: {
-                await this.notifyOnRowsUpdated(
-                    DATABASE_TABLES[notification.tableId],
-                    notification.rows,
-                );
-                break;
-            }
-            case DB_OP_ALTER: {
-                await this.notifyOnTableAltered(DATABASE_TABLES[notification.tableId]);
-                break;
-            }
-            default:
-                throw new Error(
-                    `Unknown database operation type encountered: ${notification.opType}`,
-                );
-        }
-    };
-
-    private async notifyOnRowLifecycleEvent<RowType extends Row>(
-        tableType: DatabaseTableType,
-        rows: RowType[],
-    ): Promise<void> {
-        const tableViews = super.getTableViewsForTable<RowType>(tableType);
-        for (const tableView of tableViews.values()) {
-            if (tableView.filter.wouldAffectRows(rows, true)) {
-                await (<DbTableView<RowType>>tableView).onReloadRequired();
-            }
-        }
-    }
-
-    private async notifyOnRowsUpdated<RowType extends Row>(
-        tableType: DatabaseTableType,
-        rows: RowType[],
-    ): Promise<void> {
-        const rowIds: number[] = rows.map((row) => row.id);
-        await this.fetchRows(
-            tableType,
-            createFilter().where().column('id').in(rowIds).endWhere().build(),
+        await this.notify(
+            DB_OP_ALTER,
+            tableType.id,
+            this._transactionNotifications,
+            undefined,
+            connection,
         );
     }
 
-    private async notifyOnTableAltered(tableType: DatabaseTableType): Promise<void> {
-        const tableViews = super.getTableViewsForTable(tableType);
-        for (const tableView of tableViews.values()) {
-            tableView.onReloadRequired();
-        }
-    }
-
-    private removeRowViews<RowType extends Row>(
-        tableType: DatabaseTableType,
-        row: RowType[],
-    ): void {
-        const rowViews: Map<number, IDbRowView<RowType>> = super.getRowViewsForTable(tableType);
-        const focusMap: Map<number, Focus> = new Map();
-        row.forEach((row) => {
-            if (rowViews.has(row.id)) {
-                // Remove from focus if needed
-                focusMap.set(row.id, { rowId: row.id });
-
-                // Delete from cache
-                rowViews.delete(row.id);
-            }
-        });
-        if (focusMap.size > 0) {
-            this._focusManager.focus(<FocusRequests>{
-                type: FOCUS_MODE_MODIFY,
-                requests: [
-                    {
-                        tableType: tableType,
-                        focus: focusMap,
-                        type: FOCUS_REMOVE,
-                    },
-                ],
-            });
-        }
+    protected async doNotify(notification: AppNotification): Promise<void> {
+        // We can skip the main process, this came from us
+        await this.onNotification(undefined, notification);
     }
 
     private async destroyConnection(): Promise<void> {

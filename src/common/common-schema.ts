@@ -1,5 +1,6 @@
 ///
 /// Rows
+
 ///
 export interface Row {
     // This is ignored during serialization for inserts/updates
@@ -10,13 +11,13 @@ export interface Annotated {
     notes: string; // used for developer notes
 }
 export interface SystemCreatable {
-    isSystemCreated: boolean; // Used when a row is created by the system
+    is_system_created: boolean; // Used when a row is created by the system
 }
 export interface Principaled {
     principal: number; // FK
 }
 export interface Deletable {
-    isDeleted: boolean;
+    is_deleted: boolean;
 }
 export interface ConversationChild {
     parent: number; // FK Conversation
@@ -56,7 +57,7 @@ export interface RoutineType extends Row, Named {}
 export interface Routine extends Row, Annotated, SystemCreatable, ConversationChild, Named {
     code: string;
     type: number;
-    isCondition: boolean;
+    is_condition: boolean;
 }
 
 ///
@@ -68,15 +69,15 @@ export interface Filter extends Row, Annotated, Named {}
 /// Conversations
 ///
 export interface Conversation extends Row, SystemCreatable, Annotated, Deletable, Named {
-    isLayoutAuto: boolean;
-    isLayoutVertical: boolean;
+    is_layout_auto: boolean;
+    is_layout_vertical: boolean;
 }
 
 ///
 /// Locales
 ///
 export interface Locale extends Row, SystemCreatable, Named {
-    localizedName: number; // FK Localization
+    localized_name: number; // FK Localization
 }
 
 ///
@@ -96,7 +97,7 @@ export interface Localization extends Row, SystemCreatable, ConversationChild, N
 ///
 export interface Actor extends Row, Annotated, SystemCreatable, Named {
     color: string;
-    localizedName: number; // FK Localization
+    localized_name: number; // FK Localization
 }
 
 ///
@@ -109,17 +110,17 @@ export interface ActorPrincipal extends Row, Principaled {}
 ///
 export interface Node extends Row, Annotated, SystemCreatable, ConversationChild {
     actor: number; // FK Actors
-    voiceText: number; // FK Localizations
-    uiResponseText: number; // FK Localizations
+    voice_text: number; // FK Localizations
+    ui_response_text: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
-    codeOverride: number | null;
-    isPreventResponse: boolean;
+    code_override: number | null;
+    is_prevent_response: boolean;
 
     // Graph Stuff
     type: string;
-    positionX: number;
-    positionY: number;
+    position_x: number;
+    position_y: number;
 }
 
 ///
@@ -136,8 +137,18 @@ export interface Edge extends Row, Annotated, ConversationChild {
 }
 
 ///
-/// System
+/// Version
 ///
-export interface System extends Row {
+export interface Version extends Row {
     version: string;
+}
+
+///
+/// Notifications
+///
+export interface Notification extends Row {
+    timestamp: number;
+    table_id: number;
+    operation_id: number;
+    json_payload: string;
 }

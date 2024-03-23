@@ -2,6 +2,7 @@ import {
     FIELD_TYPE_BOOLEAN,
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
+    FIELD_TYPE_LONG,
     FIELD_TYPE_TEXT,
     FieldTypeId,
 } from '../common-types';
@@ -14,13 +15,13 @@ import type {
 
 export function generateTablePostgres(table: TableDefinition): string {
     let createString: string = '';
-    createString += `CREATE TABLE IF NOT EXISTS "${table.tableType.name}"\n`;
+    createString += `CREATE TABLE IF NOT EXISTS ${table.tableType.name}\n`;
     // Columns
     createString += `(\n`;
     for (let i = 0; i < table.columns.length; i++) {
         const definition: ColumnDefinition = table.columns[i];
         const isPrimaryKey: boolean = definition.name === table.primaryKey;
-        createString += `"${definition.name}"`;
+        createString += definition.name;
         createString += ` ${typeForFieldTypePostgres(definition.type.id, isPrimaryKey)}`;
         if (definition.notNull) {
             createString += ` NOT NULL`;
@@ -58,11 +59,11 @@ export function generateTablePostgres(table: TableDefinition): string {
     for (let i = 0; i < table.foreignKeys.length; i++) {
         const definition: ForeignKeyDefinition = table.foreignKeys[i];
         createString += `
-        FOREIGN KEY ("${definition.column}") REFERENCES "${definition.table.name}",\n`;
+        FOREIGN KEY (${definition.column}) REFERENCES ${definition.table.name},\n`;
     }
 
     // Primary Key
-    createString += `PRIMARY KEY("${table.primaryKey}")\n`;
+    createString += `PRIMARY KEY(${table.primaryKey})\n`;
     createString += `);`;
 
     return createString;
@@ -79,6 +80,8 @@ export function typeForFieldTypePostgres(type: FieldTypeId, isPrimaryKey: boolea
             return 'text';
         case FIELD_TYPE_BOOLEAN.id:
             return 'boolean';
+        case FIELD_TYPE_LONG.id:
+            return 'bigint';
         default:
             throw new Error(`Unknown Postgres type: ${type}`);
     }

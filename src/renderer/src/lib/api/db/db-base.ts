@@ -1,8 +1,13 @@
 import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initialization';
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
+import type { AppNotification } from '@common/common-notification';
 import type { Actor, Locale, Row } from '@common/common-schema';
 import {
     DATABASE_TABLES,
+    DB_OP_ALTER,
+    DB_OP_CREATE,
+    DB_OP_DELETE,
+    DB_OP_UPDATE,
     TABLE_ACTORS,
     TABLE_ACTOR_PRINCIPAL,
     TABLE_LOCALES,
@@ -12,14 +17,24 @@ import {
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
     TABLE_VERSION,
+    type DatabaseTableId,
     type DatabaseTableType,
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
 import { actorsCreate } from '@lib/crud/actor-crud';
 import { localesCreate } from '@lib/crud/locale-crud';
+import {
+    FOCUS_MODE_MODIFY,
+    FOCUS_REMOVE,
+    FocusManager,
+    type Focus,
+    type FocusRequests,
+} from '@lib/stores/app/focus';
 import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
+import type { IpcRendererEvent } from 'electron';
 import { get, type Writable } from 'svelte/store';
+import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import type { Db } from './db-interface';
 import type { DbRowView } from './db-view-row';
@@ -29,13 +44,6 @@ import type { IDbTableView } from './db-view-table-interface';
 
 // Row view destructor
 export type RowViewDestructor = () => void;
-
-/**Used to queue notifications when needed. */
-export interface DbQueuedNotification {
-    op: OpTypeId;
-    tableType: DatabaseTableType;
-    rows?: Row[];
-}
 
 // TODO
 const DUMMY_IS_LOADING: IsLoadingStore = new IsLoadingStore();
@@ -54,9 +62,11 @@ export abstract class DbBase implements Db {
     }
 
     protected _isConnected: Writable<boolean>;
+    protected _focusManager: FocusManager;
 
-    constructor(isConnected: Writable<boolean>) {
+    constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
         this._isConnected = isConnected;
+        this._focusManager = focusManager;
     }
 
     abstract isDbInitialized(config: DbConnectionConfig): Promise<boolean>;
@@ -273,6 +283,84 @@ export abstract class DbBase implements Db {
     ): Promise<void>;
 
     /**
+     * Database specific functionality to broadcast a notification about a change to the database.
+     * @param tableId Id of the table
+     * @param opType Operation type
+     * @param rowIds Ids of the rows changed
+     */
+    protected abstract doNotify(notification: AppNotification): Promise<void>;
+
+    /**
+     * Broadcast a notification about a change to the database.
+     * @param op Operation type
+     * @param tableId Id of the table
+     * @param rows Rows that were changed
+     * @param connection Optional connection to execute with
+     */
+    protected async notify<RowType extends Row>(
+        op: OpTypeId,
+        tableId: DatabaseTableId,
+        notificationQueue: AppNotification[],
+        rows?: RowType[],
+        connection?: DbConnection,
+    ): Promise<void> {
+        // Don't do notifications if we're initializing
+        if (!get(this._isConnected)) return;
+
+        // Create notification
+        const notification: AppNotification = <AppNotification>{
+            tableId: tableId,
+            operationId: op,
+            rows: rows,
+        };
+
+        // Cache the notification for later if we're in a transaction
+        if (connection) {
+            notificationQueue.push(notification);
+            return;
+        }
+
+        // Fire notification
+        await this.doNotify(notification);
+    }
+
+    /**
+     * Handle notifications coming from the database.
+     * @param event IPC event, not used
+     * @param notification Notification received
+     */
+    protected onNotification: (
+        event: IpcRendererEvent,
+        notification: AppNotification,
+    ) => Promise<void> = async (_event: IpcRendererEvent, notification: AppNotification) => {
+        switch (notification.operationId) {
+            case DB_OP_CREATE:
+            case DB_OP_DELETE: {
+                await this.notifyOnRowLifecycleEvent(
+                    DATABASE_TABLES[notification.tableId],
+                    notification.rows,
+                );
+                break;
+            }
+            case DB_OP_UPDATE: {
+                await this.notifyOnRowsUpdated(
+                    DATABASE_TABLES[notification.tableId],
+                    notification.rows,
+                );
+                break;
+            }
+            case DB_OP_ALTER: {
+                await this.notifyOnTableAltered(DATABASE_TABLES[notification.tableId]);
+                break;
+            }
+            default:
+                throw new Error(
+                    `Unknown database operation type encountered: ${notification.operationId}`,
+                );
+        }
+    };
+
+    /**
      * Initialize all tables.
      */
     protected abstract initializeSchema(): Promise<void>;
@@ -329,6 +417,40 @@ export abstract class DbBase implements Db {
         rowViews.delete(rowId);
     }
 
+    protected async combineAndBroadcastNotifications(
+        preservedTransactions: AppNotification[],
+    ): Promise<void> {
+        // Combine notifications
+        const tableToOpToRows: Map<number, Map<number, Row[]>> = new Map();
+        for (let i = 0; i < preservedTransactions.length; i++) {
+            const notification: AppNotification = preservedTransactions[i];
+            let opToRows: Map<number, Row[]> = tableToOpToRows.get(notification.tableId);
+            if (!opToRows) {
+                opToRows = new Map();
+                tableToOpToRows.set(notification.tableId, opToRows);
+            }
+            let rows: Row[] = opToRows.get(notification.operationId);
+            if (!rows) {
+                rows = [];
+                opToRows.set(notification.operationId, rows);
+            }
+            rows.push(...notification.rows);
+        }
+
+        // Send notifications
+        for (const [tableId, opToRows] of tableToOpToRows) {
+            for (const [opId, rows] of opToRows) {
+                await this.notify(
+                    <OpTypeId>opId,
+                    <DatabaseTableId>tableId,
+                    undefined,
+                    rows,
+                    undefined,
+                );
+            }
+        }
+    }
+
     protected getTableViewsForTable<RowType extends Row>(
         tableType: DatabaseTableType,
     ): Map<number, DbTableView<RowType>> {
@@ -363,5 +485,69 @@ export abstract class DbBase implements Db {
 
     protected isConnected(): boolean {
         return get(this._isConnected);
+    }
+
+    protected removeRowViews<RowType extends Row>(
+        tableType: DatabaseTableType,
+        row: RowType[],
+    ): void {
+        const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
+        const focusMap: Map<number, Focus> = new Map();
+        row.forEach((row) => {
+            if (rowViews.has(row.id)) {
+                // Remove from focus if needed
+                focusMap.set(row.id, { rowId: row.id });
+
+                // Delete from cache
+                rowViews.delete(row.id);
+            }
+        });
+        if (focusMap.size > 0) {
+            this._focusManager.focus(<FocusRequests>{
+                type: FOCUS_MODE_MODIFY,
+                requests: [
+                    {
+                        tableType: tableType,
+                        focus: focusMap,
+                        type: FOCUS_REMOVE,
+                    },
+                ],
+            });
+        }
+    }
+
+    private async notifyOnRowLifecycleEvent<RowType extends Row>(
+        tableType: DatabaseTableType,
+        rows: RowType[],
+    ): Promise<void> {
+        const tableViews = this.getTableViewsForTable<RowType>(tableType);
+        for (const tableView of tableViews.values()) {
+            if (tableView.filter.wouldAffectRows(rows, true)) {
+                await (<DbTableView<RowType>>tableView).onReloadRequired();
+            }
+        }
+    }
+
+    private async notifyOnRowsUpdated<RowType extends Row>(
+        tableType: DatabaseTableType,
+        rows: RowType[],
+    ): Promise<void> {
+        // TODO - can we iterate over loaded rows to decide if this is necessary?
+        await this.fetchRows(
+            tableType,
+            createFilter()
+                .where()
+                .column('id')
+                .in(rows.map((row) => row.id))
+                .endWhere()
+                .build(),
+        );
+    }
+
+    private async notifyOnTableAltered(tableType: DatabaseTableType): Promise<void> {
+        const tableViews = this.getTableViewsForTable(tableType);
+        for (const tableView of tableViews.values()) {
+            tableView.onReloadRequired();
+        }
     }
 }

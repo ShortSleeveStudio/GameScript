@@ -111,7 +111,7 @@
         {/if}
     {/if}
 {/if}
-{#if showConversationButton && rowView && $rowView.parent && $rowView.isSystemCreated}
+{#if showConversationButton && rowView && $rowView.parent && $rowView.is_system_created}
     <p>
         <sup>Node</sup>
         <br />

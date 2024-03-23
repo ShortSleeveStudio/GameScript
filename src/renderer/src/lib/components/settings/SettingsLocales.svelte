@@ -46,7 +46,7 @@
             db,
             <Locale>{
                 name: 'New Locale',
-                isSystemCreated: false,
+                is_system_created: false,
             },
             isLoading,
         );
@@ -81,7 +81,7 @@
         batchSelection
         bind:selectedRowIds
         nonSelectableRowIds={$locales
-            .filter((rowView) => get(rowView).isSystemCreated)
+            .filter((rowView) => get(rowView).is_system_created)
             .map((row) => row.id)}
         {headers}
         rows={$locales}

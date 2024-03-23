@@ -92,7 +92,7 @@
             cellRenderer: GridCellRenderer,
             cellEditor: GridCellEditorConversationId,
             // cellStyle: (params: CellClassParams<IDbRowView<Localization>>) => {
-            //     if (params.data && get(params.data).isSystemCreated) {
+            //     if (params.data && get(params.data).is_system_created) {
             //         return { cursor: 'not-allowed' };
             //     }
             //     return null;
@@ -124,11 +124,11 @@
     }
 
     function isCellEditable(params: EditableCallbackParams<IDbRowView<Localization>>): boolean {
-        return !!params.data && !get(params.data).isSystemCreated;
+        return !!params.data && !get(params.data).is_system_created;
     }
 
     function isRowSelectable(params: IRowNode<IDbRowView<Localization>>): boolean {
-        return !!params.data && !get(params.data).isSystemCreated;
+        return !!params.data && !get(params.data).is_system_created;
     }
 
     function onSelectionChanged(): void {
@@ -162,7 +162,7 @@
 
         let newLocalization: Localization = <Localization>{
             name: '',
-            isSystemCreated: false,
+            is_system_created: false,
             parent: conversationId,
         };
 

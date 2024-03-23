@@ -158,7 +158,7 @@
     let focusedConversationId: number | undefined = undefined;
     let focusedRowView: IDbRowView<Conversation> = undefined;
     $: {
-        if (focusedRowView && (focusedRowView.isDisposed || $focusedRowView.isDeleted)) {
+        if (focusedRowView && (focusedRowView.isDisposed || $focusedRowView.is_deleted)) {
             blur();
         }
     }
@@ -202,32 +202,32 @@
 
     async function setAutoLayout(isAuto: boolean): Promise<void> {
         const conversation: Conversation = get(focusedRowView);
-        if (conversation.isLayoutAuto === isAuto) return;
+        if (conversation.is_layout_auto === isAuto) return;
 
         // Update conversation
         const oldConversation: Conversation = <Conversation>{
             id: conversation.id,
-            isLayoutAuto: conversation.isLayoutAuto,
+            is_layout_auto: conversation.is_layout_auto,
         };
         const newConversation: Conversation = <Conversation>{
             id: conversation.id,
-            isLayoutAuto: isAuto,
+            is_layout_auto: isAuto,
         };
         await conversationUpdate(newConversation, oldConversation, isLoading);
     }
 
     async function setVerticalLayout(isVertical: boolean): Promise<void> {
         const conversation: Conversation = get(focusedRowView);
-        if (conversation.isLayoutVertical === isVertical) return;
+        if (conversation.is_layout_vertical === isVertical) return;
 
         // Update conversation
         const oldConversation: Conversation = <Conversation>{
             id: conversation.id,
-            isLayoutVertical: conversation.isLayoutVertical,
+            is_layout_vertical: conversation.is_layout_vertical,
         };
         const newConversation: Conversation = <Conversation>{
             id: conversation.id,
-            isLayoutVertical: isVertical,
+            is_layout_vertical: isVertical,
         };
         await conversationUpdate(newConversation, oldConversation, isLoading);
 
@@ -317,8 +317,8 @@
             const originalNode: Node = get((<NodeData>flowNode.data).rowView);
             // Skip nodes that haven't moved
             if (
-                flowNode.position.x === originalNode.positionX &&
-                flowNode.position.y === originalNode.positionY
+                flowNode.position.x === originalNode.position_x &&
+                flowNode.position.y === originalNode.position_y
             ) {
                 continue;
             }
@@ -329,8 +329,8 @@
             }
             oldNodes.push(<Node>{ ...originalNode });
             const newNode = <Node>{ ...originalNode };
-            newNode.positionX = flowNode.position.x;
-            newNode.positionY = flowNode.position.y;
+            newNode.position_x = flowNode.position.x;
+            newNode.position_y = flowNode.position.y;
             newNodes.push(newNode);
         }
         // If there were no updates, exit
@@ -374,9 +374,9 @@
         const newNode: Node = <Node>{
             type: type,
             parent: focusedRowView.id,
-            isSystemCreated: false,
-            positionX: centerX,
-            positionY: centerY,
+            is_system_created: false,
+            position_x: centerX,
+            position_y: centerY,
         };
         nodeCreate(newNode, isLoading);
     }
@@ -417,7 +417,7 @@
 
     async function onLayout(): Promise<void> {
         // Don't layout if we're not doing auto-layout
-        if (!focusedRowView || !get(focusedRowView).isLayoutAuto) return;
+        if (!focusedRowView || !get(focusedRowView).is_layout_auto) return;
 
         // Grab current nodes and edges, return if there are none
         let flowNodes: FlowNode[] = get(nodes);
@@ -427,7 +427,7 @@
         let allNodes: FlowNode[] = [...flowNodes];
 
         // Create all elk edges and remember all connected nodes
-        const isVertical: boolean = get(focusedRowView).isLayoutVertical;
+        const isVertical: boolean = get(focusedRowView).is_layout_vertical;
         const connectedNodeIds: Set<string> = new Set();
         const elkEdges: ElkExtendedEdge[] = [];
         const nodeIdToPorts: Map<string, ElkPort[]> = new Map();
@@ -546,7 +546,7 @@
             children: elkNodes,
             edges: elkEdges,
         });
-        if (!get(focusedRowView).isLayoutAuto) return;
+        if (!get(focusedRowView).is_layout_auto) return;
 
         // Time has passed, grab a fresh copy of the nodes
         flowNodes = get(nodes);
@@ -579,13 +579,13 @@
             if (elkNode.x === flowNode.position.x && elkNode.y === flowNode.position.y) continue;
             newPositions.push(<Node>{
                 id: (<NodeData>flowNode.data).rowView.id,
-                positionX: elkNode.x,
-                positionY: elkNode.y,
+                position_x: elkNode.x,
+                position_y: elkNode.y,
             });
             oldPositions.push(<Node>{
                 id: (<NodeData>flowNode.data).rowView.id,
-                positionX: flowNode.position.x,
-                positionY: flowNode.position.y,
+                position_x: flowNode.position.x,
+                position_y: flowNode.position.y,
             });
         }
 
@@ -597,7 +597,7 @@
                 blur();
                 throw error;
             }
-            if (!get(focusedRowView).isLayoutAuto) return;
+            if (!get(focusedRowView).is_layout_auto) return;
         }
 
         // Time has passed, grab a fresh copy of the nodes
@@ -620,13 +620,13 @@
     }
 
     function nodeCreateLocal(remote: IDbRowView<Node>): FlowNode {
-        const isVertical: boolean = get(focusedRowView).isLayoutVertical;
+        const isVertical: boolean = get(focusedRowView).is_layout_vertical;
         const remoteNode: Node = get(remote);
         const isNotRoot: boolean = remoteNode.type !== NODE_TYPE_ROOT.name;
         return <FlowNode>{
             id: remote.id.toString(),
             type: remoteNode.type,
-            position: { x: remoteNode.positionX, y: remoteNode.positionY },
+            position: { x: remoteNode.position_x, y: remoteNode.position_y },
             data: <NodeData>{
                 rowView: remote,
                 localizations: localizationViews,
@@ -646,8 +646,8 @@
         // Skip equality
         if (
             local.type === remote.type &&
-            local.position.x === remote.positionX &&
-            local.position.y === remote.positionY
+            local.position.x === remote.position_x &&
+            local.position.y === remote.position_y
         )
             return false;
         console.log(`Update local node`);
@@ -656,8 +656,8 @@
         local.deletable = isNotRoot;
         local.selectable = isNotRoot;
         if (isNodeDragging()) return true; // TODO - test using just this node's dragging flag
-        local.position.x = remote.positionX;
-        local.position.y = remote.positionY;
+        local.position.x = remote.position_x;
+        local.position.y = remote.position_y;
         return true;
     }
 
@@ -832,7 +832,7 @@
         }
         const conversationView: IDbRowView<Conversation> = conversations[0];
         const conversation: Conversation = get(conversationView);
-        if (conversation.isDeleted) {
+        if (conversation.is_deleted) {
             changeFocus(true);
             return;
         }
@@ -847,13 +847,13 @@
         if (!conversation) return;
 
         // Handle vertical layout changes
-        if (conversation.isLayoutVertical !== currentLayoutVertical) {
+        if (conversation.is_layout_vertical !== currentLayoutVertical) {
             const nodeIds: string[] = [];
             nodes.update((nodeList: FlowNode[]) => {
                 for (let i = 0; i < nodeList.length; i++) {
                     const node: FlowNode = nodeList[i];
-                    node.sourcePosition = getSourcePosition(conversation.isLayoutVertical);
-                    node.targetPosition = getTargetPosition(conversation.isLayoutVertical);
+                    node.sourcePosition = getSourcePosition(conversation.is_layout_vertical);
+                    node.targetPosition = getTargetPosition(conversation.is_layout_vertical);
                     nodeIds.push(node.id);
                 }
                 return nodeList;
@@ -862,8 +862,8 @@
         }
 
         // Handle auto-layout changes
-        if (conversation.isLayoutAuto !== currentLayoutAuto) {
-            if (conversation.isLayoutAuto) {
+        if (conversation.is_layout_auto !== currentLayoutAuto) {
+            if (conversation.is_layout_auto) {
                 // Perform layout
                 await onLayout();
             } else {
@@ -982,8 +982,8 @@
 
                 // Update conversation auto-layout / vertical settings
                 const focusedConversation: Conversation = get(focusedRowView);
-                currentLayoutAuto = !focusedConversation.isLayoutAuto; // To trigger a change
-                currentLayoutVertical = !focusedConversation.isLayoutVertical; // To trigger a change
+                currentLayoutAuto = !focusedConversation.is_layout_auto; // To trigger a change
+                currentLayoutVertical = !focusedConversation.is_layout_vertical; // To trigger a change
                 isConversationInitialized = true; // this allows layout to happen
 
                 // Duplicate call here to allow for the awaiting
@@ -1153,17 +1153,17 @@
         >
             <svelte:fragment slot="overflow">
                 <OverflowMenuItem
-                    text="{!focusedRowView || $focusedRowView.isLayoutAuto
+                    text="{!focusedRowView || $focusedRowView.is_layout_auto
                         ? 'Disable'
                         : 'Enable'} Layout"
-                    on:click={() => setAutoLayout(!$focusedRowView.isLayoutAuto)}
+                    on:click={() => setAutoLayout(!$focusedRowView.is_layout_auto)}
                 />
                 <OverflowMenuItem
-                    text="Layout {!focusedRowView || $focusedRowView.isLayoutVertical
+                    text="Layout {!focusedRowView || $focusedRowView.is_layout_vertical
                         ? 'Horizontal'
                         : 'Vertical'}"
                     on:click={() => {
-                        setVerticalLayout(!$focusedRowView.isLayoutVertical);
+                        setVerticalLayout(!$focusedRowView.is_layout_vertical);
                     }}
                 />
                 <OverflowMenuItem
@@ -1199,7 +1199,7 @@
             {edgeTypes}
             {isValidConnection}
             defaultEdgeOptions={DEFAULT_EDGE_OPTIONS}
-            connectionLineType={!focusedRowView || $focusedRowView.isLayoutAuto
+            connectionLineType={!focusedRowView || $focusedRowView.is_layout_auto
                 ? ConnectionLineType.Step
                 : ConnectionLineType.Bezier}
             minZoom={MIN_ZOOM}

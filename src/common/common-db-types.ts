@@ -1,5 +1,4 @@
-import { Row } from './common-schema';
-import { DatabaseTableId, OpTypeId } from './common-types';
+import { AppNotification } from './common-notification';
 
 export type DbTransaction = (connection: DbConnection) => Promise<void>;
 
@@ -23,10 +22,12 @@ export interface DbResult {
     rowsAffected: number;
 }
 
-export interface DbNotification {
-    tableId: DatabaseTableId;
-    opType: OpTypeId;
-    rows?: Row[];
+export interface NotifyRequest {
+    id: number;
+}
+
+export interface DbListen {
+    channel: string;
 }
 
 export interface DbClient {
@@ -37,7 +38,7 @@ export interface DbClient {
     all<T = unknown[]>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
-    notify(connection: DbConnection, notification: DbNotification): Promise<void>;
+    notify(connection: DbConnection, notification: AppNotification): Promise<void>;
     listen(connection: DbConnection): Promise<void>;
     unlisten(connection: DbConnection): Promise<void>;
 }

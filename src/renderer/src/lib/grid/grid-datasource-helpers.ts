@@ -14,6 +14,7 @@ import type {
     WhereColumnOrOpenScope,
     WherePredicate,
 } from '@lib/api/db/db-filter-interface';
+import type { BooleanFilterModel } from './grid-filter-boolean';
 
 export function datasourceFilterWhere<RowType extends Row>(
     filterBuilder: FilterBuilder<RowType>,
@@ -55,6 +56,13 @@ export function datasourceFilterWhere<RowType extends Row>(
                         whereAndOrClose = handleNumberFilter(
                             wherePredicate,
                             <NumberFilterModel>filters[j],
+                        );
+                        break;
+                    }
+                    case 'boolean': {
+                        whereAndOrClose = handleBooleanFilter(
+                            wherePredicate,
+                            <BooleanFilterModel>filters[j],
                         );
                         break;
                     }
@@ -128,5 +136,17 @@ function handleNumberFilter<RowType extends Row>(
             return whereBuilder.gte(numberFilterModel.filter);
         default:
             throw new Error(`Unknown filter operation: ${numberFilterModel.type}`);
+    }
+}
+
+function handleBooleanFilter<RowType extends Row>(
+    whereBuilder: WherePredicate<RowType>,
+    booleanFilterModel: BooleanFilterModel,
+): WhereAndOrCloseScopeEnd<RowType> {
+    switch (booleanFilterModel.type) {
+        case 'equals':
+            return whereBuilder.eq(booleanFilterModel.filter);
+        default:
+            throw new Error(`Unknown filter operation: ${booleanFilterModel.type}`);
     }
 }

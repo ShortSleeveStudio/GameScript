@@ -1,10 +1,6 @@
 import { IpcRendererEvent, ipcRenderer } from 'electron';
-import {
-    DbConnection,
-    DbConnectionConfig,
-    DbNotification,
-    DbResult,
-} from '../common/common-db-types';
+import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-db-types';
+import { AppNotification } from '../common/common-notification';
 import {
     API_POSTGRES_ALL,
     API_POSTGRES_CLOSE,
@@ -27,14 +23,14 @@ export interface PostgresApi {
     all<T = unknown[]>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
-    notify(connection: DbConnection, notification: DbNotification): Promise<void>;
+    notify(connection: DbConnection, notification: AppNotification): Promise<void>;
     listen(
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
     unlisten(
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
 }
 
@@ -43,10 +39,10 @@ export const postgresApi: PostgresApi = {
         return await ipcRenderer.invoke(API_POSTGRES_OPEN, config);
     },
     close: async (connection: DbConnection) => {
-        await ipcRenderer.invoke(API_POSTGRES_CLOSE, connection);
+        await await ipcRenderer.invoke(API_POSTGRES_CLOSE, connection);
     },
     closeAll: async (): Promise<void> => {
-        await ipcRenderer.invoke(API_POSTGRES_CLOSE_ALL);
+        await await ipcRenderer.invoke(API_POSTGRES_CLOSE_ALL);
     },
     run: async (connection: DbConnection, query: string, bindValues?: unknown[]) => {
         return await ipcRenderer.invoke(API_POSTGRES_RUN, connection, query, bindValues);
@@ -60,19 +56,19 @@ export const postgresApi: PostgresApi = {
     exec: async (connection: DbConnection, query: string) => {
         await ipcRenderer.invoke(API_POSTGRES_EXEC, connection, query);
     },
-    notify: async (connection: DbConnection, notification: DbNotification) => {
+    notify: async (connection: DbConnection, notification: AppNotification) => {
         await ipcRenderer.invoke(API_POSTGRES_NOTIFY, connection, notification);
     },
     listen: async (
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
         ipcRenderer.addListener(API_POSTGRES_ON_NOTIFICATION, callback);
         await ipcRenderer.invoke(API_POSTGRES_LISTEN, connection);
     },
     unlisten: async (
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
         await ipcRenderer.invoke(API_POSTGRES_UNLISTEN, connection);
         ipcRenderer.removeListener(API_POSTGRES_ON_NOTIFICATION, callback);

@@ -19,13 +19,13 @@ test('eq', () => {
 test('eq boolean number', () => {
     const result = createFilter<Conversation>()
         .where()
-        .column('isDeleted')
+        .column('is_deleted')
         .eq(1)
         .endWhere()
         .build();
-    expect(result.toString()).toBe('WHERE isDeleted = 1');
-    expect(result.wouldAffectRow(<Conversation>{ isDeleted: true })).toBe(true);
-    expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(false);
+    expect(result.toString()).toBe('WHERE is_deleted = 1');
+    expect(result.wouldAffectRow(<Conversation>{ is_deleted: true })).toBe(true);
+    expect(result.wouldAffectRow(<Conversation>{ is_deleted: false })).toBe(false);
 });
 
 test('eq missing fields', () => {
@@ -55,13 +55,13 @@ test('ne', () => {
 test('ne boolean number', () => {
     const result = createFilter<Conversation>()
         .where()
-        .column('isDeleted')
+        .column('is_deleted')
         .ne(1)
         .endWhere()
         .build();
-    expect(result.toString()).toBe('WHERE isDeleted != 1');
-    expect(result.wouldAffectRow(<Conversation>{ isDeleted: true })).toBe(false);
-    expect(result.wouldAffectRow(<Conversation>{ isDeleted: false })).toBe(true);
+    expect(result.toString()).toBe('WHERE is_deleted != 1');
+    expect(result.wouldAffectRow(<Conversation>{ is_deleted: true })).toBe(false);
+    expect(result.wouldAffectRow(<Conversation>{ is_deleted: false })).toBe(true);
 });
 
 test('ne missing fields', () => {

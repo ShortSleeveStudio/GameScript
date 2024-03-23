@@ -39,7 +39,7 @@ export class TranspilerCSharp implements Transpiler {
         parser.removeErrorListeners();
         parser.addErrorListener(errorHandler);
         try {
-            if (routine.isCondition) {
+            if (routine.is_condition) {
                 const expression: ExpressionContext = parser.expression();
                 ParseTreeWalker.DEFAULT.walk(listener, expression);
             } else {

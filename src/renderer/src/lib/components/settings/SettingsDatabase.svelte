@@ -78,6 +78,10 @@
         }
     }
 
+    async function pgDisconnect(): Promise<void> {
+        await db.disconnect();
+    }
+
     async function resetConnection(): Promise<void> {
         resetConnectionConfig();
         await db.disconnect();
@@ -228,7 +232,7 @@
             <p>
                 <sup>Connect</sup><br />
                 {#if $dbConnected}
-                    <Button size="small" kind="danger">Disconnect</Button>
+                    <Button size="small" kind="danger" on:click={pgDisconnect}>Disconnect</Button>
                 {:else}
                     <Button size="small" on:click={pgConnect}>Connect</Button>
                 {/if}

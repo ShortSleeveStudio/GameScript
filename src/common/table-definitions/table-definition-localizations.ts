@@ -29,7 +29,7 @@ TABLE_DEFINITION_LOCALIZATIONS.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_LOCALIZATIONS.addColumn(<ColumnDefinition>{
-    name: 'isSystemCreated',
+    name: 'is_system_created',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,

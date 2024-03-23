@@ -25,21 +25,21 @@ export async function nodeCreate(
     const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
         // Don't bother creating routines/localizations for the root node
         if (newNode.type !== NODE_TYPE_ROOT.name) {
-            // Create uiResponseText
+            // Create ui_response_text
             newUiResponseText = await db.createRow(
                 TABLE_LOCALIZATIONS,
                 <Localization>{
                     parent: newNode.parent,
-                    isSystemCreated: true,
+                    is_system_created: true,
                 },
                 conn,
             );
-            // Create voiceText
+            // Create voice_text
             newVoiceText = await db.createRow(
                 TABLE_LOCALIZATIONS,
                 <Localization>{
                     parent: newNode.parent,
-                    isSystemCreated: true,
+                    is_system_created: true,
                 },
                 conn,
             );
@@ -49,9 +49,9 @@ export async function nodeCreate(
                 <Routine>{
                     code: '',
                     type: ROUTINE_TYPE_USER_CREATED.id,
-                    isSystemCreated: true,
+                    is_system_created: true,
                     parent: newNode.parent,
-                    isCondition: true,
+                    is_condition: true,
                 },
                 conn,
             );
@@ -61,9 +61,9 @@ export async function nodeCreate(
                 <Routine>{
                     code: '',
                     type: ROUTINE_TYPE_USER_CREATED.id,
-                    isSystemCreated: true,
+                    is_system_created: true,
                     parent: newNode.parent,
-                    isCondition: false,
+                    is_condition: false,
                 },
                 conn,
             );
@@ -74,15 +74,15 @@ export async function nodeCreate(
             <Node>{
                 parent: newNode.parent,
                 actor: DB_DEFAULT_ACTOR_ID,
-                uiResponseText: newUiResponseText ? newUiResponseText.id : null,
-                voiceText: newVoiceText ? newVoiceText.id : null,
+                ui_response_text: newUiResponseText ? newUiResponseText.id : null,
+                voice_text: newVoiceText ? newVoiceText.id : null,
                 condition: newCondition ? newCondition.id : null,
                 code: newCode ? newCode.id : null,
-                isSystemCreated: newNode.isSystemCreated,
+                is_system_created: newNode.is_system_created,
                 // Graph Stuff
                 type: newNode.type,
-                positionX: newNode.positionX,
-                positionY: newNode.positionY,
+                position_x: newNode.position_x,
+                position_y: newNode.position_y,
             },
             conn,
         );

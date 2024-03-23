@@ -1,12 +1,7 @@
 import Database, { Database as Db, RunResult, Statement } from 'better-sqlite3';
 import { BrowserWindow } from 'electron';
-import {
-    DbClient,
-    DbConnection,
-    DbConnectionConfig,
-    DbNotification,
-    DbResult,
-} from '../../common/common-db-types';
+import { DbClient, DbConnection, DbConnectionConfig, DbResult } from '../../common/common-db-types';
+import { AppNotification } from '../../common/common-notification';
 import { API_SQLITE_ON_NOTIFICATION } from '../../common/constants';
 import { getMainWindow } from '../common/common-helpers';
 
@@ -119,10 +114,10 @@ export class DbClientSqlite implements DbClient {
         });
     }
 
-    async notify(_connection: DbConnection, notification: DbNotification): Promise<void> {
+    async notify(_connection: DbConnection, notifyRequest: AppNotification): Promise<void> {
         if (!this._listening) throw new Error('Tried to notify while not listening in SQLite');
         const mainWindow: BrowserWindow = getMainWindow();
-        mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notification);
+        mainWindow.webContents.send(API_SQLITE_ON_NOTIFICATION, notifyRequest);
     }
 
     async listen(): Promise<void> {

@@ -48,6 +48,7 @@ export const TABLE_ACTOR_PRINCIPAL: DatabaseTableType = { id: 11, name: 'actor_p
 export const TABLE_NODES: DatabaseTableType = { id: 12, name: 'nodes' };
 export const TABLE_EDGES: DatabaseTableType = { id: 13, name: 'edges' };
 export const TABLE_VERSION: DatabaseTableType = { id: 14, name: 'version' };
+export const TABLE_NOTIFICATIONS: DatabaseTableType = { id: 15, name: 'notifications' };
 export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_AUTO_COMPLETES,
     TABLE_PROGRAMMING_LANGUAGES,
@@ -64,6 +65,7 @@ export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_NODES,
     TABLE_EDGES,
     TABLE_VERSION,
+    TABLE_NOTIFICATIONS,
 ] as const;
 export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
 export type DatabaseTableName = (typeof DATABASE_TABLES)[number]['name'];
@@ -89,11 +91,13 @@ export const FIELD_TYPE_DECIMAL: FieldType = { id: 0, name: 'Decimal' };
 export const FIELD_TYPE_INTEGER: FieldType = { id: 1, name: 'Integer' };
 export const FIELD_TYPE_TEXT: FieldType = { id: 2, name: 'Text' };
 export const FIELD_TYPE_BOOLEAN: FieldType = { id: 3, name: 'Boolean' };
+export const FIELD_TYPE_LONG: FieldType = { id: 4, name: 'Long' };
 export const FIELD_TYPES: FieldType[] = [
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
     FIELD_TYPE_TEXT,
     FIELD_TYPE_BOOLEAN,
+    FIELD_TYPE_LONG,
 ] as const;
 export type FieldTypeId = (typeof FIELD_TYPES)[number]['id'];
 export type FieldTypeName = (typeof FIELD_TYPES)[number]['name'];

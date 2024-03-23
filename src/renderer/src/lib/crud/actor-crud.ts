@@ -29,11 +29,11 @@ export async function actorsCreate(
     let actorInfos: ActorInfo[];
     const actorsToCreate: ActorInfo[] = [];
     for (let i = 0; i < toCreate.length; i++) {
-        actorsToCreate.push({
+        actorsToCreate.push(<ActorInfo>{
             actor: toCreate[i],
             localizedName: <Localization>{
                 parent: null,
-                isSystemCreated: true,
+                is_system_created: true,
             },
         });
     }
@@ -86,16 +86,17 @@ export async function actorsDelete(
             for (let i = 0; i < toDelete.length; i++) {
                 // Fetch localization
                 const actorToDelete: Actor = toDelete[i];
-                const localizationToDelete: Localization = await db.fetchRowsRaw(
-                    TABLE_ACTORS,
+                const localizationsToDelete: Localization[] = await db.fetchRowsRaw<Localization>(
+                    TABLE_LOCALIZATIONS,
                     createFilter()
                         .where()
                         .column('id')
-                        .eq(actorToDelete.localizedName)
+                        .eq(actorToDelete.localized_name)
                         .endWhere()
                         .build(),
-                )[0];
-                info.push({
+                );
+                const localizationToDelete: Localization = localizationsToDelete[0];
+                info.push(<ActorInfo>{
                     actor: actorToDelete,
                     localizedName: localizationToDelete,
                 });
@@ -141,7 +142,7 @@ async function createOperation(
         );
 
         // Create locale
-        actorInfo.actor.localizedName = newLocalization.id;
+        actorInfo.actor.localized_name = newLocalization.id;
         const newActor = await db.createRow(TABLE_ACTORS, actorInfo.actor, connection);
 
         // Save new actors

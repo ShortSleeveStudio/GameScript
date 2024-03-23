@@ -78,7 +78,7 @@
     </Tooltip>
     <RowColumnLocalization
         {rowView}
-        columnName={'voiceText'}
+        columnName={'voice_text'}
         showTitle={false}
         showId={false}
         showNickname={false}
@@ -94,7 +94,7 @@
     </Tooltip>
     <RowColumnLocalization
         {rowView}
-        columnName={'uiResponseText'}
+        columnName={'ui_response_text'}
         showTitle={false}
         showId={false}
         showNickname={false}
@@ -117,7 +117,7 @@
     </Tooltip>
     <RoutineSelector
         {rowView}
-        columnNameOverrideRoutine={'codeOverride'}
+        columnNameOverrideRoutine={'code_override'}
         defaultRoutine={routineCode}
     />
 </p>
@@ -131,7 +131,7 @@
     </Tooltip>
     <RowColumnBoolean
         {rowView}
-        columnName={'isPreventResponse'}
+        columnName={'is_prevent_response'}
         undoText={NODE_UNDO_PREVENT_RESPONSE}
     />
 </p>

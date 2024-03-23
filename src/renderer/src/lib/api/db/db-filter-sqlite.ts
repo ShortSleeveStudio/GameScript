@@ -299,10 +299,10 @@ export class FilterBuilderSqlite<RowType extends Row>
         return this._whereClause;
     }
 
-    wouldAffectRow(row: RowType, missingColumnsAffected): boolean {
+    wouldAffectRow(row: RowType, missingColumnsAffected: boolean): boolean {
         return this._scope.execute(row, missingColumnsAffected);
     }
-    wouldAffectRows(rows: RowType[], missingColumnsAffected): boolean {
+    wouldAffectRows(rows: RowType[], missingColumnsAffected: boolean): boolean {
         if (!rows) throw Error('Passed in a null or empty array to filter');
         for (let i = 0; i < rows.length; i++) {
             if (this._scope.execute(rows[i], missingColumnsAffected)) {

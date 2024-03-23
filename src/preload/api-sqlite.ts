@@ -1,10 +1,6 @@
 import { IpcRendererEvent, ipcRenderer } from 'electron';
-import {
-    DbConnection,
-    DbConnectionConfig,
-    DbNotification,
-    DbResult,
-} from '../common/common-db-types';
+import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-db-types';
+import { AppNotification } from '../common/common-notification';
 import {
     API_SQLITE_ALL,
     API_SQLITE_CLOSE,
@@ -27,14 +23,14 @@ export interface SqliteApi {
     all<T = unknown[]>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     get<T = unknown>(connection: DbConnection, query: string, bindValues?: unknown[]): Promise<T>;
     exec(connection: DbConnection, query: string): Promise<void>;
-    notify(connection: DbConnection, notification: DbNotification): Promise<void>;
+    notify(connection: DbConnection, notification: AppNotification): Promise<void>;
     listen(
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
     unlisten(
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ): Promise<void>;
 }
 
@@ -60,19 +56,19 @@ export const sqliteApi: SqliteApi = {
     exec: async (connection: DbConnection, query: string) => {
         await ipcRenderer.invoke(API_SQLITE_EXEC, connection, query);
     },
-    notify: async (connection: DbConnection, notification: DbNotification) => {
+    notify: async (connection: DbConnection, notification: AppNotification) => {
         await ipcRenderer.invoke(API_SQLITE_NOTIFY, connection, notification);
     },
     listen: async (
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
         ipcRenderer.addListener(API_SQLITE_ON_NOTIFICATION, callback);
         await ipcRenderer.invoke(API_SQLITE_LISTEN, connection);
     },
     unlisten: async (
         connection: DbConnection,
-        callback: (event: IpcRendererEvent, notification: DbNotification) => void,
+        callback: (event: IpcRendererEvent, notification: AppNotification) => void,
     ) => {
         await ipcRenderer.invoke(API_SQLITE_UNLISTEN, connection);
         ipcRenderer.removeListener(API_SQLITE_ON_NOTIFICATION, callback);

@@ -1,10 +1,6 @@
 import { IpcMainInvokeEvent, ipcMain } from 'electron';
-import {
-    DbConnection,
-    DbConnectionConfig,
-    DbNotification,
-    DbResult,
-} from '../common/common-db-types';
+import { DbConnection, DbConnectionConfig, DbResult } from '../common/common-db-types';
+import { AppNotification } from '../common/common-notification';
 import {
     API_POSTGRES_ALL,
     API_POSTGRES_CLOSE,
@@ -67,7 +63,7 @@ ipcMain.handle(
     async (
         _: IpcMainInvokeEvent,
         connectionId: DbConnection,
-        notification: DbNotification,
+        notification: AppNotification,
     ): Promise<void> => await postgres.notify(connectionId, notification),
 );
 ipcMain.handle(

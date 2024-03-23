@@ -34,7 +34,7 @@ TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
-    name: 'isCondition',
+    name: 'is_condition',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: false,
@@ -46,7 +46,7 @@ TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ROUTINES.addColumn(<ColumnDefinition>{
-    name: 'isSystemCreated',
+    name: 'is_system_created',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,

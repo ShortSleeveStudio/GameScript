@@ -41,11 +41,11 @@ export async function localesCreate(
         db.executeTransaction(async (conn: DbConnection) => {
             const localesToCreate: LocaleInfo[] = [];
             for (let i = 0; i < toCreate.length; i++) {
-                localesToCreate.push({
+                localesToCreate.push(<LocaleInfo>{
                     locale: toCreate[i],
                     localizedName: <Localization>{
                         parent: null,
-                        isSystemCreated: true,
+                        is_system_created: true,
                     },
                 });
             }
@@ -101,11 +101,11 @@ export async function localesDelete(
                     createFilter()
                         .where()
                         .column('id')
-                        .eq(localeToDelete.localizedName)
+                        .eq(localeToDelete.localized_name)
                         .endWhere()
                         .build(),
                 )[0];
-                info.push({
+                info.push(<LocaleInfo>{
                     locale: localeToDelete,
                     localizedName: localizationToDelete,
                 });
@@ -151,7 +151,7 @@ async function createOperation(
         );
 
         // Create locale
-        localeInfo.locale.localizedName = newLocalization.id;
+        localeInfo.locale.localized_name = newLocalization.id;
         const newLocale = await db.createRow(TABLE_LOCALES, localeInfo.locale, connection);
 
         // Alter localization table

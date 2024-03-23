@@ -2,6 +2,7 @@ import {
     FIELD_TYPE_BOOLEAN,
     FIELD_TYPE_DECIMAL,
     FIELD_TYPE_INTEGER,
+    FIELD_TYPE_LONG,
     FIELD_TYPE_TEXT,
     FieldTypeId,
 } from '../common-types';
@@ -75,6 +76,8 @@ export function typeForFieldTypeSqlite(type: FieldTypeId): string {
         case FIELD_TYPE_TEXT.id:
             return 'TEXT';
         case FIELD_TYPE_BOOLEAN.id:
+            return 'INTEGER';
+        case FIELD_TYPE_LONG.id:
             return 'INTEGER';
         default:
             throw new Error(`Unknown SQLite type: ${type}`);

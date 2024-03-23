@@ -15,7 +15,7 @@ export async function conversationCreate(
     // Create converation
     let newNode: Node = <Node>{
         type: NODE_TYPE_ROOT.name,
-        isSystemCreated: true,
+        is_system_created: true,
     };
 
     const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {

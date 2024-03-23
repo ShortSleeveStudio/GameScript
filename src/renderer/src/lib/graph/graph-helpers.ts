@@ -75,10 +75,10 @@ export async function focusOnNodeOfLocalization(localization: Localization): Pro
         localization.parent,
         createFilter<Node>()
             .where()
-            .column('voiceText')
+            .column('voice_text')
             .eq(localization.id)
             .or()
-            .column('uiResponseText')
+            .column('ui_response_text')
             .eq(localization.id)
             .endWhere()
             .build(),

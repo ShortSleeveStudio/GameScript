@@ -44,8 +44,8 @@
             name: 'New Routine',
             code: '',
             type: ROUTINE_TYPE_DEFAULT.id,
-            isSystemCreated: false,
-            isCondition: false,
+            is_system_created: false,
+            is_condition: false,
         };
         let newRow: Routine = await isLoading.wrapPromise(db.createRow(TABLE_ROUTINES, newRoutine));
 

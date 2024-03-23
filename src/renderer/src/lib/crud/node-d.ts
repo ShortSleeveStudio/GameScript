@@ -148,7 +148,7 @@ function gatherNodeData(
         nodeIds.push(node.id);
         routineIds.push(node.code);
         routineIds.push(node.condition);
-        localizationIds.push(node.uiResponseText);
-        localizationIds.push(node.voiceText);
+        localizationIds.push(node.ui_response_text);
+        localizationIds.push(node.voice_text);
     }
 }

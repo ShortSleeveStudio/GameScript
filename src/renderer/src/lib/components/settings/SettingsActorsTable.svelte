@@ -44,7 +44,7 @@
             <Actor>{
                 name: ACTORS_DEFAULT_NAME,
                 color: ACTORS_DEFAULT_COLOR,
-                isSystemCreated: false,
+                is_system_created: false,
             },
             isLoading,
             true,
@@ -67,7 +67,7 @@
         batchSelection
         bind:selectedRowIds
         nonSelectableRowIds={$actorsTable
-            .filter((rowView) => get(rowView).isSystemCreated)
+            .filter((rowView) => get(rowView).is_system_created)
             .map((row) => row.id)}
         {headers}
         rows={$actorsTable}

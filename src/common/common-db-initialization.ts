@@ -6,7 +6,7 @@ import type {
     ProgrammingLanguagePrincipal,
     Routine,
     Row,
-    System,
+    Version,
 } from './common-schema';
 import {
     PROGRAMMING_LANGUAGE_CS,
@@ -31,13 +31,13 @@ export interface InitialTableRows {
     rows: Row[];
 }
 
-export const DB_DEFAULT_ACTOR_ID: number = 1;
-export const DB_DEFAULT_ACTOR_PRINCIPAL_ID: number = 1;
-export const DB_DEFAULT_LOCALE_ID: number = 1;
-export const DB_DEFAULT_LOCALE_PRINCIPAL_ID: number = 1;
-export const DB_DEFAULT_ROUTINE_ID: number = 1;
-export const DB_DEFAULT_ROUTINE_PRINCIPAL_ID: number = 1;
-export const DB_DEFAULT_SYSTEM_ID: number = 1;
+export const DB_DEFAULT_ACTOR_ID: number = 0;
+export const DB_DEFAULT_ACTOR_PRINCIPAL_ID: number = 0;
+export const DB_DEFAULT_LOCALE_ID: number = 0;
+export const DB_DEFAULT_LOCALE_PRINCIPAL_ID: number = 0;
+export const DB_DEFAULT_ROUTINE_ID: number = 0;
+export const DB_DEFAULT_ROUTINE_PRINCIPAL_ID: number = 0;
+export const DB_DEFAULT_VERSION_ID: number = 0;
 
 export const DB_INITIAL_ROWS: InitialTableRows[] = [
     { table: TABLE_PROGRAMMING_LANGUAGES, rows: PROGRAMMING_LANGUAGE_TYPES },
@@ -59,8 +59,8 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
                 name: 'Import Statements',
                 code: '',
                 type: ROUTINE_TYPE_IMPORT.id,
-                isSystemCreated: true,
-                isCondition: false,
+                is_system_created: true,
+                is_condition: false,
             },
         ],
     },
@@ -70,7 +70,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
             <Locale>{
                 id: DB_DEFAULT_LOCALE_ID,
                 name: 'en_US',
-                isSystemCreated: true,
+                is_system_created: true,
             },
         ],
     },
@@ -90,7 +90,7 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
                 id: DB_DEFAULT_ACTOR_ID,
                 name: 'Player',
                 color: ACTORS_DEFAULT_COLOR,
-                isSystemCreated: true,
+                is_system_created: true,
             },
         ],
     },
@@ -106,8 +106,8 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
     {
         table: TABLE_VERSION,
         rows: [
-            <System>{
-                id: DB_DEFAULT_SYSTEM_ID,
+            <Version>{
+                id: DB_DEFAULT_VERSION_ID,
                 version: '0.0.0',
             },
         ],

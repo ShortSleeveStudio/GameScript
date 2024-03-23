@@ -27,19 +27,19 @@ TABLE_DEFINITION_ACTORS.addColumn(<ColumnDefinition>{
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ACTORS.addColumn(<ColumnDefinition>{
-    name: 'localizedName',
+    name: 'localized_name',
     type: FIELD_TYPE_INTEGER,
     notNull: true,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ACTORS.addColumn(<ColumnDefinition>{
-    name: 'isSystemCreated',
+    name: 'is_system_created',
     type: FIELD_TYPE_BOOLEAN,
     notNull: true,
     defaultValue: undefined,
 });
 TABLE_DEFINITION_ACTORS.setPrimaryKey('id');
 TABLE_DEFINITION_ACTORS.addForeignKey({
-    column: 'localizedName',
+    column: 'localized_name',
     table: TABLE_LOCALIZATIONS,
 });
