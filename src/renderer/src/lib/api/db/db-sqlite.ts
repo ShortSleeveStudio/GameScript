@@ -23,7 +23,6 @@ import {
 } from '@common/table-generators/table-generator-sqlite';
 import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import { type FocusManager } from '@lib/stores/app/focus';
-import { wait } from '@lib/utility/wait';
 import { type Writable } from 'svelte/store';
 import { DbBase } from './db-base';
 import type { Filter } from './db-filter-interface';
@@ -156,9 +155,6 @@ export class SqliteDb extends DbBase {
             throw new Error(`Failed to add column: ${err}`);
         }
 
-        // TODO: REMOVE THIS
-        await wait(300);
-
         // Notify
         await this.notify(
             DB_OP_ALTER,
@@ -186,9 +182,6 @@ export class SqliteDb extends DbBase {
         } catch (err) {
             throw new Error(`Failed to drop column: ${err}`);
         }
-
-        // TODO: REMOVE THIS
-        await wait(300);
 
         // Notify
         await this.notify(
@@ -247,9 +240,6 @@ export class SqliteDb extends DbBase {
             // Set row id
             row.id = result.lastInsertRowId;
         }
-
-        // TODO: REMOVE THIS
-        await wait(300);
 
         // Notify
         await this.notify(
@@ -348,9 +338,6 @@ export class SqliteDb extends DbBase {
             }
         }
 
-        // TODO: REMOVE THIS
-        await wait(300);
-
         // Notify
         await this.notify(
             DB_OP_UPDATE,
@@ -398,9 +385,6 @@ export class SqliteDb extends DbBase {
         // Remove from cache
         super.removeRowViews(tableType, rows);
 
-        // TODO: REMOVE THIS
-        await wait(300);
-
         // Notify
         await this.notify(
             DB_OP_DELETE,
@@ -429,9 +413,6 @@ export class SqliteDb extends DbBase {
         } catch (err) {
             throw new Error(`Failed to update row: ${err}`);
         }
-
-        // TODO: REMOVE THIS
-        await wait(300);
 
         // Notify
         await this.notify(
