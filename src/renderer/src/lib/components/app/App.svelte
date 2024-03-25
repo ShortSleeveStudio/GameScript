@@ -7,6 +7,7 @@
     import { appInitializationErrors } from '@lib/stores/app/initialization-errors';
     import type { Unsubscriber } from 'svelte/store';
     import type { IpcRendererEvent } from 'electron';
+    import { db } from '@lib/api/db/db';
 
     let initializationErrorSubscriber: Unsubscriber;
 
@@ -33,8 +34,6 @@
     function globalErrorHandler(event: unknown): void {
         const error = toErrorEvent(event);
         toastManager.showToast(new ToastItem('error', error.message));
-        console.log('remember to disable this');
-        throw event;
     }
 
     // Subscribe to errors
@@ -43,6 +42,7 @@
         error: string,
     ) => {
         globalErrorHandler(error);
+        db?.disconnect();
     };
     window.onerror = globalErrorHandler;
     window.onunhandledrejection = globalErrorHandler;

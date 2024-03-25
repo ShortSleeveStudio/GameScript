@@ -151,7 +151,11 @@ export class DbClientPostgres implements DbClient {
         if (this._notificationListenConn) {
             const client: Client = <Client>this._connectionMap.get(this._notificationListenConn.id);
             if (client) {
-                await client.query(`UNLISTEN ${DbClientPostgres.NOTIFICATION_CHANNEL};`);
+                try {
+                    await client.query(`UNLISTEN ${DbClientPostgres.NOTIFICATION_CHANNEL};`);
+                } catch {
+                    // noop
+                }
                 client.removeAllListeners('notification');
                 await this.close(this._notificationListenConn);
             }

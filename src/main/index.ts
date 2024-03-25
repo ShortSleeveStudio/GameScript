@@ -107,6 +107,10 @@ import './ipc-window';
 /**
  * Unhandled Errors
  */
+process.on('uncaughtException', function (error) {
+    const mainWindow: BrowserWindow = getMainWindow();
+    mainWindow.webContents.send(API_SYSTEM_ON_ERROR, `${error}`);
+});
 process.on('unhandledRejection', function (reason) {
     const mainWindow: BrowserWindow = getMainWindow();
     mainWindow.webContents.send(API_SYSTEM_ON_ERROR, `${reason}`);
