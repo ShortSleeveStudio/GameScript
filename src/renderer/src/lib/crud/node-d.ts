@@ -49,22 +49,24 @@ export async function nodesDelete(
     const deleteOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
         // Delete Edges
         gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
-        edgesToDelete = await db.fetchRowsRaw<Edge>(
-            TABLE_EDGES,
-            createFilter()
-                .where()
-                .column('source')
-                .in(nodeIds)
-                .or()
-                .column('target')
-                .in(nodeIds)
-                .endWhere()
-                .build(),
-            conn,
-        );
-        for (let i = 0; i < edgesToDelete.length; i++) {
-            const edge: Edge = edgesToDelete[i];
-            edgeIdMap.set(edge.id, edge);
+        if (nodeIds.length > 0) {
+            edgesToDelete = await db.fetchRowsRaw<Edge>(
+                TABLE_EDGES,
+                createFilter()
+                    .where()
+                    .column('source')
+                    .in(nodeIds)
+                    .or()
+                    .column('target')
+                    .in(nodeIds)
+                    .endWhere()
+                    .build(),
+                conn,
+            );
+            for (let i = 0; i < edgesToDelete.length; i++) {
+                const edge: Edge = edgesToDelete[i];
+                edgeIdMap.set(edge.id, edge);
+            }
         }
         edgesToDelete = Array.from(edgeIdMap.values()); // Combine fetched and passed-in edges
         await db.deleteRows(TABLE_EDGES, edgesToDelete, conn);
@@ -73,19 +75,23 @@ export async function nodesDelete(
         await db.deleteRows(TABLE_NODES, nodesToDelete, conn);
 
         // Delete Routines
-        routinesToDelete = await db.fetchRowsRaw<Routine>(
-            TABLE_ROUTINES,
-            createFilter().where().column('id').in(routineIds).endWhere().build(),
-            conn,
-        );
+        if (routineIds.length > 0) {
+            routinesToDelete = await db.fetchRowsRaw<Routine>(
+                TABLE_ROUTINES,
+                createFilter().where().column('id').in(routineIds).endWhere().build(),
+                conn,
+            );
+        } else routinesToDelete = [];
         await db.deleteRows(TABLE_ROUTINES, routinesToDelete, conn);
 
         // Delete Localizations
-        localizationsToDelete = await db.fetchRowsRaw<Localization>(
-            TABLE_LOCALIZATIONS,
-            createFilter().where().column('id').in(localizationIds).endWhere().build(),
-            conn,
-        );
+        if (localizationIds.length > 0) {
+            localizationsToDelete = await db.fetchRowsRaw<Localization>(
+                TABLE_LOCALIZATIONS,
+                createFilter().where().column('id').in(localizationIds).endWhere().build(),
+                conn,
+            );
+        } else localizationsToDelete = [];
         await db.deleteRows(TABLE_LOCALIZATIONS, localizationsToDelete, conn);
     };
     const undo: () => Promise<void> = async () => {
