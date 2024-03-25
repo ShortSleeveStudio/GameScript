@@ -17,7 +17,7 @@ export async function actorCreate(
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<Actor> {
-    return await actorsCreate(db, [toCreate], isLoading, isUndoable)[0];
+    return (await actorsCreate(db, [toCreate], isLoading, isUndoable))[0];
 }
 
 export async function actorsCreate(

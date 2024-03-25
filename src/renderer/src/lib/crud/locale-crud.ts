@@ -27,7 +27,7 @@ export async function localeCreate(
     isLoading: IsLoadingStore,
     isUndoable: boolean = true,
 ): Promise<Locale> {
-    return await localesCreate(db, [toCreate], isLoading, isUndoable)[0];
+    return (await localesCreate(db, [toCreate], isLoading, isUndoable))[0];
 }
 
 export async function localesCreate(
@@ -96,20 +96,25 @@ export async function localesDelete(
             for (let i = 0; i < toDelete.length; i++) {
                 // Fetch localization
                 const localeToDelete: Locale = toDelete[i];
-                const localizationToDelete: Localization = await db.fetchRowsRaw(
-                    TABLE_LOCALES,
-                    createFilter()
-                        .where()
-                        .column('id')
-                        .eq(localeToDelete.localized_name)
-                        .endWhere()
-                        .build(),
-                )[0];
+                const localizationToDelete: Localization = <Localization>(
+                    (
+                        await db.fetchRowsRaw(
+                            TABLE_LOCALIZATIONS,
+                            createFilter()
+                                .where()
+                                .column('id')
+                                .eq(localeToDelete.localized_name)
+                                .endWhere()
+                                .build(),
+                        )
+                    )[0]
+                );
                 info.push(<LocaleInfo>{
                     locale: localeToDelete,
                     localizedName: localizationToDelete,
                 });
             }
+            console.log(info);
             await deleteOperation(db, info, conn);
         }),
     );
@@ -175,12 +180,9 @@ async function deleteOperation(
     connection: DbConnection,
 ): Promise<void> {
     // Ensure the principal is adjusted if needed
-    const principal: LocalePrincipal = db.fetchRowsRaw(
-        TABLE_LOCALE_PRINCIPAL,
-        createEmptyFilter(),
-        connection,
-    )[0];
-
+    const principal: LocalePrincipal = <LocalePrincipal>(
+        (await db.fetchRowsRaw(TABLE_LOCALE_PRINCIPAL, createEmptyFilter(), connection))[0]
+    );
     for (let i = 0; i < localeInfos.length; i++) {
         const localeInfo: LocaleInfo = localeInfos[i];
         if (principal.principal === localeInfo.locale.id) {
