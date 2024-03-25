@@ -95,13 +95,14 @@ export class DbRowViewContainer<RowType extends Row> {
             );
         });
         this._totalRowCount = newRowCount;
-        this._rowViews = newRowViews;
+        this._rowViews.length = 0;
+        this._rowViews.push(...newRowViews);
         this.updateInternalState();
     }
 
-    dispose(): void {
+    clear(): void {
         this._totalRowCount = 0;
-        this._rowViews = [];
+        this._rowViews.length = 0;
         this.updateInternalState();
     }
 

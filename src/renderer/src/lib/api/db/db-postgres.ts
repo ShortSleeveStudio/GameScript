@@ -1,9 +1,4 @@
-import type {
-    DbConnection,
-    DbConnectionConfig,
-    DbResult,
-    DbTransaction,
-} from '@common/common-db-types';
+import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
 import type { Row } from '@common/common-schema';
 import { updateRowQueryPostgres } from '@common/common-sql';
@@ -221,19 +216,19 @@ export class PostgresDb extends DbBase {
 
             // Execute
             const query: string = `INSERT INTO ${tableType.name} (${propertyNames}) VALUES (${placeHolders}) RETURNING id;`;
-            let result: DbResult;
+            let lastInsertRowId: number;
             try {
-                result = await window.api.postgres.run(
-                    connection ?? this._db,
-                    query,
-                    argumentArray,
+                const results: { id: number }[] = <{ id: number }[]>(
+                    await window.api.postgres.all(connection ?? this._db, query, argumentArray)
                 );
+                if (!results || results.length !== 1) throw new Error('Failed to create row');
+                lastInsertRowId = results[0].id;
             } catch (err) {
                 throw new Error(`Failed to create row: ${err}`);
             }
 
             // Set row id
-            row.id = result.lastInsertRowId;
+            row.id = lastInsertRowId;
         }
 
         // Notify
@@ -327,7 +322,7 @@ export class PostgresDb extends DbBase {
                 row,
             );
             try {
-                await window.api.postgres.run(connection ?? this._db, query, argumentArray);
+                await window.api.postgres.all(connection ?? this._db, query, argumentArray);
             } catch (err) {
                 throw new Error(`Failed to update row: ${err}`);
             }
@@ -404,7 +399,7 @@ export class PostgresDb extends DbBase {
             tableType.name
         } SET ${field} = REPLACE(${field},$1,$2) ${filter.toString()};`;
         try {
-            await window.api.postgres.run(connection ?? this._db, query, [search, replace]);
+            await window.api.postgres.all(connection ?? this._db, query, [search, replace]);
         } catch (err) {
             throw new Error(`Failed to update row: ${err}`);
         }

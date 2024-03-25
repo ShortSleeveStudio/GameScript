@@ -846,6 +846,9 @@
         // Skip undefined conversations
         if (!conversation) return;
 
+        // Is layout required
+        let isLayoutRequired: boolean = false;
+
         // Handle vertical layout changes
         if (conversation.is_layout_vertical !== currentLayoutVertical) {
             const nodeIds: string[] = [];
@@ -865,7 +868,8 @@
         if (conversation.is_layout_auto !== currentLayoutAuto) {
             if (conversation.is_layout_auto) {
                 // Perform layout
-                await onLayout();
+                // await onLayout();
+                isLayoutRequired = true;
             } else {
                 // Destroy all the generated edges
                 const flowEdges: FlowEdge[] = get(edges);
@@ -885,6 +889,20 @@
                 nodes.set(flowNodes);
             }
         }
+
+        // Layout if necessary
+        // i.e. layout was enabled, or vertical/horizontal changed during auto-layout
+        if (
+            isLayoutRequired ||
+            (conversation.is_layout_auto &&
+                conversation.is_layout_vertical !== currentLayoutVertical)
+        ) {
+            await onLayout();
+        }
+
+        // Update state
+        currentLayoutAuto = conversation.is_layout_auto;
+        currentLayoutVertical = conversation.is_layout_vertical;
     }
 
     function blur(): void {

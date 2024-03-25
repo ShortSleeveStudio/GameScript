@@ -450,7 +450,7 @@ export class SqliteDb extends DbBase {
 
     private async destroyConnection(): Promise<void> {
         this._isConnected.set(false);
-        await window.api.sqlite.unlisten(undefined, this.onNotification);
+        await window.api.sqlite.unlisten(this.onNotification);
         await window.api.sqlite.closeAll();
         this._db = undefined;
         this._dbConnectionConfig = undefined;

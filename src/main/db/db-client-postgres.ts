@@ -15,7 +15,7 @@ import { getMainWindow } from '../common/common-helpers';
 
 export class DbClientPostgres implements DbClient {
     static NOTIFICATION_CHANNEL: string = APP_NAME;
-    static NOTIFICATION_RETENTION_SECONDS: number = 60; // Minute
+    static NOTIFICATION_RETENTION_SECONDS: number = 120; // Minute
     static SYNC_INTERVAL_MILLIS: number = 60000; // Minute
     private _nextConnectionId: number;
     private _connectionMap: Map<number, Client>;
@@ -61,21 +61,8 @@ export class DbClientPostgres implements DbClient {
         this._connectionMap.clear();
     }
 
-    async run(
-        connection: DbConnection,
-        query: string,
-        bindValues?: unknown[] | undefined,
-    ): Promise<DbResult> {
-        const client: Client = this.ensureClient(connection);
-        const result: QueryResult = await client.query(<QueryConfig>{
-            text: query,
-            values: bindValues,
-        });
-        // TODO - expecting this to have "returning id" is a brittle. This API is a mess.
-        return <DbResult>{
-            rowsAffected: result.rowCount,
-            lastInsertRowId: result.rows[0].id,
-        };
+    async run(): Promise<DbResult> {
+        throw new Error('Method not implemented.');
     }
 
     async all<T = unknown[]>(
@@ -120,7 +107,8 @@ export class DbClientPostgres implements DbClient {
         };
         const result: QueryResult = await client.query(<QueryConfig>{
             text:
-                `INSERT INTO ${TABLE_NOTIFICATIONS.name} (table_id, operation_id, json_payload, timestamp) ` +
+                `INSERT INTO ${TABLE_NOTIFICATIONS.name} ` +
+                `(table_id, operation_id, json_payload, timestamp) ` +
                 `VALUES ($1,$2,$3,extract(epoch from now())) RETURNING id;`,
             values: [
                 dbNotification.table_id,

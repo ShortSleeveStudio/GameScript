@@ -73,7 +73,7 @@ export function typeForFieldTypePostgres(type: FieldTypeId, isPrimaryKey: boolea
     if (isPrimaryKey) return 'serial';
     switch (type) {
         case FIELD_TYPE_DECIMAL.id:
-            return 'numeric';
+            return 'real';
         case FIELD_TYPE_INTEGER.id:
             return 'integer';
         case FIELD_TYPE_TEXT.id:

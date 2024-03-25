@@ -11,7 +11,6 @@ import {
 } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import { DbRowViewContainer } from './db-row-container';
-import type { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
 
@@ -31,7 +30,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._isConnected = isConnected;
         this._rowContainer = new DbRowViewContainer(tableType, filter);
         this._isInitialized = false;
-        this._internalWritable = writable<DbRowView<RowType>[]>([]);
+        this._internalWritable = writable<IDbRowView<RowType>[]>(this._rowContainer.rowViews);
         this.onReloadRequired();
     }
 
@@ -87,14 +86,19 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     }
 
     dispose(): void {
-        this._rowContainer.dispose();
+        this._rowContainer.clear();
         this._isDisposed = true;
         this._isInitialized = false;
         this._internalWritable.set(this._rowContainer.rowViews);
     }
 
     async onReloadRequired(): Promise<void> {
-        if (this._isDisposed || !get(this._isConnected)) return;
+        if (this._isDisposed) return;
+        if (!get(this._isConnected)) {
+            // Clear if we're not connected
+            this._rowContainer.clear();
+            return;
+        }
         await this._rowContainer.reload();
         this._isInitialized = true;
         this._internalWritable.set(this._rowContainer.rowViews);

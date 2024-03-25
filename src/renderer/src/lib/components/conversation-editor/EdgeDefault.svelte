@@ -86,8 +86,6 @@
             return getElkPath(elkEdge);
         } else {
             return getBezierPath(params);
-            // return getStraightPath(params);
-            // return getSmoothStepPath(params);
         }
     }
 

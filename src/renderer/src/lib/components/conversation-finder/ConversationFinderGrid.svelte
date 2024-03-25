@@ -272,9 +272,9 @@
         });
     }
 
-    function onFiltersChanged(tableView: IDbTableView<Conversation>): void {
+    function onFiltersChanged(tableView: IDbTableView<Filter>): void {
         // Grab row views
-        const rowViews: IDbRowView<Conversation>[] = get(tableView);
+        const rowViews: IDbRowView<Filter>[] = get(tableView);
         if (rowViews.length === 0) return;
 
         // Purge old columns
@@ -290,7 +290,7 @@
 
         // Add dynamic columns
         for (let i = 0; i < rowViews.length; i++) {
-            const row: Conversation = get(rowViews[i]);
+            const row: Filter = get(rowViews[i]);
             const colId: string = filterIdToColumn(row.id);
             columnIdSet.add(colId);
             columnDefs.push({
@@ -438,6 +438,7 @@
 
         // Dispose of table watcher
         tableWatcher?.dispose();
+        tableWatcher = undefined;
 
         // Clear state
         columnIdSet.clear();

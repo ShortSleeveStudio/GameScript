@@ -66,7 +66,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         } catch (err) {
             // Dispose on failure
             params.failCallback();
-            newContainer.dispose();
+            newContainer.clear();
             throw err;
         }
     }
@@ -83,7 +83,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
     /** Optional destroy method, if your datasource has state it needs to clean up. */
     destroy(): void {
         this._context = undefined;
-        for (const value of this._offsetToRows.values()) value.dispose();
+        for (const value of this._offsetToRows.values()) value.clear();
         this._offsetToRows.clear();
         if (this._tableViewUnsubscriber) this._tableViewUnsubscriber();
         if (this._tableView) db.releaseTable(this._tableView);
@@ -119,7 +119,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         }
         // Anything left in the old map is no longer tracked by this table view
         for (const value of oldMap.values()) {
-            value.dispose();
+            value.clear();
         }
         this._offsetToRows = newMap;
     }

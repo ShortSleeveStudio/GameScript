@@ -434,7 +434,7 @@ export abstract class DbBase implements Db {
                 rows = [];
                 opToRows.set(notification.operationId, rows);
             }
-            rows.push(...notification.rows);
+            if (notification.rows) rows.push(...notification.rows);
         }
 
         // Send notifications
@@ -532,7 +532,7 @@ export abstract class DbBase implements Db {
         tableType: DatabaseTableType,
         rows: RowType[],
     ): Promise<void> {
-        // TODO - can we iterate over loaded rows to decide if this is necessary?
+        // TODO - can we iterate over loaded rows to decide if this is necessary (like we do above)?
         await this.fetchRows(
             tableType,
             createFilter()
