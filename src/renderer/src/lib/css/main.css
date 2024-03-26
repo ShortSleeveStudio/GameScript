@@ -15,7 +15,8 @@ html {
 
     /* Graph */
     --graph-node-title-height: calc(5 * 8px);
-    --graph-node-text-height: calc(13 * 8px);
+    --graph-node-text-voice-height: calc(10 * 8px); /* originally 13 * 8 */
+    --graph-node-text-ui-height: 42px;
     --graph-node-color-height: calc(2 * 8px);
     --graph-node-width: calc(30 * 8px);
 }
@@ -339,6 +340,9 @@ input[type='color']::-webkit-color-swatch {
 }
 
 /* Graph */
-.node-text {
-    height: var(--graph-node-text-height);
+.node-text-voice {
+    height: var(--graph-node-text-voice-height);
+}
+.node-text-ui {
+    height: var(--graph-node-text-ui-height);
 }

@@ -74,6 +74,10 @@ export const CONVERSATION_UNDO_DEFAULT_AUTO_LAYOUT = 'default auto-layout';
 /**Nodes */
 export const NODE_UNDO_VOICE_TEXT = 'voice text';
 export const NODE_PLACEHOLDER_VOICE_TEXT = 'Enter dialogue...';
+
+export const NODE_UNDO_UI_TEXT = 'response text';
+export const NODE_PLACEHOLDER_UI_TEXT = 'Enter UI text...';
+
 export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';
 
 /**Edges */

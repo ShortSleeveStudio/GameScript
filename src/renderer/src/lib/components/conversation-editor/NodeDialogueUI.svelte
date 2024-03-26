@@ -3,7 +3,7 @@
 
     import RowColumnTextArea from '../common/RowColumnTextArea.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { NODE_PLACEHOLDER_VOICE_TEXT, NODE_UNDO_VOICE_TEXT } from '@lib/constants/settings';
+    import { NODE_PLACEHOLDER_UI_TEXT, NODE_UNDO_UI_TEXT } from '@lib/constants/settings';
     import { getLocalePrincipal, localePrincipalTableView } from '@lib/tables/locale-principal';
     import { localeIdToColumn } from '@common/common-locale';
 
@@ -14,13 +14,13 @@
 </script>
 
 <RowColumnTextArea
-    class="nodrag nopan node-text-voice"
+    class="nodrag nopan node-text-ui"
     stopDefault={true}
     disableBorder={true}
     {disabled}
     resizable={false}
     rowView={localization}
     columnName={localeColumn}
-    undoText={NODE_UNDO_VOICE_TEXT}
-    placeholder={NODE_PLACEHOLDER_VOICE_TEXT}
+    undoText={NODE_UNDO_UI_TEXT}
+    placeholder={NODE_PLACEHOLDER_UI_TEXT}
 />

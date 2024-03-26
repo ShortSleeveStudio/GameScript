@@ -9,6 +9,7 @@
     import { get } from 'svelte/store';
     import NodeBase from './NodeBase.svelte';
     import { OverflowMenuItem } from 'carbon-components-svelte';
+    import NodeDialogueUI from './NodeDialogueUI.svelte';
 
     // SUPPRESS WARNINGS
     type $$Props = NodeProps;
@@ -50,6 +51,7 @@
     $: onDataChanged(<NodeData>data);
     $: actor = getActorView($rowView);
     $: voiceText = getVoiceText($localizations);
+    $: uiText = getVoiceUi($localizations);
 
     function onDataChanged(data: NodeData): void {
         rowView = data?.rowView;
@@ -65,6 +67,11 @@
         if (!localizationViews || localizationViews.length === 0) return undefined;
         return localizations.getRowViewById(get(rowView).voice_text);
     }
+
+    function getVoiceUi(localizationViews: IDbRowView<Localization>[]): IDbRowView<Localization> {
+        if (!localizationViews || localizationViews.length === 0) return undefined;
+        return localizations.getRowViewById(get(rowView).ui_response_text);
+    }
 </script>
 
 <NodeBase
@@ -78,6 +85,8 @@
 >
     <svelte:fragment slot="body">
         <div class="node-color" style:background-color={actor ? $actor.color : ''}></div>
+        <NodeDialogueUI disabled={!actor || !uiText} localization={uiText} />
+        <div class="node-divider-text"></div>
         <NodeDialogueText disabled={!actor || !voiceText} localization={voiceText} />
     </svelte:fragment>
     <svelte:fragment slot="overflow">
@@ -88,6 +97,10 @@
 <style>
     .node-color {
         height: var(--graph-node-color-height);
+        border-bottom: 1px solid var(--cds-ui-04, #8d8d8d);
+    }
+    .node-divider-text {
+        height: 0px;
         border-bottom: 1px solid var(--cds-ui-04, #8d8d8d);
     }
 </style>
