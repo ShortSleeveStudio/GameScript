@@ -26,6 +26,7 @@
         DB_PG_CONFIG_UNDO_PORT,
         DB_PG_CONFIG_UNDO_USERNAME,
     } from '@lib/constants/settings';
+    import { decrypt, encrypt } from '@lib/utility/crypto';
 
     // TODO - connection failures
     //         this._sqlitePathStore.update(dialogResultReset);
@@ -97,26 +98,8 @@
 
     function cloneDbConfig(dbConfig: DbConnectionConfig): DbConnectionConfig {
         dbConfig = <DbConnectionConfig>{ ...get(dbConnectionConfig) };
-        dbConfig.pgPassword = onReadPassword(dbConfig.pgPassword);
+        dbConfig.pgPassword = decrypt(dbConfig.pgPassword);
         return dbConfig;
-    }
-
-    function onReadPassword(str: string): string {
-        if (str) {
-            return window.api.cryptography.decrypt({
-                toDecrypt: str,
-            }).decrypted;
-        }
-        return str;
-    }
-
-    function onWritePassword(str: string): string {
-        if (str) {
-            return window.api.cryptography.encrypt({
-                toEncrypt: str,
-            }).encrypted;
-        }
-        return str;
     }
 
     // Attempt connection on startup if schema exists
@@ -225,8 +208,8 @@
                     inputPlaceholder={DB_PG_CONFIG_PLACEHOLDER_PASSWORD}
                     disabled={$dbConnected}
                     isPassword={true}
-                    readWrapper={onReadPassword}
-                    writeWrapper={onWritePassword}
+                    readWrapper={decrypt}
+                    writeWrapper={encrypt}
                 />
             </p>
             <p>

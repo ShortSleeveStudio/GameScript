@@ -10,15 +10,14 @@ import {
 import { gameHelperDbExporterDefault as gameExporterHelperDbDefault } from './game-exporter-helper-db';
 
 /**
- * This will do the following in order:
- * 1) Create an sqlite database with all row IDs re-written to be sequential so they can be
- *    stored in an array for fast lookup.
- * 2) Export all routines transpiled into the native language selected.
- * 3) Export all game data in a format to be used by the actual game at runtime.
- * @param db GameScript database
- * @param payload Game export request
+ * This will create a clone of the main database as an SQLite database file for use by engine
+ * modules.
  */
-export async function gameExport(db: DbClient, payload: GameExportRequest): Promise<void> {
+export async function gameExport(
+    mainDb: DbClient,
+    helperDb: DbClient,
+    payload: GameExportRequest,
+): Promise<void> {
     // Ensure folders exist
     const dataDirExists: boolean = await doesFileExist(payload.dataLocation);
     if (!dataDirExists) throw new Error('Selected data export folder no longer exists');
@@ -35,12 +34,18 @@ export async function gameExport(db: DbClient, payload: GameExportRequest): Prom
     // Name files
     const exporterGameHelperDb: GameExporterHelperDb = gameExporterHelperDbDefault;
     try {
-        await executeTransaction(db, helperDbConfig, async (helperConn: DbConnection) => {
+        await executeTransaction(helperDb, helperDbConfig, async (helperConn: DbConnection) => {
             await executeTransaction(
-                db,
+                mainDb,
                 payload.database.databaseConfig,
                 async (mainConn: DbConnection) => {
-                    await exporterGameHelperDb.export(db, payload, mainConn, helperConn);
+                    await exporterGameHelperDb.export(
+                        mainDb,
+                        helperDb,
+                        payload,
+                        mainConn,
+                        helperConn,
+                    );
                 },
             );
         });

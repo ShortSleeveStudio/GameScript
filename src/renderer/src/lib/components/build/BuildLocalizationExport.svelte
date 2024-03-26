@@ -12,35 +12,29 @@
     } from '@lib/stores/settings/settings';
     import type { DatabaseInfo, LocalizationExportRequest } from 'preload/api-build';
     import {
-        DATABASE_TYPE_POSTGRES,
-        DATABASE_TYPE_SQLITE,
         LOCALIZATION_DIVISION_DROPDOWN_ITEMS,
         LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
     } from '@common/common-types';
     import { get } from 'svelte/store';
+    import { getDecryptedDbConfig } from '@lib/utility/crypto';
 
     export let isLoading: IsLoadingStore;
 
     async function onSelectLocalizationExportLocation(): Promise<void> {
         const openResult: DialogResult = await isLoading.wrapPromise(
-            window.api.dialog.exportLocationRoutinesSelect(),
+            window.api.dialog.exportLocationLocalizationSelect(),
         );
         if (openResult.cancelled) return;
         $buildExportPathLocalization = openResult;
     }
 
     async function onExport(): Promise<void> {
-        const database: DatabaseInfo = <DatabaseInfo>{};
-        if ($dbType === DATABASE_TYPE_SQLITE.id) {
-            database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = get(dbConnectionConfig);
-        } else {
-            database.database = DATABASE_TYPE_POSTGRES.id;
-            // TODO
-        }
         await isLoading.wrapPromise(
             window.api.build.localizationExport(<LocalizationExportRequest>{
-                database: database,
+                database: <DatabaseInfo>{
+                    database: get(dbType),
+                    databaseConfig: getDecryptedDbConfig(),
+                },
                 format: $buildExportLocalizationFormat,
                 division: $buildExportLocalizationDivision,
                 location: $buildExportPathLocalization.path,

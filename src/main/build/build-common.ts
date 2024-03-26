@@ -3,6 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { DbClient, DbConnection } from '../../common/common-db-types';
 import { Localization } from '../../common/common-schema';
+import { RowUpdateQueryBuilder } from '../../common/common-sql';
 import {
     LOCALIZATION_FORMAT_CSV,
     LOCALIZATION_FORMAT_JSON,
@@ -46,28 +47,19 @@ export interface LocalizationImporter {
         columns: ColumnDescriptor[],
         headers: string[],
     ): Promise<void>;
-    handleBatch(db: DbClient, fileStream: ReadStream, conn: DbConnection): Promise<void>;
-    teardown(): Promise<void>;
-}
-
-export interface GameCodeExporter {
-    export(db: DbClient, importRequest: GameExportRequest, conn: DbConnection): Promise<void>;
-    teardown(): Promise<void>;
-}
-
-export interface GameDataExporter {
-    export(
+    handleBatch(
         db: DbClient,
-        importRequest: GameExportRequest,
-        mainConn: DbConnection,
-        helperConn: DbConnection,
+        fileStream: ReadStream,
+        conn: DbConnection,
+        queryBuilder: RowUpdateQueryBuilder,
     ): Promise<void>;
     teardown(): Promise<void>;
 }
 
 export interface GameHelperDbExporter {
     export(
-        db: DbClient,
+        mainDb: DbClient,
+        helperDb: DbClient,
         importRequest: GameExportRequest,
         mainConn: DbConnection,
         helperConn: DbConnection,

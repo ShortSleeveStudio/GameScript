@@ -57,7 +57,9 @@ export async function localizationExport(
                 // Fetch batch
                 const limit: number = EXPORTER_BATCH_SIZE;
                 const offset: number = i;
-                const query: string = `SELECT * FROM ${TABLE_LOCALIZATIONS.name} ORDER BY id ASC LIMIT ${limit} OFFSET ${offset};`;
+                const query: string =
+                    `SELECT * FROM ${TABLE_LOCALIZATIONS.name} ` +
+                    `ORDER BY id ASC LIMIT ${limit} OFFSET ${offset};`;
                 const localizations: Localization[] = <Localization[]>await db.all(conn, query);
 
                 // Handle batch

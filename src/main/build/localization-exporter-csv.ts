@@ -65,7 +65,9 @@ export class LocalizationExporterCsv implements LocalizationExporter {
                         path.join(
                             this._exportRequest!.location,
                             this._currentConversationId
-                                ? `${EXPORTER_FILENAME_PREFIX_PER_CONVERSATION}${this._currentConversationId}.csv`
+                                ? EXPORTER_FILENAME_PREFIX_PER_CONVERSATION +
+                                      this._currentConversationId +
+                                      '.csv'
                                 : `${EXPORTER_FILENAME_PREFIX_MISC}.csv`,
                         ),
                         'a',

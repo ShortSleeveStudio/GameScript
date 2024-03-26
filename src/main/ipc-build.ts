@@ -15,6 +15,7 @@ import {
 import { gameExport } from './build/game-exporter';
 import { localizationExport } from './build/localization-exporter';
 import { localizationImport } from './build/localization-importer';
+import { postgres } from './db/db-client-postgres';
 import { sqlite } from './db/db-client-sqlite';
 
 ipcMain.handle(
@@ -37,7 +38,7 @@ ipcMain.handle(
     API_BUILD_GAME_EXPORT,
     async (_event: IpcMainInvokeEvent, payload: GameExportRequest): Promise<void> => {
         const db = getDatabase(payload.database);
-        await gameExport(db, payload);
+        await gameExport(db, sqlite, payload);
     },
 );
 
@@ -45,5 +46,5 @@ function getDatabase(dbInfo: DatabaseInfo): DbClient {
     if (dbInfo.database === DATABASE_TYPE_SQLITE.id) {
         return sqlite;
     }
-    throw new Error('Postgres is not implemented yet');
+    return postgres;
 }

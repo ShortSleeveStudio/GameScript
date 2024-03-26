@@ -4,6 +4,12 @@ import { localeIdToColumn } from '../../common/common-locale';
 import { AppNotification } from '../../common/common-notification';
 import { Locale } from '../../common/common-schema';
 import {
+    RowUpdateQueryBuilder,
+    updateRowQueryPostgres,
+    updateRowQuerySqlite,
+} from '../../common/common-sql';
+import {
+    DATABASE_TYPE_SQLITE,
     DB_OP_ALTER,
     LOCALIZATION_FORMAT_CSV,
     TABLE_LOCALES,
@@ -56,11 +62,15 @@ export async function localizationImport(
             await importer.setup(payload, columns, headers);
 
             // Read all files
+            const queryBuilder: RowUpdateQueryBuilder =
+                payload.database.database === DATABASE_TYPE_SQLITE.id
+                    ? updateRowQuerySqlite
+                    : updateRowQueryPostgres;
             for (let i = 0; i < filePaths.length; i++) {
                 let fileStream: ReadStream | undefined;
                 try {
                     fileStream = fs.createReadStream(filePaths[i], { encoding: 'utf-8' });
-                    await importer.handleBatch(db, fileStream, conn);
+                    await importer.handleBatch(db, fileStream, conn, queryBuilder);
                 } finally {
                     fileStream?.close();
                 }

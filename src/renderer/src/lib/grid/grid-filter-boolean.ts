@@ -28,10 +28,6 @@ export class BooleanFilter implements IFilterComp {
         return this._gui;
     }
 
-    // destroy?(): void {
-    //     throw new Error('Method not implemented.');
-    // }
-
     init?(params: IFilterParams): void | AgPromise<void> {
         this._filterParams = params;
         this._gui = document.createElement('div');
@@ -81,10 +77,6 @@ export class BooleanFilter implements IFilterComp {
         }
     }
 
-    // refresh?(newParams: IFilterParams<any, any>): boolean {
-    //     throw new Error('Method not implemented.');
-    // }
-
     doesFilterPass(params: IDoesFilterPassParams): boolean {
         if (!this.isFilterActive()) return true;
         const { node } = params;
@@ -93,22 +85,6 @@ export class BooleanFilter implements IFilterComp {
         if (isTrue) return value;
         else return !value;
     }
-
-    // onNewRowsLoaded?(): void {
-    //     throw new Error('Method not implemented.');
-    // }
-    // onAnyFilterChanged?(): void {
-    //     throw new Error('Method not implemented.');
-    // }
-    // getModelAsString?(model: any): string {
-    //     throw new Error('Method not implemented.');
-    // }
-    // afterGuiAttached?(params?: IAfterGuiAttachedParams): void {
-    //     throw new Error('Method not implemented.');
-    // }
-    // afterGuiDetached?(): void {
-    //     throw new Error('Method not implemented.');
-    // }
 
     private onRadioChanged(): void {
         this._filterActive = !this._unsetElement.checked;

@@ -3,7 +3,7 @@ import { ReadStream } from 'fs';
 import { pipeline } from 'stream/promises';
 import { DbClient, DbConnection } from '../../common/common-db-types';
 import { Localization } from '../../common/common-schema';
-import { updateRowQuery } from '../../common/common-sql';
+import { RowUpdateQueryBuilder } from '../../common/common-sql';
 import { TABLE_LOCALIZATIONS } from '../../common/common-types';
 import { LocalizationImportRequest } from '../../preload/api-build';
 import {
@@ -40,12 +40,17 @@ export class LocalizationImporterCsv implements LocalizationImporter {
         }
     }
 
-    async handleBatch(db: DbClient, fileStream: ReadStream, conn: DbConnection): Promise<void> {
+    async handleBatch(
+        db: DbClient,
+        fileStream: ReadStream,
+        conn: DbConnection,
+        queryBuilder: RowUpdateQueryBuilder,
+    ): Promise<void> {
         const parser: Parser = parse(this._parseConfig);
         pipeline(fileStream, parser);
         for await (const chunk of parser) {
             const localization: Localization = <Localization>chunk;
-            const [query, argumentArray]: [string, unknown[]] = updateRowQuery(
+            const [query, argumentArray]: [string, unknown[]] = queryBuilder(
                 TABLE_LOCALIZATIONS,
                 localization,
             );

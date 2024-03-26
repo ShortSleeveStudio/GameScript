@@ -53,7 +53,9 @@ export class LocalizationExporterJson implements LocalizationExporter {
                         path.join(
                             this._exportRequest!.location,
                             this._currentConversationId
-                                ? `${EXPORTER_FILENAME_PREFIX_PER_CONVERSATION}${this._currentConversationId}.json`
+                                ? EXPORTER_FILENAME_PREFIX_PER_CONVERSATION +
+                                      this._currentConversationId +
+                                      '.json'
                                 : `${EXPORTER_FILENAME_PREFIX_MISC}.json`,
                         ),
                         'a',

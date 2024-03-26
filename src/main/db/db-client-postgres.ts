@@ -61,8 +61,17 @@ export class DbClientPostgres implements DbClient {
         this._connectionMap.clear();
     }
 
-    async run(): Promise<DbResult> {
-        throw new Error('Method not implemented.');
+    async run(
+        connection: DbConnection,
+        query: string,
+        bindValues?: unknown[] | undefined,
+    ): Promise<DbResult> {
+        const client: Client = this.ensureClient(connection);
+        await client.query(<QueryConfig>{
+            text: query,
+            values: bindValues,
+        });
+        return <DbResult>{};
     }
 
     async all<T = unknown[]>(

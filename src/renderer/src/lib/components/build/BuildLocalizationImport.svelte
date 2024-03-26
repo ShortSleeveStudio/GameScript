@@ -24,6 +24,7 @@
     import type { DialogResult } from 'preload/api-dialog';
     import type { DatabaseInfo, LocalizationImportRequest } from 'preload/api-build';
     import { get } from 'svelte/store';
+    import { getDecryptedDbConfig } from '@lib/utility/crypto';
 
     export let isLoading: IsLoadingStore;
 
@@ -38,17 +39,12 @@
     }
 
     async function onImport(): Promise<void> {
-        const database: DatabaseInfo = <DatabaseInfo>{};
-        if ($dbType === DATABASE_TYPE_SQLITE.id) {
-            database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = get(dbConnectionConfig);
-        } else {
-            database.database = DATABASE_TYPE_POSTGRES.id;
-            // TODO
-        }
         await isLoading.wrapPromise(
             window.api.build.localizationImport(<LocalizationImportRequest>{
-                database: database,
+                database: <DatabaseInfo>{
+                    database: get(dbType),
+                    databaseConfig: getDecryptedDbConfig(),
+                },
                 format: $buildImportLocalizationFormat,
                 location: $buildImportPathLocalization.path,
             }),

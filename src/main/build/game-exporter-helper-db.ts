@@ -16,19 +16,21 @@ import { EXPORTER_BATCH_SIZE, GameHelperDbExporter } from './build-common';
 
 export class GameHelperDbExporterDefault implements GameHelperDbExporter {
     async export(
-        db: DbClient,
-        _importRequest: GameExportRequest,
+        mainDb: DbClient,
+        helperDb: DbClient,
+        _: GameExportRequest,
         mainConn: DbConnection,
         helperConn: DbConnection,
     ): Promise<void> {
         // Create and Populate Tables
-        await this.createAndPopulateTables(db, mainConn, helperConn);
+        await this.createAndPopulateTables(mainDb, helperDb, mainConn, helperConn);
     }
 
     async teardown(): Promise<void> {}
 
     private async createAndPopulateTables(
-        db: DbClient,
+        mainDb: DbClient,
+        helperDb: DbClient,
         mainConn: DbConnection,
         helperConn: DbConnection,
     ): Promise<void> {
@@ -36,10 +38,10 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
             const tableDefinition: TableDefinition = TABLE_DEFINITIONS[i];
 
             // Create tables
-            await this.createTable(db, mainConn, helperConn, tableDefinition);
+            await this.createTable(mainDb, helperDb, mainConn, helperConn, tableDefinition);
 
             // Grab single row from original database
-            const row: Row = await db.get(
+            const row: Row = await mainDb.get(
                 mainConn,
                 `SELECT * FROM ${tableDefinition.tableType.name} LIMIT 1;`,
             );
@@ -56,7 +58,7 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
 
             // Read through database in batches and create tables in the new database with
             // a copy of the original data.
-            const count: number = (<{ count: number }>await db.get(
+            const count: number = (<{ count: number }>await mainDb.get(
                 mainConn,
                 `SELECT COUNT(*) as count 
                     FROM ${tableDefinition.tableType.name};`,
@@ -68,39 +70,43 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
                 SELECT ${columns} 
                 FROM ${tableDefinition.tableType.name} 
                 ORDER BY id ASC LIMIT ${limit} OFFSET ${offset};`;
-                const rows = await db.all(mainConn, queryFetchBatch);
+                const rows = await mainDb.all(mainConn, queryFetchBatch);
                 for (let k = 0; k < rows.length; k++) {
-                    const valueList: unknown[] = Object.values(<object>rows[k]);
+                    const valueList: unknown[] = Object.values(<object>rows[k]).map((value) => {
+                        if (typeof value === 'boolean') return value ? 1 : 0;
+                        return value;
+                    });
                     const queryInsertBatch = `INSERT INTO ${
                         tableDefinition.tableType.name
                     } (${columns}) VALUES (${valueList.map(() => '?')});`;
-                    await db.run(helperConn, queryInsertBatch, valueList);
+                    await helperDb.run(helperConn, queryInsertBatch, valueList);
                 }
             }
         }
     }
 
     private async createTable(
-        db: DbClient,
+        mainDb: DbClient,
+        helperDb: DbClient,
         mainConn: DbConnection,
         helperConn: DbConnection,
         tableDefinition: TableDefinition,
     ): Promise<void> {
         // Create table
         const tableDefString: string = generateTableSqlite(tableDefinition);
-        await db.exec(helperConn, tableDefString);
+        await helperDb.exec(helperConn, tableDefString);
 
         // Add columns if necessary
         if (tableDefinition.tableType.id === TABLE_LOCALIZATIONS.id) {
             // Add columns to locales
             const locales: Locale[] = <Locale[]>(
-                await db.all(
+                await mainDb.all(
                     mainConn,
                     `SELECT id, name FROM ${TABLE_LOCALES.name} ORDER BY id ASC;`,
                 )
             );
             for (let i = 0; i < locales.length; i++) {
-                await db.exec(
+                await helperDb.exec(
                     helperConn,
                     `ALTER TABLE ${TABLE_LOCALIZATIONS.name} ADD COLUMN ${localeIdToColumn(
                         locales[i].id,
@@ -110,13 +116,13 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
         } else if (tableDefinition.tableType.id === TABLE_CONVERSATIONS.id) {
             // Add columns to conversations
             const filters: Filter[] = <Filter[]>(
-                await db.all(
+                await mainDb.all(
                     mainConn,
                     `SELECT id, name FROM ${TABLE_FILTERS.name} ORDER BY id ASC;`,
                 )
             );
             for (let i = 0; i < filters.length; i++) {
-                await db.exec(
+                await helperDb.exec(
                     helperConn,
                     `ALTER TABLE ${TABLE_CONVERSATIONS.name} ADD COLUMN ${filterIdToColumn(
                         filters[i].id,

@@ -4,11 +4,11 @@
     import { Button, OverflowMenuItem, Tile, Tooltip } from 'carbon-components-svelte';
     import FileSelector from '../common/FileSelector.svelte';
     import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-    import { buildExportPathData, dbConnectionConfig, dbType } from '@lib/stores/settings/settings';
+    import { buildExportPathData, dbType } from '@lib/stores/settings/settings';
     import type { DialogResult } from 'preload/api-dialog';
-    import { DATABASE_TYPE_POSTGRES, DATABASE_TYPE_SQLITE } from '@common/common-types';
     import type { DatabaseInfo, GameExportRequest } from 'preload/api-build';
     import { get } from 'svelte/store';
+    import { getDecryptedDbConfig } from '@lib/utility/crypto';
 
     export let isLoading: IsLoadingStore;
 
@@ -21,17 +21,12 @@
     }
 
     async function onExport(): Promise<void> {
-        const database: DatabaseInfo = <DatabaseInfo>{};
-        if ($dbType === DATABASE_TYPE_SQLITE.id) {
-            database.database = DATABASE_TYPE_SQLITE.id;
-            database.databaseConfig = get(dbConnectionConfig);
-        } else {
-            database.database = DATABASE_TYPE_POSTGRES.id;
-            // TODO
-        }
         await isLoading.wrapPromise(
             window.api.build.gameExport(<GameExportRequest>{
-                database: database,
+                database: <DatabaseInfo>{
+                    database: get(dbType),
+                    databaseConfig: getDecryptedDbConfig(),
+                },
                 dataLocation: $buildExportPathData.path,
             }),
         );
