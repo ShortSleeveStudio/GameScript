@@ -47,7 +47,7 @@ export class LocalizationImporterCsv implements LocalizationImporter {
         queryBuilder: RowUpdateQueryBuilder,
     ): Promise<void> {
         const parser: Parser = parse(this._parseConfig);
-        pipeline(fileStream, parser);
+        void pipeline(fileStream, parser);
         for await (const chunk of parser) {
             const localization: Localization = <Localization>chunk;
             const [query, argumentArray]: [string, unknown[]] = queryBuilder(

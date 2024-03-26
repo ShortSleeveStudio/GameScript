@@ -91,12 +91,12 @@ export class NotificationManager {
         return this._notificationReadable;
     }
 
-    showNotification(notification: NotificationItem) {
+    showNotification(notification: NotificationItem): void {
         this._notificationWritable.set(notification);
     }
 
     // This allows us to pass this method around as a callback while retaining 'this'
-    hideNotification = () => {
+    hideNotification: () => void = () => {
         this._notificationWritable.set(undefined);
     };
 }

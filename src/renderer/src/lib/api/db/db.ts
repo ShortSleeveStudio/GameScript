@@ -22,7 +22,7 @@ const onDbConnectedChangedUnsubscriber: Unsubscriber = dbConnected.subscribe(onD
 function onDbTypeChange(newDbtype: DatabaseTypeId): void {
     // Shutdown old DB instance
     if (db) {
-        db.disconnect();
+        void db.disconnect();
     }
 
     // Create new DB instance
@@ -52,5 +52,5 @@ function onDbConnectedChanged(isConnected: boolean): void {
 addEventListener(EVENT_SHUTDOWN, () => {
     if (dbTypeUnsubscriber) dbTypeUnsubscriber();
     if (onDbConnectedChangedUnsubscriber) onDbConnectedChangedUnsubscriber();
-    db.disconnect();
+    void db.disconnect();
 });

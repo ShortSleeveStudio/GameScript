@@ -5,9 +5,9 @@
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.svelte",
     "src/renderer/src/**/*.ts",
-    "src/common/*.ts",
-    "src/common/*.d.ts",
-    "src/preload/*.d.ts",
+    // "src/common/**/*.ts",
+    "src/common/**/*.d.ts",
+    "src/preload/**/*.d.ts",
     "src/preload/types/index.d.ts",
     "src/common/TEMPORARY/tmp.ts"
   ],
@@ -26,7 +26,6 @@
     "paths": {
       "@lib/*": ["renderer/src/lib/*"],
       "@common/*": ["common/*"],
-      // "@xyflow/*": ["renderer/src/lib/vendor/xyflow/*"]
     },
     "types": ["vitest/globals"]
   },

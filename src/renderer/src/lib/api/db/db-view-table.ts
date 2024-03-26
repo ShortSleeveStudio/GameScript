@@ -31,7 +31,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         this._rowContainer = new DbRowViewContainer(tableType, filter);
         this._isInitialized = false;
         this._internalWritable = writable<IDbRowView<RowType>[]>(this._rowContainer.rowViews);
-        this.onReloadRequired();
+        void this.onReloadRequired();
     }
 
     get isInitialized(): boolean {

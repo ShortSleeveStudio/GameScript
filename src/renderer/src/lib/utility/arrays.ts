@@ -3,7 +3,7 @@
 export type Comparator<T> = (left: T, right: T) => number;
 
 /**Search a sorted array */
-export function sortedIndexOf<T>(array: Array<T>, value: T, compare: Comparator<T>) {
+export function sortedIndexOf<T>(array: Array<T>, value: T, compare: Comparator<T>): number {
     let first: number = 0;
     let last: number = array.length - 1;
     while (first <= last) {

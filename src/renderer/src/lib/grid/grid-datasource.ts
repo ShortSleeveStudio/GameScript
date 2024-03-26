@@ -77,7 +77,7 @@ export class GridDatasource<RowType extends Row> implements IDatasource {
         if (!this._context) this._context = <GridContext>params.context;
 
         // Get rows
-        this.getRowsAsync(params);
+        void this.getRowsAsync(params);
     }
 
     /** Optional destroy method, if your datasource has state it needs to clean up. */

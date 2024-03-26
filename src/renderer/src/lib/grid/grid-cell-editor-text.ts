@@ -19,19 +19,23 @@ export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, stri
         const oldRow = <Row>{ id: this._rowView.id };
         oldRow[this._columnName] = get(this._rowView)[this._columnName];
 
-        db.updateRow(tableType, newRow).then(() => {
-            undoManager.register(
-                new Undoable(
-                    `${tableType.name.toLowerCase()} update`,
-                    async () => {
-                        await db.updateRow(tableType, oldRow);
-                    },
-                    async () => {
-                        await db.updateRow(tableType, newRow);
-                    },
-                ),
-            );
-        });
+        db.updateRow(tableType, newRow)
+            .then(() => {
+                undoManager.register(
+                    new Undoable(
+                        `${tableType.name.toLowerCase()} update`,
+                        async () => {
+                            await db.updateRow(tableType, oldRow);
+                        },
+                        async () => {
+                            await db.updateRow(tableType, newRow);
+                        },
+                    ),
+                );
+            })
+            .catch((onRejected: unknown) => {
+                throw new Error(onRejected?.toString());
+            });
 
         // The update happens asynchronously
         return undefined;

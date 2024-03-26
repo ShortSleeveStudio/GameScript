@@ -18,7 +18,7 @@ export class LocalizationImporterJson implements LocalizationImporter {
     ): Promise<void> {
         const jsonParser: Parser = parser();
         const jsonArray: StreamArray = streamArray();
-        pipeline(fileStream, jsonParser, jsonArray);
+        void pipeline(fileStream, jsonParser, jsonArray);
         for await (const chunk of jsonArray) {
             const localization: Localization = <Localization>chunk.value;
             const [query, argumentArray]: [string, unknown[]] = queryBuilder(

@@ -687,7 +687,7 @@ export abstract class DbBase implements Db {
     private async notifyOnTableAltered(tableType: DatabaseTableType): Promise<void> {
         const tableViews = this.getTableViewsForTable(tableType);
         for (const tableView of tableViews.values()) {
-            tableView.onReloadRequired();
+            await tableView.onReloadRequired();
         }
     }
 }

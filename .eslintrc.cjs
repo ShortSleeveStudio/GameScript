@@ -3,6 +3,7 @@ module.exports = {
         extraFileExtensions: ['.svelte'],
         sourceType: 'module',
         ecmaVersion: 2020,
+        project: ['tsconfig.json', 'tsconfig.node.json'],
     },
     env: {
         browser: true,
@@ -30,5 +31,6 @@ module.exports = {
     ],
     rules: {
         '@typescript-eslint/explicit-function-return-type': ['error', { allowExpressions: true }],
+        '@typescript-eslint/no-floating-promises': 'error',
     },
 };

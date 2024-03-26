@@ -237,7 +237,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public routine(): RoutineContext {
-		let localctx: RoutineContext = new RoutineContext(this, this._ctx, this.state);
+		const localctx: RoutineContext = new RoutineContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 0, CSharpRoutineParser.RULE_routine);
 		let _la: number;
 		try {
@@ -292,7 +292,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public scheduled_block(): Scheduled_blockContext {
-		let localctx: Scheduled_blockContext = new Scheduled_blockContext(this, this._ctx, this.state);
+		const localctx: Scheduled_blockContext = new Scheduled_blockContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 2, CSharpRoutineParser.RULE_scheduled_block);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -321,7 +321,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public scheduled_block_open(): Scheduled_block_openContext {
-		let localctx: Scheduled_block_openContext = new Scheduled_block_openContext(this, this._ctx, this.state);
+		const localctx: Scheduled_block_openContext = new Scheduled_block_openContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 4, CSharpRoutineParser.RULE_scheduled_block_open);
 		let _la: number;
 		try {
@@ -359,7 +359,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public scheduled_block_close(): Scheduled_block_closeContext {
-		let localctx: Scheduled_block_closeContext = new Scheduled_block_closeContext(this, this._ctx, this.state);
+		const localctx: Scheduled_block_closeContext = new Scheduled_block_closeContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 6, CSharpRoutineParser.RULE_scheduled_block_close);
 		let _la: number;
 		try {
@@ -397,7 +397,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public block(): BlockContext {
-		let localctx: BlockContext = new BlockContext(this, this._ctx, this.state);
+		const localctx: BlockContext = new BlockContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 8, CSharpRoutineParser.RULE_block);
 		try {
 			let _alt: number;
@@ -437,7 +437,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public statement(): StatementContext {
-		let localctx: StatementContext = new StatementContext(this, this._ctx, this.state);
+		const localctx: StatementContext = new StatementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 10, CSharpRoutineParser.RULE_statement);
 		try {
 			this.state = 90;
@@ -503,7 +503,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public compound_statement(): Compound_statementContext {
-		let localctx: Compound_statementContext = new Compound_statementContext(this, this._ctx, this.state);
+		const localctx: Compound_statementContext = new Compound_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 12, CSharpRoutineParser.RULE_compound_statement);
 		let _la: number;
 		try {
@@ -541,7 +541,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public statement_list(): Statement_listContext {
-		let localctx: Statement_listContext = new Statement_listContext(this, this._ctx, this.state);
+		const localctx: Statement_listContext = new Statement_listContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 14, CSharpRoutineParser.RULE_statement_list);
 		let _la: number;
 		try {
@@ -579,7 +579,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public expression_statement(): Expression_statementContext {
-		let localctx: Expression_statementContext = new Expression_statementContext(this, this._ctx, this.state);
+		const localctx: Expression_statementContext = new Expression_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 16, CSharpRoutineParser.RULE_expression_statement);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -606,7 +606,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public if_statement(): If_statementContext {
-		let localctx: If_statementContext = new If_statementContext(this, this._ctx, this.state);
+		const localctx: If_statementContext = new If_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 18, CSharpRoutineParser.RULE_if_statement);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -651,7 +651,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public switch_statement(): Switch_statementContext {
-		let localctx: Switch_statementContext = new Switch_statementContext(this, this._ctx, this.state);
+		const localctx: Switch_statementContext = new Switch_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 20, CSharpRoutineParser.RULE_switch_statement);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -684,7 +684,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public switch_block(): Switch_blockContext {
-		let localctx: Switch_blockContext = new Switch_blockContext(this, this._ctx, this.state);
+		const localctx: Switch_blockContext = new Switch_blockContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 22, CSharpRoutineParser.RULE_switch_block);
 		let _la: number;
 		try {
@@ -726,7 +726,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public switch_label(): Switch_labelContext {
-		let localctx: Switch_labelContext = new Switch_labelContext(this, this._ctx, this.state);
+		const localctx: Switch_labelContext = new Switch_labelContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 24, CSharpRoutineParser.RULE_switch_label);
 		let _la: number;
 		try {
@@ -801,7 +801,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public declaration_statement(): Declaration_statementContext {
-		let localctx: Declaration_statementContext = new Declaration_statementContext(this, this._ctx, this.state);
+		const localctx: Declaration_statementContext = new Declaration_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 26, CSharpRoutineParser.RULE_declaration_statement);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -830,7 +830,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public declarator_init(): Declarator_initContext {
-		let localctx: Declarator_initContext = new Declarator_initContext(this, this._ctx, this.state);
+		const localctx: Declarator_initContext = new Declarator_initContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 28, CSharpRoutineParser.RULE_declarator_init);
 		let _la: number;
 		try {
@@ -868,7 +868,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public declarator(): DeclaratorContext {
-		let localctx: DeclaratorContext = new DeclaratorContext(this, this._ctx, this.state);
+		const localctx: DeclaratorContext = new DeclaratorContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 30, CSharpRoutineParser.RULE_declarator);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -893,7 +893,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public break_statement(): Break_statementContext {
-		let localctx: Break_statementContext = new Break_statementContext(this, this._ctx, this.state);
+		const localctx: Break_statementContext = new Break_statementContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 32, CSharpRoutineParser.RULE_break_statement);
 		try {
 			this.enterOuterAlt(localctx, 1);
@@ -920,7 +920,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public expression_list(): Expression_listContext {
-		let localctx: Expression_listContext = new Expression_listContext(this, this._ctx, this.state);
+		const localctx: Expression_listContext = new Expression_listContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 34, CSharpRoutineParser.RULE_expression_list);
 		let _la: number;
 		try {
@@ -969,11 +969,11 @@ export default class CSharpRoutineParser extends Parser {
 			_p = 0;
 		}
 
-		let _parentctx: ParserRuleContext = this._ctx;
-		let _parentState: number = this.state;
+		const _parentctx: ParserRuleContext = this._ctx;
+		const _parentState: number = this.state;
 		let localctx: ExpressionContext = new ExpressionContext(this, this._ctx, _parentState);
 		let _prevctx: ExpressionContext = localctx;
-		let _startState: number = 36;
+		const _startState: number = 36;
 		this.enterRecursionRule(localctx, 36, CSharpRoutineParser.RULE_expression, _p);
 		let _la: number;
 		try {
@@ -1463,7 +1463,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public assignment_operator(): Assignment_operatorContext {
-		let localctx: Assignment_operatorContext = new Assignment_operatorContext(this, this._ctx, this.state);
+		const localctx: Assignment_operatorContext = new Assignment_operatorContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 38, CSharpRoutineParser.RULE_assignment_operator);
 		let _la: number;
 		try {
@@ -1503,11 +1503,11 @@ export default class CSharpRoutineParser extends Parser {
 			_p = 0;
 		}
 
-		let _parentctx: ParserRuleContext = this._ctx;
-		let _parentState: number = this.state;
+		const _parentctx: ParserRuleContext = this._ctx;
+		const _parentState: number = this.state;
 		let localctx: TypeContext = new TypeContext(this, this._ctx, _parentState);
 		let _prevctx: TypeContext = localctx;
-		let _startState: number = 40;
+		const _startState: number = 40;
 		this.enterRecursionRule(localctx, 40, CSharpRoutineParser.RULE_type, _p);
 		let _la: number;
 		try {
@@ -1622,7 +1622,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public primitive_type(): Primitive_typeContext {
-		let localctx: Primitive_typeContext = new Primitive_typeContext(this, this._ctx, this.state);
+		const localctx: Primitive_typeContext = new Primitive_typeContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 42, CSharpRoutineParser.RULE_primitive_type);
 		let _la: number;
 		try {
@@ -1655,7 +1655,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public name(): NameContext {
-		let localctx: NameContext = new NameContext(this, this._ctx, this.state);
+		const localctx: NameContext = new NameContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 44, CSharpRoutineParser.RULE_name);
 		try {
 			let _alt: number;
@@ -1699,7 +1699,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public flag_list(): Flag_listContext {
-		let localctx: Flag_listContext = new Flag_listContext(this, this._ctx, this.state);
+		const localctx: Flag_listContext = new Flag_listContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 46, CSharpRoutineParser.RULE_flag_list);
 		let _la: number;
 		try {
@@ -1741,7 +1741,7 @@ export default class CSharpRoutineParser extends Parser {
 	}
 	// @RuleVersion(0)
 	public literal(): LiteralContext {
-		let localctx: LiteralContext = new LiteralContext(this, this._ctx, this.state);
+		const localctx: LiteralContext = new LiteralContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 48, CSharpRoutineParser.RULE_literal);
 		let _la: number;
 		try {
