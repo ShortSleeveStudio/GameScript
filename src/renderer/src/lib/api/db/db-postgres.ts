@@ -6,6 +6,7 @@ import {
     DATABASE_TABLES,
     DB_OP_ALTER,
     DB_OP_CREATE,
+    DB_OP_UPDATE,
     type DatabaseTableType,
     type FieldTypeId,
 } from '@common/common-types';
@@ -206,13 +207,22 @@ export class PostgresDb extends DbBase {
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
-        await super.updateRowsInternal(
-            window.api.postgres,
-            updateRowQueryPostgres,
-            tableType,
-            rows,
-            connection,
-        );
+        this.assertConnected();
+        for (let i = 0; i < rows.length; i++) {
+            const row: RowType = rows[i];
+            const [query, argumentArray]: [string, unknown[]] = updateRowQueryPostgres(
+                tableType,
+                row,
+            );
+            try {
+                await window.api.postgres.all(connection ?? this._db, query, argumentArray);
+            } catch (err) {
+                throw new Error(`Failed to update row: ${err}`);
+            }
+        }
+
+        // Notify
+        await this.notify(DB_OP_UPDATE, tableType.id, rows, connection);
     }
 
     async deleteRows<RowType extends Row>(

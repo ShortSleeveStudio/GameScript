@@ -2,7 +2,6 @@ import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initia
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
 import type { Actor, Locale, Row } from '@common/common-schema';
-import type { RowUpdateQueryBuilder } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -485,28 +484,6 @@ export abstract class DbBase implements Db {
         return results;
     }
 
-    protected async updateRowsInternal<RowType extends Row>(
-        api: SqlApi,
-        queryBuilder: RowUpdateQueryBuilder,
-        tableType: DatabaseTableType,
-        rows: RowType[],
-        connection?: DbConnection,
-    ): Promise<void> {
-        this.assertConnected();
-        for (let i = 0; i < rows.length; i++) {
-            const row: RowType = rows[i];
-            const [query, argumentArray]: [string, unknown[]] = queryBuilder(tableType, row);
-            try {
-                await api.all(connection ?? this._db, query, argumentArray);
-            } catch (err) {
-                throw new Error(`Failed to update row: ${err}`);
-            }
-        }
-
-        // Notify
-        await this.notify(DB_OP_UPDATE, tableType.id, rows, connection);
-    }
-
     protected async deleteRowsInternal<RowType extends Row>(
         api: SqlApi,
         tableType: DatabaseTableType,
@@ -696,7 +673,6 @@ export abstract class DbBase implements Db {
         const rowViewMap: Map<number, DbRowView<RowType>> = this.getRowViewsForTable(tableType);
         rows = rows.filter((row) => rowViewMap.has(row.id));
         if (rows.length === 0) return;
-
         await this.fetchRows(
             tableType,
             createFilter()
