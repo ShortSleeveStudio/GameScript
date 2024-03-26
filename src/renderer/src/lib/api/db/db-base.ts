@@ -2,6 +2,7 @@ import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initia
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
 import type { Actor, Locale, Row } from '@common/common-schema';
+import type { RowUpdateQueryBuilder } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -22,6 +23,7 @@ import {
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
+import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import { actorsCreate } from '@lib/crud/actor-crud';
 import { localesCreate } from '@lib/crud/locale-crud';
 import {
@@ -33,11 +35,12 @@ import {
 } from '@lib/stores/app/focus';
 import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import type { IpcRendererEvent } from 'electron';
+import type { SqlApi } from 'preload/api-sql';
 import { get, type Writable } from 'svelte/store';
 import { createFilter } from './db-filter';
 import type { Filter } from './db-filter-interface';
 import type { Db } from './db-interface';
-import type { DbRowView } from './db-view-row';
+import { DbRowView } from './db-view-row';
 import type { IDbRowView } from './db-view-row-interface';
 import { DbTableView } from './db-view-table';
 import type { IDbTableView } from './db-view-table-interface';
@@ -61,15 +64,27 @@ export abstract class DbBase implements Db {
         );
     }
 
+    protected _db: DbConnection | undefined;
     protected _isConnected: Writable<boolean>;
     protected _focusManager: FocusManager;
+    protected _transactionNotifications: AppNotification[];
 
     constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
         this._isConnected = isConnected;
         this._focusManager = focusManager;
+        this._transactionNotifications = [];
     }
 
+    /**
+     * Check if the database is initialized.
+     * @param config Database connection configuration
+     */
     abstract isDbInitialized(config: DbConnectionConfig): Promise<boolean>;
+
+    /**
+     * Initialize all tables.
+     */
+    protected abstract initializeSchema(): Promise<void>;
 
     /**
      * Connect to the database.
@@ -156,11 +171,14 @@ export abstract class DbBase implements Db {
      * @param row The row to create
      * @param connection Optional connection to execute with
      */
-    abstract createRow<RowType extends Row>(
+    async createRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
-    ): Promise<RowType>;
+    ): Promise<RowType> {
+        this.assertConnected();
+        return (await this.createRows(tableType, [row], connection))[0];
+    }
 
     /**
      * This creates a list of rows in the table.
@@ -206,13 +224,36 @@ export abstract class DbBase implements Db {
      * @param tableType Type of the table
      * @param filter Filter for the query
      * @param connection Optional connection to execute with
-     * @internal
      */
-    abstract fetchRows<RowType extends Row>(
+    async fetchRows<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
-    ): Promise<IDbRowView<RowType>[]>;
+    ): Promise<IDbRowView<RowType>[]> {
+        this.assertConnected();
+        // Fetch rows
+        const rowViews: IDbRowView<RowType>[] = [];
+        const results: RowType[] = await this.fetchRowsRaw(tableType, filter, connection);
+
+        // Map to row views
+        const rowViewMap: Map<number, DbRowView<RowType>> = this.getRowViewsForTable(tableType);
+        for (let i = 0; i < results.length; i++) {
+            const row: RowType = results[i];
+            let rowView = rowViewMap.get(row.id);
+            if (!rowView) {
+                rowView = new DbRowView<RowType>(tableType, row, () =>
+                    this.destroyRowView(tableType, row.id),
+                );
+                rowViewMap.set(row.id, rowView);
+            } else {
+                // Update the row just in case (there should never be variation)
+                rowView.onRowUpdated(row);
+            }
+            rowViews.push(rowView);
+        }
+
+        return rowViews;
+    }
 
     /**
      * This updates multiple rows in a table.
@@ -232,11 +273,13 @@ export abstract class DbBase implements Db {
      * @param row The row to update
      * @param connection Optional connection to execute with
      */
-    abstract updateRow<RowType extends Row>(
+    async updateRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
-    ): Promise<void>;
+    ): Promise<void> {
+        await this.updateRows(tableType, [row], connection);
+    }
 
     /**
      * This deletes a single row in the table.
@@ -245,11 +288,14 @@ export abstract class DbBase implements Db {
      * @param row The row to delete
      * @param connection Optional connection to execute with
      */
-    abstract deleteRow<RowType extends Row>(
+    async deleteRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
         connection?: DbConnection,
-    ): Promise<void>;
+    ): Promise<void> {
+        this.assertConnected();
+        await this.deleteRows(tableType, [row], connection);
+    }
 
     /**
      * This deletes a list of rows in the table.
@@ -291,6 +337,13 @@ export abstract class DbBase implements Db {
     protected abstract doNotify(notification: AppNotification): Promise<void>;
 
     /**
+     * Ensure a database connection exists.
+     */
+    protected assertConnected(): void {
+        if (!this._db) throw new Error('Operation failed: no database connection');
+    }
+
+    /**
      * Broadcast a notification about a change to the database.
      * @param op Operation type
      * @param tableId Id of the table
@@ -300,7 +353,6 @@ export abstract class DbBase implements Db {
     protected async notify<RowType extends Row>(
         op: OpTypeId,
         tableId: DatabaseTableId,
-        notificationQueue: AppNotification[],
         rows?: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -316,7 +368,7 @@ export abstract class DbBase implements Db {
 
         // Cache the notification for later if we're in a transaction
         if (connection) {
-            notificationQueue.push(notification);
+            this._transactionNotifications.push(notification);
             return;
         }
 
@@ -360,10 +412,125 @@ export abstract class DbBase implements Db {
         }
     };
 
-    /**
-     * Initialize all tables.
-     */
-    protected abstract initializeSchema(): Promise<void>;
+    protected async executeTransactionInternal(
+        api: SqlApi,
+        dbConnectionConfig: DbConnectionConfig,
+        transaction: DbTransaction,
+    ): Promise<void> {
+        let wasError: boolean = false;
+        let conn: DbConnection;
+        try {
+            conn = await api.open(dbConnectionConfig);
+            await api.exec(conn, 'BEGIN;');
+            await transaction(conn);
+        } catch (err) {
+            wasError = true;
+            await api.exec(conn, 'ROLLBACK;');
+            throw err;
+        } finally {
+            // Preserve and reset notifications. If you don't clear these before notifying,
+            // transactions in the notifications will end up looping over these irrelevant
+            // notifications
+            const preservedTransactions: AppNotification[] = this._transactionNotifications;
+            this._transactionNotifications = [];
+            // Only notify if there were no errors
+            if (!wasError) {
+                await api.exec(conn, 'COMMIT;');
+                await api.close(conn);
+                await this.combineAndBroadcastNotifications(preservedTransactions);
+            } else {
+                await api.close(conn);
+            }
+        }
+    }
+
+    protected async deleteColumnInternal(
+        api: SqlApi,
+        tableType: DatabaseTableType,
+        name: string,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        dispatchEvent(
+            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
+                detail: <DbColumnDeleting>{ tableType: tableType },
+            }),
+        );
+        const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name};`;
+        try {
+            await api.exec(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to drop column: ${err}`);
+        }
+
+        // Notify
+        await this.notify(DB_OP_ALTER, tableType.id, undefined, connection);
+    }
+
+    protected async fetchRowsRawInternal<RowType extends Row>(
+        api: SqlApi,
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<RowType[]> {
+        this.assertConnected();
+        // Fetch rows
+        const query: string = `SELECT * FROM ${tableType.name} ${filter.toString()};`;
+        let results: RowType[];
+        try {
+            results = await api.all(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to fetch rows: ${err}`);
+        }
+        return results;
+    }
+
+    protected async updateRowsInternal<RowType extends Row>(
+        api: SqlApi,
+        queryBuilder: RowUpdateQueryBuilder,
+        tableType: DatabaseTableType,
+        rows: RowType[],
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        for (let i = 0; i < rows.length; i++) {
+            const row: RowType = rows[i];
+            const [query, argumentArray]: [string, unknown[]] = queryBuilder(tableType, row);
+            try {
+                await api.all(connection ?? this._db, query, argumentArray);
+            } catch (err) {
+                throw new Error(`Failed to update row: ${err}`);
+            }
+        }
+
+        // Notify
+        await this.notify(DB_OP_UPDATE, tableType.id, rows, connection);
+    }
+
+    protected async deleteRowsInternal<RowType extends Row>(
+        api: SqlApi,
+        tableType: DatabaseTableType,
+        rows: RowType[],
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        if (rows.length === 0) return;
+        const query: string = `DELETE FROM ${tableType.name} WHERE id IN (${rows
+            .map((row) => row.id)
+            .join(', ')});`;
+
+        try {
+            await api.exec(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to delete rows: ${err}`);
+        }
+
+        // Remove from cache
+        this.removeRowViews(tableType, rows);
+
+        // Notify
+        await this.notify(DB_OP_DELETE, tableType.id, rows, connection);
+    }
 
     /**
      * Initialize the default rows.
@@ -415,40 +582,6 @@ export abstract class DbBase implements Db {
     ): void {
         const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
         rowViews.delete(rowId);
-    }
-
-    protected async combineAndBroadcastNotifications(
-        preservedTransactions: AppNotification[],
-    ): Promise<void> {
-        // Combine notifications
-        const tableToOpToRows: Map<number, Map<number, Row[]>> = new Map();
-        for (let i = 0; i < preservedTransactions.length; i++) {
-            const notification: AppNotification = preservedTransactions[i];
-            let opToRows: Map<number, Row[]> = tableToOpToRows.get(notification.tableId);
-            if (!opToRows) {
-                opToRows = new Map();
-                tableToOpToRows.set(notification.tableId, opToRows);
-            }
-            let rows: Row[] = opToRows.get(notification.operationId);
-            if (!rows) {
-                rows = [];
-                opToRows.set(notification.operationId, rows);
-            }
-            if (notification.rows) rows.push(...notification.rows);
-        }
-
-        // Send notifications
-        for (const [tableId, opToRows] of tableToOpToRows) {
-            for (const [opId, rows] of opToRows) {
-                await this.notify(
-                    <OpTypeId>opId,
-                    <DatabaseTableId>tableId,
-                    undefined,
-                    rows,
-                    undefined,
-                );
-            }
-        }
     }
 
     protected getTableViewsForTable<RowType extends Row>(
@@ -513,6 +646,34 @@ export abstract class DbBase implements Db {
                     },
                 ],
             });
+        }
+    }
+
+    private async combineAndBroadcastNotifications(
+        preservedTransactions: AppNotification[],
+    ): Promise<void> {
+        // Combine notifications
+        const tableToOpToRows: Map<number, Map<number, Row[]>> = new Map();
+        for (let i = 0; i < preservedTransactions.length; i++) {
+            const notification: AppNotification = preservedTransactions[i];
+            let opToRows: Map<number, Row[]> = tableToOpToRows.get(notification.tableId);
+            if (!opToRows) {
+                opToRows = new Map();
+                tableToOpToRows.set(notification.tableId, opToRows);
+            }
+            let rows: Row[] = opToRows.get(notification.operationId);
+            if (!rows) {
+                rows = [];
+                opToRows.set(notification.operationId, rows);
+            }
+            if (notification.rows) rows.push(...notification.rows);
+        }
+
+        // Send notifications
+        for (const [tableId, opToRows] of tableToOpToRows) {
+            for (const [opId, rows] of opToRows) {
+                await this.notify(<OpTypeId>opId, <DatabaseTableId>tableId, rows, undefined);
+            }
         }
     }
 

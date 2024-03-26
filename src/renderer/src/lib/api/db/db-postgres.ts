@@ -6,8 +6,6 @@ import {
     DATABASE_TABLES,
     DB_OP_ALTER,
     DB_OP_CREATE,
-    DB_OP_DELETE,
-    DB_OP_UPDATE,
     type DatabaseTableType,
     type FieldTypeId,
 } from '@common/common-types';
@@ -16,23 +14,17 @@ import {
     generateTablePostgres,
     typeForFieldTypePostgres,
 } from '@common/table-generators/table-generator-postgres';
-import { EVENT_DB_COLUMN_DELETING, type DbColumnDeleting } from '@lib/constants/events';
 import type { FocusManager } from '@lib/stores/app/focus';
 import { type Writable } from 'svelte/store';
 import { DbBase } from './db-base';
 import type { Filter } from './db-filter-interface';
-import { DbRowView } from './db-view-row';
-import type { IDbRowView } from './db-view-row-interface';
 
 /**PostgreSQL database implementation */
 export class PostgresDb extends DbBase {
-    private _db: DbConnection | undefined;
     private _dbConnectionConfig: DbConnectionConfig | undefined;
-    private _transactionNotifications: AppNotification[];
 
     constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
         super(isConnected, focusManager);
-        this._transactionNotifications = [];
     }
 
     async isDbInitialized(config: DbConnectionConfig): Promise<boolean> {
@@ -99,31 +91,11 @@ export class PostgresDb extends DbBase {
     }
 
     async executeTransaction(transaction: DbTransaction): Promise<void> {
-        let wasError: boolean = false;
-        let conn: DbConnection;
-        try {
-            conn = await window.api.postgres.open(this._dbConnectionConfig);
-            await window.api.postgres.exec(conn, 'BEGIN;');
-            await transaction(conn);
-        } catch (err) {
-            wasError = true;
-            await window.api.postgres.exec(conn, 'ROLLBACK;');
-            throw err;
-        } finally {
-            // Preserve and reset notifications. If you don't clear these before notifying,
-            // transactions in the notifications will end up looping over these irrelevant
-            // notifications
-            const preservedTransactions: AppNotification[] = this._transactionNotifications;
-            this._transactionNotifications = [];
-            // Only notify if there were no errors
-            if (!wasError) {
-                await window.api.postgres.exec(conn, 'COMMIT;');
-                await window.api.postgres.close(conn);
-                await super.combineAndBroadcastNotifications(preservedTransactions);
-            } else {
-                await window.api.postgres.close(conn);
-            }
-        }
+        await super.executeTransactionInternal(
+            window.api.postgres,
+            this._dbConnectionConfig,
+            transaction,
+        );
     }
 
     async createColumn(
@@ -142,13 +114,7 @@ export class PostgresDb extends DbBase {
         }
 
         // Notify
-        await super.notify(
-            DB_OP_ALTER,
-            tableType.id,
-            this._transactionNotifications,
-            undefined,
-            connection,
-        );
+        await super.notify(DB_OP_ALTER, tableType.id, undefined, connection);
     }
 
     async deleteColumn(
@@ -156,36 +122,7 @@ export class PostgresDb extends DbBase {
         name: string,
         connection?: DbConnection,
     ): Promise<void> {
-        this.assertConnected();
-        dispatchEvent(
-            new CustomEvent(EVENT_DB_COLUMN_DELETING, {
-                detail: <DbColumnDeleting>{ tableType: tableType },
-            }),
-        );
-        const query: string = `ALTER TABLE ${tableType.name} DROP COLUMN ${name};`;
-        try {
-            await window.api.postgres.exec(connection ?? this._db, query);
-        } catch (err) {
-            throw new Error(`Failed to drop column: ${err}`);
-        }
-
-        // Notify
-        await super.notify(
-            DB_OP_ALTER,
-            tableType.id,
-            this._transactionNotifications,
-            undefined,
-            connection,
-        );
-    }
-
-    async createRow<RowType extends Row>(
-        tableType: DatabaseTableType,
-        row: RowType,
-        connection?: DbConnection,
-    ): Promise<RowType> {
-        this.assertConnected();
-        return (await this.createRows(tableType, [row], connection))[0];
+        await super.deleteColumnInternal(window.api.postgres, tableType, name, connection);
     }
 
     async createRows<RowType extends Row>(
@@ -232,13 +169,7 @@ export class PostgresDb extends DbBase {
         }
 
         // Notify
-        await super.notify(
-            DB_OP_CREATE,
-            tableType.id,
-            this._transactionNotifications,
-            rows,
-            connection,
-        );
+        await super.notify(DB_OP_CREATE, tableType.id, rows, connection);
 
         // Return new id
         return rows;
@@ -267,46 +198,7 @@ export class PostgresDb extends DbBase {
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]> {
-        this.assertConnected();
-        // Fetch rows
-        const query: string = `SELECT * FROM ${tableType.name} ${filter.toString()};`;
-        let results: RowType[];
-        try {
-            results = await window.api.postgres.all(connection ?? this._db, query);
-        } catch (err) {
-            throw new Error(`Failed to fetch rows: ${err}`);
-        }
-        return results;
-    }
-
-    async fetchRows<RowType extends Row>(
-        tableType: DatabaseTableType,
-        filter: Filter<RowType>,
-        connection?: DbConnection,
-    ): Promise<IDbRowView<RowType>[]> {
-        this.assertConnected();
-        // Fetch rows
-        const rowViews: IDbRowView<RowType>[] = [];
-        const results: RowType[] = await this.fetchRowsRaw(tableType, filter, connection);
-
-        // Map to row views
-        const rowViewMap: Map<number, DbRowView<RowType>> = super.getRowViewsForTable(tableType);
-        for (let i = 0; i < results.length; i++) {
-            const row: RowType = results[i];
-            let rowView = rowViewMap.get(row.id);
-            if (!rowView) {
-                rowView = new DbRowView<RowType>(tableType, row, () =>
-                    super.destroyRowView(tableType, row.id),
-                );
-                rowViewMap.set(row.id, rowView);
-            } else {
-                // Update the row just in case (there should never be variation)
-                rowView.onRowUpdated(row);
-            }
-            rowViews.push(rowView);
-        }
-
-        return rowViews;
+        return await super.fetchRowsRawInternal(window.api.postgres, tableType, filter, connection);
     }
 
     async updateRows<RowType extends Row>(
@@ -314,45 +206,13 @@ export class PostgresDb extends DbBase {
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
-        this.assertConnected();
-        for (let i = 0; i < rows.length; i++) {
-            const row: RowType = rows[i];
-            const [query, argumentArray]: [string, unknown[]] = updateRowQueryPostgres(
-                tableType,
-                row,
-            );
-            try {
-                await window.api.postgres.all(connection ?? this._db, query, argumentArray);
-            } catch (err) {
-                throw new Error(`Failed to update row: ${err}`);
-            }
-        }
-
-        // Notify
-        await super.notify(
-            DB_OP_UPDATE,
-            tableType.id,
-            this._transactionNotifications,
+        await super.updateRowsInternal(
+            window.api.postgres,
+            updateRowQueryPostgres,
+            tableType,
             rows,
             connection,
         );
-    }
-
-    async updateRow<RowType extends Row>(
-        tableType: DatabaseTableType,
-        row: RowType,
-        connection?: DbConnection,
-    ): Promise<void> {
-        await this.updateRows(tableType, [row], connection);
-    }
-
-    async deleteRow<RowType extends Row>(
-        tableType: DatabaseTableType,
-        row: RowType,
-        connection?: DbConnection,
-    ): Promise<void> {
-        this.assertConnected();
-        await this.deleteRows(tableType, [row], connection);
     }
 
     async deleteRows<RowType extends Row>(
@@ -360,29 +220,7 @@ export class PostgresDb extends DbBase {
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
-        this.assertConnected();
-        if (rows.length === 0) return;
-        const query: string = `DELETE FROM ${tableType.name} WHERE id IN (${rows
-            .map((row) => row.id)
-            .join(', ')});`;
-
-        try {
-            await window.api.postgres.exec(connection ?? this._db, query);
-        } catch (err) {
-            throw new Error(`Failed to delete rows: ${err}`);
-        }
-
-        // Remove from cache
-        super.removeRowViews(tableType, rows);
-
-        // Notify
-        await super.notify(
-            DB_OP_DELETE,
-            tableType.id,
-            this._transactionNotifications,
-            rows,
-            connection,
-        );
+        await super.deleteRowsInternal(window.api.postgres, tableType, rows, connection);
     }
 
     async searchAndReplace<RowType extends Row>(
@@ -405,13 +243,7 @@ export class PostgresDb extends DbBase {
         }
 
         // Notify
-        await super.notify(
-            DB_OP_ALTER,
-            tableType.id,
-            this._transactionNotifications,
-            undefined,
-            connection,
-        );
+        await super.notify(DB_OP_ALTER, tableType.id, undefined, connection);
     }
 
     protected async doNotify(notification: AppNotification): Promise<void> {
@@ -424,10 +256,6 @@ export class PostgresDb extends DbBase {
         await window.api.postgres.closeAll();
         this._db = undefined;
         this._dbConnectionConfig = undefined;
-    }
-
-    private assertConnected(): void {
-        if (!this._db) throw new Error('Operation failed: no database connection');
     }
 
     private isConfigValid(config: DbConnectionConfig): boolean {
