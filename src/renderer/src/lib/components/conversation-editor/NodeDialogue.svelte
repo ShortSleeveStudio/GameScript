@@ -40,14 +40,14 @@
     positionAbsoluteY;
     // SUPPRESS WARNINGS
 
-    export let data: NodeData;
+    export let data: unknown;
 
     let onDelete: () => void;
-    let rowView: IDbRowView<Node> = data.rowView;
-    let localizations: IDbTableView<Localization> = data.localizations;
+    let rowView: IDbRowView<Node> = (<NodeData>data).rowView;
+    let localizations: IDbTableView<Localization> = (<NodeData>data).localizations;
     let isVertical: boolean = false;
     $: isVertical = sourcePosition === Position.Bottom;
-    $: onDataChanged(data);
+    $: onDataChanged(<NodeData>data);
     $: actor = getActorView($rowView);
     $: voiceText = getVoiceText($localizations);
 
