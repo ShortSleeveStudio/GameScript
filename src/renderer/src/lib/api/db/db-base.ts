@@ -693,7 +693,10 @@ export abstract class DbBase implements Db {
         tableType: DatabaseTableType,
         rows: RowType[],
     ): Promise<void> {
-        // TODO - can we iterate over loaded rows to decide if this is necessary (like we do above)?
+        const rowViewMap: Map<number, DbRowView<RowType>> = this.getRowViewsForTable(tableType);
+        rows = rows.filter((row) => rowViewMap.has(row.id));
+        if (rows.length === 0) return;
+
         await this.fetchRows(
             tableType,
             createFilter()
