@@ -10,9 +10,32 @@
     export let undoText: string;
     let checked: boolean = rowView.id === $defaultRoutine;
 
-    function onRadioChanged(e: Event): void {
+    function onRadioClicked(e: Event): void {
         (<HTMLElement>e.target).blur(); // Allows us to undo/redo
-        const previousIdSelected: number = $defaultRoutine;
+        e.preventDefault();
+        let previousIdSelected: number | null = $defaultRoutine;
+
+        // Unselect
+        if (previousIdSelected === rowView.id) {
+            previousIdSelected = null;
+            checked = false;
+            $defaultRoutine = null;
+
+            // Register undo/redo
+            undoManager.register(
+                new Undoable(
+                    `${undoText} change`,
+                    async () => {
+                        $defaultRoutine = rowView.id;
+                    },
+                    async () => {
+                        $defaultRoutine = previousIdSelected;
+                    },
+                ),
+            );
+            return;
+        }
+
         checked = true;
         $defaultRoutine = rowView.id;
 
@@ -42,6 +65,6 @@
     });
 </script>
 
-<RadioButtonGroup>
-    <RadioButton value={rowView.id} bind:checked on:change={onRadioChanged} />
+<RadioButtonGroup on:click={onRadioClicked}>
+    <RadioButton value={rowView.id} bind:checked />
 </RadioButtonGroup>

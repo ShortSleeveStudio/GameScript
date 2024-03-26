@@ -218,14 +218,16 @@
                         <sup>Connect</sup><br />
                         {#if $dbConnected}
                             <Button
-                                style="width: 100%;"
+                                style="width: 100%; max-width: 100%;"
                                 size="small"
                                 kind="danger"
                                 on:click={pgDisconnect}>Disconnect</Button
                             >
                         {:else}
-                            <Button style="width: 100%;" size="small" on:click={pgConnect}
-                                >Connect</Button
+                            <Button
+                                style="width: 100%; max-width: 100%;"
+                                size="small"
+                                on:click={pgConnect}>Connect</Button
                             >
                         {/if}
                     </p>

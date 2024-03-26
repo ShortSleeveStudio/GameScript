@@ -66,7 +66,10 @@ export const buildImportLocalizationFormat: Writable<number> = persisted(
 ///
 /// Coding Settings
 ///
-export const defaultRoutine: Writable<number> = persisted(LS_KEY_SETTINGS_DEFAULT_ROUTINE, 0);
+export const defaultRoutine: Writable<number | null> = persisted(
+    LS_KEY_SETTINGS_DEFAULT_ROUTINE,
+    0,
+);
 
 /**This is used to lock the UI when the auto-complete code scan is happening. */
 export const codeScanInProgress: Writable<boolean> = writable<boolean>(false);

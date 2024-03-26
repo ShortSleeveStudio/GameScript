@@ -65,8 +65,13 @@
             clearInspector();
         }
 
-        // Load new table if possible
         if (focusedItems === 1) {
+            // Exit early if we're already focused on the same thing
+            if (tableId === inspectedTableId && focused.rowId === inspectedFocus.rowId) {
+                return;
+            }
+
+            // Load new table if needed
             inspectedFocus = focused;
             inspectedTableId = tableId;
             inspectedTableView = db.fetchTable(

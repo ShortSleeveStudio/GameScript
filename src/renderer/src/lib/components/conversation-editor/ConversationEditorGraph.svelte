@@ -88,6 +88,7 @@
     } from '@common/common-types';
     import EdgeHidden from './EdgeHidden.svelte';
     import { TAG_HEIGHT, TAG_WIDTH } from '@lib/constants/graph';
+    import { defaultRoutine } from '@lib/stores/settings/settings';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -375,6 +376,7 @@
             type: type,
             parent: focusedRowView.id,
             is_system_created: false,
+            code_override: get(defaultRoutine),
             position_x: centerX,
             position_y: centerY,
         };

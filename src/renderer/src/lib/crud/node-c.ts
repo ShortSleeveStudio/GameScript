@@ -79,6 +79,7 @@ export async function nodeCreate(
                 condition: newCondition ? newCondition.id : null,
                 code: newCode ? newCode.id : null,
                 is_system_created: newNode.is_system_created,
+                code_override: newNode.code_override === undefined ? null : newNode.code_override,
                 // Graph Stuff
                 type: newNode.type,
                 position_x: newNode.position_x,
