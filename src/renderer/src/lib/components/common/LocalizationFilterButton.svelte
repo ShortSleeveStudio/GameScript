@@ -4,9 +4,9 @@
     import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
     import {
         EVENT_DOCK_SELECTION_REQUEST,
-        EVENT_LOCALIZATIONS_FILTER_BY_PARENT,
         type DockSelectionRequest,
         type GridFilterByParentRequest,
+        EVENT_LF_FILTER_BY_PARENT,
     } from '@lib/constants/events';
     import { Button } from 'carbon-components-svelte';
 
@@ -15,7 +15,7 @@
     function onClick(): void {
         // Filter Localization
         dispatchEvent(
-            new CustomEvent(EVENT_LOCALIZATIONS_FILTER_BY_PARENT, {
+            new CustomEvent(EVENT_LF_FILTER_BY_PARENT, {
                 detail: <GridFilterByParentRequest>{ parent: rowView.id },
             }),
         );

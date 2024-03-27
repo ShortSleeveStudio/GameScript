@@ -14,13 +14,30 @@
     import { focusOnNodeOfLocalization } from '@lib/graph/graph-helpers';
     import { APP_NAME } from '@common/constants';
     import RowColumnLocalizedTextArea from '../common/RowColumnLocalizedTextArea.svelte';
+    import {
+        focusManager,
+        type Focus,
+        FOCUS_MODE_REPLACE,
+        FOCUS_REPLACE,
+        type FocusRequest,
+        type FocusRequests,
+    } from '@lib/stores/app/focus';
+    import { TABLE_LOCALIZATIONS } from '@common/common-types';
+    import {
+        EVENT_DOCK_SELECTION_REQUEST,
+        EVENT_LF_FILTER_BY_ID,
+        type DockSelectionRequest,
+        type GridFilterByIdRequest,
+    } from '@lib/constants/events';
+    import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
 
     export let showTitle: boolean = false;
     export let showId: boolean = true;
     export let showNickname: boolean = true;
     export let rowView: IDbRowView<Localization>;
-    export let showConversationButton: boolean = false;
     export let showAccordion: boolean = true;
+    export let showConversationButton: boolean = false;
+    export let showLocalizationButton: boolean = false;
 
     let primaryLocale: IDbRowView<Locale>;
     let localePrincipalView: IDbRowView<LocalePrincipal>;
@@ -41,6 +58,34 @@
 
     async function onFindConversation(): Promise<void> {
         await focusOnNodeOfLocalization(get(rowView));
+    }
+
+    async function onFindLocalization(): Promise<void> {
+        const localizationFocusMap: Map<number, Focus> = new Map();
+        localizationFocusMap.set(rowView.id, {
+            rowId: rowView.id,
+        });
+        const conversationFocus: FocusRequest = <FocusRequest>{
+            tableType: TABLE_LOCALIZATIONS,
+            focus: localizationFocusMap,
+            type: FOCUS_REPLACE,
+        };
+        focusManager.focus(<FocusRequests>{
+            type: FOCUS_MODE_REPLACE,
+            requests: [conversationFocus],
+        });
+
+        // Filter Localizations
+        dispatchEvent(
+            new CustomEvent(EVENT_LF_FILTER_BY_ID, {
+                detail: <GridFilterByIdRequest>{ id: rowView.id },
+            }),
+        );
+        dispatchEvent(
+            new CustomEvent(EVENT_DOCK_SELECTION_REQUEST, {
+                detail: <DockSelectionRequest>{ layoutId: LAYOUT_ID_LOCALIZATION_EDITOR },
+            }),
+        );
     }
 </script>
 
@@ -109,6 +154,10 @@
                 {/if}
             {/each}
         {/if}
+    {/if}
+    {#if showLocalizationButton}
+        <br />
+        <Button size="small" on:click={onFindLocalization}>Find Localization</Button>
     {/if}
 {/if}
 {#if showConversationButton && rowView && $rowView.parent && $rowView.is_system_created}

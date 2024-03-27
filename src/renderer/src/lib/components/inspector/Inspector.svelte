@@ -67,7 +67,12 @@
 
         if (focusedItems === 1) {
             // Exit early if we're already focused on the same thing
-            if (tableId === inspectedTableId && focused.rowId === inspectedFocus.rowId) {
+            if (
+                focused &&
+                inspectedFocus &&
+                tableId === inspectedTableId &&
+                focused.rowId === inspectedFocus.rowId
+            ) {
                 return;
             }
 
@@ -109,7 +114,7 @@
         <DockableColumn>
             {#if $dbConnected && focusedItems}
                 <!-- Destroy and recreate anytime the focus changes -->
-                {#if focusedItems === 1 && inspectedTableView && inspectedTableId && inspectedFocus}
+                {#if focusedItems === 1 && inspectedTableView !== undefined && inspectedTableId !== undefined && inspectedFocus !== undefined}
                     {#each $inspectedTableView as rowView (rowView.id)}
                         {#if inspectedTableId === TABLE_ROUTINES.id}
                             <InspectorRoutine {rowView} payload={inspectedFocus.payload} />
@@ -129,6 +134,7 @@
                                 showTitle={true}
                                 showAccordion={false}
                                 showConversationButton={true}
+                                showLocalizationButton={false}
                             />
                         {:else if inspectedTableId === TABLE_NODES.id}
                             <InspectorNode {rowView} />

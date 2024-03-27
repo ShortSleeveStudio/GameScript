@@ -43,7 +43,7 @@
     } from '@lib/stores/app/focus';
     import { locales } from '@lib/tables/locales';
     import {
-        EVENT_LOCALIZATIONS_FILTER_BY_PARENT,
+        EVENT_LF_FILTER_BY_PARENT,
         EVENT_SHUTDOWN,
         isCustomEvent,
         type DockSelectionChanged,
@@ -51,6 +51,8 @@
         type GridFilterByParentRequest,
         type DbColumnDeleting,
         EVENT_DB_COLUMN_DELETING,
+        EVENT_LF_FILTER_BY_ID,
+        type GridFilterByIdRequest,
     } from '@lib/constants/events';
     import GridToolbar from '../common/GridToolbar.svelte';
     import { Button, InlineLoading } from 'carbon-components-svelte';
@@ -66,6 +68,7 @@
         TABLE_LOCALIZATIONS,
         type DatabaseTableType,
     } from '@common/common-types';
+    const ID_COLUMN: string = 'id';
     const CONVERSATION_ID_COLUMN: string = 'parent';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
         tableType: TABLE_LOCALIZATIONS,
@@ -77,7 +80,7 @@
         {
             pinned: 'left',
             headerName: 'ID',
-            colId: 'id',
+            colId: ID_COLUMN,
             resizable: false,
             cellRenderer: GridCellRenderer,
             editable: false,
@@ -277,6 +280,25 @@
         api.setFilterModel(model);
     };
 
+    const onFilterById: (e: Event) => void = (e: Event) => {
+        if (!isCustomEvent(e)) throw new Error('Selection request was missing payload');
+        const filterRequest = e as CustomEvent<GridFilterByIdRequest>;
+        const id: number = filterRequest.detail.id;
+
+        // Check if filter is required
+        const currentModel: NumberFilterModel = <NumberFilterModel>api.getFilterModel()[ID_COLUMN];
+        if (currentModel && currentModel.filter === id) return;
+
+        // Filter
+        const model: FilterModel = {};
+        model[ID_COLUMN] = <NumberFilterModel>{
+            filterType: 'number',
+            filter: id,
+            type: 'equals',
+        };
+        api.setFilterModel(model);
+    };
+
     const onDockFocusChanged: (e: CustomEvent<DockSelectionChanged>) => void = (
         e: CustomEvent<DockSelectionChanged>,
     ) => {
@@ -355,14 +377,16 @@
 
         // Event Listeners
         addEventListener(EVENT_SHUTDOWN, onShutdown);
-        addEventListener(EVENT_LOCALIZATIONS_FILTER_BY_PARENT, onFilterByParent);
+        addEventListener(EVENT_LF_FILTER_BY_PARENT, onFilterByParent);
+        addEventListener(EVENT_LF_FILTER_BY_ID, onFilterById);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
         addEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
     });
     onDestroy(() => {
         // Remove event listeners
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
-        removeEventListener(EVENT_LOCALIZATIONS_FILTER_BY_PARENT, onFilterByParent);
+        removeEventListener(EVENT_LF_FILTER_BY_PARENT, onFilterByParent);
+        removeEventListener(EVENT_LF_FILTER_BY_ID, onFilterById);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
         removeEventListener(EVENT_DB_COLUMN_DELETING, onLocaleDeleting);
 

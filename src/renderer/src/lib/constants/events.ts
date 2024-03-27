@@ -15,11 +15,12 @@ export const EVENT_DOCK_SELECTION_CHANGED: string = 'dock-selection-changed';
 export const EVENT_DB_CHANGED: string = 'db-changed';
 export const EVENT_DB_COLUMN_DELETING: string = 'db-column-deleting';
 
-// Localizations
-export const EVENT_LOCALIZATIONS_FILTER_BY_PARENT = 'localizations-filter-by-parent';
-
 // Conversation Finder
-export const EVENT_FINDER_FILTER_BY_PARENT: string = 'finder-filter-by-parent';
+export const EVENT_CF_FILTER_BY_PARENT: string = 'cf-filter-by-parent';
+
+// Localization Finder
+export const EVENT_LF_FILTER_BY_PARENT = 'lf-filter-by-parent';
+export const EVENT_LF_FILTER_BY_ID: string = 'lf-filter-by-id';
 
 /**
  * Events
@@ -32,6 +33,9 @@ export interface DockSelectionChanged {
 }
 export interface GridFilterByParentRequest {
     parent: number;
+}
+export interface GridFilterByIdRequest {
+    id: number;
 }
 export interface DbColumnDeleting {
     tableType: DatabaseTableType;

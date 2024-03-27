@@ -32,7 +32,7 @@
         EVENT_SHUTDOWN,
         type DockSelectionChanged,
         EVENT_DOCK_SELECTION_CHANGED,
-        EVENT_FINDER_FILTER_BY_PARENT,
+        EVENT_CF_FILTER_BY_PARENT,
         isCustomEvent,
         type GridFilterByParentRequest,
         EVENT_DB_COLUMN_DELETING,
@@ -426,14 +426,14 @@
         // Event Listeners
         addEventListener(EVENT_SHUTDOWN, onShutdown);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
-        addEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
+        addEventListener(EVENT_CF_FILTER_BY_PARENT, onFilterByParent);
         addEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
     });
     onDestroy(() => {
         // Remove event listener
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
-        removeEventListener(EVENT_FINDER_FILTER_BY_PARENT, onFilterByParent);
+        removeEventListener(EVENT_CF_FILTER_BY_PARENT, onFilterByParent);
         removeEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
 
         // Dispose of table watcher

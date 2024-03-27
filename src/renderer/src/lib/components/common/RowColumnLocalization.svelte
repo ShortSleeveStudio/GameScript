@@ -43,6 +43,7 @@
                 {showTitle}
                 {showId}
                 {showNickname}
+                showLocalizationButton={true}
             />
         {/each}
     </Tile>
