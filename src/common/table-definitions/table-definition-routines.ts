@@ -61,8 +61,10 @@ TABLE_DEFINITION_ROUTINES.setPrimaryKey('id');
 TABLE_DEFINITION_ROUTINES.addForeignKey({
     column: 'type',
     table: TABLE_ROUTINE_TYPES,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_ROUTINES.addForeignKey({
     column: 'parent',
     table: TABLE_CONVERSATIONS,
+    cascadeOnDelete: false,
 });

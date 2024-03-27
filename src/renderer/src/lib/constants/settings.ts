@@ -74,13 +74,22 @@ export const CONVERSATION_UNDO_DEFAULT_AUTO_LAYOUT = 'default auto-layout';
 /**Nodes */
 export const NODE_UNDO_VOICE_TEXT = 'voice text';
 export const NODE_PLACEHOLDER_VOICE_TEXT = 'Enter dialogue...';
-
 export const NODE_UNDO_UI_TEXT = 'response text';
 export const NODE_PLACEHOLDER_UI_TEXT = 'Enter UI text...';
-
 export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';
 
 /**Edges */
 export const EDGE_UNDO_PRIORITY = 'priority';
 export const EDGE_PLACEHOLDER_PRIORITY = 'Enter a priority...';
 export const EDGE_UNDO_TYPE = 'edge type';
+
+/**Node Property Templates */
+export const NODE_PROPERTY_TEMPLATE_UNDO_NAME = 'property name';
+export const NODE_PROPERTY_TEMPLATE_PLACEHOLDER_NAME = 'Enter property name';
+export const NODE_PROPERTY_TEMPLATE_UNDO_TYPE = 'property type';
+
+/**Node Properties */
+export const NODE_PROPERTY_UNDO_VALUE = 'property value';
+export const NODE_PROPERTY_PLACEHOLDER_VALUE_STRING = 'Enter string value';
+export const NODE_PROPERTY_PLACEHOLDER_VALUE_INTEGER = 'Enter integer value';
+export const NODE_PROPERTY_PLACEHOLDER_VALUE_DECIMAL = 'Enter decimal value';

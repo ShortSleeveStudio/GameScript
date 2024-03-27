@@ -20,4 +20,5 @@ TABLE_DEFINITION_LOCALE_PRINCIPAL.setPrimaryKey('id');
 TABLE_DEFINITION_LOCALE_PRINCIPAL.addForeignKey({
     column: 'principal',
     table: TABLE_LOCALES,
+    cascadeOnDelete: false,
 });

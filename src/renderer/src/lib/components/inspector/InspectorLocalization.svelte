@@ -31,10 +31,10 @@
     } from '@lib/constants/events';
     import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
 
+    export let rowView: IDbRowView<Localization>;
     export let showTitle: boolean = false;
     export let showId: boolean = true;
     export let showNickname: boolean = true;
-    export let rowView: IDbRowView<Localization>;
     export let showAccordion: boolean = true;
     export let showConversationButton: boolean = false;
     export let showLocalizationButton: boolean = false;

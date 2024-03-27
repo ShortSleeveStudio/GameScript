@@ -49,6 +49,11 @@ export const TABLE_NODES: DatabaseTableType = { id: 12, name: 'nodes' };
 export const TABLE_EDGES: DatabaseTableType = { id: 13, name: 'edges' };
 export const TABLE_VERSION: DatabaseTableType = { id: 14, name: 'version' };
 export const TABLE_NOTIFICATIONS: DatabaseTableType = { id: 15, name: 'notifications' };
+export const TABLE_NODE_PROPERTY_TEMPLATES: DatabaseTableType = {
+    id: 16,
+    name: 'node_property_templates',
+};
+export const TABLE_NODE_PROPERTIES: DatabaseTableType = { id: 17, name: 'node_properties' };
 export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_AUTO_COMPLETES,
     TABLE_PROGRAMMING_LANGUAGES,
@@ -66,6 +71,8 @@ export const DATABASE_TABLES: DatabaseTableType[] = [
     TABLE_EDGES,
     TABLE_VERSION,
     TABLE_NOTIFICATIONS,
+    TABLE_NODE_PROPERTY_TEMPLATES,
+    TABLE_NODE_PROPERTIES,
 ] as const;
 export type DatabaseTableId = (typeof DATABASE_TABLES)[number]['id'];
 export type DatabaseTableName = (typeof DATABASE_TABLES)[number]['name'];
@@ -207,3 +214,30 @@ export const DB_OP_UPDATE: OpTypeId = 2;
 export const DB_OP_ALTER: OpTypeId = 3;
 export const DB_OPS: number[] = [DB_OP_CREATE, DB_OP_DELETE, DB_OP_UPDATE, DB_OP_ALTER] as const;
 export type OpTypeId = (typeof DB_OPS)[number];
+
+/**Property Types */
+export interface PropertyType {
+    id: number;
+    name: string;
+}
+export const PROPERTY_TYPE_STRING: PropertyType = { id: 0, name: 'String' };
+export const PROPERTY_TYPE_INTEGER: PropertyType = { id: 1, name: 'Integer' };
+export const PROPERTY_TYPE_DECIMAL: PropertyType = { id: 2, name: 'Decimal' };
+export const PROPERTY_TYPE_BOOLEAN: PropertyType = { id: 3, name: 'Boolean' };
+export const PROPERTY_TYPE_NO_VALUE: PropertyType = { id: 4, name: 'No Value' };
+export const PROPERTY_TYPES: PropertyType[] = [
+    PROPERTY_TYPE_STRING,
+    PROPERTY_TYPE_INTEGER,
+    PROPERTY_TYPE_DECIMAL,
+    PROPERTY_TYPE_BOOLEAN,
+    PROPERTY_TYPE_NO_VALUE,
+] as const;
+export type PropertyTypeId = (typeof PROPERTY_TYPES)[number]['id'];
+export type PropertyTypeName = (typeof PROPERTY_TYPES)[number]['name'];
+export const PROPERTY_TYPE_DROPDOWN_ITEMS: DropdownItem[] = PROPERTY_TYPES.map(
+    (propertyType: PropertyType) =>
+        <DropdownItem>{
+            id: propertyType.id,
+            text: propertyType.name,
+        },
+);

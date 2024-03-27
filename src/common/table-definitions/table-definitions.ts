@@ -7,6 +7,7 @@ export interface UniqueDefinition {
 export interface ForeignKeyDefinition {
     column: string;
     table: DatabaseTableType;
+    cascadeOnDelete: boolean;
 }
 
 export interface ColumnDefinition {

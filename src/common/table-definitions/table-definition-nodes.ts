@@ -100,24 +100,30 @@ TABLE_DEFINITION_NODES.setPrimaryKey('id');
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'actor',
     table: TABLE_ACTORS,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'ui_response_text',
     table: TABLE_LOCALIZATIONS,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'voice_text',
     table: TABLE_LOCALIZATIONS,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'parent',
     table: TABLE_CONVERSATIONS,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'condition',
     table: TABLE_ROUTINES,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_NODES.addForeignKey({
     column: 'code',
     table: TABLE_ROUTINES,
+    cascadeOnDelete: false,
 });

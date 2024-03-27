@@ -1,3 +1,4 @@
+import { SQL_BATCH_SIZE } from '../../common/common-db';
 import { DbClient, DbConnection } from '../../common/common-db-types';
 import { localeIdToColumn } from '../../common/common-locale';
 import { Locale, Localization } from '../../common/common-schema';
@@ -9,7 +10,7 @@ import {
 import { LocalizationExportRequest } from '../../preload/api-build';
 import { doesFileExist } from '../common/common-helpers';
 import { executeTransaction } from '../db/db-client';
-import { ColumnDescriptor, EXPORTER_BATCH_SIZE, LocalizationExporter } from './build-common';
+import { ColumnDescriptor, LocalizationExporter } from './build-common';
 import { localizationExporterCsv } from './localization-exporter-csv';
 import { localizationExporterJson } from './localization-exporter-json';
 
@@ -53,9 +54,9 @@ export async function localizationExport(
             const count: number = (<{ count: number }>(
                 await db.get(conn, `SELECT COUNT(*) as count FROM ${TABLE_LOCALIZATIONS.name};`)
             )).count;
-            for (let i = 0; i < count; i += EXPORTER_BATCH_SIZE) {
+            for (let i = 0; i < count; i += SQL_BATCH_SIZE) {
                 // Fetch batch
-                const limit: number = EXPORTER_BATCH_SIZE;
+                const limit: number = SQL_BATCH_SIZE;
                 const offset: number = i;
                 const query: string =
                     `SELECT * FROM ${TABLE_LOCALIZATIONS.name} ` +

@@ -38,4 +38,5 @@ TABLE_DEFINITION_LOCALIZATIONS.setPrimaryKey('id');
 TABLE_DEFINITION_LOCALIZATIONS.addForeignKey({
     column: 'parent',
     table: TABLE_CONVERSATIONS,
+    cascadeOnDelete: false,
 });

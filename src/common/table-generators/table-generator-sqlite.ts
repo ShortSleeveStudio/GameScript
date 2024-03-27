@@ -57,7 +57,9 @@ export function generateTableSqlite(table: TableDefinition): string {
     for (let i = 0; i < table.foreignKeys.length; i++) {
         const definition: ForeignKeyDefinition = table.foreignKeys[i];
         createString += `
-        FOREIGN KEY("${definition.column}") REFERENCES "${definition.table.name}",\n`;
+        FOREIGN KEY("${definition.column}") REFERENCES "${definition.table.name}" ${
+            definition.cascadeOnDelete ? 'ON DELETE CASCADE' : ''
+        },\n`;
     }
 
     // Primary Key

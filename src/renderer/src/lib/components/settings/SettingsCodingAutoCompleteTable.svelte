@@ -48,6 +48,7 @@
             insertion: 'WalkTo(${1:actor}, ${2:location});',
             documentation: '',
         };
+
         let newRow: AutoComplete = await isLoading.wrapPromise(
             db.createRow(TABLE_AUTO_COMPLETES, newAutoComplete),
         );

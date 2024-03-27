@@ -59,12 +59,15 @@ TABLE_DEFINITION_EDGES.addUnique({
 TABLE_DEFINITION_EDGES.addForeignKey({
     column: 'parent',
     table: TABLE_CONVERSATIONS,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_EDGES.addForeignKey({
     column: 'source',
     table: TABLE_NODES,
+    cascadeOnDelete: false,
 });
 TABLE_DEFINITION_EDGES.addForeignKey({
     column: 'target',
     table: TABLE_NODES,
+    cascadeOnDelete: false,
 });

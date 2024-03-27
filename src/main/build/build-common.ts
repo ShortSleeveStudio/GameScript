@@ -21,7 +21,6 @@ export const EXPORTER_FILENAME_DATA_FILE: string = 'game.dat';
 export const EXPORTER_FILENAME_PREFIX_MISC: string = 'miscellaneous';
 export const EXPORTER_FILENAME_PREFIX_SINGLE: string = 'localizations';
 export const EXPORTER_FILENAME_PREFIX_PER_CONVERSATION: string = 'conversation_';
-export const EXPORTER_BATCH_SIZE: number = 500;
 export const EXPORTER_CHARACTER_NEWLINE: string = '\r\n';
 export const EXPORTER_CHARACTER_DELIMITER: string = ',';
 export const EXPORTER_CHARACTER_ENCODING: string = 'utf-8';

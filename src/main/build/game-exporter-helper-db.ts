@@ -1,3 +1,4 @@
+import { SQL_BATCH_SIZE } from '../../common/common-db';
 import { DbClient, DbConnection } from '../../common/common-db-types';
 import { filterIdToColumn } from '../../common/common-filter';
 import { localeIdToColumn } from '../../common/common-locale';
@@ -12,7 +13,7 @@ import { TableDefinition } from '../../common/table-definitions/table-definition
 import { TABLE_DEFINITIONS } from '../../common/table-generators/table-generator';
 import { generateTableSqlite } from '../../common/table-generators/table-generator-sqlite';
 import { GameExportRequest } from '../../preload/api-build';
-import { EXPORTER_BATCH_SIZE, GameHelperDbExporter } from './build-common';
+import { GameHelperDbExporter } from './build-common';
 
 export class GameHelperDbExporterDefault implements GameHelperDbExporter {
     async export(
@@ -63,8 +64,8 @@ export class GameHelperDbExporterDefault implements GameHelperDbExporter {
                 `SELECT COUNT(*) as count 
                     FROM ${tableDefinition.tableType.name};`,
             )).count;
-            for (let j = 0; j < count; j += EXPORTER_BATCH_SIZE) {
-                const limit: number = EXPORTER_BATCH_SIZE;
+            for (let j = 0; j < count; j += SQL_BATCH_SIZE) {
+                const limit: number = SQL_BATCH_SIZE;
                 const offset: number = j;
                 const queryFetchBatch: string = `
                 SELECT ${columns} 

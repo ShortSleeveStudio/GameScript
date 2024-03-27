@@ -27,7 +27,6 @@ import type { Filter } from './db-filter-interface';
 
 /**SQLite database implementation */
 export class SqliteDb extends DbBase {
-    private _db: DbConnection | undefined;
     private _dbConnectionConfig: DbConnectionConfig | undefined;
 
     constructor(isConnected: Writable<boolean>, focusManager: FocusManager) {
@@ -269,6 +268,7 @@ export class SqliteDb extends DbBase {
 
     protected async doNotify(notification: AppNotification): Promise<void> {
         // We can skip the main process, this came from us
+        if (!this._db) return;
         await this.onNotification(undefined, notification);
     }
 

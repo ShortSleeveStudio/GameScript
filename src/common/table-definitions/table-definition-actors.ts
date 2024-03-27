@@ -42,4 +42,5 @@ TABLE_DEFINITION_ACTORS.setPrimaryKey('id');
 TABLE_DEFINITION_ACTORS.addForeignKey({
     column: 'localized_name',
     table: TABLE_LOCALIZATIONS,
+    cascadeOnDelete: false,
 });

@@ -24,4 +24,5 @@ TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL.setPrimaryKey('id');
 TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL.addForeignKey({
     column: 'principal',
     table: TABLE_PROGRAMMING_LANGUAGES,
+    cascadeOnDelete: false,
 });

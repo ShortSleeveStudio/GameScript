@@ -1,6 +1,5 @@
 ///
 /// Rows
-
 ///
 export interface Row {
     // This is ignored during serialization for inserts/updates
@@ -151,4 +150,23 @@ export interface Notification extends Row {
     table_id: number;
     operation_id: number;
     json_payload: string;
+}
+
+///
+/// Node Property Template
+///
+export interface NodePropertyTemplate extends Row, Named {
+    type: number; // Property types
+}
+
+///
+/// Node Properties
+///
+export interface NodeProperty extends Row {
+    parent: number; // FK Node
+    template: number; // FK Node Property Template
+    value_string: string;
+    value_integer: number;
+    value_decimal: number;
+    value_boolean: boolean;
 }

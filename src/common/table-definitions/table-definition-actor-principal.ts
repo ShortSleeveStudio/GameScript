@@ -20,4 +20,5 @@ TABLE_DEFINITION_ACTOR_PRINCIPAL.setPrimaryKey('id');
 TABLE_DEFINITION_ACTOR_PRINCIPAL.addForeignKey({
     column: 'principal',
     table: TABLE_ACTORS,
+    cascadeOnDelete: false,
 });

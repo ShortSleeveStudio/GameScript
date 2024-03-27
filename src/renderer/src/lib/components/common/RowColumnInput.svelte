@@ -15,6 +15,7 @@
     export let columnName: string;
     export let inputPlaceholder: string;
     export let isNumber: boolean = false;
+    export let isDecimal: boolean = false;
     export let numberMin: number = Number.NEGATIVE_INFINITY;
     export let numberMax: number = Number.POSITIVE_INFINITY;
 
@@ -69,14 +70,8 @@
         }
     }
 
-    function onInput(): void {
-        if (!isNumber) return;
-        if (boundValue === '' || boundValue === '-') return;
-        sanitizeBoundValue();
-    }
-
     function sanitizeBoundValue(): void {
-        let num: number = parseInt(boundValue);
+        let num: number = isDecimal ? parseFloat(boundValue) : parseInt(boundValue);
         if (isNaN(num)) {
             num = 0;
         }
@@ -94,6 +89,5 @@
         bind:value={boundValue}
         on:blur={syncOnBlur}
         on:keyup={onKeyUp}
-        on:input={onInput}
     />
 </span>

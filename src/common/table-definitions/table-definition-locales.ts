@@ -36,4 +36,5 @@ TABLE_DEFINITION_LOCALES.setPrimaryKey('id');
 TABLE_DEFINITION_LOCALES.addForeignKey({
     column: 'localized_name',
     table: TABLE_LOCALIZATIONS,
+    cascadeOnDelete: false,
 });

@@ -16,6 +16,8 @@
     import { NODE_UNDO_PREVENT_RESPONSE } from '@lib/constants/settings';
     import { APP_NAME } from '@common/constants';
     import { NODE_TYPE_DIALOGUE, TABLE_ROUTINES } from '@common/common-types';
+    import RowColumnProperties from '../common/RowColumnProperties.svelte';
+    import { nodePropertyTemplates } from '@lib/tables/node-property-templates';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -135,3 +137,11 @@
         undoText={NODE_UNDO_PREVENT_RESPONSE}
     />
 </p>
+{#if nodePropertyTemplates && $nodePropertyTemplates.length > 0}
+    <p>
+        <Tooltip triggerText="Custom Properties" align="center" direction="top">
+            <p>Custom properties allow you to attach arbitrary data to specific nodes.</p>
+        </Tooltip>
+        <RowColumnProperties {rowView} />
+    </p>
+{/if}
