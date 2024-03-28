@@ -113,7 +113,7 @@ export interface Node extends Row, Annotated, SystemCreatable, ConversationChild
     ui_response_text: number; // FK Localizations
     condition: number; // FK Routines
     code: number; // FK Routines
-    code_override: number | null;
+    code_override: number;
     is_prevent_response: boolean;
 
     // Graph Stuff

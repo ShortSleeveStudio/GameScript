@@ -57,8 +57,8 @@ TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'code_override',
     type: FIELD_TYPE_INTEGER,
-    notNull: false,
-    defaultValue: undefined,
+    notNull: true,
+    defaultValue: -1,
 });
 TABLE_DEFINITION_NODES.addColumn(<ColumnDefinition>{
     name: 'is_prevent_response',

@@ -1,7 +1,7 @@
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
 import type { Row } from '@common/common-schema';
-import { updateRowQueryPostgres } from '@common/common-sql';
+import { bulkUpdateQueryPostgres, updateRowQueryPostgres } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -225,12 +225,42 @@ export class PostgresDb extends DbBase {
         await this.notify(DB_OP_UPDATE, tableType.id, rows, connection);
     }
 
+    async bulkUpdate<RowType extends Row>(
+        tableType: DatabaseTableType,
+        row: RowType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        const [query, argumentArray]: [string, unknown[]] = bulkUpdateQueryPostgres(
+            tableType,
+            row,
+            filter.toString(),
+        );
+        try {
+            await window.api.postgres.run(connection ?? this._db, query, argumentArray);
+        } catch (err) {
+            throw new Error(`Failed to bulk update rows: ${err}`);
+        }
+
+        // Notify
+        await this.notify(DB_OP_ALTER, tableType.id, undefined, connection);
+    }
+
     async deleteRows<RowType extends Row>(
         tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
         await super.deleteRowsInternal(window.api.postgres, tableType, rows, connection);
+    }
+
+    async bulkDelete<RowType extends Row>(
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void> {
+        await super.bulkDeleteInternal(window.api.postgres, tableType, filter, connection);
     }
 
     async searchAndReplace<RowType extends Row>(

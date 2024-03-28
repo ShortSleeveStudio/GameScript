@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { CODE_OVERRIDE_DEFAULT } from '@common/common-db';
     import type { Routine } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { defaultRoutine } from '@lib/stores/settings/settings';
@@ -13,13 +14,13 @@
     function onRadioClicked(e: Event): void {
         (<HTMLElement>e.target).blur(); // Allows us to undo/redo
         e.preventDefault();
-        let previousIdSelected: number | null = $defaultRoutine;
+        let previousIdSelected: number = $defaultRoutine;
 
         // Unselect
         if (previousIdSelected === rowView.id) {
             previousIdSelected = null;
             checked = false;
-            $defaultRoutine = null;
+            $defaultRoutine = CODE_OVERRIDE_DEFAULT;
 
             // Register undo/redo
             undoManager.register(
@@ -60,7 +61,7 @@
 
     onDestroy(() => {
         if (checked) {
-            $defaultRoutine = -1;
+            $defaultRoutine = CODE_OVERRIDE_DEFAULT;
         }
     });
 </script>

@@ -76,32 +76,16 @@ export abstract class DbBase implements Db {
     }
 
     /**
-     * Check if the database is initialized.
-     * @param config Database connection configuration
-     */
-    abstract isDbInitialized(config: DbConnectionConfig): Promise<boolean>;
-
-    /**
      * Initialize all tables.
      */
     protected abstract initializeSchema(): Promise<void>;
 
-    /**
-     * Connect to the database.
-     * @param config Connection configuration
-     */
+    abstract isDbInitialized(config: DbConnectionConfig): Promise<boolean>;
+
     abstract connect(config: DbConnectionConfig, initialize: boolean): Promise<void>;
 
-    /**
-     * Disconnect from the database.
-     */
     abstract disconnect(): Promise<void>;
 
-    /**
-     * Creates a table view.
-     * @param tableType Type of the table
-     * @param filter Filter for the table
-     */
     fetchTable<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
@@ -116,10 +100,6 @@ export abstract class DbBase implements Db {
         return tableView;
     }
 
-    /**
-     * Disposes of a single table view
-     * @param tableView The table view to release
-     */
     releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void {
         // Delete table view from registry
         const tableViewMap: Map<number, IDbTableView<RowType>> = this.getTableViewsForTable(
@@ -131,19 +111,8 @@ export abstract class DbBase implements Db {
         (<DbTableView<RowType>>tableView).dispose();
     }
 
-    /**
-     * Execute a function within a database transaction.
-     * @param transaction A function to execute within a database transaction
-     */
     abstract executeTransaction(transaction: DbTransaction): Promise<void>;
 
-    /**
-     * Add a column to a table.
-     * @param tableId Table to add a column to
-     * @param name Name of the new column
-     * @param type Type of the new column
-     * @param connection Optional connection to execute with
-     */
     abstract createColumn(
         tableType: DatabaseTableType,
         name: string,
@@ -151,26 +120,12 @@ export abstract class DbBase implements Db {
         connection?: DbConnection,
     ): Promise<void>;
 
-    /**
-     * Remove a column from a table.
-     * @param tableId Table to remove a column to
-     * @param name Name of the column to delete
-     * @param connection Optional connection to execute with
-     */
     abstract deleteColumn(
         tableType: DatabaseTableType,
         name: string,
         connection?: DbConnection,
     ): Promise<void>;
 
-    /**
-     * This creates a single row in the table.
-     * Throws an error during failures.
-     * Returns the id of the newly created row.
-     * @param tableType Type of the table
-     * @param row The row to create
-     * @param connection Optional connection to execute with
-     */
     async createRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
@@ -180,51 +135,24 @@ export abstract class DbBase implements Db {
         return (await this.createRows(tableType, [row], connection))[0];
     }
 
-    /**
-     * This creates a list of rows in the table.
-     * Throws an error during failures.
-     * Returns the rows with their id fields populated.
-     * @param tableType Type of the table
-     * @param rows The rows to create
-     * @param connection Optional connection to execute with
-     */
     abstract createRows<RowType extends Row>(
         tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]>;
 
-    /**
-     * Fetch the total number of rows in a given table.
-     * @param tableType Type of the table
-     * @param filter Filter for the query
-     * @param connection Optional connection to execute with
-     */
     abstract fetchRowCount<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number>;
 
-    /**
-     * Fetch raw rows that won't be used by a table view or updated when changes happen.
-     * @param tableType Type of the table
-     * @param filter Filter for the query
-     * @param connection Optional connection to execute with
-     */
     abstract fetchRowsRaw<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]>;
 
-    /**
-     * This fetches (all) rows in a table and returns them sorted by id.
-     * Throws an error during failures.
-     * @param tableType Type of the table
-     * @param filter Filter for the query
-     * @param connection Optional connection to execute with
-     */
     async fetchRows<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
@@ -255,24 +183,12 @@ export abstract class DbBase implements Db {
         return rowViews;
     }
 
-    /**
-     * This updates multiple rows in a table.
-     * @param tableType Type of the table
-     * @param rows The rows to update
-     * @param connection Optional connection to execute with
-     */
     abstract updateRows<RowType extends Row>(
         tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
-    /**
-     * This updates a single row in a table.
-     * @param tableType Type of the table
-     * @param row The row to update
-     * @param connection Optional connection to execute with
-     */
     async updateRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
@@ -281,13 +197,13 @@ export abstract class DbBase implements Db {
         await this.updateRows(tableType, [row], connection);
     }
 
-    /**
-     * This deletes a single row in the table.
-     * Throws an error during failures.
-     * @param tableType Type of the table
-     * @param row The row to delete
-     * @param connection Optional connection to execute with
-     */
+    abstract bulkUpdate<RowType extends Row>(
+        tableType: DatabaseTableType,
+        row: RowType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void>;
+
     async deleteRow<RowType extends Row>(
         tableType: DatabaseTableType,
         row: RowType,
@@ -297,28 +213,18 @@ export abstract class DbBase implements Db {
         await this.deleteRows(tableType, [row], connection);
     }
 
-    /**
-     * This deletes a list of rows in the table.
-     * Throws an error during failures.
-     * @param tableType Type of the table
-     * @param rows The rows to delete
-     * @param connection Optional connection to execute with
-     */
     abstract deleteRows<RowType extends Row>(
         tableType: DatabaseTableType,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
-    /**
-     * Search for and replace a string of text.
-     * @param tableType Type of the table
-     * @param filter Filter for the query
-     * @param field Field to search in
-     * @param search String to search for
-     * @param replace String to replace with
-     * @param connection Optional connection to execute with
-     */
+    abstract bulkDelete<RowType extends Row>(
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void>;
+
     abstract searchAndReplace<RowType extends Row>(
         tableType: DatabaseTableType,
         filter: Filter<RowType>,
@@ -508,6 +414,31 @@ export abstract class DbBase implements Db {
 
         // Notify
         await this.notify(DB_OP_DELETE, tableType.id, rows, connection);
+    }
+
+    /**
+     * Bulk delete rows.
+     * @param api api to use
+     * @param tableType Type of the table
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
+     */
+    async bulkDeleteInternal<RowType extends Row>(
+        api: SqlApi,
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void> {
+        this.assertConnected();
+        const query: string = `DELETE FROM ${tableType.name} ${filter.toString()};`;
+        try {
+            await api.exec(connection ?? this._db, query);
+        } catch (err) {
+            throw new Error(`Failed to bulk delete rows: ${err}`);
+        }
+
+        // Notify
+        await this.notify(DB_OP_ALTER, tableType.id, undefined, connection);
     }
 
     /**

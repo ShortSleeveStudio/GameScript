@@ -1,3 +1,4 @@
+import { CODE_OVERRIDE_DEFAULT } from '@common/common-db';
 import type { DbConnectionConfig } from '@common/common-db-types';
 import {
     DATABASE_TYPES,
@@ -66,9 +67,9 @@ export const buildImportLocalizationFormat: Writable<number> = persisted(
 ///
 /// Coding Settings
 ///
-export const defaultRoutine: Writable<number | null> = persisted(
+export const defaultRoutine: Writable<number> = persisted(
     LS_KEY_SETTINGS_DEFAULT_ROUTINE,
-    0,
+    CODE_OVERRIDE_DEFAULT,
 );
 
 /**This is used to lock the UI when the auto-complete code scan is happening. */

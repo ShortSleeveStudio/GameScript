@@ -13,7 +13,7 @@
     import RowNameInput from '../common/RowNameInput.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
-    import { type Routine } from '@common/common-schema';
+    import { type Routine, type Node } from '@common/common-schema';
     import type { FocusPayloadRoutine } from '@lib/stores/app/focus';
     import type { DataTableHeader } from 'carbon-components-svelte/src/DataTable/DataTable.svelte';
     import { FOCUS_BUTTON_WIDTH } from '@lib/constants/app';
@@ -25,7 +25,10 @@
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
     import SettingsCodingDefaultRoutinesRadio from './SettingsCodingDefaultRoutinesRadio.svelte';
-    import { ROUTINE_TYPE_DEFAULT, TABLE_ROUTINES } from '@common/common-types';
+    import { ROUTINE_TYPE_DEFAULT, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
+    import type { DbConnection } from '@common/common-db-types';
+    import { createFilter } from '@lib/api/db/db-filter';
+    import { SQL_BATCH_SIZE } from '@common/common-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {
@@ -69,7 +72,30 @@
         selectedRowIds.length = 0;
 
         // Delete rows
-        await isLoading.wrapPromise(db.deleteRows(TABLE_ROUTINES, rowsToDelete));
+        await isLoading.wrapPromise(
+            db.executeTransaction(async (conn: DbConnection) => {
+                for (let i = 0; i < rowsToDelete.length; i++) {
+                    // Grab row to delete
+                    const routineToDelete: Routine = rowsToDelete[i];
+
+                    // Update users of routine
+                    await db.bulkUpdate(
+                        TABLE_NODES,
+                        <Node>{ code_override: -1 },
+                        createFilter()
+                            .where()
+                            .column('code_override')
+                            .eq(routineToDelete.id)
+                            .endWhere()
+                            .build(),
+                        conn,
+                    );
+
+                    // Delete routine
+                    await db.deleteRow(TABLE_ROUTINES, routineToDelete, conn);
+                }
+            }),
+        );
 
         // Register undo/redo
         undoManager.register(
@@ -90,9 +116,10 @@
     <DataTable
         size="medium"
         title="Default Routines"
-        description="The routines listed in this table will be available to you in dropdown 
-        menus that allow you to fill in code blocks with pre-written code. If you delete these, 
-        places where they were used will no longer execute any code."
+        description="The routines listed in this table will be available to you in dropdown
+        menus that allow you to fill in code blocks with pre-written code. Please be careful.
+        Deleting a default routine is a destructive operation that cause all nodes using that
+        routine to revert to using their own routines."
         batchSelection
         bind:selectedRowIds
         {headers}

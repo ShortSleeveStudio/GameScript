@@ -37,6 +37,7 @@ export interface Db {
      * @param tableView The table view to release
      */
     releaseTable<RowType extends Row>(tableView: IDbTableView<RowType>): void;
+
     /**
      * Execute a function within a database transaction.
      * @param transaction A function to execute within a database transaction
@@ -160,6 +161,20 @@ export interface Db {
     ): Promise<void>;
 
     /**
+     * Bulk update rows.
+     * @param tableType Type of the table
+     * @param row The row updates to apply to all matches
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
+     */
+    bulkUpdate<RowType extends Row>(
+        tableType: DatabaseTableType,
+        row: RowType,
+        filter: Filter<RowType>,
+        connection?: DbConnection,
+    ): Promise<void>;
+
+    /**
      * This deletes a single row in the table.
      * Throws an error during failures.
      * @param tableType Type of the table
@@ -182,6 +197,18 @@ export interface Db {
     deleteRows<RowType extends Row>(
         tableType: DatabaseTableType,
         rows: RowType[],
+        connection?: DbConnection,
+    ): Promise<void>;
+
+    /**
+     * Bulk delete rows.
+     * @param tableType Type of the table
+     * @param filter Filter for the query
+     * @param connection Optional connection to execute with
+     */
+    bulkDelete<RowType extends Row>(
+        tableType: DatabaseTableType,
+        filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void>;
 

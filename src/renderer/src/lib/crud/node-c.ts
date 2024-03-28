@@ -1,3 +1,4 @@
+import { CODE_OVERRIDE_DEFAULT } from '@common/common-db';
 import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
 import type { DbConnection } from '@common/common-db-types';
 import { type Localization, type Node, type Routine } from '@common/common-schema';
@@ -79,7 +80,10 @@ export async function nodeCreate(
                 condition: newCondition ? newCondition.id : null,
                 code: newCode ? newCode.id : null,
                 is_system_created: newNode.is_system_created,
-                code_override: newNode.code_override === undefined ? null : newNode.code_override,
+                code_override:
+                    newNode.code_override === undefined
+                        ? CODE_OVERRIDE_DEFAULT
+                        : newNode.code_override,
                 // Graph Stuff
                 type: newNode.type,
                 position_x: newNode.position_x,

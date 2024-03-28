@@ -24,12 +24,11 @@
         TABLE_NODE_PROPERTIES,
         TABLE_NODE_PROPERTY_TEMPLATES,
     } from '@common/common-types';
-    import type { NodeProperty, NodePropertyTemplate } from '@common/common-schema';
+    import type { NodePropertyTemplate } from '@common/common-schema';
     import { db } from '@lib/api/db/db';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { DbConnection } from '@common/common-db-types';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { SQL_BATCH_SIZE } from '@common/common-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const headers: DataTableHeader[] = [
@@ -38,28 +37,6 @@
     ];
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
-
-    // async function createFilter(toCreate: Filter, conn: DbConnection): Promise<Filter> {
-    //     // Create Filter
-    //     toCreate = await db.createRow(TABLE_FILTERS, toCreate, conn);
-
-    //     // Create Column
-    //     await db.createColumn(
-    //         TABLE_CONVERSATIONS,
-    //         filterIdToColumn(toCreate.id),
-    //         FIELD_TYPE_TEXT.id,
-    //         conn,
-    //     );
-    //     return toCreate;
-    // }
-
-    // async function deleteFilter(toDelete: Filter, conn: DbConnection): Promise<void> {
-    //     // Delete Column
-    //     await db.deleteColumn(TABLE_CONVERSATIONS, filterIdToColumn(toDelete.id), conn);
-
-    //     // Delete Locale
-    //     await db.deleteRow(TABLE_FILTERS, toDelete, conn);
-    // }
 
     async function addRow(): Promise<void> {
         let newTemplate: NodePropertyTemplate = <NodePropertyTemplate>{
@@ -92,44 +69,27 @@
             nodePropertyTemplates.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
-        // Delete Rows
+        // Delete rows
         await isLoading.wrapPromise(
             db.executeTransaction(async (conn: DbConnection) => {
                 for (let i = 0; i < rowsToDelete.length; i++) {
                     // Grab row to delete
-                    const templateToDelete: NodePropertyTemplate = rowsToDelete[i];
+                    const toDelete: NodePropertyTemplate = rowsToDelete[i];
 
-                    // Fetch all properties using this template in batches and destroy
-                    const propCount = await db.fetchRowCount(
+                    // Update users of row
+                    await db.bulkDelete(
                         TABLE_NODE_PROPERTIES,
                         createFilter()
                             .where()
                             .column('template')
-                            .eq(templateToDelete.id)
+                            .eq(toDelete.id)
                             .endWhere()
                             .build(),
                         conn,
                     );
-                    for (let j = 0; j < propCount; j += SQL_BATCH_SIZE) {
-                        const limit: number = SQL_BATCH_SIZE;
-                        const offset: number = j;
-                        const propsToDelete: NodeProperty[] = await db.fetchRowsRaw<NodeProperty>(
-                            TABLE_NODE_PROPERTIES,
-                            createFilter()
-                                .where()
-                                .column('template')
-                                .eq(templateToDelete.id)
-                                .endWhere()
-                                .limit(limit)
-                                .offset(offset)
-                                .build(),
-                            conn,
-                        );
-                        await db.deleteRows(TABLE_NODE_PROPERTIES, propsToDelete, conn);
-                    }
 
-                    // Delete the template
-                    await db.deleteRow(TABLE_NODE_PROPERTY_TEMPLATES, templateToDelete, conn);
+                    // Delete row
+                    await db.deleteRow(TABLE_NODE_PROPERTY_TEMPLATES, toDelete, conn);
                 }
             }),
         );

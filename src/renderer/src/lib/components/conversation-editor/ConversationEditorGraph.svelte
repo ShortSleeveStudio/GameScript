@@ -380,7 +380,7 @@
             position_x: centerX,
             position_y: centerY,
         };
-        nodeCreate(newNode, isLoading);
+        void nodeCreate(newNode, isLoading);
     }
 
     function onSelectExclusive(nodeSet?: Set<FlowNode>, edgeSet?: Set<FlowEdge>): void {
