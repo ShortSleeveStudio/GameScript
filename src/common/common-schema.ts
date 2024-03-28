@@ -153,6 +153,11 @@ export interface Notification extends Row {
 }
 
 ///
+/// Node Property Type
+///
+export interface NodePropertyType extends Row, Named {}
+
+///
 /// Node Property Template
 ///
 export interface NodePropertyTemplate extends Row, Named {

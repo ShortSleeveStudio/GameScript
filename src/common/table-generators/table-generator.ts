@@ -13,6 +13,7 @@ import { TABLE_DEFINITION_NODES } from '../table-definitions/table-definition-no
 import { TABLE_DEFINITION_NOTIFICATIONS } from '../table-definitions/table-definition-notification';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL } from '../table-definitions/table-definition-programming-language-principal';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGES } from '../table-definitions/table-definition-programming-languages';
+import { TABLE_DEFINITION_PROPERTY_TYPES } from '../table-definitions/table-definition-property-types';
 import { TABLE_DEFINITION_ROUTINE_TYPES } from '../table-definitions/table-definition-routine-types';
 import { TABLE_DEFINITION_ROUTINES } from '../table-definitions/table-definition-routines';
 import { TABLE_DEFINITION_VERSION } from '../table-definitions/table-definition-version';
@@ -35,6 +36,7 @@ export const TABLE_DEFINITIONS: TableDefinition[] = [
     TABLE_DEFINITION_EDGES,
     TABLE_DEFINITION_VERSION,
     TABLE_DEFINITION_NOTIFICATIONS,
+    TABLE_DEFINITION_PROPERTY_TYPES,
     TABLE_DEFINITION_NODE_PROPERTY_TEMPLATES,
     TABLE_DEFINITION_NODE_PROPERTIES,
 ];

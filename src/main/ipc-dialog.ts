@@ -8,9 +8,11 @@ import {
     dialog,
     ipcMain,
 } from 'electron';
+import fs from 'fs/promises';
 import path from 'path';
 import { API_DIALOG_OPEN, API_DIALOG_SAVE } from '../common/constants.js';
 import { DialogResult } from '../preload/api-dialog.js';
+import { doesFileExist } from './common/common-helpers.js';
 import { windowFromWebContents } from './ipc-common.js';
 
 /**
@@ -52,6 +54,10 @@ ipcMain.handle(
     async (event: IpcMainInvokeEvent, payload: SaveDialogOptions): Promise<DialogResult> => {
         const mainWindow: BrowserWindow = windowFromWebContents(event);
         const result: SaveDialogReturnValue = await dialog.showSaveDialog(mainWindow, payload);
+        // Delete if it already exists
+        if (result.filePath && (await doesFileExist(result.filePath))) {
+            await fs.unlink(result.filePath);
+        }
         if (result && (result.canceled || !result.filePath)) {
             return <DialogResult>{
                 cancelled: result.canceled,

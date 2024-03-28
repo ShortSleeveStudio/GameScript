@@ -11,6 +11,7 @@ import type {
 import {
     PROGRAMMING_LANGUAGE_CS,
     PROGRAMMING_LANGUAGE_TYPES,
+    PROPERTY_TYPES,
     ROUTINE_TYPES,
     ROUTINE_TYPE_IMPORT,
     TABLE_ACTORS,
@@ -19,6 +20,7 @@ import {
     TABLE_LOCALE_PRINCIPAL,
     TABLE_PROGRAMMING_LANGUAGES,
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_PROPERTY_TYPES,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
     TABLE_VERSION,
@@ -111,5 +113,9 @@ export const DB_INITIAL_ROWS: InitialTableRows[] = [
                 version: '0.0.0',
             },
         ],
+    },
+    {
+        table: TABLE_PROPERTY_TYPES,
+        rows: PROPERTY_TYPES,
     },
 ];

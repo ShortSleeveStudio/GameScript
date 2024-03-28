@@ -37,6 +37,8 @@
     //         this._appInitializationErrors.set(errors);
 
     async function sqliteDatabaseDialogNew(): Promise<void> {
+        // Ensure disconnected
+        await db.disconnect();
         const saveResult: DialogResult = await window.api.dialog.sqliteDbSave();
         if (saveResult.cancelled) return;
         dbConnectionConfig.update((config: DbConnectionConfig) => {
@@ -44,7 +46,6 @@
             return config;
         });
         try {
-            await db.disconnect();
             await db.connect(get(dbConnectionConfig), true);
         } catch (error) {
             resetConnectionConfig();

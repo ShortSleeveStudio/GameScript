@@ -14,6 +14,7 @@ import {
     TABLE_LOCALE_PRINCIPAL,
     TABLE_PROGRAMMING_LANGUAGES,
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
+    TABLE_PROPERTY_TYPES,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
     TABLE_VERSION,
@@ -522,6 +523,7 @@ export abstract class DbBase implements Db {
                 case TABLE_ROUTINES.id:
                 case TABLE_LOCALE_PRINCIPAL.id:
                 case TABLE_VERSION.id:
+                case TABLE_PROPERTY_TYPES.id:
                 case TABLE_ACTOR_PRINCIPAL.id: {
                     await this.createRows(initialTableRows.table, initialTableRows.rows);
                     break;
