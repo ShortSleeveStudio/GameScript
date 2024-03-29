@@ -118,7 +118,7 @@
             resetConnectionConfig();
         }
     }
-    attemptConnection();
+    void attemptConnection();
 </script>
 
 <DockableRow isFullHeight={false}>

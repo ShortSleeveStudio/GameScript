@@ -1,6 +1,5 @@
 import type { IDatasource, IGetRowsParams, SortModelItem } from '@ag-grid-community/core';
-import { type Row } from '@common/common-schema';
-import type { DatabaseTableType } from '@common/common-types';
+import { type Row, type Table } from '@common/common-schema';
 import { db } from '@lib/api/db/db';
 import { createFilter } from '@lib/api/db/db-filter';
 import type { Filter } from '@lib/api/db/db-filter-interface';
@@ -18,15 +17,14 @@ interface CacheBlock {
 }
 
 export class GridDatasource<RowType extends Row> implements IDatasource {
-    private _tableType: DatabaseTableType;
+    private _tableType: Table;
     private _context: GridContext;
-
     private _firstLoadHappened: boolean;
     private _offsetToRows: Map<number, DbRowViewContainer<RowType>>;
     private _tableView: IDbTableView<RowType>;
     private _tableViewUnsubscriber: Unsubscriber;
 
-    constructor(tableType: DatabaseTableType) {
+    constructor(tableType: Table) {
         this._tableType = tableType;
         this._offsetToRows = new Map();
         this._tableView = db.fetchTable(this._tableType, createFilter<RowType>().limit(0).build());

@@ -1,5 +1,5 @@
-import type { Row } from '@common/common-schema';
-import type { DatabaseTableId, DatabaseTableName, DatabaseTableType } from '@common/common-types';
+import type { Row, Table } from '@common/common-schema';
+import type { DatabaseTableId, DatabaseTableName } from '@common/common-types';
 import {
     get,
     writable,
@@ -21,11 +21,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
     private _isInitialized: boolean;
     private _internalWritable: Writable<IDbRowView<RowType>[]>;
 
-    constructor(
-        tableType: DatabaseTableType,
-        filter: Filter<RowType>,
-        isConnected: Readable<boolean>,
-    ) {
+    constructor(tableType: Table, filter: Filter<RowType>, isConnected: Readable<boolean>) {
         this._isDisposed = false;
         this._isConnected = isConnected;
         this._rowContainer = new DbRowViewContainer(tableType, filter);
@@ -42,7 +38,7 @@ export class DbTableView<RowType extends Row> implements IDbTableView<RowType> {
         return this._rowContainer.containerId;
     }
 
-    get tableType(): DatabaseTableType {
+    get tableType(): Table {
         return this._rowContainer.tableType;
     }
 

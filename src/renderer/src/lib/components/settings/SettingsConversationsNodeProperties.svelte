@@ -21,10 +21,11 @@
     import {
         PROPERTY_TYPE_DROPDOWN_ITEMS,
         PROPERTY_TYPE_STRING,
+        TABLE_NODES,
         TABLE_NODE_PROPERTIES,
         TABLE_NODE_PROPERTY_TEMPLATES,
     } from '@common/common-types';
-    import type { NodePropertyTemplate } from '@common/common-schema';
+    import type { PropertyTemplate } from '@common/common-schema';
     import { db } from '@lib/api/db/db';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
     import type { DbConnection } from '@common/common-db-types';
@@ -39,9 +40,10 @@
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
     async function addRow(): Promise<void> {
-        let newTemplate: NodePropertyTemplate = <NodePropertyTemplate>{
+        let newTemplate: PropertyTemplate = <PropertyTemplate>{
             name: 'New Property',
             type: PROPERTY_TYPE_STRING.id,
+            parent: TABLE_NODES.id,
         };
 
         // Create template
@@ -65,8 +67,7 @@
 
     async function deleteRows(): Promise<void> {
         // Grab rows to delete
-        let rowsToDelete: NodePropertyTemplate[] =
-            nodePropertyTemplates.getRowsById(selectedRowIds);
+        let rowsToDelete: PropertyTemplate[] = nodePropertyTemplates.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
 
         // Delete rows
@@ -74,7 +75,7 @@
             db.executeTransaction(async (conn: DbConnection) => {
                 for (let i = 0; i < rowsToDelete.length; i++) {
                     // Grab row to delete
-                    const toDelete: NodePropertyTemplate = rowsToDelete[i];
+                    const toDelete: PropertyTemplate = rowsToDelete[i];
 
                     // Update users of row
                     await db.bulkDelete(

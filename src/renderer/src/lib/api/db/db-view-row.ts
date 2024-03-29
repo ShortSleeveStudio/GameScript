@@ -1,4 +1,4 @@
-import type { DatabaseTableId, DatabaseTableType } from '@common/common-types';
+import type { DatabaseTableId } from '@common/common-types';
 import {
     get,
     writable,
@@ -7,19 +7,19 @@ import {
     type Unsubscriber,
     type Writable,
 } from 'svelte/store';
-import type { Row } from '../../../../../common/common-schema';
+import type { Row, Table } from '../../../../../common/common-schema';
 import type { RowViewDestructor } from './db-base';
 import type { IDbRowView } from './db-view-row-interface';
 
 /**Base class for row views */
 export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     private _owners: Set<number>;
-    private _tableType: DatabaseTableType;
+    private _tableType: Table;
     private _internalWritable: Writable<RowType>;
     private _isDisposed: boolean;
     private _destructor: RowViewDestructor;
 
-    constructor(tableType: DatabaseTableType, row: RowType, destructor: RowViewDestructor) {
+    constructor(tableType: Table, row: RowType, destructor: RowViewDestructor) {
         this._owners = new Set();
         this._tableType = tableType;
         this._internalWritable = writable<RowType>(row);
@@ -31,7 +31,7 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
         return get(this._internalWritable).id;
     }
 
-    get tableType(): DatabaseTableType {
+    get tableType(): Table {
         return this._tableType;
     }
 

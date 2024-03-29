@@ -7,7 +7,6 @@
         buildExportLocalizationDivision,
         buildExportLocalizationFormat,
         buildExportPathLocalization,
-        dbConnectionConfig,
         dbType,
     } from '@lib/stores/settings/settings';
     import type { DatabaseInfo, LocalizationExportRequest } from 'preload/api-build';

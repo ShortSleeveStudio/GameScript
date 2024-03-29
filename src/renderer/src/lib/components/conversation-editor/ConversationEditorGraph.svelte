@@ -233,7 +233,7 @@
         await conversationUpdate(newConversation, oldConversation, isLoading);
 
         // Update layout
-        onLayout();
+        void onLayout();
     }
 
     function isValidConnection(edge: FlowEdge | Connection): boolean {
@@ -274,7 +274,7 @@
     }
 
     function onDeleteSelection(): void {
-        onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
+        void onBeforeDelete({ nodes: nodesSelected, edges: edgesSelected });
     }
 
     async function onDelete(nodes: Node[], edges: Edge[]): Promise<void> {
@@ -298,7 +298,7 @@
         );
 
         // Delete
-        onDelete(nodes, edges);
+        void onDelete(nodes, edges);
 
         // Deselect
         onSelectExclusive();
@@ -772,7 +772,7 @@
 
         // Update layout if edges were created or deleted
         if ((wasCreationOrDeletion || wasUpdate) && !isForNodes && isConversationInitialized) {
-            onLayout();
+            void onLayout();
         }
     }
 
@@ -829,13 +829,13 @@
         // Blur if conversation was deleted
         const conversations: IDbRowView<Conversation>[] = get(conversationViews);
         if (conversations.length !== 1) {
-            changeFocus(true);
+            void changeFocus(true);
             return;
         }
         const conversationView: IDbRowView<Conversation> = conversations[0];
         const conversation: Conversation = get(conversationView);
         if (conversation.is_deleted) {
-            changeFocus(true);
+            void changeFocus(true);
             return;
         }
         // Make sure focused row view is set
@@ -908,7 +908,7 @@
     }
 
     function blur(): void {
-        changeFocus(true);
+        void changeFocus(true);
     }
 
     function onFocusChanged(): void {
@@ -940,7 +940,7 @@
                 newFocusedNodes.push(focus.rowId);
             }
         }
-        changeFocus(false, newFocusedConversation, newFocusedNodes);
+        void changeFocus(false, newFocusedConversation, newFocusedNodes);
     }
 
     async function changeFocus(
@@ -977,7 +977,7 @@
                 try {
                     await loadGraph();
                 } catch (error) {
-                    changeFocus(true);
+                    void changeFocus(true);
                     throw new Error(error);
                 }
 
@@ -996,7 +996,7 @@
 
                 // Bail early if we've already blurred or the conversation is otherwise not there
                 if (!focusedRowView) {
-                    changeFocus(true);
+                    void changeFocus(true);
                     return;
                 }
 
@@ -1183,7 +1183,7 @@
                         ? 'Horizontal'
                         : 'Vertical'}"
                     on:click={() => {
-                        setVerticalLayout(!$focusedRowView.is_layout_vertical);
+                        void setVerticalLayout(!$focusedRowView.is_layout_vertical);
                     }}
                 />
                 <OverflowMenuItem

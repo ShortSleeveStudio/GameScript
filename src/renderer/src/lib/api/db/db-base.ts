@@ -1,7 +1,7 @@
 import { DB_INITIAL_ROWS, type InitialTableRows } from '@common/common-db-initialization';
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
-import type { Actor, Locale, Row } from '@common/common-schema';
+import type { Actor, Locale, Row, Table } from '@common/common-schema';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
@@ -17,9 +17,9 @@ import {
     TABLE_PROPERTY_TYPES,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
+    TABLE_TABLES,
     TABLE_VERSION,
     type DatabaseTableId,
-    type DatabaseTableType,
     type FieldTypeId,
     type OpTypeId,
 } from '@common/common-types';
@@ -87,7 +87,7 @@ export abstract class DbBase implements Db {
     abstract disconnect(): Promise<void>;
 
     fetchTable<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
     ): IDbTableView<RowType> {
         // Create view
@@ -114,20 +114,16 @@ export abstract class DbBase implements Db {
     abstract executeTransaction(transaction: DbTransaction): Promise<void>;
 
     abstract createColumn(
-        tableType: DatabaseTableType,
+        tableType: Table,
         name: string,
         type: FieldTypeId,
         connection?: DbConnection,
     ): Promise<void>;
 
-    abstract deleteColumn(
-        tableType: DatabaseTableType,
-        name: string,
-        connection?: DbConnection,
-    ): Promise<void>;
+    abstract deleteColumn(tableType: Table, name: string, connection?: DbConnection): Promise<void>;
 
     async createRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<RowType> {
@@ -136,25 +132,25 @@ export abstract class DbBase implements Db {
     }
 
     abstract createRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]>;
 
     abstract fetchRowCount<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number>;
 
     abstract fetchRowsRaw<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]>;
 
     async fetchRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]> {
@@ -184,13 +180,13 @@ export abstract class DbBase implements Db {
     }
 
     abstract updateRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
     async updateRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void> {
@@ -198,14 +194,14 @@ export abstract class DbBase implements Db {
     }
 
     abstract bulkUpdate<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void>;
 
     async deleteRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void> {
@@ -214,19 +210,19 @@ export abstract class DbBase implements Db {
     }
 
     abstract deleteRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
 
     abstract bulkDelete<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void>;
 
     abstract searchAndReplace<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         field: string,
         search: string,
@@ -352,7 +348,7 @@ export abstract class DbBase implements Db {
 
     protected async deleteColumnInternal(
         api: SqlApi,
-        tableType: DatabaseTableType,
+        tableType: Table,
         name: string,
         connection?: DbConnection,
     ): Promise<void> {
@@ -375,7 +371,7 @@ export abstract class DbBase implements Db {
 
     protected async fetchRowsRawInternal<RowType extends Row>(
         api: SqlApi,
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]> {
@@ -393,7 +389,7 @@ export abstract class DbBase implements Db {
 
     protected async deleteRowsInternal<RowType extends Row>(
         api: SqlApi,
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -425,7 +421,7 @@ export abstract class DbBase implements Db {
      */
     async bulkDeleteInternal<RowType extends Row>(
         api: SqlApi,
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void> {
@@ -455,6 +451,7 @@ export abstract class DbBase implements Db {
                 case TABLE_LOCALE_PRINCIPAL.id:
                 case TABLE_VERSION.id:
                 case TABLE_PROPERTY_TYPES.id:
+                case TABLE_TABLES.id:
                 case TABLE_ACTOR_PRINCIPAL.id: {
                     await this.createRows(initialTableRows.table, initialTableRows.rows);
                     break;
@@ -486,22 +483,19 @@ export abstract class DbBase implements Db {
         }
     }
 
-    protected destroyRowView<RowType extends Row>(
-        tableType: DatabaseTableType,
-        rowId: number,
-    ): void {
+    protected destroyRowView<RowType extends Row>(tableType: Table, rowId: number): void {
         const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
         rowViews.delete(rowId);
     }
 
     protected getTableViewsForTable<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
     ): Map<number, DbTableView<RowType>> {
         return <Map<number, DbTableView<RowType>>>DbBase._tableToTableView[tableType.id];
     }
 
     protected getRowViewsForTable<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
     ): Map<number, DbRowView<RowType>> {
         let rowViewMap: Map<number, DbRowView<RowType>> = <Map<number, DbRowView<RowType>>>(
             DbBase._tableToRowView[tableType.id]
@@ -530,10 +524,7 @@ export abstract class DbBase implements Db {
         return get(this._isConnected);
     }
 
-    protected removeRowViews<RowType extends Row>(
-        tableType: DatabaseTableType,
-        row: RowType[],
-    ): void {
+    protected removeRowViews<RowType extends Row>(tableType: Table, row: RowType[]): void {
         const rowViews: Map<number, IDbRowView<RowType>> = this.getRowViewsForTable(tableType);
         const focusMap: Map<number, Focus> = new Map();
         row.forEach((row) => {
@@ -588,7 +579,7 @@ export abstract class DbBase implements Db {
     }
 
     private async notifyOnRowLifecycleEvent<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
     ): Promise<void> {
         const tableViews = this.getTableViewsForTable<RowType>(tableType);
@@ -600,7 +591,7 @@ export abstract class DbBase implements Db {
     }
 
     private async notifyOnRowsUpdated<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
     ): Promise<void> {
         const rowViewMap: Map<number, DbRowView<RowType>> = this.getRowViewsForTable(tableType);
@@ -617,7 +608,7 @@ export abstract class DbBase implements Db {
         );
     }
 
-    private async notifyOnTableAltered(tableType: DatabaseTableType): Promise<void> {
+    private async notifyOnTableAltered(tableType: Table): Promise<void> {
         const tableViews = this.getTableViewsForTable(tableType);
         for (const tableView of tableViews.values()) {
             await tableView.onReloadRequired();

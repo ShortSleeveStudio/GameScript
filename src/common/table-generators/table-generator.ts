@@ -8,18 +8,20 @@ import { TABLE_DEFINITION_LOCALE_PRINCIPAL } from '../table-definitions/table-de
 import { TABLE_DEFINITION_LOCALES } from '../table-definitions/table-definition-locales';
 import { TABLE_DEFINITION_LOCALIZATIONS } from '../table-definitions/table-definition-localizations';
 import { TABLE_DEFINITION_NODE_PROPERTIES } from '../table-definitions/table-definition-node-properties';
-import { TABLE_DEFINITION_NODE_PROPERTY_TEMPLATES } from '../table-definitions/table-definition-node-property-template';
 import { TABLE_DEFINITION_NODES } from '../table-definitions/table-definition-nodes';
 import { TABLE_DEFINITION_NOTIFICATIONS } from '../table-definitions/table-definition-notification';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL } from '../table-definitions/table-definition-programming-language-principal';
 import { TABLE_DEFINITION_PROGRAMMING_LANGUAGES } from '../table-definitions/table-definition-programming-languages';
+import { TABLE_DEFINITION_PROPERTY_TEMPLATES } from '../table-definitions/table-definition-property-template';
 import { TABLE_DEFINITION_PROPERTY_TYPES } from '../table-definitions/table-definition-property-types';
 import { TABLE_DEFINITION_ROUTINE_TYPES } from '../table-definitions/table-definition-routine-types';
 import { TABLE_DEFINITION_ROUTINES } from '../table-definitions/table-definition-routines';
+import { TABLE_DEFINITION_TABLES } from '../table-definitions/table-definition-tables';
 import { TABLE_DEFINITION_VERSION } from '../table-definitions/table-definition-version';
 import { TableDefinition } from '../table-definitions/table-definitions';
 
 export const TABLE_DEFINITIONS: TableDefinition[] = [
+    TABLE_DEFINITION_TABLES,
     TABLE_DEFINITION_AUTO_COMPLETES,
     TABLE_DEFINITION_PROGRAMMING_LANGUAGES,
     TABLE_DEFINITION_PROGRAMMING_LANGUAGE_PRINCIPAL,
@@ -37,6 +39,6 @@ export const TABLE_DEFINITIONS: TableDefinition[] = [
     TABLE_DEFINITION_VERSION,
     TABLE_DEFINITION_NOTIFICATIONS,
     TABLE_DEFINITION_PROPERTY_TYPES,
-    TABLE_DEFINITION_NODE_PROPERTY_TEMPLATES,
+    TABLE_DEFINITION_PROPERTY_TEMPLATES,
     TABLE_DEFINITION_NODE_PROPERTIES,
 ];

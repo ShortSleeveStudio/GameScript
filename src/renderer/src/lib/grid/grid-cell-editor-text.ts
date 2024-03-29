@@ -1,6 +1,6 @@
 import type { AgPromise, ICellEditorComp, ICellEditorParams } from '@ag-grid-community/core';
 import { type Row } from '@common/common-schema';
-import type { DatabaseTableType } from '@common/common-types';
+import type { Table } from '@common/common-types';
 import { db } from '@lib/api/db/db';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -13,7 +13,7 @@ export class GridCellEditorText implements ICellEditorComp<IDbRowView<Row>, stri
     private _element: HTMLInputElement;
 
     getValue(): undefined {
-        const tableType: DatabaseTableType = this._rowView.tableType;
+        const tableType: Table = this._rowView.tableType;
         const newRow = <Row>{ id: this._rowView.id };
         newRow[this._columnName] = this._element.value;
         const oldRow = <Row>{ id: this._rowView.id };

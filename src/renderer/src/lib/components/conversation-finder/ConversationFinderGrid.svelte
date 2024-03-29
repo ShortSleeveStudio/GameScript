@@ -17,7 +17,7 @@
         type Filter,
         type Node,
         type Localization,
-        type Row,
+        type Table,
     } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
@@ -76,7 +76,6 @@
         TABLE_FILTERS,
         TABLE_LOCALIZATIONS,
         TABLE_NODES,
-        type DatabaseTableType,
     } from '@common/common-types';
     import type { DbConnection } from '@common/common-db-types';
     import { filterIdToColumn } from '@common/common-filter';
@@ -354,7 +353,7 @@
     const onFilterDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        const tableType: Table = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
         if (tableType.id === TABLE_FILTERS.id) {
             api.setFilterModel(null);
             api.applyColumnState({

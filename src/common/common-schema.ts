@@ -26,6 +26,11 @@ export interface Named {
 }
 
 ///
+/// Tables
+///
+export interface Table extends Row, Named {}
+
+///
 /// Auto-Completes
 ///
 export interface AutoComplete extends Row, Named {
@@ -153,14 +158,15 @@ export interface Notification extends Row {
 }
 
 ///
-/// Node Property Type
+/// Property Type
 ///
-export interface NodePropertyType extends Row, Named {}
+export interface PropertyType extends Row, Named {}
 
 ///
-/// Node Property Template
+/// Property Template
 ///
-export interface NodePropertyTemplate extends Row, Named {
+export interface PropertyTemplate extends Row, Named {
+    parent: number; // FK Table
     type: number; // Property types
 }
 

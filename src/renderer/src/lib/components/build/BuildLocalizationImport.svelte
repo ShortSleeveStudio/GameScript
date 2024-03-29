@@ -2,7 +2,6 @@
     import {
         buildImportLocalizationFormat,
         buildImportPathLocalization,
-        dbConnectionConfig,
         dbType,
     } from '@lib/stores/settings/settings';
     import {
@@ -14,11 +13,7 @@
         Tooltip,
     } from 'carbon-components-svelte';
     import FileSelector from '../common/FileSelector.svelte';
-    import {
-        DATABASE_TYPE_POSTGRES,
-        DATABASE_TYPE_SQLITE,
-        LOCALIZATION_FORMAT_DROPDOWN_ITEMS,
-    } from '@common/common-types';
+    import { LOCALIZATION_FORMAT_DROPDOWN_ITEMS } from '@common/common-types';
     import { APP_NAME } from '@common/constants';
     import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { DialogResult } from 'preload/api-dialog';

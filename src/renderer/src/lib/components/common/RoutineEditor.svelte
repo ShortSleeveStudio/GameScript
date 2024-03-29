@@ -1,10 +1,7 @@
 <script lang="ts">
     import { PROGRAMMING_LANGUAGE_CS } from '@common/common-types';
-
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
-
     import { db } from '@lib/api/db/db';
-
     import { type Row, type ProgrammingLanguagePrincipal } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { isDarkMode } from '@lib/stores/app/darkmode';

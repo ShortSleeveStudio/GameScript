@@ -1,5 +1,5 @@
 import type { DropdownItem } from 'carbon-components-svelte/types/Dropdown/Dropdown.svelte';
-import type { NodePropertyType, ProgrammingLanguage, RoutineType } from './common-schema';
+import type { ProgrammingLanguage, PropertyType, RoutineType, Table } from './common-schema';
 
 /**Database Types */
 export interface DatabaseType {
@@ -23,39 +23,37 @@ export const DATABASE_TYPE_DROPDOWN_ITEMS: DropdownItem[] = DATABASE_TYPES.map(
 );
 
 /**Database Tables */
-export interface DatabaseTableType {
-    id: number;
-    name: string;
-}
-export const TABLE_AUTO_COMPLETES: DatabaseTableType = { id: 0, name: 'auto_completes' };
-export const TABLE_PROGRAMMING_LANGUAGES: DatabaseTableType = {
-    id: 1,
+export const TABLE_TABLES: Table = { id: 0, name: 'tables' };
+export const TABLE_AUTO_COMPLETES: Table = { id: 1, name: 'auto_completes' };
+export const TABLE_PROGRAMMING_LANGUAGES: Table = {
+    id: 2,
     name: 'programming_languages',
 };
-export const TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL: DatabaseTableType = {
-    id: 2,
+export const TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL: Table = {
+    id: 3,
     name: 'programming_language_principal',
 };
-export const TABLE_ROUTINE_TYPES: DatabaseTableType = { id: 3, name: 'routine_types' };
-export const TABLE_ROUTINES: DatabaseTableType = { id: 4, name: 'routines' };
-export const TABLE_FILTERS: DatabaseTableType = { id: 5, name: 'filters' };
-export const TABLE_CONVERSATIONS: DatabaseTableType = { id: 6, name: 'conversations' };
-export const TABLE_LOCALES: DatabaseTableType = { id: 7, name: 'locales' };
-export const TABLE_LOCALE_PRINCIPAL: DatabaseTableType = { id: 8, name: 'locale_principal' };
-export const TABLE_LOCALIZATIONS: DatabaseTableType = { id: 9, name: 'localizations' };
-export const TABLE_ACTORS: DatabaseTableType = { id: 10, name: 'actors' };
-export const TABLE_ACTOR_PRINCIPAL: DatabaseTableType = { id: 11, name: 'actor_principal' };
-export const TABLE_NODES: DatabaseTableType = { id: 12, name: 'nodes' };
-export const TABLE_EDGES: DatabaseTableType = { id: 13, name: 'edges' };
-export const TABLE_VERSION: DatabaseTableType = { id: 14, name: 'version' };
-export const TABLE_NOTIFICATIONS: DatabaseTableType = { id: 15, name: 'notifications' };
-export const TABLE_PROPERTY_TYPES: DatabaseTableType = { id: 16, name: 'property_types' };
-export const TABLE_NODE_PROPERTY_TEMPLATES: DatabaseTableType = {
-    id: 17,
-    name: 'node_property_templates',
+export const TABLE_ROUTINE_TYPES: Table = { id: 4, name: 'routine_types' };
+export const TABLE_ROUTINES: Table = { id: 5, name: 'routines' };
+export const TABLE_FILTERS: Table = { id: 6, name: 'filters' };
+export const TABLE_CONVERSATIONS: Table = { id: 7, name: 'conversations' };
+export const TABLE_LOCALES: Table = { id: 8, name: 'locales' };
+export const TABLE_LOCALE_PRINCIPAL: Table = { id: 9, name: 'locale_principal' };
+export const TABLE_LOCALIZATIONS: Table = { id: 10, name: 'localizations' };
+export const TABLE_ACTORS: Table = { id: 11, name: 'actors' };
+export const TABLE_ACTOR_PRINCIPAL: Table = { id: 12, name: 'actor_principal' };
+export const TABLE_NODES: Table = { id: 13, name: 'nodes' };
+export const TABLE_EDGES: Table = { id: 14, name: 'edges' };
+export const TABLE_VERSION: Table = { id: 15, name: 'version' };
+export const TABLE_NOTIFICATIONS: Table = { id: 16, name: 'notifications' };
+export const TABLE_PROPERTY_TYPES: Table = { id: 17, name: 'property_types' };
+export const TABLE_NODE_PROPERTY_TEMPLATES: Table = {
+    id: 18,
+    name: 'property_templates',
 };
-export const TABLE_NODE_PROPERTIES: DatabaseTableType = { id: 18, name: 'node_properties' };
-export const DATABASE_TABLES: DatabaseTableType[] = [
+export const TABLE_NODE_PROPERTIES: Table = { id: 19, name: 'node_properties' };
+export const DATABASE_TABLES: Table[] = [
+    TABLE_TABLES,
     TABLE_AUTO_COMPLETES,
     TABLE_PROGRAMMING_LANGUAGES,
     TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
@@ -218,12 +216,12 @@ export const DB_OPS: number[] = [DB_OP_CREATE, DB_OP_DELETE, DB_OP_UPDATE, DB_OP
 export type OpTypeId = (typeof DB_OPS)[number];
 
 /**Property Types */
-export const PROPERTY_TYPE_STRING: NodePropertyType = { id: 0, name: 'String' };
-export const PROPERTY_TYPE_INTEGER: NodePropertyType = { id: 1, name: 'Integer' };
-export const PROPERTY_TYPE_DECIMAL: NodePropertyType = { id: 2, name: 'Decimal' };
-export const PROPERTY_TYPE_BOOLEAN: NodePropertyType = { id: 3, name: 'Boolean' };
-export const PROPERTY_TYPE_EMPTY: NodePropertyType = { id: 4, name: 'Empty' };
-export const PROPERTY_TYPES: NodePropertyType[] = [
+export const PROPERTY_TYPE_STRING: PropertyType = { id: 0, name: 'String' };
+export const PROPERTY_TYPE_INTEGER: PropertyType = { id: 1, name: 'Integer' };
+export const PROPERTY_TYPE_DECIMAL: PropertyType = { id: 2, name: 'Decimal' };
+export const PROPERTY_TYPE_BOOLEAN: PropertyType = { id: 3, name: 'Boolean' };
+export const PROPERTY_TYPE_EMPTY: PropertyType = { id: 4, name: 'Empty' };
+export const PROPERTY_TYPES: PropertyType[] = [
     PROPERTY_TYPE_STRING,
     PROPERTY_TYPE_INTEGER,
     PROPERTY_TYPE_DECIMAL,
@@ -233,7 +231,7 @@ export const PROPERTY_TYPES: NodePropertyType[] = [
 export type PropertyTypeId = (typeof PROPERTY_TYPES)[number]['id'];
 export type PropertyTypeName = (typeof PROPERTY_TYPES)[number]['name'];
 export const PROPERTY_TYPE_DROPDOWN_ITEMS: DropdownItem[] = PROPERTY_TYPES.map(
-    (propertyType: NodePropertyType) =>
+    (propertyType: PropertyType) =>
         <DropdownItem>{
             id: propertyType.id,
             text: propertyType.name,

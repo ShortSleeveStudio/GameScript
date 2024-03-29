@@ -1,6 +1,6 @@
 import type { DbConnection } from '@common/common-db-types';
-import type { Row } from '@common/common-schema';
-import type { DatabaseTableId, DatabaseTableName, DatabaseTableType } from '@common/common-types';
+import type { Row, Table } from '@common/common-schema';
+import type { DatabaseTableId, DatabaseTableName } from '@common/common-types';
 import { get } from 'svelte/store';
 import { db } from './db';
 import type { Filter } from './db-filter-interface';
@@ -15,13 +15,13 @@ export class DbRowViewContainer<RowType extends Row> {
     private static nextId = 0;
     private _containerId: number;
     private _filter: Filter<RowType>;
-    private _tableType: DatabaseTableType;
+    private _tableType: Table;
     private _idToRowMap: Map<number, DbRowView<RowType>>;
 
     private _rowViews: DbRowView<RowType>[];
     private _totalRowCount: number;
 
-    constructor(tableType: DatabaseTableType, filter: Filter<RowType>) {
+    constructor(tableType: Table, filter: Filter<RowType>) {
         this._containerId = DbRowViewContainer.nextId++;
         this._filter = filter;
         this._tableType = tableType;
@@ -34,7 +34,7 @@ export class DbRowViewContainer<RowType extends Row> {
         return this._containerId;
     }
 
-    get tableType(): DatabaseTableType {
+    get tableType(): Table {
         return this._tableType;
     }
 

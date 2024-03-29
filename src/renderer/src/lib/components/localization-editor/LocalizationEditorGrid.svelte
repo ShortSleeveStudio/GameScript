@@ -9,7 +9,7 @@
     } from '@lib/constants/grid';
     import { GridCellRenderer } from '@lib/grid/grid-cell-renderer';
     import { GridCellEditorText } from '@lib/grid/grid-cell-editor-text';
-    import { type Locale, type Localization, type Row } from '@common/common-schema';
+    import { type Locale, type Localization, type Row, type Table } from '@common/common-schema';
     import { GridDatasource } from '@lib/grid/grid-datasource';
     import {
         type ColDef,
@@ -63,11 +63,7 @@
     import { LAYOUT_ID_LOCALIZATION_EDITOR } from '@lib/constants/default-layout';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import { isDarkMode } from '@lib/stores/app/darkmode';
-    import {
-        TABLE_LOCALES,
-        TABLE_LOCALIZATIONS,
-        type DatabaseTableType,
-    } from '@common/common-types';
+    import { TABLE_LOCALES, TABLE_LOCALIZATIONS } from '@common/common-types';
     const ID_COLUMN: string = 'id';
     const CONVERSATION_ID_COLUMN: string = 'parent';
     const FOCUS_REQUEST: FocusRequest = <FocusRequest>{
@@ -231,7 +227,7 @@
             const colId: string = localeIdToColumn(row.id);
             columnIdSet.add(colId);
             columnDefs.push({
-                headerName: row.name,
+                headerName: <string>row.name,
                 colId: colId,
                 cellEditor: GridCellEditorText,
                 cellRenderer: GridCellRenderer,
@@ -310,7 +306,7 @@
     const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        const tableType: Table = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
         if (tableType.id === TABLE_LOCALES.id) {
             api.setFilterModel(null);
             api.applyColumnState({

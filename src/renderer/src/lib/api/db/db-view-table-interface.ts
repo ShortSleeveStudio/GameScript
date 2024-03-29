@@ -1,5 +1,5 @@
-import type { Row } from '@common/common-schema';
-import type { DatabaseTableId, DatabaseTableName, DatabaseTableType } from '@common/common-types';
+import type { Row, Table } from '@common/common-schema';
+import type { DatabaseTableId, DatabaseTableName } from '@common/common-types';
 import { type Invalidator, type Readable, type Subscriber, type Unsubscriber } from 'svelte/store';
 import type { Filter } from './db-filter-interface';
 import type { IDbRowView } from './db-view-row-interface';
@@ -14,7 +14,7 @@ import type { IDbRowView } from './db-view-row-interface';
  */
 export interface IDbTableView<RowType extends Row> extends Readable<IDbRowView<RowType>[]> {
     viewId: number;
-    tableType: DatabaseTableType;
+    tableType: Table;
     tableId: DatabaseTableId;
     tableName: DatabaseTableName;
     filter: Filter<RowType>;

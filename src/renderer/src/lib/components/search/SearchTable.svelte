@@ -9,15 +9,16 @@
         type RowClickedEvent,
         type TextFilterModel,
     } from '@ag-grid-community/core';
-    import {
-        TABLE_LOCALIZATIONS,
-        TABLE_ROUTINES,
-        type DatabaseTableType,
-        TABLE_LOCALES,
-    } from '@common/common-types';
+    import { TABLE_LOCALIZATIONS, TABLE_ROUTINES, TABLE_LOCALES } from '@common/common-types';
     import { db } from '@lib/api/db/db';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { type Localization, type Locale, type Row, type Routine } from '@common/common-schema';
+    import {
+        type Localization,
+        type Locale,
+        type Row,
+        type Routine,
+        type Table,
+    } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { LAYOUT_ID_SEARCH } from '@lib/constants/default-layout';
     import {
@@ -220,7 +221,7 @@
             <TextFilterModel>{ filterType: 'text' };
         filterModel.type = 'contains';
         filterModel.filter = searchString;
-        api.setColumnFilterModel(currentSearchColumnId, filterModel);
+        void api.setColumnFilterModel(currentSearchColumnId, filterModel);
         api.onFilterChanged();
     }
 
@@ -254,7 +255,7 @@
             }
 
             // Update rows
-            const tableType: DatabaseTableType = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
+            const tableType: Table = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
             await isLoading.wrapPromise(db.updateRows(tableType, newRows));
 
             // Register undo/redo
@@ -279,7 +280,7 @@
         isModalOpen = false;
 
         // Replace all
-        let tableType: DatabaseTableType = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
+        let tableType: Table = isCode ? TABLE_ROUTINES : TABLE_LOCALIZATIONS;
         await isLoading.wrapPromise(
             db.searchAndReplace(
                 tableType,
@@ -306,7 +307,7 @@
     const onLocaleDeleting: (e: CustomEvent<DbColumnDeleting>) => void = (
         e: CustomEvent<DbColumnDeleting>,
     ) => {
-        const tableType: DatabaseTableType = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
+        const tableType: Table = (<CustomEvent<DbColumnDeleting>>e).detail.tableType;
         if (tableType.id === TABLE_LOCALES.id) {
             api.setFilterModel(null);
             api.applyColumnState({

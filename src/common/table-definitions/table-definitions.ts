@@ -1,4 +1,4 @@
-import type { DatabaseTableType, FieldType } from '../common-types';
+import type { FieldType, Table } from '../common-types';
 
 export interface UniqueDefinition {
     columns: string[];
@@ -6,7 +6,7 @@ export interface UniqueDefinition {
 
 export interface ForeignKeyDefinition {
     column: string;
-    table: DatabaseTableType;
+    table: Table;
     cascadeOnDelete: boolean;
 }
 
@@ -18,13 +18,13 @@ export interface ColumnDefinition {
 }
 
 export class TableDefinition {
-    private _tableType: DatabaseTableType;
+    private _tableType: Table;
     private _columns: ColumnDefinition[];
     private _uniques: UniqueDefinition[];
     private _primaryKey: string;
     private _foreignKeys: ForeignKeyDefinition[];
 
-    constructor(tableType: DatabaseTableType) {
+    constructor(tableType: Table) {
         this._tableType = tableType;
         this._columns = [];
         this._uniques = [];
@@ -32,7 +32,7 @@ export class TableDefinition {
         this._foreignKeys = [];
     }
 
-    get tableType(): DatabaseTableType {
+    get tableType(): Table {
         return this._tableType;
     }
 

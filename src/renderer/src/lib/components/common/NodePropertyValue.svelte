@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { NodeProperty, NodePropertyTemplate } from '@common/common-schema';
+    import type { NodeProperty, PropertyTemplate } from '@common/common-schema';
     import {
         PROPERTY_TYPE_BOOLEAN,
         PROPERTY_TYPE_DECIMAL,
@@ -19,7 +19,7 @@
 
     export let rowView: IDbRowView<NodeProperty>;
 
-    let template: IDbRowView<NodePropertyTemplate>;
+    let template: IDbRowView<PropertyTemplate>;
     $: {
         template = nodePropertyTemplates.getRowViewById($rowView.template);
     }

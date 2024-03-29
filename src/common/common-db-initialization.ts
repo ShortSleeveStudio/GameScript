@@ -6,9 +6,11 @@ import type {
     ProgrammingLanguagePrincipal,
     Routine,
     Row,
+    Table,
     Version,
 } from './common-schema';
 import {
+    DATABASE_TABLES,
     PROGRAMMING_LANGUAGE_CS,
     PROGRAMMING_LANGUAGE_TYPES,
     PROPERTY_TYPES,
@@ -23,13 +25,13 @@ import {
     TABLE_PROPERTY_TYPES,
     TABLE_ROUTINES,
     TABLE_ROUTINE_TYPES,
+    TABLE_TABLES,
     TABLE_VERSION,
-    type DatabaseTableType,
 } from './common-types';
 import { ACTORS_DEFAULT_COLOR } from './constants';
 
 export interface InitialTableRows {
-    table: DatabaseTableType;
+    table: Table;
     rows: Row[];
 }
 
@@ -42,6 +44,7 @@ export const DB_DEFAULT_ROUTINE_PRINCIPAL_ID: number = 0;
 export const DB_DEFAULT_VERSION_ID: number = 0;
 
 export const DB_INITIAL_ROWS: InitialTableRows[] = [
+    { table: TABLE_TABLES, rows: DATABASE_TABLES },
     { table: TABLE_PROGRAMMING_LANGUAGES, rows: PROGRAMMING_LANGUAGE_TYPES },
     {
         table: TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,

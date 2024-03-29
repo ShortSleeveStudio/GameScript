@@ -5,14 +5,13 @@ import type {
     DbTransaction,
 } from '@common/common-db-types';
 import type { AppNotification } from '@common/common-notification';
-import type { Row } from '@common/common-schema';
+import type { Row, Table } from '@common/common-schema';
 import { bulkUpdateQuerySqlite, updateRowQuerySqlite } from '@common/common-sql';
 import {
     DATABASE_TABLES,
     DB_OP_ALTER,
     DB_OP_CREATE,
     DB_OP_UPDATE,
-    type DatabaseTableType,
     type FieldTypeId,
 } from '@common/common-types';
 import { TABLE_DEFINITIONS } from '@common/table-generators/table-generator';
@@ -114,7 +113,7 @@ export class SqliteDb extends DbBase {
     }
 
     async createColumn(
-        tableType: DatabaseTableType,
+        tableType: Table,
         name: string,
         type: FieldTypeId,
         connection?: DbConnection,
@@ -132,16 +131,12 @@ export class SqliteDb extends DbBase {
         await this.notify(DB_OP_ALTER, tableType.id, undefined, connection);
     }
 
-    async deleteColumn(
-        tableType: DatabaseTableType,
-        name: string,
-        connection?: DbConnection,
-    ): Promise<void> {
+    async deleteColumn(tableType: Table, name: string, connection?: DbConnection): Promise<void> {
         await super.deleteColumnInternal(window.api.sqlite, tableType, name, connection);
     }
 
     async createRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]> {
@@ -187,7 +182,7 @@ export class SqliteDb extends DbBase {
     }
 
     async fetchRowCount<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number> {
@@ -205,7 +200,7 @@ export class SqliteDb extends DbBase {
     }
 
     async fetchRowsRaw<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]> {
@@ -213,7 +208,7 @@ export class SqliteDb extends DbBase {
     }
 
     async updateRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -236,7 +231,7 @@ export class SqliteDb extends DbBase {
     }
 
     async bulkUpdate<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         filter: Filter<RowType>,
         connection?: DbConnection,
@@ -258,7 +253,7 @@ export class SqliteDb extends DbBase {
     }
 
     async deleteRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void> {
@@ -266,7 +261,7 @@ export class SqliteDb extends DbBase {
     }
 
     async bulkDelete<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void> {
@@ -274,7 +269,7 @@ export class SqliteDb extends DbBase {
     }
 
     async searchAndReplace<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         field: string,
         search: string,

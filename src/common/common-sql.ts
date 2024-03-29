@@ -1,10 +1,10 @@
 import { type Row } from './common-schema';
-import { type DatabaseTableType } from './common-types';
+import { type Table } from './common-types';
 
-export type RowUpdateQueryBuilder = (tableType: DatabaseTableType, row: Row) => [string, unknown[]];
+export type RowUpdateQueryBuilder = (tableType: Table, row: Row) => [string, unknown[]];
 
 export function bulkUpdateQuerySqlite(
-    tableType: DatabaseTableType,
+    tableType: Table,
     row: Row,
     filterString: string,
 ): [string, unknown[]] {
@@ -23,7 +23,7 @@ export function bulkUpdateQuerySqlite(
 }
 
 export function bulkUpdateQueryPostgres(
-    tableType: DatabaseTableType,
+    tableType: Table,
     row: Row,
     filterString: string,
 ): [string, unknown[]] {
@@ -41,7 +41,7 @@ export function bulkUpdateQueryPostgres(
     return [`UPDATE ${tableType.name} SET ${keyValuePairs} ${filterString};`, argumentArray];
 }
 
-export function updateRowQuerySqlite(tableType: DatabaseTableType, row: Row): [string, unknown[]] {
+export function updateRowQuerySqlite(tableType: Table, row: Row): [string, unknown[]] {
     let keyValuePairs: string = '';
     const argumentArray: unknown[] = [];
     for (const prop in row) {
@@ -56,10 +56,7 @@ export function updateRowQuerySqlite(tableType: DatabaseTableType, row: Row): [s
     return [`UPDATE ${tableType.name} SET ${keyValuePairs} WHERE id = ?;`, argumentArray];
 }
 
-export function updateRowQueryPostgres(
-    tableType: DatabaseTableType,
-    row: Row,
-): [string, unknown[]] {
+export function updateRowQueryPostgres(tableType: Table, row: Row): [string, unknown[]] {
     let keyValuePairs: string = '';
     const argumentArray: unknown[] = [];
     for (const prop in row) {

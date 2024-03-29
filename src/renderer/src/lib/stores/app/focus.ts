@@ -1,5 +1,5 @@
 import { type LocalePrincipal } from '@common/common-schema';
-import { DATABASE_TABLES, type DatabaseTableType } from '@common/common-types';
+import { DATABASE_TABLES, type Table } from '@common/common-types';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
@@ -25,7 +25,7 @@ export const FOCUS_REQUEST_TYPES: number[] = [
 ] as const;
 export type FocusRequestType = (typeof FOCUS_REQUEST_TYPES)[number];
 export interface FocusRequest {
-    tableType: DatabaseTableType;
+    tableType: Table;
     focus: Map<number, Focus>; // Row ID -> Focus
     type: FocusRequestType;
 }

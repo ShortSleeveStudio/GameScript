@@ -28,7 +28,6 @@
     import { ROUTINE_TYPE_DEFAULT, TABLE_NODES, TABLE_ROUTINES } from '@common/common-types';
     import type { DbConnection } from '@common/common-db-types';
     import { createFilter } from '@lib/api/db/db-filter';
-    import { SQL_BATCH_SIZE } from '@common/common-db';
 
     const uniqueNameTracker: UniqueNameTracker = new UniqueNameTracker();
     const focusPayload: FocusPayloadRoutine = {

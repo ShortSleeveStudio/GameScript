@@ -1,6 +1,5 @@
 import type { AgPromise, ICellEditorComp, ICellEditorParams } from '@ag-grid-community/core';
-import { type Row } from '@common/common-schema';
-import type { DatabaseTableType } from '@common/common-types';
+import { type Row, type Table } from '@common/common-schema';
 import { db } from '@lib/api/db/db';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -18,7 +17,7 @@ export class GridCellEditorInteger
     getValue(): undefined {
         // Skip non-integers
         if (!this.isInteger(this._element.value)) return undefined;
-        const tableType: DatabaseTableType = this._rowView.tableType;
+        const tableType: Table = this._rowView.tableType;
         const newRow = <Row>{ id: this._rowView.id };
         newRow[this._columnName] = parseInt(this._element.value);
         const oldRow = <Row>{ id: this._rowView.id };

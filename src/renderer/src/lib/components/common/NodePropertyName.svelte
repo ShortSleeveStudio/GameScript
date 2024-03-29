@@ -1,11 +1,11 @@
 <script lang="ts">
-    import type { NodeProperty, NodePropertyTemplate } from '@common/common-schema';
+    import type { NodeProperty, PropertyTemplate } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import { nodePropertyTemplates } from '@lib/tables/node-property-templates';
 
     export let rowView: IDbRowView<NodeProperty>;
 
-    let template: IDbRowView<NodePropertyTemplate>;
+    let template: IDbRowView<PropertyTemplate>;
     $: {
         template = nodePropertyTemplates.getRowViewById($rowView.template);
     }

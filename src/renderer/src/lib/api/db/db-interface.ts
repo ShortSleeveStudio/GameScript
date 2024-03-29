@@ -1,6 +1,6 @@
 import type { DbConnection, DbConnectionConfig, DbTransaction } from '@common/common-db-types';
-import type { Row } from '@common/common-schema';
-import type { DatabaseTableType, FieldTypeId } from '@common/common-types';
+import type { Row, Table } from '@common/common-schema';
+import type { FieldTypeId } from '@common/common-types';
 import type { Filter } from './db-filter-interface';
 import type { IDbRowView } from './db-view-row-interface';
 import type { IDbTableView } from './db-view-table-interface';
@@ -28,7 +28,7 @@ export interface Db {
      * @param filter Filter for the table
      */
     fetchTable<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
     ): IDbTableView<RowType>;
 
@@ -52,7 +52,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     createColumn(
-        tableType: DatabaseTableType,
+        tableType: Table,
         name: string,
         type: FieldTypeId,
         connection?: DbConnection,
@@ -64,11 +64,7 @@ export interface Db {
      * @param name Name of the column to delete
      * @param connection Optional connection to execute with
      */
-    deleteColumn(
-        tableType: DatabaseTableType,
-        name: string,
-        connection?: DbConnection,
-    ): Promise<void>;
+    deleteColumn(tableType: Table, name: string, connection?: DbConnection): Promise<void>;
 
     /**
      * This creates a single row in the table.
@@ -79,7 +75,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     createRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<RowType>;
@@ -93,7 +89,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     createRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<RowType[]>;
@@ -105,7 +101,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     fetchRowCount<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<number>;
@@ -117,7 +113,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     fetchRowsRaw<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<RowType[]>;
@@ -131,7 +127,7 @@ export interface Db {
      * @internal
      */
     fetchRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<IDbRowView<RowType>[]>;
@@ -143,7 +139,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     updateRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
@@ -155,7 +151,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     updateRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void>;
@@ -168,7 +164,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     bulkUpdate<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         filter: Filter<RowType>,
         connection?: DbConnection,
@@ -182,7 +178,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     deleteRow<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         row: RowType,
         connection?: DbConnection,
     ): Promise<void>;
@@ -195,7 +191,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     deleteRows<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         rows: RowType[],
         connection?: DbConnection,
     ): Promise<void>;
@@ -207,7 +203,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     bulkDelete<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         connection?: DbConnection,
     ): Promise<void>;
@@ -222,7 +218,7 @@ export interface Db {
      * @param connection Optional connection to execute with
      */
     searchAndReplace<RowType extends Row>(
-        tableType: DatabaseTableType,
+        tableType: Table,
         filter: Filter<RowType>,
         field: string,
         search: string,

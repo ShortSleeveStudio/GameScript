@@ -1,4 +1,4 @@
-import type { DatabaseTableType } from '@common/common-types';
+import type { Table } from '@common/common-schema';
 import type { LayoutId } from './default-layout';
 /**
  * Event Names
@@ -38,7 +38,7 @@ export interface GridFilterByIdRequest {
     id: number;
 }
 export interface DbColumnDeleting {
-    tableType: DatabaseTableType;
+    tableType: Table;
 }
 
 /**
