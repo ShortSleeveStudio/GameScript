@@ -37,7 +37,6 @@ export function bulkUpdateQueryPostgres(
         const value: unknown = row[prop];
         argumentArray.push(value);
     }
-    argumentArray.push(row.id);
     return [`UPDATE ${tableType.name} SET ${keyValuePairs} ${filterString};`, argumentArray];
 }
 
