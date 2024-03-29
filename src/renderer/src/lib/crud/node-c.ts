@@ -13,97 +13,55 @@ import { db } from '@lib/api/db/db';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
 
+interface NodeInfo {
+    node: Node;
+    code: Routine;
+    condition: Routine;
+    voiceText: Localization;
+    uiResponseText: Localization;
+}
+
 export async function nodeCreate(
     newNode: Node,
     isLoading?: IsLoadingStore,
     connection?: DbConnection,
 ): Promise<Node> {
-    let newUiResponseText: Localization;
-    let newVoiceText: Localization;
-    let newCondition: Routine;
-    let newCode: Routine;
+    return await nodesCreate([newNode], isLoading, connection)[0];
+}
 
-    const createOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
-        // Don't bother creating routines/localizations for the root node
-        if (newNode.type !== NODE_TYPE_ROOT.name) {
-            // Create ui_response_text
-            newUiResponseText = await db.createRow(
-                TABLE_LOCALIZATIONS,
-                <Localization>{
-                    parent: newNode.parent,
-                    is_system_created: true,
-                },
-                conn,
-            );
-            // Create voice_text
-            newVoiceText = await db.createRow(
-                TABLE_LOCALIZATIONS,
-                <Localization>{
-                    parent: newNode.parent,
-                    is_system_created: true,
-                },
-                conn,
-            );
-            // Create condition
-            newCondition = await db.createRow(
-                TABLE_ROUTINES,
-                <Routine>{
-                    code: '',
-                    type: ROUTINE_TYPE_USER_CREATED.id,
-                    is_system_created: true,
-                    parent: newNode.parent,
-                    is_condition: true,
-                },
-                conn,
-            );
-            // Create code
-            newCode = await db.createRow(
-                TABLE_ROUTINES,
-                <Routine>{
-                    code: '',
-                    type: ROUTINE_TYPE_USER_CREATED.id,
-                    is_system_created: true,
-                    parent: newNode.parent,
-                    is_condition: false,
-                },
-                conn,
-            );
-        }
-        // Create Node
-        newNode = await db.createRow(
-            TABLE_NODES,
-            <Node>{
-                parent: newNode.parent,
-                actor: DB_DEFAULT_ACTOR_ID,
-                ui_response_text: newUiResponseText ? newUiResponseText.id : null,
-                voice_text: newVoiceText ? newVoiceText.id : null,
-                condition: newCondition ? newCondition.id : null,
-                code: newCode ? newCode.id : null,
-                is_system_created: newNode.is_system_created,
-                code_override:
-                    newNode.code_override === undefined
-                        ? CODE_OVERRIDE_DEFAULT
-                        : newNode.code_override,
-                // Graph Stuff
-                type: newNode.type,
-                position_x: newNode.position_x,
-                position_y: newNode.position_y,
-            },
-            conn,
-        );
-    };
-
+export async function nodesCreate(
+    newNodes: Node[],
+    isLoading?: IsLoadingStore,
+    connection?: DbConnection,
+): Promise<Node[]> {
+    const nodeInfos: NodeInfo[] = [];
     if (connection) {
         if (isLoading) {
-            await isLoading.wrapPromise(createOperation(connection));
+            await isLoading.wrapFunction(async () => {
+                for (let i = 0; i < newNodes.length; i++) {
+                    await createOperation(nodeInfos, connection, newNodes[i]);
+                }
+            });
         } else {
-            await createOperation(connection);
+            for (let i = 0; i < newNodes.length; i++) {
+                await createOperation(nodeInfos, connection, newNodes[i]);
+            }
         }
     } else {
         if (isLoading) {
-            await isLoading.wrapPromise(db.executeTransaction(createOperation));
+            await isLoading.wrapPromise(
+                db.executeTransaction(async (conn: DbConnection) => {
+                    for (let i = 0; i < newNodes.length; i++) {
+                        await createOperation(nodeInfos, conn, newNodes[i]);
+                    }
+                }),
+            );
         } else {
-            await db.executeTransaction(createOperation);
+            await db.executeTransaction(async (conn: DbConnection) => {
+                for (let i = 0; i < newNodes.length; i++) {
+                    await createOperation(nodeInfos, conn, newNodes[i]);
+                }
+            });
         }
     }
 
@@ -111,20 +69,26 @@ export async function nodeCreate(
     if (!connection) {
         const undo: () => Promise<void> = async () => {
             await db.executeTransaction(async (conn: DbConnection) => {
-                await db.deleteRow(TABLE_NODES, newNode, conn);
-                await db.deleteRow(TABLE_ROUTINES, newCode, conn);
-                await db.deleteRow(TABLE_ROUTINES, newCondition, conn);
-                await db.deleteRow(TABLE_LOCALIZATIONS, newVoiceText, conn);
-                await db.deleteRow(TABLE_LOCALIZATIONS, newUiResponseText, conn);
+                for (let i = 0; i < nodeInfos.length; i++) {
+                    const nodeInfo: NodeInfo = nodeInfos[i];
+                    await db.deleteRow(TABLE_NODES, nodeInfo.node, conn);
+                    await db.deleteRow(TABLE_ROUTINES, nodeInfo.code, conn);
+                    await db.deleteRow(TABLE_ROUTINES, nodeInfo.condition, conn);
+                    await db.deleteRow(TABLE_LOCALIZATIONS, nodeInfo.voiceText, conn);
+                    await db.deleteRow(TABLE_LOCALIZATIONS, nodeInfo.uiResponseText, conn);
+                }
             });
         };
         const redo: () => Promise<void> = async () => {
             await db.executeTransaction(async (conn: DbConnection) => {
-                await db.createRow(TABLE_LOCALIZATIONS, newUiResponseText, conn);
-                await db.createRow(TABLE_LOCALIZATIONS, newVoiceText, conn);
-                await db.createRow(TABLE_ROUTINES, newCondition, conn);
-                await db.createRow(TABLE_ROUTINES, newCode, conn);
-                await db.createRow(TABLE_NODES, newNode, conn);
+                for (let i = 0; i < nodeInfos.length; i++) {
+                    const nodeInfo: NodeInfo = nodeInfos[i];
+                    await db.createRow(TABLE_LOCALIZATIONS, nodeInfo.uiResponseText, conn);
+                    await db.createRow(TABLE_LOCALIZATIONS, nodeInfo.voiceText, conn);
+                    await db.createRow(TABLE_ROUTINES, nodeInfo.condition, conn);
+                    await db.createRow(TABLE_ROUTINES, nodeInfo.code, conn);
+                    await db.createRow(TABLE_NODES, nodeInfo.node, conn);
+                }
             });
         };
         if (isLoading) {
@@ -139,5 +103,89 @@ export async function nodeCreate(
             undoManager.register(new Undoable('node creation', undo, redo));
         }
     }
-    return newNode;
+    return nodeInfos.map((nodeInfo) => nodeInfo.node);
+}
+
+async function createOperation(
+    nodeInfo: NodeInfo[],
+    conn: DbConnection,
+    newNode: Node,
+): Promise<void> {
+    let newCode: Routine;
+    let newCondition: Routine;
+    let newVoiceText: Localization;
+    let newUiResponseText: Localization;
+    // Don't bother creating routines/localizations for the root node
+    if (newNode.type !== NODE_TYPE_ROOT.name) {
+        // Create ui_response_text
+        newUiResponseText = await db.createRow(
+            TABLE_LOCALIZATIONS,
+            <Localization>{
+                parent: newNode.parent,
+                is_system_created: true,
+            },
+            conn,
+        );
+        // Create voice_text
+        newVoiceText = await db.createRow(
+            TABLE_LOCALIZATIONS,
+            <Localization>{
+                parent: newNode.parent,
+                is_system_created: true,
+            },
+            conn,
+        );
+        // Create condition
+        newCondition = await db.createRow(
+            TABLE_ROUTINES,
+            <Routine>{
+                code: '',
+                type: ROUTINE_TYPE_USER_CREATED.id,
+                is_system_created: true,
+                parent: newNode.parent,
+                is_condition: true,
+            },
+            conn,
+        );
+        // Create code
+        newCode = await db.createRow(
+            TABLE_ROUTINES,
+            <Routine>{
+                code: '',
+                type: ROUTINE_TYPE_USER_CREATED.id,
+                is_system_created: true,
+                parent: newNode.parent,
+                is_condition: false,
+            },
+            conn,
+        );
+    }
+    // Create Node
+    newNode = await db.createRow(
+        TABLE_NODES,
+        <Node>{
+            parent: newNode.parent,
+            actor: newNode.actor === undefined ? DB_DEFAULT_ACTOR_ID : newNode.actor,
+            ui_response_text: newUiResponseText ? newUiResponseText.id : null,
+            voice_text: newVoiceText ? newVoiceText.id : null,
+            condition: newCondition ? newCondition.id : null,
+            code: newCode ? newCode.id : null,
+            is_system_created: newNode.is_system_created,
+            code_override:
+                newNode.code_override === undefined ? CODE_OVERRIDE_DEFAULT : newNode.code_override,
+            // Graph Stuff
+            type: newNode.type,
+            position_x: newNode.position_x,
+            position_y: newNode.position_y,
+        },
+        conn,
+    );
+
+    nodeInfo.push(<NodeInfo>{
+        node: newNode,
+        code: newCode,
+        condition: newCondition,
+        voiceText: newVoiceText,
+        uiResponseText: newUiResponseText,
+    });
 }

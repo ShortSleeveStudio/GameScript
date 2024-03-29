@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { Select } from 'carbon-components-svelte';
     import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
+    import SelectCustom from '../carbon/SelectCustom.svelte';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import type { Row } from '@common/common-schema';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
@@ -13,17 +13,17 @@
     $: onBackendUpdate($rowView);
     function onBackendUpdate(row: Row): void {
         const actorValue: number = <number>row[columnName];
-        boundValue = actorValue.toString();
+        boundValue = actorValue;
         currentValue = boundValue;
     }
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
-    let boundValue: string;
-    let currentValue: string;
+    let boundValue: number;
+    let currentValue: number;
 
     async function onActorSelected(): Promise<void> {
-        const newValue: number = parseInt(boundValue);
-        const oldValue: number = parseInt(currentValue);
+        const newValue: number = boundValue;
+        const oldValue: number = currentValue;
         if (oldValue === newValue) return;
 
         // Update row
@@ -48,8 +48,13 @@
     }
 </script>
 
-<Select size="sm" disabled={$isLoading} on:change={onActorSelected} bind:selected={boundValue}>
+<SelectCustom
+    size="sm"
+    disabled={$isLoading}
+    on:change={onActorSelected}
+    bind:selected={boundValue}
+>
     {#each $actorsTable as actor (actor.id)}
         <SelectItemCustom rowView={actor} columnNameText={'name'} columnNameValue={'id'} />
     {/each}
-</Select>
+</SelectCustom>

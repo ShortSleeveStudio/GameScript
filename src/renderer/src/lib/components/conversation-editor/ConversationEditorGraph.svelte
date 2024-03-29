@@ -43,7 +43,7 @@
     } from '@lib/constants/local-storage';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
     import NodeDialogue from './NodeDialogue.svelte';
-    import { Button, InlineLoading, OverflowMenuItem } from 'carbon-components-svelte';
+    import { Button, InlineLoading, NumberInput, OverflowMenuItem } from 'carbon-components-svelte';
     import {
         EVENT_DOCK_SELECTION_REQUEST,
         EVENT_SHUTDOWN,
@@ -56,7 +56,7 @@
     import { nodesDelete } from '@lib/crud/node-d';
     import { edgeCreate } from '@lib/crud/edge-c';
     import { nodesUpdate } from '@lib/crud/node-u';
-    import { nodeCreate } from '@lib/crud/node-c';
+    import { nodesCreate } from '@lib/crud/node-c';
     import NodeRoot from './NodeRoot.svelte';
     import WidgetContainer from '../common/WidgetContainer.svelte';
     import GridToolbar from '../common/GridToolbar.svelte';
@@ -89,6 +89,10 @@
     import EdgeHidden from './EdgeHidden.svelte';
     import { TAG_HEIGHT, TAG_WIDTH } from '@lib/constants/graph';
     import { defaultRoutine } from '@lib/stores/settings/settings';
+    import { actorsTable } from '@lib/tables/actors';
+    import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
+    import SelectCustom from '../carbon/SelectCustom.svelte';
+    import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -98,6 +102,7 @@
         updatorLocal: (localObject: LocalObject, remoteObject: IDbRowView<RemoteObject>) => boolean;
     }
 
+    const NEW_NODE_SPACING: number = 350;
     const SHADOW_NODE_SUFFIX: string = '_';
     const MIN_ZOOM: number = 0.1;
     const DEFAULT_VIEWPORT: Viewport = <Viewport>{ x: 0, y: 0, zoom: 1 };
@@ -137,6 +142,8 @@
     edgeTypes[EDGE_TYPE_DEFAULT.name] = EdgeDefault;
     edgeTypes[EDGE_TYPE_HIDDEN.name] = EdgeHidden;
 
+    let actorToAddId: number = DB_DEFAULT_ACTOR_ID;
+    let nodesToAddCount: number = 1;
     let currentLayoutAuto: boolean = false;
     let currentLayoutVertical: boolean = false;
     let unsubscriberFocus: ActionUnsubscriber;
@@ -372,15 +379,20 @@
         const zoomMultiplier: number = 1 / view.zoom;
         const centerX = -view.x * zoomMultiplier + (get(width) * zoomMultiplier) / 2;
         const centerY = -view.y * zoomMultiplier + (get(height) * zoomMultiplier) / 2;
-        const newNode: Node = <Node>{
-            type: type,
-            parent: focusedRowView.id,
-            is_system_created: false,
-            code_override: get(defaultRoutine),
-            position_x: centerX,
-            position_y: centerY,
-        };
-        void nodeCreate(newNode, isLoading);
+
+        const newNodes: Node[] = [];
+        for (let i = 0; i < nodesToAddCount; i++) {
+            newNodes.push(<Node>{
+                type: type,
+                actor: actorToAddId,
+                parent: focusedRowView.id,
+                is_system_created: false,
+                code_override: get(defaultRoutine),
+                position_x: currentLayoutVertical ? centerX : centerX + NEW_NODE_SPACING * i,
+                position_y: currentLayoutVertical ? centerY + NEW_NODE_SPACING * i : centerY,
+            });
+        }
+        void nodesCreate(newNodes, isLoading);
     }
 
     function onSelectExclusive(nodeSet?: Set<FlowNode>, edgeSet?: Set<FlowEdge>): void {
@@ -1195,12 +1207,30 @@
             </svelte:fragment>
 
             <span slot="create">
-                <Button
-                    size="small"
-                    on:click={() => onCreateNode(NODE_TYPE_DIALOGUE.name)}
-                    disabled={$isLoading || !isConversationInitialized}
-                    icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
-                >
+                <span style="display:flex;">
+                    <NumberInput
+                        size="sm"
+                        hideLabel
+                        min={1}
+                        max={10}
+                        bind:value={nodesToAddCount}
+                    />
+                    <SelectCustom size="sm" hideLabel bind:selected={actorToAddId}>
+                        {#each $actorsTable as actor (actor.id)}
+                            <SelectItemCustom
+                                rowView={actor}
+                                columnNameText={'name'}
+                                columnNameValue={'id'}
+                            />
+                        {/each}
+                    </SelectCustom>
+                    <Button
+                        size="small"
+                        on:click={() => onCreateNode(NODE_TYPE_DIALOGUE.name)}
+                        disabled={$isLoading || !isConversationInitialized}
+                        icon={$isLoading ? InlineLoading : undefined}>Add Node</Button
+                    >
+                </span>
             </span>
 
             <!-- <svelte:fragment slot="search">

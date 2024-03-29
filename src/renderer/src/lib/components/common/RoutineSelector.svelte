@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { Routine, Row } from '@common/common-schema';
     import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
-    import { Select } from 'carbon-components-svelte';
     import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
+    import SelectCustom from '../carbon/SelectCustom.svelte';
     import { defaultRoutines } from '@lib/tables/routines-defaults';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import { db } from '@lib/api/db/db';
@@ -10,14 +10,15 @@
     import { get } from 'svelte/store';
     import type { IDbTableView } from '@lib/api/db/db-view-table-interface';
     import RoutineEditor from './RoutineEditor.svelte';
+    import { CODE_OVERRIDE_DEFAULT } from '@common/common-db';
 
     export let rowView: IDbRowView<Row>;
     export let columnNameOverrideRoutine: string;
     export let defaultRoutine: IDbRowView<Routine>;
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
-    let boundValue: string;
-    let currentValue: string;
+    let boundValue: number;
+    let currentValue: number;
     let selectedRoutine: IDbRowView<Routine>;
     $: onRowViewChanged(defaultRoutines, rowView, defaultRoutine, $rowView);
     function onRowViewChanged(
@@ -40,26 +41,28 @@
                     }
                 }
             }
-            boundValue = newSelectedId.toString();
-            currentValue = newSelectedId.toString();
+            boundValue = newSelectedId;
+            currentValue = newSelectedId;
             selectedRoutine = newSelectedRoutine;
         }
     }
 
     async function onRoutineSelected(): Promise<void> {
-        const newValue: number = parseInt(boundValue);
-        const oldValue: number = parseInt(currentValue);
+        const newValue: number = boundValue;
+        const oldValue: number = currentValue;
         if (oldValue === newValue) return;
 
-        // Make sure default routine will store a null value
-        const nullableNewValue: number | null = newValue === defaultRoutine.id ? null : newValue;
-        const nullableOldValue: number | null = oldValue === defaultRoutine.id ? null : oldValue;
+        // Make sure default routine will store a -1 value for code_override
+        const overrideNewValue: number =
+            newValue === defaultRoutine.id ? CODE_OVERRIDE_DEFAULT : newValue;
+        const overrideOldValue: number =
+            oldValue === defaultRoutine.id ? CODE_OVERRIDE_DEFAULT : oldValue;
 
         // Update row
         const newRow = <Row>{ id: rowView.id };
         const oldRow = <Row>{ id: rowView.id };
-        newRow[columnNameOverrideRoutine] = nullableNewValue;
-        oldRow[columnNameOverrideRoutine] = nullableOldValue;
+        newRow[columnNameOverrideRoutine] = overrideNewValue;
+        oldRow[columnNameOverrideRoutine] = overrideOldValue;
         await isLoading.wrapPromise(db.updateRow(rowView.tableType, newRow));
 
         // Register undo/redo
@@ -78,7 +81,7 @@
 </script>
 
 {#if defaultRoutine && defaultRoutines && $defaultRoutines.length > 0}
-    <Select
+    <SelectCustom
         size="sm"
         disabled={$isLoading}
         on:change={onRoutineSelected}
@@ -88,7 +91,7 @@
         {#each $defaultRoutines as routine (routine.id)}
             <SelectItemCustom rowView={routine} columnNameText={'name'} columnNameValue={'id'} />
         {/each}
-    </Select>
+    </SelectCustom>
 {/if}
 <RoutineEditor
     rowView={selectedRoutine}

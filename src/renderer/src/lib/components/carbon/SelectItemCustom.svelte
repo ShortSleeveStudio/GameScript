@@ -37,8 +37,9 @@
     let selectedValueUnsubscriber: Unsubscriber;
 
     onMount(() => {
+        // ctx.setDefaultValue(0, 0);
         selectedValueUnsubscriber = ctx.selectedValue.subscribe((currentValue) => {
-            const value: string = get(rowView)[columnNameValue].toString();
+            const value: string = get(rowView)[columnNameValue];
             selected = currentValue === value;
         });
     });
@@ -48,7 +49,7 @@
 </script>
 
 <option
-    value={$rowView[columnNameValue].toString()}
+    value={$rowView[columnNameValue]}
     {disabled}
     {hidden}
     {selected}
