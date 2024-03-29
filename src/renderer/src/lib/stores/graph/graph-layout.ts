@@ -8,7 +8,7 @@ import type { Writable } from 'svelte/store';
 /**Default graph auto-layout toggle state (enabled or disabled). */
 export const graphLayoutAutoLayoutDefault: Writable<boolean> = persisted(
     LS_KEY_CONVERSATION_EDITOR_LAYOUT_AUTO_DEFAULT,
-    false,
+    true,
 );
 
 /**Default graph orientation (vertical or horizontal). */

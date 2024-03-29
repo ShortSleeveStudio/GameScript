@@ -48,6 +48,8 @@
         EVENT_DOCK_SELECTION_REQUEST,
         EVENT_SHUTDOWN,
         type DockSelectionRequest,
+        EVENT_DOCK_SELECTION_CHANGED,
+        type DockSelectionChanged,
     } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
@@ -93,6 +95,7 @@
     import SelectItemCustom from '../carbon/SelectItemCustom.svelte';
     import SelectCustom from '../carbon/SelectCustom.svelte';
     import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
+    import { findDockable, type DockableInfo } from '../app/Dockable.svelte';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -1165,13 +1168,30 @@
         }
     };
 
+    const onDockFocusChanged: (e: CustomEvent<DockSelectionChanged>) => void = (
+        e: CustomEvent<DockSelectionChanged>,
+    ) => {
+        if (e.detail.layoutId !== LAYOUT_ID_CONVERSATION_EDITOR) {
+            const dockable: DockableInfo = findDockable(LAYOUT_ID_CONVERSATION_EDITOR);
+            if (
+                dockable.currentContainer &&
+                !dockable.currentContainer.visible &&
+                (nodesSelected.length > 0 || edgesSelected.length > 0)
+            ) {
+                onSelectExclusive();
+            }
+        }
+    };
+
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
+        addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
     });
     onDestroy(() => {
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
+        removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
         clearGraph();
     });
 </script>
