@@ -3,6 +3,7 @@
         Button,
         DataTable,
         InlineLoading,
+        Modal,
         Toolbar,
         ToolbarBatchActions,
         ToolbarContent,
@@ -38,6 +39,7 @@
         { key: 'isPrimary', value: 'Primary' },
         { key: 'focus', empty: true, minWidth: FOCUS_BUTTON_WIDTH, width: FOCUS_BUTTON_WIDTH },
     ];
+    let isModalOpen: boolean = false;
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
@@ -53,6 +55,7 @@
     }
 
     async function deleteRows(): Promise<void> {
+        isModalOpen = false;
         let rowsToDelete: Locale[] = locales.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
         await localesDelete(db, rowsToDelete, isLoading);
@@ -114,7 +117,9 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={() => (isModalOpen = true)}
+                    >Delete</Button
+                >
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button
@@ -126,3 +131,16 @@
         </Toolbar>
     </DataTable>
 </p>
+
+<Modal
+    size="sm"
+    danger
+    bind:open={isModalOpen}
+    modalHeading="Are you sure?"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (isModalOpen = false)}
+    on:submit={deleteRows}
+>
+    <p>Deleting a locale destroys all translations for that locale.</p>
+</Modal>

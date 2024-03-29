@@ -3,6 +3,7 @@
         Button,
         DataTable,
         InlineLoading,
+        Modal,
         Toolbar,
         ToolbarBatchActions,
         ToolbarContent,
@@ -35,6 +36,7 @@
     const focusPayload: FocusPayloadActor = {
         uniqueNameTracker: uniqueNameTracker,
     };
+    let isModalOpen: boolean = false;
     let selectedRowIds: number[] = [];
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
@@ -52,6 +54,7 @@
     }
 
     async function deleteRows(): Promise<void> {
+        isModalOpen = false;
         let actorsToDelete: Actor[] = actorsTable.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
         await actorsDelete(db, actorsToDelete, isLoading);
@@ -93,7 +96,9 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={() => (isModalOpen = true)}
+                    >Delete</Button
+                >
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button
@@ -105,3 +110,16 @@
         </Toolbar>
     </DataTable>
 </p>
+
+<Modal
+    size="sm"
+    danger
+    bind:open={isModalOpen}
+    modalHeading="Are you sure?"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (isModalOpen = false)}
+    on:submit={deleteRows}
+>
+    <p>If you delete an actor, all nodes that use it will return to using the default actor.</p>
+</Modal>

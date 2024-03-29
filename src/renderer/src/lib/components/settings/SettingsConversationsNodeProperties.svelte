@@ -3,6 +3,7 @@
         Button,
         DataTable,
         InlineLoading,
+        Modal,
         Toolbar,
         ToolbarBatchActions,
         ToolbarContent,
@@ -37,6 +38,7 @@
         { key: 'type', value: 'Type', minWidth: '220px', width: '220px' },
     ];
     let selectedRowIds: number[] = [];
+    let isModalOpen: boolean = false;
     let isLoading: IsLoadingStore = new IsLoadingStore();
 
     async function addRow(): Promise<void> {
@@ -66,6 +68,8 @@
     }
 
     async function deleteRows(): Promise<void> {
+        isModalOpen = false;
+
         // Grab rows to delete
         let rowsToDelete: PropertyTemplate[] = nodePropertyTemplates.getRowsById(selectedRowIds);
         selectedRowIds.length = 0;
@@ -153,7 +157,9 @@
 
         <Toolbar size="sm">
             <ToolbarBatchActions>
-                <Button icon={TrashCan} disabled={$isLoading} on:click={deleteRows}>Delete</Button>
+                <Button icon={TrashCan} disabled={$isLoading} on:click={() => (isModalOpen = true)}
+                    >Delete</Button
+                >
             </ToolbarBatchActions>
             <ToolbarContent>
                 <Button
@@ -165,3 +171,19 @@
         </Toolbar>
     </DataTable>
 </p>
+
+<Modal
+    size="sm"
+    danger
+    bind:open={isModalOpen}
+    modalHeading="Are you sure?"
+    primaryButtonText="Delete"
+    secondaryButtonText="Cancel"
+    on:click:button--secondary={() => (isModalOpen = false)}
+    on:submit={deleteRows}
+>
+    <p>
+        Deleting a custom property is a destructive operation that will wipe out all properties of
+        that type that you've added to your nodes.
+    </p>
+</Modal>

@@ -1,6 +1,6 @@
 import type { DbConnection } from '@common/common-db-types';
-import type { Actor, Localization } from '@common/common-schema';
-import { TABLE_ACTORS, TABLE_LOCALIZATIONS } from '@common/common-types';
+import type { Actor, Localization, Node } from '@common/common-schema';
+import { TABLE_ACTORS, TABLE_LOCALIZATIONS, TABLE_NODES } from '@common/common-types';
 import { createFilter } from '@lib/api/db/db-filter';
 import type { Db } from '@lib/api/db/db-interface';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
@@ -161,6 +161,11 @@ async function deleteOperation(
 ): Promise<void> {
     for (let i = 0; i < toDelete.length; i++) {
         const actorInfo: ActorInfo = toDelete[i];
+        await db.bulkUpdate(
+            TABLE_NODES,
+            <Node>{ actor: 0 },
+            createFilter().where().column('actor').eq(actorInfo.actor.id).endWhere().build(),
+        );
         await db.deleteRow(TABLE_ACTORS, actorInfo.actor, connection);
         await db.deleteRow(TABLE_LOCALIZATIONS, actorInfo.localizedName, connection);
     }
