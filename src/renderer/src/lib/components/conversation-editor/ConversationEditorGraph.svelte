@@ -50,6 +50,8 @@
         type DockSelectionRequest,
         EVENT_DOCK_SELECTION_CHANGED,
         type DockSelectionChanged,
+        EVENT_COPY,
+        EVENT_PASTE,
     } from '@lib/constants/events';
     import { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
     import type { EdgeData, NodeData } from '@lib/graph/graph-data';
@@ -96,6 +98,7 @@
     import SelectCustom from '../carbon/SelectCustom.svelte';
     import { DB_DEFAULT_ACTOR_ID } from '@common/common-db-initialization';
     import { findDockable, type DockableInfo } from '../app/Dockable.svelte';
+    import { createCopyData, pasteCopyData } from '@lib/graph/graph-copy-paste';
 
     type LocalObject = FlowNode | FlowEdge;
     type RemoteObject = Node | Edge;
@@ -391,8 +394,8 @@
                 parent: focusedRowView.id,
                 is_system_created: false,
                 code_override: get(defaultRoutine),
-                position_x: currentLayoutVertical ? centerX : centerX + NEW_NODE_SPACING * i,
-                position_y: currentLayoutVertical ? centerY + NEW_NODE_SPACING * i : centerY,
+                position_x: currentLayoutVertical ? centerX + NEW_NODE_SPACING * i : centerX,
+                position_y: currentLayoutVertical ? centerY : centerY + NEW_NODE_SPACING * i,
             });
         }
         void nodesCreate(newNodes, isLoading);
@@ -1158,6 +1161,11 @@
         onDelete: onDelete,
     });
 
+    function isEditorVisible(): boolean {
+        const dockable: DockableInfo = findDockable(LAYOUT_ID_CONVERSATION_EDITOR);
+        return dockable && dockable.currentContainer && dockable.currentContainer.visible;
+    }
+
     const onShutdown: () => void = () => {
         // Clear saved viewports on shutdown
         for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -1172,26 +1180,37 @@
         e: CustomEvent<DockSelectionChanged>,
     ) => {
         if (e.detail.layoutId !== LAYOUT_ID_CONVERSATION_EDITOR) {
-            const dockable: DockableInfo = findDockable(LAYOUT_ID_CONVERSATION_EDITOR);
-            if (
-                dockable.currentContainer &&
-                !dockable.currentContainer.visible &&
-                (nodesSelected.length > 0 || edgesSelected.length > 0)
-            ) {
+            if (!isEditorVisible() && (nodesSelected.length > 0 || edgesSelected.length > 0)) {
                 onSelectExclusive();
             }
         }
+    };
+
+    const onCopy: (e: ClipboardEvent) => Promise<void> = async () => {
+        if (document.activeElement !== document.body) return;
+        if (nodesSelected.length === 0 && edgesSelected.length === 0) return;
+        void createCopyData(isLoading, nodesSelected, edgesSelected);
+    };
+
+    const onPaste: (e: ClipboardEvent) => void = () => {
+        if (document.activeElement !== document.body) return;
+        if (!isConversationInitialized) return;
+        void pasteCopyData(isLoading, focusedConversationId);
     };
 
     onMount(() => {
         unsubscriberFocus = focusManager.subscribe(onFocusChanged);
         addEventListener(EVENT_SHUTDOWN, onShutdown);
         addEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        addEventListener(EVENT_COPY, onCopy);
+        addEventListener(EVENT_PASTE, onPaste);
     });
     onDestroy(() => {
         if (unsubscriberFocus) unsubscriberFocus();
         removeEventListener(EVENT_SHUTDOWN, onShutdown);
         removeEventListener(EVENT_DOCK_SELECTION_CHANGED, onDockFocusChanged);
+        removeEventListener(EVENT_COPY, onCopy);
+        removeEventListener(EVENT_PASTE, onPaste);
         clearGraph();
     });
 </script>

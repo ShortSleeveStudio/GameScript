@@ -5,6 +5,8 @@ import type { LayoutId } from './default-layout';
  */
 // Global
 export const EVENT_SHUTDOWN: string = 'shutdown';
+export const EVENT_COPY: string = 'copy';
+export const EVENT_PASTE: string = 'paste';
 
 // Dock
 export const EVENT_DOCK_RESET_LAYOUT: string = 'dock-reset-layout';

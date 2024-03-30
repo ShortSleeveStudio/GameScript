@@ -1,9 +1,16 @@
 import type { DbConnection } from '@common/common-db-types';
-import { type Edge, type Localization, type Node, type Routine } from '@common/common-schema';
+import {
+    type Edge,
+    type Localization,
+    type Node,
+    type NodeProperty,
+    type Routine,
+} from '@common/common-schema';
 import {
     TABLE_EDGES,
     TABLE_LOCALIZATIONS,
     TABLE_NODES,
+    TABLE_NODE_PROPERTIES,
     TABLE_ROUTINES,
 } from '@common/common-types';
 import { db } from '@lib/api/db/db';
@@ -43,13 +50,16 @@ export async function nodesDelete(
         edgeIdMap.set(edge.id, edge);
     }
     let edgesToDelete: Edge[];
+    let propertiesToDelete: NodeProperty[];
     let routinesToDelete: Routine[];
     let localizationsToDelete: Localization[];
 
     const deleteOperation: (conn: DbConnection) => Promise<void> = async (conn: DbConnection) => {
         // Delete Edges
         gatherNodeData(nodes, nodesToDelete, nodeIds, routineIds, localizationIds);
+
         if (nodeIds.length > 0) {
+            // Grab edges to delete
             edgesToDelete = await db.fetchRowsRaw<Edge>(
                 TABLE_EDGES,
                 createFilter()
@@ -67,8 +77,20 @@ export async function nodesDelete(
                 const edge: Edge = edgesToDelete[i];
                 edgeIdMap.set(edge.id, edge);
             }
+
+            // Grab properties to delete
+            propertiesToDelete = await db.fetchRowsRaw<NodeProperty>(
+                TABLE_NODE_PROPERTIES,
+                createFilter().where().column('parent').in(nodeIds).endWhere().build(),
+                conn,
+            );
         }
         edgesToDelete = Array.from(edgeIdMap.values()); // Combine fetched and passed-in edges
+
+        // Delete Properties
+        await db.deleteRows(TABLE_NODE_PROPERTIES, propertiesToDelete, conn);
+
+        // Delete Edges
         await db.deleteRows(TABLE_EDGES, edgesToDelete, conn);
 
         // Delete Nodes
@@ -100,10 +122,12 @@ export async function nodesDelete(
             await db.createRows(TABLE_ROUTINES, routinesToDelete, conn);
             await db.createRows(TABLE_NODES, nodesToDelete, conn);
             await db.createRows(TABLE_EDGES, edgesToDelete, conn);
+            await db.createRows(TABLE_NODE_PROPERTIES, propertiesToDelete, conn);
         });
     };
     const redo: () => Promise<void> = async () => {
         await db.executeTransaction(async (conn: DbConnection) => {
+            await db.deleteRows(TABLE_NODE_PROPERTIES, propertiesToDelete, conn);
             await db.deleteRows(TABLE_EDGES, edgesToDelete, conn);
             await db.deleteRows(TABLE_NODES, nodesToDelete, conn);
             await db.deleteRows(TABLE_ROUTINES, routinesToDelete, conn);
