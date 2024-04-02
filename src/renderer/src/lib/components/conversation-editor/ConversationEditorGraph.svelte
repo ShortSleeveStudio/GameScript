@@ -1185,13 +1185,13 @@
     const onCopy: (e: ClipboardEvent) => Promise<void> = async () => {
         if (document.activeElement !== document.body) return;
         if (nodesSelected.length === 0 && edgesSelected.length === 0) return;
-        void createCopyData(isLoading, nodesSelected, edgesSelected);
+        void createCopyData(isLoading, nodesSelected, edgesSelected, $viewport);
     };
 
     const onPaste: (e: ClipboardEvent) => void = () => {
         if (document.activeElement !== document.body) return;
         if (!isConversationInitialized) return;
-        void pasteCopyData(isLoading, focusedConversationId);
+        void pasteCopyData(isLoading, focusedConversationId, $viewport);
     };
 
     onMount(() => {

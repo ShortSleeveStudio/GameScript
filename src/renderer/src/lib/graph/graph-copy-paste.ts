@@ -8,13 +8,14 @@ import { nodesCreateWithInfo, type NodeInfo } from '@lib/crud/node-c';
 import { nodesDelete } from '@lib/crud/node-d';
 import type { IsLoadingStore } from '@lib/stores/utility/is-loading-store';
 import { Undoable, undoManager } from '@lib/utility/undo-manager';
-import { type Edge as FlowEdge, type Node as FlowNode } from '@xyflow/svelte';
+import { type Edge as FlowEdge, type Node as FlowNode, type Viewport } from '@xyflow/svelte';
 import { get } from 'svelte/store';
 import type { EdgeData, NodeData } from './graph-data';
 
 export interface CopyData {
     nodes: NodeInfo[];
     edges: CopyEdge[];
+    viewport: Viewport;
 }
 
 export interface CopyEdge {
@@ -29,6 +30,7 @@ export async function createCopyData(
     isLoading: IsLoadingStore,
     nodesSelected: FlowNode[],
     edgesSelected: FlowEdge[],
+    viewport: Viewport,
 ): Promise<void> {
     if (isCopying) return null;
     isCopying = true;
@@ -156,6 +158,7 @@ export async function createCopyData(
                 copyData = <CopyData>{
                     nodes: [...copyNodeMap.values()],
                     edges: copyEdges,
+                    viewport: viewport,
                 };
             }),
         );
@@ -167,11 +170,18 @@ export async function createCopyData(
 export async function pasteCopyData(
     isLoading: IsLoadingStore,
     parentConversationId: number,
+    viewport: Viewport,
 ): Promise<void> {
     if (!copyData) return;
     const clonedCopyData: CopyData = structuredClone(copyData);
 
-    // Set parents
+    // Set parents and update position
+    const xDiff =
+        viewport.x / viewport.zoom - clonedCopyData.viewport.x / clonedCopyData.viewport.zoom;
+    const yDiff =
+        viewport.y / viewport.zoom - clonedCopyData.viewport.y / clonedCopyData.viewport.zoom;
+    const scaleDiff = clonedCopyData.viewport.zoom / viewport.zoom;
+
     for (let i = 0; i < clonedCopyData.nodes.length; i++) {
         const nodeInfo: NodeInfo = clonedCopyData.nodes[i];
         nodeInfo.node.parent = parentConversationId;
@@ -182,6 +192,9 @@ export async function pasteCopyData(
         for (let j = 0; j < nodeInfo.properties.length; j++) {
             nodeInfo.properties[j].parent = parentConversationId;
         }
+
+        nodeInfo.node.position_x = nodeInfo.node.position_x * scaleDiff - xDiff;
+        nodeInfo.node.position_y = nodeInfo.node.position_y * scaleDiff - yDiff;
     }
     for (let i = 0; i < clonedCopyData.edges.length; i++) {
         const edge: CopyEdge = clonedCopyData.edges[i];
