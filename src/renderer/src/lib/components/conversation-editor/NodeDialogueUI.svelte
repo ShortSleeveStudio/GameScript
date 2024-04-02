@@ -9,18 +9,24 @@
 
     export let localization: IDbRowView<Localization>;
     export let disabled: boolean = false;
+
+    let localeColumn: string;
     $: primaryLocale = getLocalePrincipal($localePrincipalTableView);
-    $: localeColumn = localeIdToColumn($primaryLocale.principal);
+    $: {
+        if (primaryLocale) localeColumn = localeIdToColumn($primaryLocale.principal);
+    }
 </script>
 
-<RowColumnTextArea
-    class="nodrag nopan node-text-ui"
-    stopDefault={true}
-    disableBorder={true}
-    {disabled}
-    resizable={false}
-    rowView={localization}
-    columnName={localeColumn}
-    undoText={NODE_UNDO_UI_TEXT}
-    placeholder={NODE_PLACEHOLDER_UI_TEXT}
-/>
+{#if primaryLocale}
+    <RowColumnTextArea
+        class="nodrag nopan node-text-ui"
+        stopDefault={true}
+        disableBorder={true}
+        {disabled}
+        resizable={false}
+        rowView={localization}
+        columnName={localeColumn}
+        undoText={NODE_UNDO_UI_TEXT}
+        placeholder={NODE_PLACEHOLDER_UI_TEXT}
+    />
+{/if}

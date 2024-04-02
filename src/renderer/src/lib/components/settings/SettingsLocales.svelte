@@ -61,9 +61,6 @@
         await localesDelete(db, rowsToDelete, isLoading);
     }
 
-    // TODO
-    // https://svelte-5-preview.vercel.app/status
-    // These single row tables could be stateful variables of a class
     let localePrincipalRowView: IDbRowView<LocalePrincipal>;
     localePrincipalTableView.subscribe((rowViews: IDbRowView<LocalePrincipal>[]) => {
         if (rowViews.length === 1 && localePrincipalRowView !== rowViews[0]) {
@@ -95,7 +92,6 @@
 
         <svelte:fragment slot="cell" let:row let:cell>
             {#if cell.key === 'name'}
-                <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowNameInput
                     rowView={row}
                     undoText={LOCALE_UNDO_NAME}
@@ -104,7 +100,6 @@
                     isInspectorField={false}
                 />
             {:else if cell.key === 'isPrimary'}
-                <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowColumnRadio
                     rowView={row}
                     undoText={LOCALE_UNDO_PRIMARY}

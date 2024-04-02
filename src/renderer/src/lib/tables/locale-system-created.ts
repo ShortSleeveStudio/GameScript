@@ -13,9 +13,6 @@ const systemCreatedLocaleTableView: IDbTableView<Locale> = db.fetchTable(
 
 export let systemCreatedLocaleRowView: IDbRowView<Locale>;
 
-// TODO
-// https://svelte-5-preview.vercel.app/status
-// These single row tables could be stateful variables of a class
 systemCreatedLocaleTableView.subscribe((rowViews: IDbRowView<Locale>[]) => {
     if (rowViews.length === 1 && systemCreatedLocaleRowView !== rowViews[0]) {
         systemCreatedLocaleRowView = rowViews[0];

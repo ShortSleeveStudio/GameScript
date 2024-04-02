@@ -319,6 +319,7 @@ export abstract class DbBase implements Db {
         dbConnectionConfig: DbConnectionConfig,
         transaction: DbTransaction,
     ): Promise<void> {
+        this.assertConnected();
         let wasError: boolean = false;
         let conn: DbConnection;
         try {
@@ -394,7 +395,7 @@ export abstract class DbBase implements Db {
         connection?: DbConnection,
     ): Promise<void> {
         this.assertConnected();
-        if (rows.length === 0) return;
+        if (!rows || rows.length === 0) return;
         const query: string = `DELETE FROM ${tableType.name} WHERE id IN (${rows
             .map((row) => row.id)
             .join(', ')});`;

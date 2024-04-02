@@ -670,12 +670,11 @@
             local.position.y === remote.position_y
         )
             return false;
-        console.log(`Update local node`);
         const isNotRoot: boolean = remote.type !== NODE_TYPE_ROOT.name;
         local.type = remote.type;
         local.deletable = isNotRoot;
         local.selectable = isNotRoot;
-        if (isNodeDragging()) return true; // TODO - test using just this node's dragging flag
+        if (isNodeDragging()) return true;
         local.position.x = remote.position_x;
         local.position.y = remote.position_y;
         return true;
@@ -716,7 +715,6 @@
             local.target === remote.target.toString()
         )
             return false;
-        console.log(`Update local edge`);
         local.type = remote.type;
         local.source = remote.source.toString();
         local.target = remote.target.toString();
@@ -772,13 +770,11 @@
             } else if (localId < remoteId) {
                 // Delete Local
                 // Simply don't add to list
-                console.log(`Delete local ${isForNodes ? 'node' : 'edge'} - ${localId}`);
                 l++;
                 wasCreationOrDeletion = true;
             } else {
                 // remoteNode.id < localId
                 // Create Local
-                console.log(`Create local ${isForNodes ? 'node' : 'edge'}`);
                 newObjects.push(graphFunctions.creatorLocal(remoteObject));
                 r++;
                 wasCreationOrDeletion = true;
@@ -1252,9 +1248,15 @@
                         hideLabel
                         min={1}
                         max={10}
+                        disabled={$isLoading || !isConversationInitialized}
                         bind:value={nodesToAddCount}
                     />
-                    <SelectCustom size="sm" hideLabel bind:selected={actorToAddId}>
+                    <SelectCustom
+                        size="sm"
+                        disabled={$isLoading || !isConversationInitialized}
+                        hideLabel
+                        bind:selected={actorToAddId}
+                    >
                         {#each $actorsTable as actor (actor.id)}
                             <SelectItemCustom
                                 rowView={actor}
@@ -1271,10 +1273,6 @@
                     >
                 </span>
             </span>
-
-            <!-- <svelte:fragment slot="search">
-                <ToolbarSearch disabled={$isLoading || !isConversationInitialized} />
-            </svelte:fragment> -->
         </GridToolbar>
     </svelte:fragment>
     <svelte:fragment slot="widget">

@@ -42,7 +42,6 @@ export class GridCellRenderer implements ICellRendererComp {
     }
 
     private onDataChanged: (row: Conversation) => void = (row: Conversation) => {
-        // TODO do we want to support other column types?
         const newString: string = <string>row[this._columnName] ?? '';
         const newText: Text = document.createTextNode(newString);
         this._element.replaceChild(newText, this._text);

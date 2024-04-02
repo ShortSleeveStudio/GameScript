@@ -7,5 +7,4 @@
     export let columnName: string = 'id';
 </script>
 
-<!-- TODO -->
 <TextInput size="sm" value={$rowView[columnName]} disabled={true} />

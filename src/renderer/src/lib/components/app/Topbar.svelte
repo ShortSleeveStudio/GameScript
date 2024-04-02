@@ -7,7 +7,6 @@
         SideNavItems,
         SideNavMenu,
         SideNavMenuItem,
-        SideNavLink,
         SideNavDivider,
     } from 'carbon-components-svelte';
     import Close from 'carbon-icons-svelte/lib/Close.svelte';
@@ -57,20 +56,6 @@
 
 <SideNav bind:isOpen={isSideNavOpen}>
     <SideNavItems>
-        <SideNavLink
-            text="Throw Error"
-            on:click={() => {
-                throw new Error('Error was thrown!');
-            }}
-        />
-        <SideNavLink
-            text="Show Notification"
-            on:click={() => {
-                notificationManager.showNotification(
-                    new NotificationItem('info', 'Title', 'subtitle'),
-                );
-            }}
-        />
         <SideNavMenu text="Layout">
             <SideNavMenuItem
                 text="Load Default Layout"

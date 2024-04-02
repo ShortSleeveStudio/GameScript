@@ -107,7 +107,6 @@
 
         <svelte:fragment slot="cell" let:row let:cell>
             {#if cell.key === 'label'}
-                <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowNameInput
                     rowView={row}
                     undoText={AUTO_COMPLETE_UNDO_LABEL}

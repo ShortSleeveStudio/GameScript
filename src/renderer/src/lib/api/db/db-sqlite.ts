@@ -141,7 +141,7 @@ export class SqliteDb extends DbBase {
         connection?: DbConnection,
     ): Promise<RowType[]> {
         this.assertConnected();
-        if (rows.length === 0) return [];
+        if (!rows || rows.length === 0) return [];
         for (let i = 0; i < rows.length; i++) {
             // Grab row
             const row: RowType = rows[i];

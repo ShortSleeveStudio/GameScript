@@ -193,7 +193,6 @@ export class DbClientPostgres implements DbClient {
 
         // Check if we're out of date
         if (notification.id > this._lastNotificationId) {
-            console.log('OUT OF SYNC');
             // We're out of date
             const notifications: DbNotification[] | undefined =
                 await this.fetchAllMissedNotifications(client);

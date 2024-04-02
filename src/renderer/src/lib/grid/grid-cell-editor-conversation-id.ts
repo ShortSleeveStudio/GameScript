@@ -45,7 +45,6 @@ export class GridCellEditorConversationId extends GridCellEditorInteger {
     }
 
     private throwError: (e: Error) => void = (e: Error) => {
-        console.log(e);
         if (e && 'message' in e && e.message.includes('constraint')) {
             throw new Error('Failed to update the conversation ID. Are you sure the ID is valid?');
         }

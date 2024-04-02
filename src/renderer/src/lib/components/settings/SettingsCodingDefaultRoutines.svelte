@@ -134,7 +134,6 @@
 
         <svelte:fragment slot="cell" let:row let:cell>
             {#if cell.key === 'name'}
-                <!-- TODO: https://svelte-5-preview.vercel.app/status -->
                 <RowNameInput
                     rowView={row}
                     undoText={ROUTINES_UNDO_NAME}

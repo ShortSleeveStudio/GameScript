@@ -63,7 +63,6 @@ export class DbRowView<RowType extends Row> implements IDbRowView<RowType> {
     ownerRemove(ownerId: number): void {
         this._owners.delete(ownerId);
         if (this._owners.size === 0) {
-            // console.log('CLEANING UP ROW: ' + this.id);
             this._destructor();
             this._isDisposed = true;
             this._internalWritable.update((value) => value);

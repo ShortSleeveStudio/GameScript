@@ -33,9 +33,6 @@
         if (editor) setEditorDisabled($isLoading || internallyDisabled || disabled);
     }
 
-    // TODO
-    // https://svelte-5-preview.vercel.app/status
-    // These single row tables could be stateful variables of a class
     let languagePrincipalRowUnsubscriber: Unsubscriber | undefined;
     let languagePrincipalTableUnsubscriber: Unsubscriber | undefined =
         programmingLanguagePrincipalTable.subscribe(

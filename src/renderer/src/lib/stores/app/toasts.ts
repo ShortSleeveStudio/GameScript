@@ -1,5 +1,4 @@
 import { writable, type Readable, type Writable } from 'svelte/store';
-// TODO: https://svelte-5-preview.vercel.app/status
 /**
  * Valid types of toasts
  */

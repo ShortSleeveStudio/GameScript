@@ -15,7 +15,6 @@
     let progressBarAnimating: boolean = false;
     async function beginAutoCompleteScan(): Promise<void> {
         // TODO: implement me
-        console.log('implement me');
         if ($codeScanInProgress) return;
         codeScanProgress = 0;
         $codeScanInProgress = true;
