@@ -88,7 +88,7 @@ const ROOT: RootItemConfig = {
         {
             size: '23%',
             type: 'stack',
-            content: [CONVERSATION_FINDER_LAYOUT],
+            content: [CONVERSATION_FINDER_LAYOUT, SEARCH_LAYOUT],
         },
         {
             size: '50%',
@@ -97,19 +97,8 @@ const ROOT: RootItemConfig = {
         },
         {
             size: '27%',
-            type: 'column',
-            content: [
-                {
-                    size: '65%',
-                    type: 'stack',
-                    content: [INSPECTOR_LAYOUT, BUILD_LAYOUT],
-                },
-                {
-                    size: '35%',
-                    type: 'stack',
-                    content: [SEARCH_LAYOUT],
-                },
-            ],
+            type: 'stack',
+            content: [INSPECTOR_LAYOUT, BUILD_LAYOUT],
         },
     ],
 };

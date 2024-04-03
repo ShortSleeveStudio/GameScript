@@ -55,7 +55,7 @@
         type GridFilterByIdRequest,
     } from '@lib/constants/events';
     import GridToolbar from '../common/GridToolbar.svelte';
-    import { Button, InlineLoading } from 'carbon-components-svelte';
+    import { Button, InlineLoading, OverflowMenuItem } from 'carbon-components-svelte';
     import { TrashCan } from 'carbon-icons-svelte';
     import { db } from '@lib/api/db/db';
     import { Undoable, undoManager } from '@lib/utility/undo-manager';
@@ -249,6 +249,16 @@
         api?.autoSizeAllColumns();
     }
 
+    function clearSort(): void {
+        api?.applyColumnState({
+            defaultState: { sort: null },
+        });
+    }
+
+    function clearFilters(): void {
+        api?.setFilterModel(null);
+    }
+
     const onShutdown: () => void = () => {
         if (!api) return;
         const savedState: ColumnState[] = api.getColumnState();
@@ -402,6 +412,10 @@
 >
     <svelte:fragment slot="toolbar">
         <GridToolbar elementsSelected={selectedRows.length} on:cancel={onCancel}>
+            <svelte:fragment slot="overflow">
+                <OverflowMenuItem text="Clear Sort" on:click={() => clearSort()} />
+                <OverflowMenuItem text="Clear Filters" on:click={() => clearFilters()} />
+            </svelte:fragment>
             <span slot="create">
                 <Button
                     size="small"

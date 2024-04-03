@@ -118,13 +118,20 @@ export const PROGRAMMING_LANGUAGE_TYPES: ProgrammingLanguage[] = [
 ] as const;
 export type ProgrammingLanguageId = (typeof PROGRAMMING_LANGUAGE_TYPES)[number]['id'];
 export type ProgrammingLanguageName = (typeof PROGRAMMING_LANGUAGE_TYPES)[number]['name'];
-export const PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS: DropdownItem[] = PROGRAMMING_LANGUAGE_TYPES.map(
-    (languageType: ProgrammingLanguage) =>
-        <DropdownItem>{
-            id: languageType.id,
-            text: languageType.name,
-        },
-);
+export const PROGRAMMING_LANGUAGE_DROPDOWN_ITEMS: DropdownItem[] = [
+    <DropdownItem>{
+        id: PROGRAMMING_LANGUAGE_CS.id,
+        text: PROGRAMMING_LANGUAGE_CS.name,
+    },
+];
+// TODO
+// PROGRAMMING_LANGUAGE_TYPES.map(
+//     (languageType: ProgrammingLanguage) =>
+//         <DropdownItem>{
+//             id: languageType.id,
+//             text: languageType.name,
+//         },
+// );
 
 /**Node Types */
 export interface NodeType {

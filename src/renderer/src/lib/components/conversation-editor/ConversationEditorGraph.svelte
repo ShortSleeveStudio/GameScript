@@ -884,7 +884,6 @@
         if (conversation.is_layout_auto !== currentLayoutAuto) {
             if (conversation.is_layout_auto) {
                 // Perform layout
-                // await onLayout();
                 isLayoutRequired = true;
             } else {
                 // Destroy all the generated edges

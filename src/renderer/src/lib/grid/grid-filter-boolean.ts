@@ -65,7 +65,7 @@ export class BooleanFilter implements IFilterComp {
     }
 
     setModel(model: BooleanFilterModel): void | AgPromise<void> {
-        if (model.filter === null) {
+        if (model == null || model.filter === null) {
             this._unsetElement.checked = true;
             this._unsetElement.dispatchEvent(new Event('change'));
         } else if (model.filter === true) {

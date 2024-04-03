@@ -3,6 +3,8 @@ import { DATABASE_TABLES, type Table } from '@common/common-types';
 import type { IDbRowView } from '@lib/api/db/db-view-row-interface';
 import { Action, type ActionHandler, type ActionUnsubscriber } from '@lib/utility/action';
 import type { UniqueNameTracker } from '@lib/utility/unique-name-tracker';
+import type { Writable } from 'svelte/store';
+import { dbConnected } from '../settings/settings';
 
 export const FOCUS_MODE_MODIFY = 0;
 export const FOCUS_MODE_REPLACE = 1;
@@ -38,10 +40,13 @@ export interface Focus {
 export class FocusManager {
     private _focus: Map<number, Focus>[];
     private _action: Action<void>;
+    private _dbConnected: Writable<boolean>;
 
-    constructor() {
+    constructor(dbConnected: Writable<boolean>) {
         this._focus = DATABASE_TABLES.map(() => new Map());
         this._action = new Action<void>();
+        this._dbConnected = dbConnected;
+        this._dbConnected.subscribe(this.onConnectionChanged);
     }
 
     focus(request: FocusRequests): void {
@@ -132,6 +137,13 @@ export class FocusManager {
     unsubscribe(handler: ActionHandler<void>): void {
         this._action.unregister(handler);
     }
+
+    private onConnectionChanged: (isConnected: boolean) => void = (isConnected: boolean) => {
+        if (isConnected) return;
+        for (let i = 0; i < this._focus.length; i++) {
+            this._focus[i].clear();
+        }
+    };
 }
 
 /**
@@ -160,4 +172,4 @@ export interface FocusPayloadGraphElement extends FocusPayload {
 }
 
 /**Export Singleton */
-export const focusManager: FocusManager = new FocusManager();
+export const focusManager: FocusManager = new FocusManager(dbConnected);

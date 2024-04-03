@@ -253,6 +253,23 @@
         isDeletedVisible = shouldShow;
     }
 
+    function clearSort(): void {
+        api?.applyColumnState({
+            defaultState: { sort: null },
+        });
+    }
+
+    function clearFilters(): void {
+        if (!api) return;
+        const newFilterModel: FilterModel = <FilterModel>{};
+        newFilterModel[IS_DELETED_COLUMN] = <BooleanFilterModel>{
+            filterType: 'boolean',
+            filter: false,
+            type: 'equals',
+        };
+        api.setFilterModel(newFilterModel);
+    }
+
     function onSelectionChanged(): void {
         selectedRows = <IDbRowView<Conversation>[]>api.getSelectedRows();
     }
@@ -459,6 +476,8 @@
                     text="{isDeletedVisible ? 'Hide' : 'Show'} Deleted"
                     on:click={() => showIsDeleted(!isDeletedVisible)}
                 />
+                <OverflowMenuItem text="Clear Sort" on:click={() => clearSort()} />
+                <OverflowMenuItem text="Clear Filters" on:click={() => clearFilters()} />
             </svelte:fragment>
 
             <span slot="create">

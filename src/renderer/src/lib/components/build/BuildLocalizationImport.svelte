@@ -98,8 +98,12 @@
     <p>
         <sup>Import</sup>
         <br />
-        <Button size="small" on:click={() => (isModalOpen = true)} disabled={$isLoading}
-            >Import</Button
+        <Button
+            size="small"
+            on:click={() => (isModalOpen = true)}
+            disabled={$isLoading ||
+                !buildImportPathLocalization ||
+                !$buildImportPathLocalization.path}>Import</Button
         >
     </p>
 </Tile>

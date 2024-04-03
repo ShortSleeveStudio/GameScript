@@ -64,6 +64,11 @@
     <p>
         <sup>Export</sup>
         <br />
-        <Button size="small" on:click={onExport} disabled={$isLoading}>Export</Button>
+        <Button
+            size="small"
+            on:click={onExport}
+            disabled={$isLoading || !buildExportPathData || !$buildExportPathData.path}
+            >Export</Button
+        >
     </p>
 </Tile>
