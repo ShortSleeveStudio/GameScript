@@ -327,7 +327,7 @@ export class FilterBuilderSqlite<RowType extends Row>
     private formatValue(value: FilterColumnType): string {
         const type: string = typeof value;
         if (type === 'string') {
-            return `'${value}'`;
+            return `'${(<string>value).replace(/'/g, "''")}'`;
         } else if (type === 'boolean') {
             return `${value ? 'true' : 'false'}`;
         } else {
