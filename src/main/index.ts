@@ -16,7 +16,7 @@ function createWindow(): void {
             preload: join(__dirname, '../preload/index.js'),
             // sandbox: false,
             // contextIsolation: false,
-            // devTools: false,
+            devTools: false,
         },
     });
     mainWindow.webContents.session.enableNetworkEmulation({ offline: true });
