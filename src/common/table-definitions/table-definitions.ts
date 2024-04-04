@@ -1,4 +1,5 @@
-import type { FieldType, Table } from '../common-types';
+import { Table } from '../common-schema';
+import type { FieldType } from '../common-types';
 
 export interface UniqueDefinition {
     columns: string[];

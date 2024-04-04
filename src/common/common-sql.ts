@@ -1,5 +1,4 @@
-import { type Row } from './common-schema';
-import { type Table } from './common-types';
+import { Table, type Row } from './common-schema';
 
 export type RowUpdateQueryBuilder = (tableType: Table, row: Row) => [string, unknown[]];
 
