@@ -22,6 +22,8 @@
             } else if ('reason' in event) {
                 const rejection: PromiseRejectionEvent = <PromiseRejectionEvent>event;
                 return new Error(rejection.reason.message);
+            } else if ('stack' in event && 'message' in event) {
+                return <Error>event;
             }
             return new Error(`${event}`);
         } else if (typeof event === 'string') {
@@ -31,21 +33,39 @@
         }
     }
 
-    function globalErrorHandler(event: unknown): void {
+    function globalErrorHandler(event: unknown): boolean {
         const error = toErrorEvent(event);
-        toastManager.showToast(new ToastItem('error', error.message));
+        toastManager.showToast(
+            new ToastItem(
+                'error',
+                error.message,
+                `Name: ${error.name}\n` +
+                    `Message: ${error.message}\n` +
+                    `Cause: ${error.cause}\n` +
+                    `Stack: ${error.stack}`,
+                undefined,
+                'Click this message to copy error to clipboard',
+            ),
+        );
+        return true;
     }
 
-    // Subscribe to errors
     const backendErrorHandler: (_: IpcRendererEvent, error: string) => void = (
         _: IpcRendererEvent,
         error: string,
     ) => {
         globalErrorHandler(error);
-        db?.disconnect();
+        void db?.disconnect();
     };
-    window.onerror = globalErrorHandler;
-    window.onunhandledrejection = globalErrorHandler;
+    const frontendErrorHandler: (event: Event) => void = (event: Event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        globalErrorHandler(event);
+    };
+
+    // Subscribe to errors
+    addEventListener('error', frontendErrorHandler);
+    addEventListener('onunhandledrejection', frontendErrorHandler);
     window.api.system.onErrorRegister(backendErrorHandler);
     initializationErrorSubscriber = appInitializationErrors.subscribe((errors: Error[]) => {
         if (errors.length > 0) {
@@ -59,8 +79,8 @@
 
     onDestroy(() => {
         if (initializationErrorSubscriber) initializationErrorSubscriber();
-        window.onerror = undefined;
-        window.onunhandledrejection = undefined;
+        removeEventListener('error', frontendErrorHandler);
+        removeEventListener('onunhandledrejection', frontendErrorHandler);
         window.api.system.onErrorUnregister(backendErrorHandler);
     });
 </script>

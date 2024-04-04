@@ -32,8 +32,6 @@ export class ToastItem {
     private _caption: string;
     private _details: string | undefined;
 
-    constructor(kind: ToastKind, subtitle: string);
-    constructor(kind: ToastKind, subtitle: string, details: string);
     constructor(
         kind: ToastKind,
         subtitle: string,

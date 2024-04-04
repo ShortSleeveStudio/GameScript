@@ -22,8 +22,16 @@
                 title={toast.title}
                 subtitle={toast.subtitle}
                 caption={toast.caption}
+                on:click={(e) => {
+                    if (e.target.tagName === 'DIV') {
+                        void navigator.clipboard.writeText(toast.details);
+                    }
+                }}
                 on:close={(e) => {
-                    if (e) e.preventDefault();
+                    if (e) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                    }
                     toastManager.hideToast(toast);
                 }}
             />

@@ -64,7 +64,7 @@
 
             // We need to update the layout
             if (newVal) {
-                get<GoldenLayout>(layout).addItemAtLocation(
+                get<GoldenLayout>(layout)?.addItemAtLocation(
                     layoutConfig,
                     LayoutManager.defaultLocationSelectors,
                 );

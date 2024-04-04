@@ -25,7 +25,6 @@
         searchIsVisible,
         settingsIsVisible,
     } from '@lib/stores/app/layout';
-    import { NotificationItem, notificationManager } from '@lib/stores/app/notifications';
     import { APP_NAME } from '@common/constants';
 
     let isSideNavOpen = false;
