@@ -52,6 +52,8 @@ import { Assignment_operatorContext } from "./CSharpRoutineParser";
 import { TypeContext } from "./CSharpRoutineParser";
 import { Primitive_typeContext } from "./CSharpRoutineParser";
 import { NameContext } from "./CSharpRoutineParser";
+import { Normal_nameContext } from "./CSharpRoutineParser";
+import { Special_nameContext } from "./CSharpRoutineParser";
 import { Flag_listContext } from "./CSharpRoutineParser";
 import { LiteralContext } from "./CSharpRoutineParser";
 
@@ -605,6 +607,26 @@ export default class CSharpRoutineParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	exitName?: (ctx: NameContext) => void;
+	/**
+	 * Enter a parse tree produced by `CSharpRoutineParser.normal_name`.
+	 * @param ctx the parse tree
+	 */
+	enterNormal_name?: (ctx: Normal_nameContext) => void;
+	/**
+	 * Exit a parse tree produced by `CSharpRoutineParser.normal_name`.
+	 * @param ctx the parse tree
+	 */
+	exitNormal_name?: (ctx: Normal_nameContext) => void;
+	/**
+	 * Enter a parse tree produced by `CSharpRoutineParser.special_name`.
+	 * @param ctx the parse tree
+	 */
+	enterSpecial_name?: (ctx: Special_nameContext) => void;
+	/**
+	 * Exit a parse tree produced by `CSharpRoutineParser.special_name`.
+	 * @param ctx the parse tree
+	 */
+	exitSpecial_name?: (ctx: Special_nameContext) => void;
 	/**
 	 * Enter a parse tree produced by `CSharpRoutineParser.flag_list`.
 	 * @param ctx the parse tree
