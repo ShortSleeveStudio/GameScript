@@ -14,6 +14,7 @@
         ROUTINES_UNDO_NOTES,
     } from '@lib/constants/settings';
     import SettingsCodingDefaultRoutinesRadio from '../settings/SettingsCodingDefaultRoutinesRadio.svelte';
+    import CodeChecker from '../common/CodeChecker.svelte';
 
     export let rowView: IDbRowView<Routine>;
     export let payload: FocusPayloadRoutine;
@@ -39,7 +40,11 @@
     <SettingsCodingDefaultRoutinesRadio {rowView} undoText={ROUTINES_UNDO_DEFAULT} />
 </p>
 <p>
-    <sup>Code</sup>
+    <sup></sup>
+    <span class="routine-header-group">
+        <sup>Code</sup>
+        <CodeChecker {rowView} />
+    </span>
     <RoutineEditor {rowView} columnName={'code'} />
 </p>
 <p>

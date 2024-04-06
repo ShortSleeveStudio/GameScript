@@ -84,6 +84,7 @@
     <SelectCustom
         size="sm"
         disabled={$isLoading}
+        hideLabel={true}
         on:change={onRoutineSelected}
         bind:selected={boundValue}
     >

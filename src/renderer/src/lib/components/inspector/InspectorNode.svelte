@@ -18,6 +18,7 @@
     import { NODE_TYPE_DIALOGUE, TABLE_ROUTINES } from '@common/common-types';
     import RowColumnProperties from '../common/RowColumnProperties.svelte';
     import { nodePropertyTemplates } from '@lib/tables/node-property-templates';
+    import CodeChecker from '../common/CodeChecker.svelte';
 
     export let rowView: IDbRowView<Node>;
     let routineTable: IDbTableView<Routine>;
@@ -103,20 +104,28 @@
     />
 </p>
 <p>
-    <Tooltip triggerText="Condition" align="start" direction="bottom">
-        <p>This routine must return a boolean value representing whether this node is unlocked.</p>
-    </Tooltip>
+    <span class="routine-header-group">
+        <Tooltip triggerText="Condition" align="start" direction="bottom">
+            <p>
+                This routine must return a boolean value representing whether this node is unlocked.
+            </p>
+        </Tooltip>
+        <CodeChecker rowView={routineCondition} />
+    </span>
     <RoutineEditor rowView={routineCondition} columnName={'code'} />
 </p>
 <p>
-    <Tooltip triggerText="Code" align="start" direction="bottom">
-        <p>
-            The following routine will execute as soon as this node plays during a conversation. You
-            can use it to do anything you want (eg. moving a player, play a sound, etc). Also, with
-            the dropdown below, you may select from a list of default routines you can create in the
-            settings menu.
-        </p>
-    </Tooltip>
+    <span class="routine-header-group">
+        <Tooltip triggerText="Code" align="start" direction="bottom">
+            <p>
+                The following routine will execute as soon as this node plays during a conversation.
+                You can use it to do anything you want (eg. moving a player, play a sound, etc).
+                Also, with the dropdown below, you may select from a list of default routines you
+                can create in the settings menu.
+            </p>
+        </Tooltip>
+        <CodeChecker rowView={routineCode} />
+    </span>
     <RoutineSelector
         {rowView}
         columnNameOverrideRoutine={'code_override'}

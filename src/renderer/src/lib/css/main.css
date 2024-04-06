@@ -346,3 +346,9 @@ input[type='color']::-webkit-color-swatch {
 .node-text-ui {
     height: var(--graph-node-text-ui-height);
 }
+
+/* Routine */
+.routine-header-group {
+    display: flex;
+    justify-content: space-between;
+}
