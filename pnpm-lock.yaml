@@ -59,8 +59,8 @@ devDependencies:
     specifier: ^1.7.7
     version: 1.7.7
   '@xyflow/svelte':
-    specifier: ^0.0.40
-    version: 0.0.40(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.12)(typescript@5.4.4)
+    specifier: ^0.0.41
+    version: 0.0.41(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.12)(typescript@5.4.4)
   antlr4:
     specifier: 4.13.1-patch-1
     version: 4.13.1-patch-1
@@ -1762,8 +1762,8 @@ packages:
     requiresBuild: true
     dev: true
 
-  /@xyflow/svelte@0.0.40(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.12)(typescript@5.4.4):
-    resolution: {integrity: sha512-cDBaZgKm0oIX7t39HwJqHPZsLRqlNjzPEoh/Q9PvHinM77BDSPksZaQ72M1m7Vw/r6+HkPCNxQzqycSkTrwJNg==}
+  /@xyflow/svelte@0.0.41(@babel/core@7.23.7)(postcss@8.4.33)(svelte@4.2.12)(typescript@5.4.4):
+    resolution: {integrity: sha512-6YE8XJVebBRJnio7y6zgfN/L+J65Tw8F21TGj95c4kxMRVcU1cNRbGT/CJJ4xk3g4bSaxStlblgS/Z2I7mlUHA==}
     peerDependencies:
       svelte: ^3.0.0 || ^4.0.0
     dependencies:
