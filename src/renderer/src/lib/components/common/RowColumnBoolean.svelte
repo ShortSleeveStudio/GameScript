@@ -11,8 +11,8 @@
     export let undoText: string;
 
     const isLoading: IsLoadingStore = new IsLoadingStore();
-    let boundValue: boolean;
-    let currentValue: boolean;
+    let boundValue: boolean = <boolean>$rowView[columnName];
+    let currentValue: boolean = <boolean>$rowView[columnName];
 
     async function onCheck(): Promise<void> {
         const newValue: boolean = boundValue;
