@@ -65,7 +65,7 @@
 
     // Subscribe to errors
     addEventListener('error', frontendErrorHandler);
-    addEventListener('onunhandledrejection', frontendErrorHandler);
+    addEventListener('unhandledrejection', frontendErrorHandler);
     window.api.system.onErrorRegister(backendErrorHandler);
     initializationErrorSubscriber = appInitializationErrors.subscribe((errors: Error[]) => {
         if (errors.length > 0) {
