@@ -33,7 +33,7 @@ export async function nodeCreate(
     isLoading?: IsLoadingStore,
     connection?: DbConnection,
 ): Promise<Node> {
-    return await nodesCreate([newNode], isLoading, connection)[0];
+    return (await nodesCreate([newNode], isLoading, connection))[0];
 }
 
 export async function nodesCreate(
