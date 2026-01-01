@@ -14,36 +14,43 @@
      * ```svelte
      * <InlineEdit
      *     value={item.name}
-     *     on:save={({ detail }) => handleRename(item.id, detail)}
+     *     onsave={(newValue) => handleRename(item.id, newValue)}
      * />
      * ```
      */
 
-    import { createEventDispatcher, tick } from 'svelte';
+    import { tick } from 'svelte';
 
-    /** Current text value */
-    export let value: string = '';
+    interface Props {
+        /** Current text value */
+        value?: string;
+        /** Placeholder shown when value is empty */
+        placeholder?: string;
+        /** Whether to start editing on single click (vs double-click) */
+        editOnClick?: boolean;
+        /** Whether the component is disabled */
+        disabled?: boolean;
+        /** Tooltip text */
+        title?: string;
+        /** Callback when value is saved */
+        onsave?: (value: string) => void;
+        /** Callback when editing is cancelled */
+        oncancel?: () => void;
+    }
 
-    /** Placeholder shown when value is empty */
-    export let placeholder: string = '';
+    let {
+        value = '',
+        placeholder = '',
+        editOnClick = false,
+        disabled = false,
+        title = 'Double-click to edit',
+        onsave,
+        oncancel,
+    }: Props = $props();
 
-    /** Whether to start editing on single click (vs double-click) */
-    export let editOnClick: boolean = false;
-
-    /** Whether the component is disabled */
-    export let disabled: boolean = false;
-
-    /** Tooltip text */
-    export let title: string = 'Double-click to edit';
-
-    const dispatch = createEventDispatcher<{
-        save: string;
-        cancel: void;
-    }>();
-
-    let editing = false;
-    let editValue = '';
-    let inputElement: HTMLInputElement;
+    let editing = $state(false);
+    let editValue = $state('');
+    let inputElement: HTMLInputElement | undefined = $state();
 
     async function startEditing(): Promise<void> {
         if (disabled) return;
@@ -56,7 +63,7 @@
 
     function save(): void {
         if (editValue !== value) {
-            dispatch('save', editValue);
+            onsave?.(editValue);
         }
         editing = false;
     }
@@ -64,7 +71,7 @@
     function cancel(): void {
         editing = false;
         editValue = value;
-        dispatch('cancel');
+        oncancel?.();
     }
 
     function handleKeydown(event: KeyboardEvent): void {
@@ -100,8 +107,8 @@
         class="inline-edit-input"
         bind:value={editValue}
         bind:this={inputElement}
-        on:blur={handleBlur}
-        on:keydown={handleKeydown}
+        onblur={handleBlur}
+        onkeydown={handleKeydown}
     />
 {:else}
     <button
@@ -111,8 +118,8 @@
         class:inline-edit-disabled={disabled}
         title={disabled ? '' : title}
         {disabled}
-        on:click={handleClick}
-        on:dblclick={handleDblClick}
+        onclick={handleClick}
+        ondblclick={handleDblClick}
     >
         {value || placeholder}
     </button>

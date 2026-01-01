@@ -308,7 +308,7 @@ body {
 
   /* Menu colors */
   --ag-menu-background-color: var(--gs-menu-bg) !important;
-  --ag-menu-border-color: var(--gs-border-menu) !important; 
+  --ag-menu-border-color: var(--gs-border-menu) !important;
 }
 
 /* Modal overlay */
@@ -413,4 +413,100 @@ body {
   display: flex;
   gap: 8px;
   flex: 1;
+}
+
+/* ============================================================================
+ * Modal Component Shared Styles
+ * Common styles shared by Modal.svelte and TagCategorySettingsModal.svelte
+ * ============================================================================ */
+
+/* Overlay - absolutely positioned to cover entire viewport */
+.gs-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal dialog */
+.gs-modal {
+  background-color: var(--gs-bg-primary);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding: 24px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gs-modal-small {
+  width: 400px;
+  max-width: 90vw;
+}
+
+.gs-modal-medium {
+  width: 600px;
+  max-width: 90vw;
+}
+
+.gs-modal-large {
+  width: 800px;
+  max-width: 90vw;
+}
+
+.gs-modal-title {
+  margin: 0;
+  font-size: var(--gs-font-size-large, 16px);
+  font-weight: 600;
+  color: var(--gs-fg-primary);
+}
+
+.gs-modal-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.gs-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--gs-border-primary);
+}
+
+/* Modal header with close button */
+.gs-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.gs-modal-close-button {
+  background: none;
+  border: none;
+  color: var(--gs-fg-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.gs-modal-close-button:hover {
+  background: var(--gs-list-hover-bg);
+  color: var(--gs-fg-primary);
 }

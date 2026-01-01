@@ -1,8 +1,12 @@
 <script lang="ts">
-    /** Size in pixels (default 16) */
-    export let size: number = 16;
-    /** Additional CSS style */
-    export let style: string = '';
+    interface Props {
+        /** Size in pixels (default 16) */
+        size?: number;
+        /** Additional CSS style */
+        style?: string;
+    }
+
+    let { size = 16, style = '' }: Props = $props();
 </script>
 
 <svg

@@ -33,15 +33,15 @@ export { default as TextArea } from './TextArea.svelte';
 // Layout components
 export { default as Accordion } from './Accordion.svelte';
 export { default as TabGroup } from './TabGroup.svelte';
-export type { TabItem } from './TabGroup.svelte';
+export type { TabItem } from './TabGroup.types.js';
 
 // Interactive components
 export { default as Dropdown } from './Dropdown.svelte';
-export type { DropdownOption } from './Dropdown.svelte';
+export type { DropdownOption } from './Dropdown.types.js';
 export { default as DropdownMenu } from './DropdownMenu.svelte';
-export type { MenuItem } from './DropdownMenu.svelte';
+export type { MenuItem } from './DropdownMenu.types.js';
 export { default as ActionMenu } from './ActionMenu.svelte';
-export type { ActionMenuItem } from './ActionMenu.svelte';
+export type { ActionMenuItem, ActionMenuItemButton, ActionMenuItemToggle, ActionMenuItemSeparator } from './ActionMenu.types.js';
 export { default as InlineEdit } from './InlineEdit.svelte';
 
 // Inspector components
@@ -57,6 +57,9 @@ export { default as SettingsSection } from './SettingsSection.svelte';
 export { default as Modal } from './Modal.svelte';
 export { default as DeleteConfirmationModal } from './DeleteConfirmationModal.svelte';
 export { default as ProgressModal } from './ProgressModal.svelte';
+
+// Panel components
+export { default as TagCategorySettingsPanel } from './TagCategorySettingsPanel.svelte';
 
 // Grid components
 export { default as GridToolbar } from './GridToolbar.svelte';

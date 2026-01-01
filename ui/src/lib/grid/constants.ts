@@ -19,6 +19,15 @@ export const GRID_CACHE_BLOCK_SIZE = 100;
 /** Maximum number of cache blocks to keep in memory */
 export const GRID_CACHE_MAX_BLOCKS = 3;
 
+/** Standard row height in pixels */
+export const GRID_ROW_HEIGHT = 32;
+
+/** Standard header height in pixels */
+export const GRID_HEADER_HEIGHT = 32;
+
+/** Column group header height (0 to hide) */
+export const GRID_GROUP_HEADER_HEIGHT = 10;
+
 // ============================================================================
 // Filter Parameter Presets
 // ============================================================================

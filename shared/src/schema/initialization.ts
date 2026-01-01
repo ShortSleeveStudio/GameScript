@@ -15,7 +15,8 @@ export interface InitialTableData {
 /**
  * Default values for initial database setup
  */
-export const DEFAULT_LOCALE_NAME = 'English';
+export const DEFAULT_LOCALE_CODE = 'en_US';
+export const DEFAULT_LOCALE_DISPLAY_NAME = 'English';
 export const DEFAULT_ACTOR_NAME = 'Narrator';
 export const DEFAULT_ACTOR_COLOR = '#808080';
 export const DEFAULT_VERSION = '0.0.0';
@@ -60,7 +61,7 @@ export function generateInitializationSQL(): InitializationStatement[] {
   // Insert default locale with localized_name reference (id will be 1)
   statements.push({
     sql: 'INSERT INTO locales (name, localized_name, is_system_created) VALUES (?, 1, 1)',
-    params: [DEFAULT_LOCALE_NAME],
+    params: [DEFAULT_LOCALE_CODE],
   });
 
   // Set the default locale as the primary locale
@@ -75,6 +76,12 @@ export function generateInitializationSQL(): InitializationStatement[] {
     params: [],
   });
 
+  // Update the locale's localized name with the display name ("English")
+  statements.push({
+    sql: 'UPDATE localizations SET locale_1 = ? WHERE id = 1',
+    params: [DEFAULT_LOCALE_DISPLAY_NAME],
+  });
+
   // =========================================================================
   // Initialize actors with localized name
   // =========================================================================
@@ -84,7 +91,13 @@ export function generateInitializationSQL(): InitializationStatement[] {
     params: [],
   });
 
-  // Insert default actor (Narrator) with localized_name reference (id will be 1)
+  // Update the actor's localized name with the display name ("Narrator")
+  statements.push({
+    sql: 'UPDATE localizations SET locale_1 = ? WHERE id = 2',
+    params: [DEFAULT_ACTOR_NAME],
+  });
+
+  // Insert default actor (Narrator) with localized_name reference
   statements.push({
     sql: 'INSERT INTO actors (name, color, localized_name, is_system_created) VALUES (?, ?, 2, 1)',
     params: [DEFAULT_ACTOR_NAME, DEFAULT_ACTOR_COLOR],
@@ -128,14 +141,14 @@ export function getInitialData(): InitialTableData[] {
     {
       tableName: 'localizations',
       rows: [
-        { id: 1, parent: null, name: null, is_system_created: true },
-        { id: 2, parent: null, name: null, is_system_created: true },
+        { id: 1, parent: null, name: null, is_system_created: true, locale_1: DEFAULT_LOCALE_DISPLAY_NAME },
+        { id: 2, parent: null, name: null, is_system_created: true, locale_1: DEFAULT_ACTOR_NAME },
       ],
     },
     {
       tableName: 'locales',
       rows: [
-        { id: 1, name: DEFAULT_LOCALE_NAME, localized_name: 1, is_system_created: true },
+        { id: 1, name: DEFAULT_LOCALE_CODE, localized_name: 1, is_system_created: true },
       ],
     },
     {

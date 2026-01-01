@@ -12,12 +12,13 @@
    * - Inline editing of conversation names
    * - Soft delete with restore capability
    * - Layout persistence
-   * - Dynamic filter columns from filters table
+   * - Dynamic tag category columns
    */
   import { onMount, onDestroy } from 'svelte';
   import {
     createGrid,
     type ColDef,
+    type ColGroupDef,
     type GridOptions,
     type GridApi,
     type IRowNode,
@@ -26,7 +27,7 @@
     type RowClickedEvent,
   } from '@ag-grid-community/core';
   import type { Conversation } from '@gamescript/shared';
-  import { TABLE_CONVERSATIONS, TABLE_FILTERS, type IDbRowView } from '$lib/db';
+  import { TABLE_CONVERSATIONS, TABLE_CONVERSATION_TAG_CATEGORIES, type IDbRowView } from '$lib/db';
   import {
     initializeGrid,
     GridDatasource,
@@ -34,23 +35,28 @@
     GridCellEditorText,
     GRID_CACHE_BLOCK_SIZE,
     GRID_CACHE_MAX_BLOCKS,
+    GRID_ROW_HEIGHT,
+    GRID_HEADER_HEIGHT,
     GRID_FILTER_PARAMS_TEXT,
     GRID_FILTER_PARAMS_NUMBER,
     loadGridLayout,
     saveGridLayout,
     BooleanFilter,
     setupGridVisibilityHandler,
+    buildTagColumns,
+    createTagValueChangeHandler,
     type BooleanFilterModel,
     type GridContext,
     type GridVisibilityHandle,
+    type TagGridContext,
   } from '$lib/grid';
   import { registerUndoable, Undoable } from '$lib/undo';
-  import { conversations, filters } from '$lib/crud';
+  import { conversations } from '$lib/crud';
   import { focusConversation } from '$lib/stores/focus.js';
   import { toastError, toastSuccess } from '$lib/stores/notifications.js';
   import { isDarkMode } from '$lib/stores/theme.js';
   import { IsLoadingStore } from '$lib/stores/is-loading.js';
-  import { filtersTable } from '$lib/tables';
+  import { conversationTagCategoriesTable, conversationTagValuesTable } from '$lib/tables';
   import {
     graphLayoutAutoLayoutDefault,
     graphLayoutVerticalDefault,
@@ -63,8 +69,9 @@
     type DbColumnDeleting,
   } from '$lib/constants/events.js';
   import { get } from 'svelte/store';  // Keep for graphLayoutAutoLayoutDefault and graphLayoutVerticalDefault
-  import { Button, ToggleButton, DeleteConfirmationModal, GridToolbar, TableOptionsMenu } from '$lib/components/common';
-  import ConversationFinderSettingsModal from './ConversationFinderSettingsModal.svelte';
+  import { Button, ToggleButton, DeleteConfirmationModal, GridToolbar, TableOptionsMenu, TagCategorySettingsPanel } from '$lib/components/common';
+  import { focusConversationTagCategory, focusedConversationTagCategory } from '$lib/stores/focus.js';
+  import { conversationTagCategories } from '$lib/crud';
   import IconSettings from '$lib/components/icons/IconSettings.svelte';
 
   // Constants
@@ -114,9 +121,9 @@
   let isDeletedVisible = $state(false);
   let isLoading = new IsLoadingStore();
   let showDeleteConfirm = $state(false);
-  let showSettingsModal = $state(false);
+  let settingsExpanded = $state(false);
   let loadLayoutRequested = $state(false);
-  let columnDefs: ColDef[] = [...staticColumns];
+  let columnDefs: (ColDef | ColGroupDef)[] = [...staticColumns];
   let columnIdSet: Set<string> = new Set();
   let visibilityHandle: GridVisibilityHandle | undefined;
 
@@ -214,6 +221,12 @@
   }
 
   // ============================================================================
+  // Tag Value Change Handler (uses shared utility)
+  // ============================================================================
+
+  const handleTagValueChange = createTagValueChangeHandler(conversations);
+
+  // ============================================================================
   // Filter/Sort Controls
   // ============================================================================
 
@@ -244,25 +257,29 @@
   }
 
   // ============================================================================
-  // Dynamic Filter Columns - React to filters table changes
+  // Dynamic Tag Columns - React to tag categories table changes
   // ============================================================================
 
   $effect(() => {
-    // Track the filters table rows and their data
-    const rowViews = filtersTable.rows;
-    rowViews.forEach(r => r.data); // Establish dependency on each row's data
+    // Track the tag categories table rows and their data
+    const categoryRowViews = conversationTagCategoriesTable.rows;
+    categoryRowViews.forEach((r: typeof categoryRowViews[number]) => r.data); // Establish dependency on each row's data
+
+    // Also track tag values for Set Filter
+    const valueRowViews = conversationTagValuesTable.rows;
+    valueRowViews.forEach((r: typeof valueRowViews[number]) => r.data);
 
     // Skip if grid not initialized yet
     if (!api) return;
 
-    // Skip if no filters and no dynamic columns
-    if (rowViews.length === 0 && staticColumns.length === columnDefs.length) {
+    // Skip if no tag categories and no dynamic columns
+    if (categoryRowViews.length === 0 && staticColumns.length === columnDefs.length) {
       return;
     }
 
     // Rebuild column definitions
     columnIdSet.clear();
-    const newColumnDefs: ColDef[] = [];
+    const newColumnDefs: (ColDef | ColGroupDef)[] = [];
 
     // Add static columns
     for (const staticColumn of staticColumns) {
@@ -270,21 +287,13 @@
       newColumnDefs.push(staticColumn);
     }
 
-    // Add dynamic filter columns
-    for (const rowView of rowViews) {
-      const row = rowView.data;
-      const colId: string = filters.filterIdToColumn(row.id);
-      columnIdSet.add(colId);
-      newColumnDefs.push({
-        headerName: row.name,
-        colId: colId,
-        cellEditor: GridCellEditorText,
-        cellRenderer: GridCellRenderer,
-        filter: 'agTextColumnFilter',
-        filterParams: GRID_FILTER_PARAMS_TEXT,
-        flex: 1,
-      });
-    }
+    // Build tag columns using shared utility (fixes stale closure bug, uses O(1) Map lookups)
+    const tagColumns = buildTagColumns({
+      categoryRowViews,
+      valueRowViews,
+      columnIdSet,
+    });
+    newColumnDefs.push(...tagColumns);
 
     // Update grid
     columnDefs = newColumnDefs;
@@ -325,10 +334,10 @@
     api?.setFilterModel(model);
   };
 
-  const onFilterDeleting = (e: Event): void => {
+  const onTagCategoryDeleting = (e: Event): void => {
     if (!isCustomEvent(e)) return;
     const event = e as CustomEvent<DbColumnDeleting>;
-    if (event.detail.tableType.id === TABLE_FILTERS.id) {
+    if (event.detail.tableType.id === TABLE_CONVERSATION_TAG_CATEGORIES.id) {
       api?.setFilterModel(null);
       api?.applyColumnState({
         defaultState: { sort: null },
@@ -347,11 +356,20 @@
     // Create datasource with filter for non-deleted by default
     datasource = new GridDatasource<Conversation>(TABLE_CONVERSATIONS);
 
+    // Create grid context with tag support
+    const gridContext: TagGridContext = {
+      getGridApi,
+      getTagValuesTable: () => conversationTagValuesTable,
+      onTagValueChange: handleTagValueChange,
+    };
+
     // Create grid
     const gridOptions: GridOptions = {
-      context: { getGridApi } as GridContext,
+      context: gridContext,
       rowModelType: 'infinite',
       columnDefs,
+      headerHeight: GRID_HEADER_HEIGHT,
+      rowHeight: GRID_ROW_HEIGHT,
       rowSelection: 'multiple',
       suppressRowClickSelection: true,
       onSelectionChanged,
@@ -402,7 +420,7 @@
 
     // Event listeners
     addEventListener(EVENT_CF_FILTER_BY_PARENT, onFilterByParent);
-    addEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
+    addEventListener(EVENT_DB_COLUMN_DELETING, onTagCategoryDeleting);
   });
 
   onDestroy(() => {
@@ -413,7 +431,7 @@
 
     // Remove event listeners
     removeEventListener(EVENT_CF_FILTER_BY_PARENT, onFilterByParent);
-    removeEventListener(EVENT_DB_COLUMN_DELETING, onFilterDeleting);
+    removeEventListener(EVENT_DB_COLUMN_DELETING, onTagCategoryDeleting);
 
     // Cleanup
     visibilityHandle?.cleanup();
@@ -426,8 +444,8 @@
 </script>
 
 <div class="conversation-finder gs-grid-panel">
-  <GridToolbar>
-    <svelte:fragment slot="left">
+  <GridToolbar expanded={settingsExpanded}>
+    {#snippet left()}
       <Button
         variant="primary"
         onclick={handleCreate}
@@ -456,22 +474,46 @@
           </Button>
         {/if}
       {/if}
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="right">
+    {#snippet right()}
       <ToggleButton active={isDeletedVisible} onclick={toggleShowDeleted}>
         {isDeletedVisible ? 'Hide' : 'Show'} Deleted
       </ToggleButton>
-      <TableOptionsMenu {api} />
-      <Button
-        variant="ghost"
-        iconOnly
-        onclick={() => showSettingsModal = true}
-        title="Conversation Finder Settings"
+      <TableOptionsMenu {api} hasTagColumns={true} />
+      <ToggleButton
+        active={settingsExpanded}
+        onclick={() => settingsExpanded = !settingsExpanded}
+        title="Tag Category Settings"
       >
         <IconSettings size={16} />
-      </Button>
-    </svelte:fragment>
+      </ToggleButton>
+    {/snippet}
+
+    {#snippet expandedHeader()}
+      <span class="settings-header">Tag Category Settings</span>
+    {/snippet}
+
+    {#snippet expandedToggle()}
+      <ToggleButton
+        active={settingsExpanded}
+        onclick={() => settingsExpanded = !settingsExpanded}
+        title="Close Settings"
+      >
+        <IconSettings size={16} />
+      </ToggleButton>
+    {/snippet}
+
+    {#snippet expandedContent()}
+      <TagCategorySettingsPanel
+        description="Tag categories allow you to create custom columns in the Conversation Finder for organizing conversations. Each category becomes a column where you can assign tag values to conversations. Click a category to manage its values in the Inspector."
+        entityName="conversations"
+        categoriesTable={conversationTagCategoriesTable}
+        crud={conversationTagCategories}
+        focusCategory={focusConversationTagCategory}
+        focusedCategoryId={$focusedConversationTagCategory}
+      />
+    {/snippet}
   </GridToolbar>
 
   <!-- Grid -->
@@ -490,16 +532,18 @@
   itemName="conversation"
   itemNamePlural="conversations"
   title="Delete Forever?"
-  on:confirm={handleDeleteForever}
-  on:cancel={() => (showDeleteConfirm = false)}
+  onconfirm={handleDeleteForever}
+  oncancel={() => (showDeleteConfirm = false)}
 >
   This will permanently delete {selectedRows.length} conversation(s) and all associated nodes
   and localizations. This cannot be undone.
 </DeleteConfirmationModal>
 
-<!-- Settings Modal -->
-<ConversationFinderSettingsModal bind:open={showSettingsModal} />
-
 <style>
   /* All common styles moved to theme.css under .gs-grid-panel */
+
+  .settings-header {
+    font-weight: 600;
+    font-size: 13px;
+  }
 </style>

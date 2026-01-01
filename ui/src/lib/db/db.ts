@@ -583,6 +583,34 @@ class Database {
         await bridge.run(sql, [search, replace, ...filterParams], false, meta, connection);
     }
 
+    /**
+     * Set a column to null for all rows matching a filter condition.
+     * Used for clearing FK references (e.g., when deleting a tag value).
+     * Uses 'alter' notification to trigger full table view reload since this is a bulk operation.
+     */
+    async clearColumnWhere<RowType extends Row>(
+        tableType: TableRef,
+        column: string,
+        filter: QueryFilter<RowType>,
+        connection?: TransactionContext,
+    ): Promise<void> {
+        const whereClause = filter.toWhereClause(this._dialect);
+        const filterParams = filter.getParameters();
+
+        if (!whereClause) {
+            throw new Error('clearColumnWhere requires a filter with WHERE clause');
+        }
+
+        const sql = `UPDATE ${this.quoteIdentifier(tableType.name)} SET ${this.quoteIdentifier(column)} = NULL WHERE ${whereClause}`;
+
+        // Use 'alter' to trigger full reload since bulk updates affect many rows
+        const meta: DbNotificationMeta = {
+            table: tableType.name,
+            operation: 'alter',
+        };
+        await bridge.run(sql, filterParams, false, meta, connection);
+    }
+
     // =========================================================================
     // Schema Modification
     // =========================================================================

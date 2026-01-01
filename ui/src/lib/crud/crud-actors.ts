@@ -11,6 +11,32 @@ import {
   DB_DEFAULT_ACTOR_ID,
 } from '@gamescript/shared';
 
+// Helper to delete an actor and reassign its nodes to the default actor
+async function deleteInternal(actorId: number): Promise<void> {
+  await db.transaction(async (tx) => {
+    const actor = await db.selectById<Actor>(TABLE_ACTORS, actorId, tx);
+    if (!actor) throw new Error(`Actor ${actorId} not found`);
+
+    // Reassign nodes to default actor
+    const nodesUsingActor = await db.select<Node>(
+      TABLE_NODES,
+      query<Node>().where('actor').eq(actorId).build(),
+      tx
+    );
+    for (const node of nodesUsingActor) {
+      await db.updatePartial<Node>(TABLE_NODES, node.id, { actor: DB_DEFAULT_ACTOR_ID }, tx);
+    }
+
+    // Delete actor
+    await db.delete(TABLE_ACTORS, actorId, tx);
+
+    // Delete localized name
+    if (actor.localized_name) {
+      await db.delete(TABLE_LOCALIZATIONS, actor.localized_name, tx);
+    }
+  });
+}
+
 // ============================================================================
 // Read
 // ============================================================================
@@ -132,78 +158,6 @@ export async function remove(actorId: number): Promise<void> {
   if (actorId === DB_DEFAULT_ACTOR_ID) {
     throw new Error('Cannot delete the default actor');
   }
-
-  const actor = await db.selectById<Actor>(TABLE_ACTORS, actorId);
-  if (!actor) throw new Error(`Actor ${actorId} not found`);
-
-  // Capture localization for undo
-  const localization = actor.localized_name
-    ? await db.selectById<Localization>(TABLE_LOCALIZATIONS, actor.localized_name)
-    : null;
-
-  // Capture nodes that will be reassigned for undo
-  const nodesUsingActor = await db.select<Node>(
-    TABLE_NODES,
-    query<Node>().where('actor').eq(actorId).build()
-  );
-
   await deleteInternal(actorId);
-
-  const capturedActor = { ...actor };
-  const capturedLocalization = localization ? { ...localization } : null;
-  const capturedNodeIds = nodesUsingActor.map(n => n.id);
-
-  registerUndoable(
-    new Undoable(
-      `Delete actor "${actor.name}"`,
-      async () => {
-        // Use transaction to restore atomically
-        await db.transaction(async (tx) => {
-          // Restore localization first (actor references it)
-          if (capturedLocalization) {
-            await db.insertWithId<Localization>(TABLE_LOCALIZATIONS, capturedLocalization, tx);
-          }
-          // Restore actor
-          await db.insertWithId<Actor>(TABLE_ACTORS, capturedActor, tx);
-          // Restore node actor assignments
-          for (const nodeId of capturedNodeIds) {
-            await db.updatePartial<Node>(TABLE_NODES, nodeId, { actor: capturedActor.id }, tx);
-          }
-        });
-      },
-      async () => {
-        await deleteInternal(capturedActor.id);
-      }
-    )
-  );
-}
-
-
-// ============================================================================
-// Internal
-// ============================================================================
-
-async function deleteInternal(actorId: number): Promise<void> {
-  await db.transaction(async (tx) => {
-    const actor = await db.selectById<Actor>(TABLE_ACTORS, actorId, tx);
-    if (!actor) throw new Error(`Actor ${actorId} not found`);
-
-    // Reassign nodes to default actor
-    const nodesUsingActor = await db.select<Node>(
-      TABLE_NODES,
-      query<Node>().where('actor').eq(actorId).build(),
-      tx
-    );
-    for (const node of nodesUsingActor) {
-      await db.updatePartial<Node>(TABLE_NODES, node.id, { actor: DB_DEFAULT_ACTOR_ID }, tx);
-    }
-
-    // Delete actor
-    await db.delete(TABLE_ACTORS, actorId, tx);
-
-    // Delete localized name
-    if (actor.localized_name) {
-      await db.delete(TABLE_LOCALIZATIONS, actor.localized_name, tx);
-    }
-  });
+  // Not undoable: reassigns potentially many nodes, user confirms via modal.
 }

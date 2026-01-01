@@ -39,16 +39,14 @@ export interface Named {
 export interface Table extends Row, Named {}
 
 ///
-/// Filters
-///
-export interface Filter extends Row, Annotated, Named {}
-
-///
 /// Conversations
 ///
 export interface Conversation extends Row, SystemCreatable, Annotated, Deletable, Named {
   is_layout_auto: boolean;
   is_layout_vertical: boolean;
+  // Dynamic tag columns: tag_category_1, tag_category_2, etc.
+  // Each references a ConversationTagValue.id or null
+  [key: `tag_category_${number}`]: number | null;
 }
 
 ///
@@ -69,6 +67,9 @@ export interface LocalePrincipal extends Row, Principaled {}
 export interface Localization extends Row, SystemCreatable, ConversationChild, Named {
   // Dynamic locale columns: locale_1, locale_2, etc.
   [key: `locale_${number}`]: string | null;
+  // Dynamic tag columns: tag_category_1, tag_category_2, etc.
+  // Each references a LocalizationTagValue.id or null
+  [key: `tag_category_${number}`]: number | null;
 }
 
 ///
@@ -166,3 +167,35 @@ export interface NodeProperty extends Row {
 export interface CodeOutputFolder extends Row {
   value: string | null;
 }
+
+///
+/// Base Tag Types (for generic CRUD and UI components)
+///
+
+/** Base interface for tag categories - used by generic tag CRUD and UI components */
+export interface BaseTagCategory extends Row, Named {}
+
+/** Base interface for tag values - used by generic tag CRUD and UI components */
+export interface BaseTagValue extends Row, Named {
+  category_id: number;
+}
+
+///
+/// Conversation Tag Categories
+///
+export interface ConversationTagCategory extends BaseTagCategory {}
+
+///
+/// Conversation Tag Values
+///
+export interface ConversationTagValue extends BaseTagValue {}
+
+///
+/// Localization Tag Categories
+///
+export interface LocalizationTagCategory extends BaseTagCategory {}
+
+///
+/// Localization Tag Values
+///
+export interface LocalizationTagValue extends BaseTagValue {}

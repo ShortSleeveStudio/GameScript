@@ -17,7 +17,11 @@
     } from '$lib/constants/events';
     import Button from './Button.svelte';
 
-    export let rowView: IDbRowView<Conversation>;
+    interface Props {
+        rowView: IDbRowView<Conversation>;
+    }
+
+    let { rowView }: Props = $props();
 
     function onClick(): void {
         // Filter localization editor by this conversation's ID

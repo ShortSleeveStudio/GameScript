@@ -10,32 +10,51 @@
      * - Auto-resize option
      * - Configurable rows
      * - Full width by default
-     * - Events: input, change, blur, keydown, keyup
+     * - Callbacks: oninput, onchange, onblur, onkeydown, onkeyup
      */
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { onMount } from 'svelte';
 
-    /** Current value */
-    export let value: string = '';
-    /** Placeholder text */
-    export let placeholder: string = '';
-    /** Whether the textarea is disabled */
-    export let disabled: boolean = false;
-    /** Whether the textarea is in an invalid/error state */
-    export let invalid: boolean = false;
-    /** Number of visible rows */
-    export let rows: number = 3;
-    /** Whether to auto-resize based on content */
-    export let autoResize: boolean = false;
-    /** Reference to the textarea element */
-    export let textareaElement: HTMLTextAreaElement | undefined = undefined;
+    interface Props {
+        /** Current value */
+        value?: string;
+        /** Placeholder text */
+        placeholder?: string;
+        /** Whether the textarea is disabled */
+        disabled?: boolean;
+        /** Whether the textarea is in an invalid/error state */
+        invalid?: boolean;
+        /** Number of visible rows */
+        rows?: number;
+        /** Whether to auto-resize based on content */
+        autoResize?: boolean;
+        /** Reference to the textarea element */
+        textareaElement?: HTMLTextAreaElement;
+        /** Callback on input */
+        oninput?: (event: Event) => void;
+        /** Callback on change */
+        onchange?: (event: Event) => void;
+        /** Callback on blur */
+        onblur?: (event: FocusEvent) => void;
+        /** Callback on keydown */
+        onkeydown?: (event: KeyboardEvent) => void;
+        /** Callback on keyup */
+        onkeyup?: (event: KeyboardEvent) => void;
+    }
 
-    const dispatch = createEventDispatcher<{
-        input: Event;
-        change: Event;
-        blur: FocusEvent;
-        keydown: KeyboardEvent;
-        keyup: KeyboardEvent;
-    }>();
+    let {
+        value = $bindable(''),
+        placeholder = '',
+        disabled = false,
+        invalid = false,
+        rows = 3,
+        autoResize = false,
+        textareaElement = $bindable(),
+        oninput,
+        onchange,
+        onblur,
+        onkeydown,
+        onkeyup,
+    }: Props = $props();
 
     function resize(): void {
         if (autoResize && textareaElement) {
@@ -52,24 +71,24 @@
 
     function handleInput(event: Event): void {
         if (autoResize) resize();
-        dispatch('input', event);
+        oninput?.(event);
     }
 
     function handleChange(event: Event): void {
-        dispatch('change', event);
+        onchange?.(event);
     }
 
     function handleBlur(event: FocusEvent): void {
-        dispatch('blur', event);
+        onblur?.(event);
     }
 
     function handleKeydown(event: KeyboardEvent): void {
-        dispatch('keydown', event);
+        onkeydown?.(event);
     }
 
     function handleKeyup(event: KeyboardEvent): void {
         if (autoResize) resize();
-        dispatch('keyup', event);
+        onkeyup?.(event);
     }
 </script>
 
@@ -81,11 +100,11 @@
     {placeholder}
     {rows}
     bind:value
-    on:input={handleInput}
-    on:change={handleChange}
-    on:blur={handleBlur}
-    on:keydown={handleKeydown}
-    on:keyup={handleKeyup}
+    oninput={handleInput}
+    onchange={handleChange}
+    onblur={handleBlur}
+    onkeydown={handleKeydown}
+    onkeyup={handleKeyup}
 ></textarea>
 
 <style>

@@ -8,32 +8,49 @@
    * - Escape key to close
    * - Customizable title and content via slots
    * - Confirm/Cancel buttons with customizable labels and variants
+   *
+   * Styles are defined in theme.css under .gs-modal-* classes.
    */
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import Button from './Button.svelte';
 
-  export let open = false;
-  export let title: string;
-  export let confirmLabel = 'Confirm';
-  export let cancelLabel = 'Cancel';
-  export let confirmDisabled = false;
-  export let confirmVariant: 'primary' | 'danger' = 'primary';
-  export let closeOnClickOutside = true;
-  export let size: 'small' | 'medium' | 'large' = 'medium';
+  interface Props {
+    open?: boolean;
+    title: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    confirmDisabled?: boolean;
+    confirmVariant?: 'primary' | 'danger';
+    closeOnClickOutside?: boolean;
+    size?: 'small' | 'medium' | 'large';
+    onconfirm?: () => void;
+    oncancel?: () => void;
+    onclose?: () => void;
+    children?: import('svelte').Snippet;
+  }
 
-  const dispatch = createEventDispatcher<{
-    confirm: void;
-    cancel: void;
-    close: void;
-  }>();
+  let {
+    open = $bindable(false),
+    title,
+    confirmLabel = 'Confirm',
+    cancelLabel = 'Cancel',
+    confirmDisabled = false,
+    confirmVariant = 'primary',
+    closeOnClickOutside = true,
+    size = 'medium',
+    onconfirm,
+    oncancel,
+    onclose,
+    children,
+  }: Props = $props();
 
   function handleConfirm() {
-    dispatch('confirm');
+    onconfirm?.();
   }
 
   function handleCancel() {
-    dispatch('cancel');
-    dispatch('close');
+    oncancel?.();
+    onclose?.();
   }
 
   function handleOverlayClick() {
@@ -58,13 +75,14 @@
 </script>
 
 {#if open}
-  <div class="gs-modal-overlay" on:click={handleOverlayClick}>
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+  <div class="gs-modal-overlay" onclick={handleOverlayClick}>
     <div
       class="gs-modal"
       class:gs-modal-small={size === 'small'}
       class:gs-modal-medium={size === 'medium'}
       class:gs-modal-large={size === 'large'}
-      on:click|stopPropagation
+      onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
@@ -72,7 +90,9 @@
       <h2 id="modal-title" class="gs-modal-title">{title}</h2>
 
       <div class="gs-modal-content">
-        <slot />
+        {#if children}
+          {@render children()}
+        {/if}
       </div>
 
       <div class="gs-modal-actions">
@@ -91,67 +111,4 @@
   </div>
 {/if}
 
-<style>
-  /* Overlay - absolutely positioned to cover entire viewport */
-  .gs-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    backdrop-filter: blur(2px);
-  }
-
-  /* Modal dialog */
-  .gs-modal {
-    background-color: var(--gs-bg-primary);
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    padding: 24px;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .gs-modal-small {
-    width: 400px;
-    max-width: 90vw;
-  }
-
-  .gs-modal-medium {
-    width: 600px;
-    max-width: 90vw;
-  }
-
-  .gs-modal-large {
-    width: 800px;
-    max-width: 90vw;
-  }
-
-  .gs-modal-title {
-    margin: 0;
-    font-size: var(--gs-font-size-large);
-    font-weight: 600;
-    color: var(--gs-fg-primary);
-  }
-
-  .gs-modal-content {
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .gs-modal-actions {
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    padding-top: 8px;
-    border-top: 1px solid var(--gs-border-primary);
-  }
-</style>
+<!-- Styles are defined in theme.css under .gs-modal-* classes -->

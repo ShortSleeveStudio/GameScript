@@ -31,6 +31,8 @@
     GridCellEditorText,
     GRID_CACHE_BLOCK_SIZE,
     GRID_CACHE_MAX_BLOCKS,
+    GRID_ROW_HEIGHT,
+    GRID_HEADER_HEIGHT,
     GRID_FILTER_PARAMS_TEXT,
     GRID_FILTER_PARAMS_NUMBER,
     loadGridLayout,
@@ -277,6 +279,8 @@
       context: { getGridApi, getPrincipalRowView, onPrimaryChange } as RadioCellRendererContext,
       rowModelType: 'infinite',
       columnDefs,
+      headerHeight: GRID_HEADER_HEIGHT,
+      rowHeight: GRID_ROW_HEIGHT,
       rowSelection: 'multiple',
       suppressRowClickSelection: true,
       onSelectionChanged,
@@ -336,7 +340,7 @@
 
 <div class="locale-manager gs-grid-panel">
   <GridToolbar>
-    <svelte:fragment slot="left">
+    {#snippet left()}
       <Button
         variant="primary"
         onclick={handleCreateClick}
@@ -352,11 +356,11 @@
           Delete
         </Button>
       {/if}
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="right">
+    {#snippet right()}
       <TableOptionsMenu {api} />
-    </svelte:fragment>
+    {/snippet}
   </GridToolbar>
 
   <!-- Grid -->
@@ -375,8 +379,8 @@
   confirmLabel="Create"
   confirmDisabled={!!nameError || !newLocaleName}
   size="small"
-  on:confirm={handleCreateConfirm}
-  on:cancel={handleCreateCancel}
+  onconfirm={handleCreateConfirm}
+  oncancel={handleCreateCancel}
 >
   <FormField label="Locale Name" error={nameError}>
     <NewRowNameInput
@@ -398,8 +402,8 @@
   confirmLabel="Delete"
   confirmVariant="danger"
   size="small"
-  on:confirm={handleConfirmDelete}
-  on:cancel={handleCancelDelete}
+  onconfirm={handleConfirmDelete}
+  oncancel={handleCancelDelete}
 >
   <p class="modal-text">
     Deleting {localesToDelete.length === 1 ? 'a locale' : `${localesToDelete.length} locales`} destroys all translations for {localesToDelete.length === 1 ? 'that locale' : 'those locales'}.

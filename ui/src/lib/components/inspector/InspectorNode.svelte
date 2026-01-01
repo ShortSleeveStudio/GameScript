@@ -125,7 +125,7 @@
             Conditions control whether this node is available. Actions run when the node plays.
         </p>
 
-        {#if codeOutputFolderTableView.isLoading}
+        {#if !codeOutputFolderTableView.isInitialized}
             <div class="code-folder-config">
                 <span class="code-folder-loading">Loading...</span>
             </div>

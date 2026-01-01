@@ -1,16 +1,12 @@
 <script lang="ts" module>
-    /**
-     * Dropdown option configuration.
-     */
-    export interface DropdownOption {
-        /** Value for the option */
-        value: string | number;
-        /** Display label */
-        label: string;
-    }
+    // Re-export from side-car types file for backwards compatibility
+    export type { DropdownOption } from './Dropdown.types.js';
 </script>
 
 <script lang="ts">
+    import type { DropdownOption } from './Dropdown.types.js';
+    import type { Snippet } from 'svelte';
+
     /**
      * Standardized dropdown select component.
      *
@@ -22,7 +18,6 @@
      * - Full width or auto width
      * - Disabled state
      */
-    import type { Snippet } from 'svelte';
 
     interface Props {
         /** Static options to render */

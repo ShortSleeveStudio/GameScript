@@ -11,6 +11,7 @@ import { EnterpriseCoreModule, LicenseManager } from '@ag-grid-enterprise/core';
 import { FiltersToolPanelModule } from '@ag-grid-enterprise/filter-tool-panel';
 import { MenuModule } from '@ag-grid-enterprise/menu';
 import { SideBarModule } from '@ag-grid-enterprise/side-bar';
+import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 
 // AG-Grid styles - must be imported for grid to render correctly
 import '@ag-grid-community/styles/ag-grid.css';
@@ -42,6 +43,7 @@ export function initializeGrid(): void {
     ColumnsToolPanelModule,
     FiltersToolPanelModule,
     MenuModule,
+    SetFilterModule,
   ]);
 }
 

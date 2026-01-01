@@ -82,6 +82,9 @@ importers:
       '@ag-grid-enterprise/menu':
         specifier: ^31.2.0
         version: 31.3.4
+      '@ag-grid-enterprise/set-filter':
+        specifier: ^31.2.0
+        version: 31.3.4
       '@ag-grid-enterprise/side-bar':
         specifier: ^31.2.0
         version: 31.3.4
@@ -142,6 +145,9 @@ packages:
 
   '@ag-grid-enterprise/row-grouping@31.3.4':
     resolution: {integrity: sha512-+grVurDVLuBICW/J4489f6vIeGmrLqshnDNJfbf17csgLRCtSXDAd1iI3RXJG7nVuLrb68Rk3lIZ5ucXILZBug==}
+
+  '@ag-grid-enterprise/set-filter@31.3.4':
+    resolution: {integrity: sha512-Y3kGMxvKLtC8UJo8vcdr0B6kF32mjhtlokPaL3D0MaTaJUp8EEgid3UKP7279pEmcpgoPLnjTF1rhcLGyS45NQ==}
 
   '@ag-grid-enterprise/side-bar@31.3.4':
     resolution: {integrity: sha512-9UNhLJHn2EE03+tcqQsiUGTxMYHZYk2WN2sc8pGvm9gC3Esr1bLxBEvjmzLms5k4JLGdc3ypj9EDAGQ736CA2A==}
@@ -1466,6 +1472,11 @@ snapshots:
       '@ag-grid-enterprise/core': 31.3.4
 
   '@ag-grid-enterprise/row-grouping@31.3.4':
+    dependencies:
+      '@ag-grid-community/core': 31.3.4
+      '@ag-grid-enterprise/core': 31.3.4
+
+  '@ag-grid-enterprise/set-filter@31.3.4':
     dependencies:
       '@ag-grid-community/core': 31.3.4
       '@ag-grid-enterprise/core': 31.3.4

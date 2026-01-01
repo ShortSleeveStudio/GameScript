@@ -22,9 +22,12 @@
     rowView: IDbRowView<T>;
     showType?: boolean;
     typeOptions?: DropdownOption[];
+    selectable?: boolean;
+    selected?: boolean;
     onrename?: (payload: { rowView: IDbRowView<T>; name: string }) => void;
     ontypeChange?: (payload: { rowView: IDbRowView<T>; type: number }) => void;
     ondelete?: (payload: { rowView: IDbRowView<T> }) => void;
+    onselect?: (payload: { rowView: IDbRowView<T> }) => void;
   }
 
   // ============================================================================
@@ -35,9 +38,12 @@
     rowView,
     showType = false,
     typeOptions = [],
+    selectable = false,
+    selected = false,
     onrename,
     ontypeChange,
     ondelete,
+    onselect,
   }: Props = $props();
 
   // ============================================================================
@@ -58,13 +64,27 @@
   function handleDelete() {
     ondelete?.({ rowView });
   }
+
+  function handleRowClick() {
+    if (selectable) {
+      onselect?.({ rowView });
+    }
+  }
 </script>
 
-<div class="item-row">
+<div
+  class="item-row"
+  class:selectable
+  class:selected
+  onclick={handleRowClick}
+  onkeydown={(e) => e.key === 'Enter' && handleRowClick()}
+  role={selectable ? 'button' : undefined}
+  tabindex={selectable ? 0 : undefined}
+>
   <div class="item-name">
     <InlineEdit
       value={rowView.data.name}
-      on:save={({ detail }) => handleRename(detail)}
+      onsave={handleRename}
     />
   </div>
   {#if showType}
@@ -93,8 +113,32 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 0;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--gs-border-primary);
+    margin: 0 -8px;
+  }
+
+  .item-row.selectable {
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid var(--gs-border-primary);
+    margin: 2px -8px;
+    transition: background-color 0.1s, border-color 0.1s;
+  }
+
+  .item-row.selectable:hover {
+    background: var(--gs-list-hover-bg);
+    border-color: var(--gs-border-secondary);
+  }
+
+  .item-row.selected {
+    background: var(--gs-list-selected-bg);
+    border-color: var(--gs-border-focus);
+  }
+
+  .item-row.selected:hover {
+    background: var(--gs-list-selected-bg);
+    border-color: var(--gs-border-focus);
   }
 
   .item-name {

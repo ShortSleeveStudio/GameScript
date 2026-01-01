@@ -23,7 +23,8 @@ import {
     TABLE_ACTORS,
     TABLE_LOCALES,
     TABLE_LOCALIZATIONS,
-    TABLE_FILTERS,
+    TABLE_CONVERSATION_TAG_CATEGORIES,
+    TABLE_LOCALIZATION_TAG_CATEGORIES,
 } from '@gamescript/shared';
 import type { IDbRowView } from '$lib/db/db-view-row-interface.js';
 import type { FocusChangeEvent, LocalePrincipal  } from '@gamescript/shared';
@@ -96,15 +97,19 @@ export interface FocusPayloadLocale extends FocusPayload {
     localePrincipalRowView: IDbRowView<LocalePrincipal>;
 }
 
-export interface FocusPayloadFilter extends FocusPayload {
-    uniqueNameTracker: UniqueNameTracker;
-}
-
 export interface FocusPayloadGraphElement extends FocusPayload {
     requestIsFromGraph: boolean;
 }
 
 export interface FocusPayloadLocalization extends FocusPayload {
+    // Currently empty, but can be extended with additional data if needed
+}
+
+export interface FocusPayloadConversationTagCategory extends FocusPayload {
+    // Currently empty, but can be extended with additional data if needed
+}
+
+export interface FocusPayloadLocalizationTagCategory extends FocusPayload {
     // Currently empty, but can be extended with additional data if needed
 }
 
@@ -314,6 +319,26 @@ export const focusedActor: Readable<number | null> = derived(focusedActors, ($id
     $ids.length === 1 ? $ids[0] : null
 );
 
+/** Currently focused conversation tag category IDs */
+export const focusedConversationTagCategories: Readable<number[]> = derived(focusState, ($state) =>
+    Array.from($state.get(TABLE_CONVERSATION_TAG_CATEGORIES.id)?.keys() ?? [])
+);
+
+/** The single focused conversation tag category (if exactly one is selected) */
+export const focusedConversationTagCategory: Readable<number | null> = derived(focusedConversationTagCategories, ($ids) =>
+    $ids.length === 1 ? $ids[0] : null
+);
+
+/** Currently focused localization tag category IDs */
+export const focusedLocalizationTagCategories: Readable<number[]> = derived(focusState, ($state) =>
+    Array.from($state.get(TABLE_LOCALIZATION_TAG_CATEGORIES.id)?.keys() ?? [])
+);
+
+/** The single focused localization tag category (if exactly one is selected) */
+export const focusedLocalizationTagCategory: Readable<number | null> = derived(focusedLocalizationTagCategories, ($ids) =>
+    $ids.length === 1 ? $ids[0] : null
+);
+
 /** Whether anything is currently selected */
 export const hasSelection: Readable<boolean> = derived(focusState, ($state) => {
     for (const map of $state.values()) {
@@ -423,15 +448,31 @@ export function focusLocalization(id: number, payload?: FocusPayload): void {
 }
 
 /**
- * Focus a single filter.
+ * Focus a single conversation tag category.
  */
-export function focusFilter(id: number, payload?: FocusPayload): void {
+export function focusConversationTagCategory(id: number, payload?: FocusPayload): void {
     const focusMap = new Map<number, Focus>();
     focusMap.set(id, { rowId: id, payload });
     focusManager.focus({
         type: FOCUS_MODE_REPLACE,
         requests: [{
-            tableType: TABLE_FILTERS,
+            tableType: TABLE_CONVERSATION_TAG_CATEGORIES,
+            focus: focusMap,
+            type: FOCUS_REPLACE,
+        }],
+    });
+}
+
+/**
+ * Focus a single localization tag category.
+ */
+export function focusLocalizationTagCategory(id: number, payload?: FocusPayload): void {
+    const focusMap = new Map<number, Focus>();
+    focusMap.set(id, { rowId: id, payload });
+    focusManager.focus({
+        type: FOCUS_MODE_REPLACE,
+        requests: [{
+            tableType: TABLE_LOCALIZATION_TAG_CATEGORIES,
             focus: focusMap,
             type: FOCUS_REPLACE,
         }],
@@ -475,6 +516,8 @@ const FOCUSABLE_TABLE_MAP: Record<string, TableType> = {
     actors: TABLE_ACTORS,
     locales: TABLE_LOCALES,
     localizations: TABLE_LOCALIZATIONS,
+    conversation_tag_categories: TABLE_CONVERSATION_TAG_CATEGORIES,
+    localization_tag_categories: TABLE_LOCALIZATION_TAG_CATEGORIES,
 };
 
 let focusStoreInitialized = false;

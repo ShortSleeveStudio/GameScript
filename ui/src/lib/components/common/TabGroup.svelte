@@ -1,18 +1,11 @@
-<script lang="ts" context="module">
-    /**
-     * Tab item configuration.
-     */
-    export interface TabItem {
-        /** Unique identifier for the tab */
-        id: string;
-        /** Display label for the tab */
-        label: string;
-        /** Optional: whether the tab is disabled */
-        disabled?: boolean;
-    }
+<script lang="ts" module>
+    // Re-export from side-car types file for backwards compatibility
+    export type { TabItem } from './TabGroup.types.js';
 </script>
 
 <script lang="ts">
+    import type { TabItem } from './TabGroup.types.js';
+
     /**
      * TabGroup component for tab-style selection.
      *
@@ -35,28 +28,33 @@
      * ```
      */
 
-    import { createEventDispatcher } from 'svelte';
+    interface Props {
+        /** Array of tab items */
+        tabs?: TabItem[];
+        /** Currently selected tab id */
+        selected?: string;
+        /** Size variant */
+        size?: 'default' | 'small';
+        /** Whether tabs should stretch to fill available width */
+        fullWidth?: boolean;
+        /** Callback when tab selection changes */
+        onchange?: (tabId: string) => void;
+    }
 
-    /** Array of tab items */
-    export let tabs: TabItem[] = [];
-
-    /** Currently selected tab id */
-    export let selected: string = '';
-
-    /** Size variant */
-    export let size: 'default' | 'small' = 'default';
-
-    /** Whether tabs should stretch to fill available width */
-    export let fullWidth: boolean = true;
-
-    const dispatch = createEventDispatcher<{ change: string }>();
+    let {
+        tabs = [],
+        selected = $bindable(''),
+        size = 'default',
+        fullWidth = true,
+        onchange,
+    }: Props = $props();
 
     function selectTab(tabId: string): void {
         const tab = tabs.find(t => t.id === tabId);
         if (tab?.disabled) return;
 
         selected = tabId;
-        dispatch('change', tabId);
+        onchange?.(tabId);
     }
 </script>
 
@@ -68,7 +66,7 @@
             class:tab-disabled={tab.disabled}
             type="button"
             disabled={tab.disabled}
-            on:click={() => selectTab(tab.id)}
+            onclick={() => selectTab(tab.id)}
             aria-selected={selected === tab.id}
             role="tab"
         >

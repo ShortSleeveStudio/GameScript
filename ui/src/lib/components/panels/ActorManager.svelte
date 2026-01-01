@@ -30,6 +30,8 @@
     GridCellEditorText,
     GRID_CACHE_BLOCK_SIZE,
     GRID_CACHE_MAX_BLOCKS,
+    GRID_ROW_HEIGHT,
+    GRID_HEADER_HEIGHT,
     GRID_FILTER_PARAMS_TEXT,
     GRID_FILTER_PARAMS_NUMBER,
     loadGridLayout,
@@ -219,6 +221,8 @@
       context: { getGridApi, onColorChange } as ColorCellRendererContext,
       rowModelType: 'infinite',
       columnDefs,
+      headerHeight: GRID_HEADER_HEIGHT,
+      rowHeight: GRID_ROW_HEIGHT,
       rowSelection: 'multiple',
       suppressRowClickSelection: true,
       onSelectionChanged,
@@ -275,7 +279,7 @@
 
 <div class="actor-manager gs-grid-panel">
   <GridToolbar>
-    <svelte:fragment slot="left">
+    {#snippet left()}
       <Button
         variant="primary"
         onclick={handleCreate}
@@ -291,11 +295,11 @@
           Delete
         </Button>
       {/if}
-    </svelte:fragment>
+    {/snippet}
 
-    <svelte:fragment slot="right">
+    {#snippet right()}
       <TableOptionsMenu {api} />
-    </svelte:fragment>
+    {/snippet}
   </GridToolbar>
 
   <!-- Grid -->
@@ -313,8 +317,8 @@
   itemCount={actorsToDelete.length}
   itemName="actor"
   itemNamePlural="actors"
-  on:confirm={handleConfirmDelete}
-  on:cancel={handleCancelDelete}
+  onconfirm={handleConfirmDelete}
+  oncancel={handleCancelDelete}
 >
   If you delete {actorsToDelete.length === 1 ? 'an actor' : `${actorsToDelete.length} actors`},
   all nodes that use {actorsToDelete.length === 1 ? 'it' : 'them'} will return to using the default actor.

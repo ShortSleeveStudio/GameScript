@@ -17,7 +17,6 @@
 </script>
 
 <script lang="ts" generics="T extends import('@gamescript/shared').Row & { name: string; type?: number }">
-  import { createEventDispatcher } from 'svelte';
   import type { IDbRowView } from '$lib/db';
   import Button from './Button.svelte';
   import EditableListItem from './EditableListItem.svelte';
@@ -38,6 +37,18 @@
     showType?: boolean;
     typeOptions?: TypeOption[];
     isConnected?: boolean;
+    selectable?: boolean;
+    selectedId?: number | null;
+    /** Callback when add button is clicked */
+    onadd?: () => void;
+    /** Callback when an item is renamed */
+    onrename?: (payload: { rowView: IDbRowView<T>; name: string }) => void;
+    /** Callback when an item's type is changed */
+    ontypeChange?: (payload: { rowView: IDbRowView<T>; type: number }) => void;
+    /** Callback when an item is deleted */
+    ondelete?: (payload: { rowView: IDbRowView<T> }) => void;
+    /** Callback when an item is selected */
+    onselect?: (payload: { rowView: IDbRowView<T> }) => void;
   }
 
   let {
@@ -52,6 +63,13 @@
     showType = false,
     typeOptions = [],
     isConnected = false,
+    selectable = false,
+    selectedId = null,
+    onadd,
+    onrename,
+    ontypeChange,
+    ondelete,
+    onselect,
   }: Props = $props();
 
   // ============================================================================
@@ -61,23 +79,20 @@
   let showDeleteModal = $state(false);
   let rowViewToDelete: IDbRowView<T> | null = $state(null);
 
-  const dispatch = createEventDispatcher<{
-    add: void;
-    rename: { rowView: IDbRowView<T>; name: string };
-    typeChange: { rowView: IDbRowView<T>; type: number };
-    delete: { rowView: IDbRowView<T> };
-  }>();
-
   // ============================================================================
   // Handlers
   // ============================================================================
 
   function handleRename(payload: { rowView: IDbRowView<T>; name: string }) {
-    dispatch('rename', payload);
+    onrename?.(payload);
   }
 
   function handleTypeChange(payload: { rowView: IDbRowView<T>; type: number }) {
-    dispatch('typeChange', payload);
+    ontypeChange?.(payload);
+  }
+
+  function handleSelect(payload: { rowView: IDbRowView<T> }) {
+    onselect?.(payload);
   }
 
   function confirmDelete(payload: { rowView: IDbRowView<T> }) {
@@ -92,12 +107,12 @@
 
   function handleDelete() {
     if (!rowViewToDelete) return;
-    dispatch('delete', { rowView: rowViewToDelete });
+    ondelete?.({ rowView: rowViewToDelete });
     cancelDelete();
   }
 
   function handleAdd() {
-    dispatch('add');
+    onadd?.();
   }
 
   // Convert typeOptions to Dropdown options format
@@ -123,10 +138,13 @@
         <EditableListItem
           {rowView}
           {showType}
+          {selectable}
+          selected={rowView.id === selectedId}
           typeOptions={dropdownTypeOptions}
           onrename={handleRename}
           ontypeChange={handleTypeChange}
           ondelete={confirmDelete}
+          onselect={handleSelect}
         />
       {:else}
         <div class="empty-state">{emptyText}</div>

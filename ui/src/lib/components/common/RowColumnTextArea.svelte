@@ -55,8 +55,8 @@
         }
     });
 
-    function onKeyUp(e: CustomEvent<KeyboardEvent>): void {
-        if (wasSavePressed(e.detail)) {
+    function onKeyUp(e: KeyboardEvent): void {
+        if (wasSavePressed(e)) {
             textareaEl?.blur();
         }
     }
@@ -87,8 +87,8 @@
         {placeholder}
         {rows}
         {autoResize}
-        on:blur={syncOnBlur}
-        on:keyup={onKeyUp}
+        onblur={syncOnBlur}
+        onkeyup={onKeyUp}
     />
 </div>
 

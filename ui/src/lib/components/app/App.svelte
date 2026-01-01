@@ -80,7 +80,7 @@
     let connected = $derived($dbConnected);
 </script>
 
-<div class="app" on:contextmenu={handleContextMenu}>
+<div class="app" oncontextmenu={handleContextMenu}>
     {#if !initialized}
         <div class="loading">
             <p>Initializing...</p>
@@ -92,20 +92,24 @@
             initialRightWidth={320}
             storageKey="gs-inspector-width"
         >
-            <div slot="left" class="dock-container">
-                {#if connected}
-                    <Dock />
-                {:else}
-                    <div class="welcome">
-                        <h1>GameScript</h1>
-                        <p class="subtitle">Dialogue authoring for games</p>
-                        <p class="hint">Connect to a database using the panel on the right to get started.</p>
-                    </div>
-                {/if}
-            </div>
-            <div slot="right" class="inspector-container">
-                <InspectorPanel />
-            </div>
+            {#snippet left()}
+                <div class="dock-container">
+                    {#if connected}
+                        <Dock />
+                    {:else}
+                        <div class="welcome">
+                            <h1>GameScript</h1>
+                            <p class="subtitle">Dialogue authoring for games</p>
+                            <p class="hint">Connect to a database using the panel on the right to get started.</p>
+                        </div>
+                    {/if}
+                </div>
+            {/snippet}
+            {#snippet right()}
+                <div class="inspector-container">
+                    <InspectorPanel />
+                </div>
+            {/snippet}
         </ResizableSplit>
     {/if}
 </div>

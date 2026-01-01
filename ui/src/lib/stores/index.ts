@@ -63,7 +63,6 @@ export {
   type FocusPayload,
   type FocusPayloadActor,
   type FocusPayloadLocale,
-  type FocusPayloadFilter,
   type FocusPayloadGraphElement,
   type FocusRequest,
   type FocusRequests,
@@ -147,7 +146,6 @@ export {
   localizationEditorIsVisible,
   actorManagerIsVisible,
   localeManagerIsVisible,
-  settingsIsVisible,
 } from './layout.js';
 
 // ============================================================================

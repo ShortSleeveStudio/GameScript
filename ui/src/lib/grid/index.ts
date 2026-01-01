@@ -44,6 +44,8 @@ export { initializeGrid, isGridInitialized } from './initialization.js';
 export {
   GRID_CACHE_BLOCK_SIZE,
   GRID_CACHE_MAX_BLOCKS,
+  GRID_ROW_HEIGHT,
+  GRID_HEADER_HEIGHT,
   GRID_FILTER_PARAMS_TEXT,
   GRID_FILTER_PARAMS_NUMBER,
   loadGridLayout,
@@ -63,6 +65,7 @@ export { GridDatasource } from './datasource.svelte.js';
 export { GridCellRenderer, createCellRenderer } from './cell-renderer.svelte.js';
 export { GridCellRendererRadio, type RadioCellRendererContext } from './cell-renderer-radio.svelte.js';
 export { GridCellRendererColor, type ColorCellRendererContext } from './cell-renderer-color.svelte.js';
+export { GridCellRendererTag } from './cell-renderer-tag.svelte.js';
 export { GridCellEditorText, createTextCellEditor } from './cell-editor-text.js';
 export {
   GridCellEditorNumber,
@@ -73,6 +76,16 @@ export {
   GridCellEditorConversationId,
   createConversationIdCellEditor,
 } from './cell-editor-conversation-id.js';
+export { GridCellEditorTag, type TagCellEditorParams } from './cell-editor-tag.svelte.js';
+
+// Tag column utilities
+export {
+  type TagGridContext,
+  type TagEntityCrud,
+  type BuildTagColumnsConfig,
+  createTagValueChangeHandler,
+  buildTagColumns,
+} from './tag-columns.js';
 
 // Filters
 export { BooleanFilter, type BooleanFilterModel } from './filter-boolean.js';

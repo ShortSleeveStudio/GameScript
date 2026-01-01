@@ -28,28 +28,35 @@ export interface TableRef {
   name: string;
 }
 
-// Core tables with IDs matching the Electron app
+// Core tables
 export const TABLE_TABLES: TableRef = { id: 0, name: 'tables' };
 export const TABLE_AUTO_COMPLETES: TableRef = { id: 1, name: 'auto_completes' };
 export const TABLE_PROGRAMMING_LANGUAGES: TableRef = { id: 2, name: 'programming_languages' };
 export const TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL: TableRef = { id: 3, name: 'programming_language_principal' };
 export const TABLE_ROUTINE_TYPES: TableRef = { id: 4, name: 'routine_types' };
 export const TABLE_ROUTINES: TableRef = { id: 5, name: 'routines' };
-export const TABLE_FILTERS: TableRef = { id: 6, name: 'filters' };
-export const TABLE_CONVERSATIONS: TableRef = { id: 7, name: 'conversations' };
-export const TABLE_LOCALES: TableRef = { id: 8, name: 'locales' };
-export const TABLE_LOCALE_PRINCIPAL: TableRef = { id: 9, name: 'locale_principal' };
-export const TABLE_LOCALIZATIONS: TableRef = { id: 10, name: 'localizations' };
-export const TABLE_ACTORS: TableRef = { id: 11, name: 'actors' };
-export const TABLE_ACTOR_PRINCIPAL: TableRef = { id: 12, name: 'actor_principal' };
-export const TABLE_NODES: TableRef = { id: 13, name: 'nodes' };
-export const TABLE_EDGES: TableRef = { id: 14, name: 'edges' };
-export const TABLE_VERSION: TableRef = { id: 15, name: 'version' };
-export const TABLE_NOTIFICATIONS: TableRef = { id: 16, name: 'notifications' };
-export const TABLE_PROPERTY_TYPES: TableRef = { id: 17, name: 'property_types' };
-export const TABLE_PROPERTY_TEMPLATES: TableRef = { id: 18, name: 'property_templates' };
-export const TABLE_NODE_PROPERTIES: TableRef = { id: 19, name: 'node_properties' };
-export const TABLE_CODE_OUTPUT_FOLDER: TableRef = { id: 20, name: 'code_output_folder' };
+export const TABLE_CONVERSATIONS: TableRef = { id: 6, name: 'conversations' };
+export const TABLE_LOCALES: TableRef = { id: 7, name: 'locales' };
+export const TABLE_LOCALE_PRINCIPAL: TableRef = { id: 8, name: 'locale_principal' };
+export const TABLE_LOCALIZATIONS: TableRef = { id: 9, name: 'localizations' };
+export const TABLE_ACTORS: TableRef = { id: 10, name: 'actors' };
+export const TABLE_ACTOR_PRINCIPAL: TableRef = { id: 11, name: 'actor_principal' };
+export const TABLE_NODES: TableRef = { id: 12, name: 'nodes' };
+export const TABLE_EDGES: TableRef = { id: 13, name: 'edges' };
+export const TABLE_VERSION: TableRef = { id: 14, name: 'version' };
+export const TABLE_NOTIFICATIONS: TableRef = { id: 15, name: 'notifications' };
+export const TABLE_PROPERTY_TYPES: TableRef = { id: 16, name: 'property_types' };
+export const TABLE_PROPERTY_TEMPLATES: TableRef = { id: 17, name: 'property_templates' };
+export const TABLE_NODE_PROPERTIES: TableRef = { id: 18, name: 'node_properties' };
+export const TABLE_CODE_OUTPUT_FOLDER: TableRef = { id: 19, name: 'code_output_folder' };
+
+// Conversation tags
+export const TABLE_CONVERSATION_TAG_CATEGORIES: TableRef = { id: 20, name: 'conversation_tag_categories' };
+export const TABLE_CONVERSATION_TAG_VALUES: TableRef = { id: 21, name: 'conversation_tag_values' };
+
+// Localization tags
+export const TABLE_LOCALIZATION_TAG_CATEGORIES: TableRef = { id: 22, name: 'localization_tag_categories' };
+export const TABLE_LOCALIZATION_TAG_VALUES: TableRef = { id: 23, name: 'localization_tag_values' };
 
 export const DATABASE_TABLES: TableRef[] = [
   TABLE_TABLES,
@@ -58,7 +65,6 @@ export const DATABASE_TABLES: TableRef[] = [
   TABLE_PROGRAMMING_LANGUAGE_PRINCIPAL,
   TABLE_ROUTINE_TYPES,
   TABLE_ROUTINES,
-  TABLE_FILTERS,
   TABLE_CONVERSATIONS,
   TABLE_LOCALES,
   TABLE_LOCALE_PRINCIPAL,
@@ -73,6 +79,10 @@ export const DATABASE_TABLES: TableRef[] = [
   TABLE_PROPERTY_TEMPLATES,
   TABLE_NODE_PROPERTIES,
   TABLE_CODE_OUTPUT_FOLDER,
+  TABLE_CONVERSATION_TAG_CATEGORIES,
+  TABLE_CONVERSATION_TAG_VALUES,
+  TABLE_LOCALIZATION_TAG_CATEGORIES,
+  TABLE_LOCALIZATION_TAG_VALUES,
 ];
 
 /** Set of known table names for efficient validation (e.g., SQL injection prevention) */
@@ -174,6 +184,20 @@ export function localeColumnToId(column: string): number | null {
 
 export function isLocaleColumn(column: string): boolean {
   return /^locale_\d+$/.test(column);
+}
+
+// Tag category helper functions
+export function tagCategoryIdToColumn(categoryId: number): string {
+  return `tag_category_${categoryId}`;
+}
+
+export function tagCategoryColumnToId(column: string): number | null {
+  const match = column.match(/^tag_category_(\d+)$/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
+export function isTagCategoryColumn(column: string): boolean {
+  return /^tag_category_\d+$/.test(column);
 }
 
 // Default entity IDs (created during schema initialization)

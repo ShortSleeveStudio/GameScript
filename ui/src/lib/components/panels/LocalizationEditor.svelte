@@ -19,6 +19,7 @@
   import {
     createGrid,
     type ColDef,
+    type ColGroupDef,
     type GridOptions,
     type GridApi,
     type IRowNode,
@@ -29,7 +30,7 @@
     type EditableCallbackParams,
   } from '@ag-grid-community/core';
   import type { Localization, Locale, CsvColumnDescriptor, ImportBatchResult } from '@gamescript/shared';
-  import { localeIdToColumn, toCsv, toCsvHeader, toCsvBatch, parseCsv, validateCsvHeaders, buildLocalizationColumns, csvRowToLocalizationUpdate } from '@gamescript/shared';
+  import { localeIdToColumn, toCsvHeader, toCsvBatch, parseCsv, validateCsvHeaders, buildLocalizationColumns, csvRowToLocalizationUpdate } from '@gamescript/shared';
   import { TABLE_LOCALIZATIONS, TABLE_LOCALES, type IDbRowView } from '$lib/db';
   import {
     initializeGrid,
@@ -39,14 +40,19 @@
     GridCellEditorConversationId,
     GRID_CACHE_BLOCK_SIZE,
     GRID_CACHE_MAX_BLOCKS,
+    GRID_ROW_HEIGHT,
+    GRID_HEADER_HEIGHT,
     GRID_FILTER_PARAMS_TEXT,
     GRID_FILTER_PARAMS_NUMBER,
     loadGridLayout,
     saveGridLayout,
     setupGridVisibilityHandler,
     createMinWidthHandler,
+    buildTagColumns,
+    createTagValueChangeHandler,
     type GridContext,
     type GridVisibilityHandle,
+    type TagGridContext,
   } from '$lib/grid';
   import {
     focusManager,
@@ -57,7 +63,7 @@
   } from '$lib/stores/focus.js';
   import { isDarkMode } from '$lib/stores/theme.js';
   import { IsLoadingStore } from '$lib/stores/is-loading.js';
-  import { localesTable } from '$lib/tables';
+  import { localesTable, localizationTagCategoriesTable, localizationTagValuesTable } from '$lib/tables';
   import {
     EVENT_LF_FILTER_BY_PARENT,
     EVENT_LF_FILTER_BY_ID,
@@ -67,10 +73,12 @@
     type GridFilterByIdRequest,
     type DbColumnDeleting,
   } from '$lib/constants/events.js';
-  import { localizations } from '$lib/crud';
+  import { localizations, localizationTagCategories } from '$lib/crud';
   import { toastError, toastSuccess } from '$lib/stores/notifications.js';
-  import { Button, ToggleButton, Checkbox, Input, Modal, TableOptionsMenu, ProgressModal } from '$lib/components/common';
+  import { Button, ToggleButton, Checkbox, Input, Modal, TableOptionsMenu, ProgressModal, TagCategorySettingsPanel, GridToolbar } from '$lib/components/common';
   import { bridge } from '$lib/api/bridge.js';
+  import { focusLocalizationTagCategory, focusedLocalizationTagCategory } from '$lib/stores/focus.js';
+  import IconSettings from '$lib/components/icons/IconSettings.svelte';
 
   // Constants
   const ID_COLUMN = 'id';
@@ -128,7 +136,7 @@
   let datasource: GridDatasource<Localization>;
   let selectedRows: IDbRowView<Localization>[] = $state([]);
   let isLoading = new IsLoadingStore();
-  let columnDefs: ColDef[] = [...staticColumns];
+  let columnDefs: (ColDef | ColGroupDef)[] = [...staticColumns];
   let loadLayoutRequested = $state(true);
   let visibilityHandle: GridVisibilityHandle | undefined;
 
@@ -139,6 +147,9 @@
   let searchString = $state('');
   let replaceString = $state('');
   let showReplaceConfirm = $state(false);
+
+  // Settings panel state
+  let settingsExpanded = $state(false);
 
   // CSV Import state - grouped as single object, null when no import pending
   type ImportMode = 'update' | 'upsert';
@@ -253,6 +264,12 @@
   }
 
   // ============================================================================
+  // Tag Value Change Handler (uses shared utility)
+  // ============================================================================
+
+  const handleTagValueChange = createTagValueChangeHandler(localizations);
+
+  // ============================================================================
   // Search & Replace
   // ============================================================================
 
@@ -335,7 +352,7 @@
     for (const change of changes) {
       await localizations.updatePartial(change.id, {
         [change.columnId]: change.newValue,
-      });
+      } as Partial<Localization>);
     }
 
     api?.refreshInfiniteCache();
@@ -753,26 +770,34 @@
   }
 
   // ============================================================================
-  // Dynamic Locale Columns - React to locales table changes
+  // Dynamic Columns - React to locales and tag categories table changes
   // ============================================================================
 
   $effect(() => {
     // Track the locales table rows and their data
-    const rowViews = localesTable.rows;
-    rowViews.forEach(r => r.data); // Establish dependency on each row's data
+    const localeRowViews = localesTable.rows;
+    localeRowViews.forEach(r => r.data); // Establish dependency on each row's data
+
+    // Track the tag categories table rows and their data
+    const tagCategoryRowViews = localizationTagCategoriesTable.rows;
+    tagCategoryRowViews.forEach((r: typeof tagCategoryRowViews[number]) => r.data);
+
+    // Also track tag values for Set Filter
+    const tagValueRowViews = localizationTagValuesTable.rows;
+    tagValueRowViews.forEach((r: typeof tagValueRowViews[number]) => r.data);
 
     // Skip if no locales yet
-    if (rowViews.length === 0) return;
+    if (localeRowViews.length === 0) return;
 
     // Update locale list for search & replace
-    localeList = rowViews.map((rowView) => rowView.data);
+    localeList = localeRowViews.map((rowView) => rowView.data);
 
     // Skip column update if grid not initialized yet
     if (!api) return;
 
     // Rebuild column definitions
     columnIdSet.clear();
-    const newColumnDefs: ColDef[] = [];
+    const newColumnDefs: (ColDef | ColGroupDef)[] = [];
 
     // Add static columns
     for (const staticColumn of staticColumns) {
@@ -780,8 +805,16 @@
       newColumnDefs.push(staticColumn);
     }
 
+    // Build tag columns first (before locale columns)
+    const tagColumns = buildTagColumns({
+      categoryRowViews: tagCategoryRowViews,
+      valueRowViews: tagValueRowViews,
+      columnIdSet,
+    });
+    newColumnDefs.push(...tagColumns);
+
     // Add dynamic locale columns
-    for (const rowView of rowViews) {
+    for (const rowView of localeRowViews) {
       const row = rowView.data;
       const colId: string = localeIdToColumn(row.id);
       columnIdSet.add(colId);
@@ -878,11 +911,20 @@
     // Create datasource
     datasource = new GridDatasource<Localization>(TABLE_LOCALIZATIONS);
 
+    // Create grid context with tag support
+    const gridContext: TagGridContext = {
+      getGridApi,
+      getTagValuesTable: () => localizationTagValuesTable,
+      onTagValueChange: handleTagValueChange,
+    };
+
     // Create grid
     const gridOptions: GridOptions = {
-      context: { getGridApi } as GridContext,
+      context: gridContext,
       rowModelType: 'infinite',
       columnDefs,
+      headerHeight: GRID_HEADER_HEIGHT,
+      rowHeight: GRID_ROW_HEIGHT,
       rowSelection: 'multiple',
       suppressRowClickSelection: true,
       onSelectionChanged,
@@ -958,9 +1000,8 @@
 </script>
 
 <div class="localization-editor gs-grid-panel">
-  <!-- Toolbar -->
-  <div class="toolbar">
-    <div class="toolbar-left">
+  <GridToolbar expanded={settingsExpanded}>
+    {#snippet left()}
       <Button variant="primary" onclick={handleCreate} disabled={$isLoading}>
         + New
       </Button>
@@ -972,15 +1013,47 @@
           Delete
         </Button>
       {/if}
-    </div>
+    {/snippet}
 
-    <div class="toolbar-right">
+    {#snippet right()}
       <ToggleButton active={searchReplaceVisible} onclick={toggleSearchReplace}>
         Search & Replace
       </ToggleButton>
-      <TableOptionsMenu {api} onExportCsv={handleExportCsv} onImportCsv={handleImportCsv} />
-    </div>
-  </div>
+      <TableOptionsMenu {api} hasTagColumns={true} onExportCsv={handleExportCsv} onImportCsv={handleImportCsv} />
+      <ToggleButton
+        active={settingsExpanded}
+        onclick={() => settingsExpanded = !settingsExpanded}
+        title="Tag Category Settings"
+      >
+        <IconSettings size={16} />
+      </ToggleButton>
+    {/snippet}
+
+    {#snippet expandedHeader()}
+      <span class="settings-header">Tag Category Settings</span>
+    {/snippet}
+
+    {#snippet expandedToggle()}
+      <ToggleButton
+        active={settingsExpanded}
+        onclick={() => settingsExpanded = !settingsExpanded}
+        title="Close Settings"
+      >
+        <IconSettings size={16} />
+      </ToggleButton>
+    {/snippet}
+
+    {#snippet expandedContent()}
+      <TagCategorySettingsPanel
+        description="Tag categories allow you to create custom columns in the Localization Editor for organizing localizations. Each category becomes a column where you can assign tag values to localizations. Click a category to manage its values in the Inspector."
+        entityName="localizations"
+        categoriesTable={localizationTagCategoriesTable}
+        crud={localizationTagCategories}
+        focusCategory={focusLocalizationTagCategory}
+        focusedCategoryId={$focusedLocalizationTagCategory}
+      />
+    {/snippet}
+  </GridToolbar>
 
   <!-- Search & Replace Panel (Collapsible) -->
   {#if searchReplaceVisible}
@@ -1060,8 +1133,8 @@
   confirmLabel="Replace All"
   confirmVariant="danger"
   size="small"
-  on:confirm={handleReplaceAll}
-  on:close={() => (showReplaceConfirm = false)}
+  onconfirm={handleReplaceAll}
+  onclose={() => (showReplaceConfirm = false)}
 >
   <p>
     This will replace all occurrences of "<strong>{searchString}</strong>" with "<strong>{replaceString}</strong>" across all localizations in the selected locales.
@@ -1076,8 +1149,8 @@
   confirmLabel="Import"
   confirmVariant="danger"
   size="small"
-  on:confirm={handleConfirmImport}
-  on:close={clearPendingImport}
+  onconfirm={handleConfirmImport}
+  onclose={clearPendingImport}
 >
   {#if pendingImport}
     <!-- Import Mode Selection -->
@@ -1140,12 +1213,17 @@
     stats={operationProgress.stats}
     errorMessages={operationProgress.errorMessages}
     canCancel={operationProgress.phase === 'processing' || operationProgress.phase === 'validating'}
-    on:cancel={handleCancelOperation}
-    on:close={handleCloseProgress}
+    oncancel={handleCancelOperation}
+    onclose={handleCloseProgress}
   />
 {/if}
 
 <style>
+  .settings-header {
+    font-weight: 600;
+    font-size: 13px;
+  }
+
   /* Search & Replace Panel Styles */
   .search-replace-panel {
     background: var(--gs-bg-secondary);

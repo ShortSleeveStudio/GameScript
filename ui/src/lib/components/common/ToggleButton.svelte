@@ -14,6 +14,8 @@
         disabled?: boolean;
         /** Click handler */
         onclick?: () => void;
+        /** Tooltip text */
+        title?: string;
         /** Button content */
         children?: Snippet;
     }
@@ -22,6 +24,7 @@
         active = false,
         disabled = false,
         onclick,
+        title,
         children,
     }: Props = $props();
 </script>
@@ -31,6 +34,7 @@
     class:active
     {disabled}
     {onclick}
+    {title}
 >
     {#if children}
         {@render children()}

@@ -7,7 +7,8 @@
 
 export { actorsTable } from './actors.js';
 export { codeOutputFolderTableView, getCodeOutputFolder } from './code-output-folder.js';
-export { filtersTable } from './filters.js';
+export { conversationTagCategoriesTable, conversationTagValuesTable } from './conversation-tags.js';
+export { localizationTagCategoriesTable, localizationTagValuesTable } from './localization-tags.js';
 export { localesTable } from './locales.js';
 export { localePrincipalTableView, getLocalePrincipal } from './locale-principal.js';
 export { systemCreatedLocaleTableView, getSystemCreatedLocale } from './locale-system-created.js';

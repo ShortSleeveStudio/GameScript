@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
     import type { Writable } from 'svelte/store';
     import type { ComponentContainer } from '$lib/vendor/golden-layout/ts/container/component-container';
 
@@ -31,17 +31,28 @@
     import type { GoldenLayout } from '$lib/vendor/golden-layout/ts/golden-layout';
     import { LayoutManager } from '$lib/vendor/golden-layout/ts/layout-manager';
 
+    import type { Snippet } from 'svelte';
     import { onDestroy, onMount } from 'svelte';
     import { get, type Readable, type Unsubscriber } from 'svelte/store';
 
-    // Properties
-    export let name: string;
-    export let layout: Readable<GoldenLayout>;
-    export let isVisible: Writable<boolean>;
-    export let layoutConfig: ComponentItemConfig;
+    interface Props {
+        name: string;
+        layout: Readable<GoldenLayout>;
+        isVisible: Writable<boolean>;
+        layoutConfig: ComponentItemConfig;
+        children?: Snippet;
+    }
+
+    let {
+        name,
+        layout,
+        isVisible,
+        layoutConfig,
+        children,
+    }: Props = $props();
 
     // Bindings
-    let element: HTMLElement;
+    let element: HTMLElement | undefined = $state();
 
     // Vars
     let unsubscriber: Unsubscriber;
@@ -50,7 +61,7 @@
     onMount(() => {
         // Construct DockableInfo
         dockableInfo = {
-            element: element,
+            element: element!,
             isVisible: isVisible,
             actuallyInDock: false,
             currentContainer: undefined,
@@ -84,7 +95,7 @@
     });
 </script>
 
-<dockable class="dockable" bind:this={element}><slot /></dockable>
+<dockable class="dockable" bind:this={element}>{#if children}{@render children()}{/if}</dockable>
 
 <style>
     .dockable {

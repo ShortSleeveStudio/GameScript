@@ -1,26 +1,17 @@
-<script lang="ts" context="module">
-    /**
-     * Menu item configuration.
-     */
-    export interface MenuItem {
-        /** Unique identifier for the item */
-        id: string;
-        /** Display label */
-        label: string;
-        /** Whether this is a danger/destructive action */
-        danger?: boolean;
-        /** Whether the item is disabled */
-        disabled?: boolean;
-    }
+<script lang="ts" module>
+    // Re-export from side-car types file for backwards compatibility
+    export type { MenuItem } from './DropdownMenu.types.js';
 </script>
 
 <script lang="ts">
+    import type { MenuItem } from './DropdownMenu.types.js';
+
     /**
      * DropdownMenu component for icon-triggered menus.
      *
      * Provides a button that opens a dropdown menu with selectable items.
      * Supports:
-     * - Custom trigger content (via slot)
+     * - Custom trigger content (via snippet)
      * - Menu items with danger styling
      * - Disabled items
      * - Click-outside to close
@@ -33,29 +24,42 @@
      *         { id: 'edit', label: 'Edit' },
      *         { id: 'delete', label: 'Delete', danger: true }
      *     ]}
-     *     on:select={handleSelect}
+     *     onselect={handleSelect}
      * >
-     *     <span slot="trigger">⚙</span>
+     *     {#snippet trigger()}<span>⚙</span>{/snippet}
      * </DropdownMenu>
      * ```
      */
 
-    import { createEventDispatcher } from 'svelte';
+    import type { Snippet } from 'svelte';
     import IconSettings from '$lib/components/icons/IconSettings.svelte';
 
-    /** Menu items to display */
-    export let items: MenuItem[] = [];
+    interface Props {
+        /** Menu items to display */
+        items?: MenuItem[];
+        /** Whether the menu is currently open */
+        open?: boolean;
+        /** Menu alignment relative to trigger */
+        align?: 'left' | 'right';
+        /** Optional title/tooltip for the trigger button */
+        title?: string;
+        /** Callback when an item is selected */
+        onselect?: (itemId: string) => void;
+        /** Custom trigger content */
+        trigger?: Snippet;
+        /** Default slot for additional menu content */
+        children?: Snippet;
+    }
 
-    /** Whether the menu is currently open */
-    export let open: boolean = false;
-
-    /** Menu alignment relative to trigger */
-    export let align: 'left' | 'right' = 'right';
-
-    /** Optional title/tooltip for the trigger button */
-    export let title: string = '';
-
-    const dispatch = createEventDispatcher<{ select: string }>();
+    let {
+        items = [],
+        open = $bindable(false),
+        align = 'right',
+        title = '',
+        onselect,
+        trigger,
+        children,
+    }: Props = $props();
 
     function toggle(): void {
         open = !open;
@@ -69,7 +73,7 @@
         const item = items.find(i => i.id === itemId);
         if (item?.disabled) return;
 
-        dispatch('select', itemId);
+        onselect?.(itemId);
         close();
     }
 
@@ -86,26 +90,31 @@
     }
 </script>
 
-<svelte:window on:click={handleClickOutside} on:keydown={handleKeydown} />
+<svelte:window onclick={handleClickOutside} onkeydown={handleKeydown} />
 
 <div class="dropdown-menu">
     <button
         class="dropdown-trigger"
         type="button"
         {title}
-        on:click|stopPropagation={toggle}
+        onclick={(e) => { e.stopPropagation(); toggle(); }}
         aria-expanded={open}
         aria-haspopup="menu"
     >
-        <slot name="trigger"><IconSettings size={16} /></slot>
+        {#if trigger}
+            {@render trigger()}
+        {:else}
+            <IconSettings size={16} />
+        {/if}
     </button>
     {#if open}
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
         <div
             class="dropdown-content"
             class:dropdown-align-left={align === 'left'}
             class:dropdown-align-right={align === 'right'}
             role="menu"
-            on:click|stopPropagation
+            onclick={(e) => e.stopPropagation()}
         >
             {#each items as item (item.id)}
                 <button
@@ -115,12 +124,14 @@
                     type="button"
                     role="menuitem"
                     disabled={item.disabled}
-                    on:click={() => handleSelect(item.id)}
+                    onclick={() => handleSelect(item.id)}
                 >
                     {item.label}
                 </button>
             {/each}
-            <slot />
+            {#if children}
+                {@render children()}
+            {/if}
         </div>
     {/if}
 </div>

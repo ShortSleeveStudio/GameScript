@@ -6,14 +6,26 @@
      * Automatically chooses direction (top/bottom) based on available viewport space.
      * Lightweight alternative to Carbon's Tooltip for IDE webview environments.
      */
-    export let triggerText: string;
-    export let align: 'start' | 'center' | 'end' = 'start';
-    /** Preferred direction - will flip if not enough space */
-    export let direction: 'top' | 'bottom' = 'top';
+    import type { Snippet } from 'svelte';
 
-    let isVisible = false;
-    let triggerElement: HTMLElement;
-    let actualDirection: 'top' | 'bottom' = direction;
+    interface Props {
+        triggerText: string;
+        align?: 'start' | 'center' | 'end';
+        /** Preferred direction - will flip if not enough space */
+        direction?: 'top' | 'bottom';
+        children?: Snippet;
+    }
+
+    let {
+        triggerText,
+        align = 'start',
+        direction = 'top',
+        children,
+    }: Props = $props();
+
+    let isVisible = $state(false);
+    let triggerElement: HTMLElement | undefined = $state();
+    let actualDirection: 'top' | 'bottom' = $state(direction);
 
     // Minimum space needed above/below for tooltip (approximate tooltip height + gap)
     const MIN_SPACE = 100;
@@ -46,10 +58,10 @@
     role="button"
     tabindex="0"
     bind:this={triggerElement}
-    on:mouseenter={show}
-    on:mouseleave={hide}
-    on:focus={show}
-    on:blur={hide}
+    onmouseenter={show}
+    onmouseleave={hide}
+    onfocus={show}
+    onblur={hide}
 >
     <span class="trigger-text">{triggerText}</span>
     {#if isVisible}
@@ -61,7 +73,9 @@
             class:direction-top={actualDirection === 'top'}
             class:direction-bottom={actualDirection === 'bottom'}
         >
-            <slot />
+            {#if children}
+                {@render children()}
+            {/if}
         </div>
     {/if}
 </span>

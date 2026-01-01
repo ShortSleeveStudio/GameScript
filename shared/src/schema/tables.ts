@@ -2,7 +2,6 @@
 
 import {
   TABLE_TABLES,
-  TABLE_FILTERS,
   TABLE_CONVERSATIONS,
   TABLE_LOCALES,
   TABLE_LOCALE_PRINCIPAL,
@@ -17,6 +16,10 @@ import {
   TABLE_PROPERTY_TEMPLATES,
   TABLE_NODE_PROPERTIES,
   TABLE_CODE_OUTPUT_FOLDER,
+  TABLE_CONVERSATION_TAG_CATEGORIES,
+  TABLE_CONVERSATION_TAG_VALUES,
+  TABLE_LOCALIZATION_TAG_CATEGORIES,
+  TABLE_LOCALIZATION_TAG_VALUES,
 } from '../types/constants.js';
 
 export interface ColumnDefinition {
@@ -158,15 +161,6 @@ export const propertyTemplatesTable: TableDefinition = {
   ],
 };
 
-export const filtersTable: TableDefinition = {
-  name: TABLE_FILTERS.name,
-  columns: [
-    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
-    { name: 'name', type: 'TEXT', notNull: true },
-    { name: 'notes', type: 'TEXT' },
-  ],
-};
-
 export const notificationsTable: TableDefinition = {
   name: TABLE_NOTIFICATIONS.name,
   columns: [
@@ -215,6 +209,42 @@ export const codeOutputFolderTable: TableDefinition = {
   ],
 };
 
+// Conversation tag tables
+export const conversationTagCategoriesTable: TableDefinition = {
+  name: TABLE_CONVERSATION_TAG_CATEGORIES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'name', type: 'TEXT', notNull: true },
+  ],
+};
+
+export const conversationTagValuesTable: TableDefinition = {
+  name: TABLE_CONVERSATION_TAG_VALUES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'category_id', type: 'INTEGER', notNull: true, references: { table: 'conversation_tag_categories', column: 'id' } },
+    { name: 'name', type: 'TEXT', notNull: true },
+  ],
+};
+
+// Localization tag tables
+export const localizationTagCategoriesTable: TableDefinition = {
+  name: TABLE_LOCALIZATION_TAG_CATEGORIES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'name', type: 'TEXT', notNull: true },
+  ],
+};
+
+export const localizationTagValuesTable: TableDefinition = {
+  name: TABLE_LOCALIZATION_TAG_VALUES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'category_id', type: 'INTEGER', notNull: true, references: { table: 'localization_tag_categories', column: 'id' } },
+    { name: 'name', type: 'TEXT', notNull: true },
+  ],
+};
+
 // All tables in dependency order
 export const allTables: TableDefinition[] = [
   tablesTable,
@@ -222,7 +252,11 @@ export const allTables: TableDefinition[] = [
   propertyTypesTable,
   localesTable,
   localePrincipalTable,
+  conversationTagCategoriesTable,
+  conversationTagValuesTable,
   conversationsTable,
+  localizationTagCategoriesTable,
+  localizationTagValuesTable,
   localizationsTable,
   actorsTable,
   actorPrincipalTable,
@@ -230,7 +264,6 @@ export const allTables: TableDefinition[] = [
   nodesTable,
   edgesTable,
   nodePropertiesTable,
-  filtersTable,
   notificationsTable,
   codeOutputFolderTable,
 ];

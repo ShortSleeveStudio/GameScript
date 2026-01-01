@@ -15,7 +15,8 @@
         Edge,
         Locale,
         Localization,
-        Filter,
+        ConversationTagCategory,
+        LocalizationTagCategory,
     } from '@gamescript/shared';
     import {
         type Focus,
@@ -23,7 +24,6 @@
         type ActionUnsubscriber,
         type FocusPayloadActor,
         type FocusPayloadLocale,
-        type FocusPayloadFilter,
     } from '$lib/stores/focus.js';
     import { onDestroy } from 'svelte';
     import { dbConnected } from '$lib/stores/connection.js';
@@ -36,7 +36,8 @@
         TABLE_ACTORS,
         TABLE_LOCALES,
         TABLE_LOCALIZATIONS,
-        TABLE_FILTERS,
+        TABLE_CONVERSATION_TAG_CATEGORIES,
+        TABLE_LOCALIZATION_TAG_CATEGORIES,
         type IDbTableView,
         type IDbRowView,
     } from '$lib/db';
@@ -46,8 +47,9 @@
     import InspectorActor from './InspectorActor.svelte';
     import InspectorLocale from './InspectorLocale.svelte';
     import InspectorLocalization from './InspectorLocalization.svelte';
-    import InspectorFilter from './InspectorFilter.svelte';
-    import { common } from '$lib/crud';
+    import InspectorTagCategory from './InspectorTagCategory.svelte';
+    import { common, conversationTagCategories, conversationTagValues, localizationTagCategories, localizationTagValues } from '$lib/crud';
+    import { conversationTagValuesTable, localizationTagValuesTable } from '$lib/tables';
 
     let focusedItems = $state(0);
     let inspectedFocus = $state<Focus | undefined>(undefined);
@@ -138,8 +140,20 @@
                         showConversationButton={true}
                         showLocalizationButton={false}
                     />
-                {:else if inspectedTableId === TABLE_FILTERS.id}
-                    <InspectorFilter rowView={rowView as IDbRowView<Filter>} payload={inspectedFocus.payload as FocusPayloadFilter | undefined} />
+                {:else if inspectedTableId === TABLE_CONVERSATION_TAG_CATEGORIES.id}
+                    <InspectorTagCategory
+                        rowView={rowView as IDbRowView<ConversationTagCategory>}
+                        valuesTable={conversationTagValuesTable}
+                        crud={conversationTagValues}
+                        entityName="conversations"
+                    />
+                {:else if inspectedTableId === TABLE_LOCALIZATION_TAG_CATEGORIES.id}
+                    <InspectorTagCategory
+                        rowView={rowView as IDbRowView<LocalizationTagCategory>}
+                        valuesTable={localizationTagValuesTable}
+                        crud={localizationTagValues}
+                        entityName="localizations"
+                    />
                 {/if}
             {/each}
         {:else if focusedItems > 1}

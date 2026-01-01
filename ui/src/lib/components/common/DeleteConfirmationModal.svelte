@@ -14,42 +14,54 @@
      *     itemCount={selectedItems.length}
      *     itemName="actor"
      *     itemNamePlural="actors"
-     *     on:confirm={handleDelete}
-     *     on:cancel={handleCancel}
+     *     onconfirm={handleDelete}
+     *     oncancel={handleCancel}
      * >
      *     All nodes using these actors will revert to the default actor.
      * </DeleteConfirmationModal>
      */
-    import { createEventDispatcher } from 'svelte';
     import Modal from './Modal.svelte';
 
-    /** Whether the modal is open */
-    export let open = false;
-    /** Number of items being deleted */
-    export let itemCount = 1;
-    /** Singular name of the item type (e.g., "actor", "locale") */
-    export let itemName = 'item';
-    /** Plural name of the item type (e.g., "actors", "locales") */
-    export let itemNamePlural = 'items';
-    /** Modal title */
-    export let title = 'Are you sure?';
+    interface Props {
+        /** Whether the modal is open */
+        open?: boolean;
+        /** Number of items being deleted */
+        itemCount?: number;
+        /** Singular name of the item type (e.g., "actor", "locale") */
+        itemName?: string;
+        /** Plural name of the item type (e.g., "actors", "locales") */
+        itemNamePlural?: string;
+        /** Modal title */
+        title?: string;
+        /** Callback when user confirms deletion */
+        onconfirm?: () => void;
+        /** Callback when user cancels */
+        oncancel?: () => void;
+        /** Custom message content */
+        children?: import('svelte').Snippet;
+    }
 
-    const dispatch = createEventDispatcher<{
-        confirm: void;
-        cancel: void;
-    }>();
+    let {
+        open = $bindable(false),
+        itemCount = 1,
+        itemName = 'item',
+        itemNamePlural = 'items',
+        title = 'Are you sure?',
+        onconfirm,
+        oncancel,
+        children,
+    }: Props = $props();
 
     function handleConfirm() {
-        dispatch('confirm');
+        onconfirm?.();
     }
 
     function handleCancel() {
         open = false;
-        dispatch('cancel');
+        oncancel?.();
     }
 
-    $: displayName = itemCount === 1 ? itemName : itemNamePlural;
-    $: countText = itemCount === 1 ? `1 ${itemName}` : `${itemCount} ${itemNamePlural}`;
+    let countText = $derived(itemCount === 1 ? `1 ${itemName}` : `${itemCount} ${itemNamePlural}`);
 </script>
 
 <Modal
@@ -58,13 +70,15 @@
     confirmLabel="Delete"
     confirmVariant="danger"
     size="small"
-    on:confirm={handleConfirm}
-    on:cancel={handleCancel}
+    onconfirm={handleConfirm}
+    oncancel={handleCancel}
 >
     <p class="delete-modal-text">
-        <slot>
+        {#if children}
+            {@render children()}
+        {:else}
             Are you sure you want to delete {countText}? This action cannot be undone.
-        </slot>
+        {/if}
     </p>
 </Modal>
 

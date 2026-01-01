@@ -6,22 +6,35 @@
      * The right panel has a configurable min-width.
      */
     import { onMount } from 'svelte';
+    import type { Snippet } from 'svelte';
 
-    /** Minimum width of the right panel in pixels */
-    export let minRightWidth = 280;
+    interface Props {
+        /** Minimum width of the right panel in pixels */
+        minRightWidth?: number;
+        /** Maximum width of the right panel in pixels (0 = no max) */
+        maxRightWidth?: number;
+        /** Initial width of the right panel in pixels */
+        initialRightWidth?: number;
+        /** Local storage key for persisting width */
+        storageKey?: string;
+        /** Left panel content */
+        left?: Snippet;
+        /** Right panel content */
+        right?: Snippet;
+    }
 
-    /** Maximum width of the right panel in pixels (0 = no max) */
-    export let maxRightWidth = 500;
+    let {
+        minRightWidth = 280,
+        maxRightWidth = 500,
+        initialRightWidth = 320,
+        storageKey = 'gs-split-width',
+        left,
+        right,
+    }: Props = $props();
 
-    /** Initial width of the right panel in pixels */
-    export let initialRightWidth = 320;
-
-    /** Local storage key for persisting width */
-    export let storageKey = 'gs-split-width';
-
-    let container: HTMLElement;
-    let rightWidth = initialRightWidth;
-    let isDragging = false;
+    let container: HTMLElement | undefined = $state();
+    let rightWidth = $state(initialRightWidth);
+    let isDragging = $state(false);
 
     // Load saved width from localStorage
     onMount(() => {
@@ -42,7 +55,7 @@
         const startWidth = rightWidth;
 
         function onMouseMove(e: MouseEvent) {
-            if (!isDragging) return;
+            if (!isDragging || !container) return;
 
             const containerRect = container.getBoundingClientRect();
             const delta = startX - e.clientX;
@@ -74,7 +87,9 @@
 
 <div class="split-container" bind:this={container} class:dragging={isDragging}>
     <div class="left-panel">
-        <slot name="left" />
+        {#if left}
+            {@render left()}
+        {/if}
     </div>
     <div
         class="divider"
@@ -84,7 +99,9 @@
         tabindex="0"
     ></div>
     <div class="right-panel" style="width: {rightWidth}px; min-width: {minRightWidth}px;">
-        <slot name="right" />
+        {#if right}
+            {@render right()}
+        {/if}
     </div>
 </div>
 

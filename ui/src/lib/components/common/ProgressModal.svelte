@@ -6,7 +6,6 @@
    * Used for CSV import/export operations that may process
    * hundreds of thousands of rows.
    */
-  import { createEventDispatcher } from 'svelte';
   import Button from './Button.svelte';
 
   interface Props {
@@ -24,6 +23,8 @@
     };
     errorMessages?: string[];
     canCancel?: boolean;
+    oncancel?: () => void;
+    onclose?: () => void;
   }
 
   let {
@@ -35,12 +36,9 @@
     stats = {},
     errorMessages = [],
     canCancel = true,
+    oncancel,
+    onclose,
   }: Props = $props();
-
-  const dispatch = createEventDispatcher<{
-    cancel: void;
-    close: void;
-  }>();
 
   const percentage = $derived(total > 0 ? Math.round((current / total) * 100) : 0);
   const isComplete = $derived(phase === 'complete' || phase === 'failed' || phase === 'cancelled');
@@ -54,11 +52,11 @@
   }[phase]);
 
   function handleCancel() {
-    dispatch('cancel');
+    oncancel?.();
   }
 
   function handleClose() {
-    dispatch('close');
+    onclose?.();
   }
 
   function handleOverlayClick() {

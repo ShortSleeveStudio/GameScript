@@ -5,7 +5,7 @@
      * Features:
      * - Uppercase title with border underline
      * - Optional description text
-     * - Slot for section content
+     * - Snippet for section content
      * - Consistent spacing and styling
      *
      * Usage:
@@ -13,11 +13,22 @@
      *     <SettingRow ... />
      * </SettingsSection>
      */
+    import type { Snippet } from 'svelte';
 
-    /** The section title displayed as an uppercase header */
-    export let title: string;
-    /** Optional description text below the title */
-    export let description: string = '';
+    interface Props {
+        /** The section title displayed as an uppercase header */
+        title: string;
+        /** Optional description text below the title */
+        description?: string;
+        /** Section content */
+        children?: Snippet;
+    }
+
+    let {
+        title,
+        description = '',
+        children,
+    }: Props = $props();
 </script>
 
 <div class="settings-section">
@@ -25,7 +36,9 @@
     {#if description}
         <p class="settings-section-description">{description}</p>
     {/if}
-    <slot />
+    {#if children}
+        {@render children()}
+    {/if}
 </div>
 
 <style>

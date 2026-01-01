@@ -5,7 +5,7 @@
      * Features:
      * - Uppercase label with consistent styling
      * - Optional tooltip for label with additional info
-     * - Slot for field content (RowColumn components, buttons, etc.)
+     * - Snippet for field content (RowColumn components, buttons, etc.)
      *
      * Usage:
      * <InspectorField label="Name">
@@ -17,16 +17,29 @@
      *     <RowColumnLocalization {rowView} ... />
      * </InspectorField>
      */
+    import type { Snippet } from 'svelte';
     import Tooltip from './Tooltip.svelte';
 
-    /** The label text displayed above the field */
-    export let label: string;
-    /** Optional tooltip text for additional context */
-    export let tooltip: string = '';
-    /** Tooltip alignment */
-    export let tooltipAlign: 'start' | 'center' | 'end' = 'start';
-    /** Tooltip direction */
-    export let tooltipDirection: 'top' | 'bottom' = 'top';
+    interface Props {
+        /** The label text displayed above the field */
+        label: string;
+        /** Optional tooltip text for additional context */
+        tooltip?: string;
+        /** Tooltip alignment */
+        tooltipAlign?: 'start' | 'center' | 'end';
+        /** Tooltip direction */
+        tooltipDirection?: 'top' | 'bottom';
+        /** Field content */
+        children?: Snippet;
+    }
+
+    let {
+        label,
+        tooltip = '',
+        tooltipAlign = 'start',
+        tooltipDirection = 'top',
+        children,
+    }: Props = $props();
 </script>
 
 <div class="inspector-field">
@@ -39,7 +52,9 @@
             <span>{label}</span>
         {/if}
     </div>
-    <slot />
+    {#if children}
+        {@render children()}
+    {/if}
 </div>
 
 <style>

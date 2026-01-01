@@ -4,7 +4,7 @@
      *
      * Provides a header that toggles visibility of content below.
      * Supports:
-     * - Customizable title (string or slot)
+     * - Customizable title (string or snippet)
      * - Expanded/collapsed state (controlled or uncontrolled)
      * - Size variants (default, small)
      * - Optional item count badge
@@ -17,25 +17,38 @@
      * ```
      */
 
-    import { createEventDispatcher } from 'svelte';
+    import type { Snippet } from 'svelte';
 
-    /** Title text for the accordion header */
-    export let title: string = '';
+    interface Props {
+        /** Title text for the accordion header */
+        title?: string;
+        /** Optional count to display in parentheses after title */
+        count?: number;
+        /** Whether the accordion is expanded */
+        expanded?: boolean;
+        /** Size variant */
+        size?: 'default' | 'small';
+        /** Callback when accordion is toggled */
+        ontoggle?: (expanded: boolean) => void;
+        /** Custom title content */
+        titleSnippet?: Snippet;
+        /** Default slot for content */
+        children?: Snippet;
+    }
 
-    /** Optional count to display in parentheses after title */
-    export let count: number | undefined = undefined;
-
-    /** Whether the accordion is expanded */
-    export let expanded: boolean = false;
-
-    /** Size variant */
-    export let size: 'default' | 'small' = 'default';
-
-    const dispatch = createEventDispatcher<{ toggle: boolean }>();
+    let {
+        title = '',
+        count,
+        expanded = $bindable(false),
+        size = 'default',
+        ontoggle,
+        titleSnippet,
+        children,
+    }: Props = $props();
 
     function toggle(): void {
         expanded = !expanded;
-        dispatch('toggle', expanded);
+        ontoggle?.(expanded);
     }
 </script>
 
@@ -43,12 +56,12 @@
     <button
         class="accordion-header"
         type="button"
-        on:click={toggle}
+        onclick={toggle}
         aria-expanded={expanded}
     >
         <span class="accordion-icon">{expanded ? '▼' : '▶'}</span>
-        {#if $$slots.title}
-            <slot name="title" />
+        {#if titleSnippet}
+            {@render titleSnippet()}
         {:else}
             <span class="accordion-title">
                 {title}{#if count !== undefined} ({count}){/if}
@@ -57,7 +70,9 @@
     </button>
     {#if expanded}
         <div class="accordion-content">
-            <slot />
+            {#if children}
+                {@render children()}
+            {/if}
         </div>
     {/if}
 </div>

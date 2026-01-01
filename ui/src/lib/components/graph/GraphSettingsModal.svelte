@@ -58,9 +58,9 @@
         }
     }
 
-    async function handleRenameTemplate(event: CustomEvent<{ rowView: IDbRowView<PropertyTemplate>; name: string }>) {
+    async function handleRenameTemplate(payload: { rowView: IDbRowView<PropertyTemplate>; name: string }) {
         try {
-            const { rowView, name } = event.detail;
+            const { rowView, name } = payload;
             const oldTemplate = rowView.getValue();
             await propertyTemplatesCrud.updateOne(oldTemplate, { ...oldTemplate, name });
         } catch (error) {
@@ -68,9 +68,9 @@
         }
     }
 
-    async function handleTemplateTypeChange(event: CustomEvent<{ rowView: IDbRowView<PropertyTemplate>; type: number }>) {
+    async function handleTemplateTypeChange(payload: { rowView: IDbRowView<PropertyTemplate>; type: number }) {
         try {
-            const { rowView, type } = event.detail;
+            const { rowView, type } = payload;
             const oldTemplate = rowView.getValue();
             await propertyTemplatesCrud.updateOne(oldTemplate, { ...oldTemplate, type });
         } catch (error) {
@@ -78,9 +78,9 @@
         }
     }
 
-    async function handleDeleteTemplate(event: CustomEvent<{ rowView: IDbRowView<PropertyTemplate> }>) {
+    async function handleDeleteTemplate(payload: { rowView: IDbRowView<PropertyTemplate> }) {
         try {
-            await propertyTemplatesCrud.remove(event.detail.rowView.id);
+            await propertyTemplatesCrud.remove(payload.rowView.id);
             toastSuccess('Property deleted');
         } catch (error) {
             toastError('Failed to delete property', error);
@@ -171,10 +171,10 @@
                     addButtonLabel="+ Add Property"
                     deleteModalTitle="Delete Property?"
                     deleteModalText='Delete is a destructive operation that will wipe out all properties of this type that you have added to your nodes.'
-                    on:add={handleAddTemplate}
-                    on:rename={handleRenameTemplate}
-                    on:typeChange={handleTemplateTypeChange}
-                    on:delete={handleDeleteTemplate}
+                    onadd={handleAddTemplate}
+                    onrename={handleRenameTemplate}
+                    ontypeChange={handleTemplateTypeChange}
+                    ondelete={handleDeleteTemplate}
                 />
             </div>
 
