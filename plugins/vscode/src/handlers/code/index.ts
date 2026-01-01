@@ -15,6 +15,10 @@ import type {
   CodeGetMethodMessage,
   CodeCreateMethodMessage,
   CodeDeleteMethodMessage,
+  CodeDeleteMethodsSilentMessage,
+  CodeRestoreMethodMessage,
+  CodeDeleteFileMessage,
+  CodeRestoreFileMessage,
   CodeOpenMethodMessage,
   CodeWatchFolderMessage,
 } from '@gamescript/shared';
@@ -47,6 +51,10 @@ export class CodeHandlers {
       'code:getMethod': (msg) => this._handleCodeGetMethod(msg as CodeGetMethodMessage),
       'code:createMethod': (msg) => this._handleCodeCreateMethod(msg as CodeCreateMethodMessage),
       'code:deleteMethod': (msg) => this._handleCodeDeleteMethod(msg as CodeDeleteMethodMessage),
+      'code:deleteMethodsSilent': (msg) => this._handleCodeDeleteMethodsSilent(msg as CodeDeleteMethodsSilentMessage),
+      'code:restoreMethod': (msg) => this._handleCodeRestoreMethod(msg as CodeRestoreMethodMessage),
+      'code:deleteFile': (msg) => this._handleCodeDeleteFile(msg as CodeDeleteFileMessage),
+      'code:restoreFile': (msg) => this._handleCodeRestoreFile(msg as CodeRestoreFileMessage),
       'code:openMethod': (msg) => this._handleCodeOpenMethod(msg as CodeOpenMethodMessage),
       'code:watchFolder': (msg) => this._handleCodeWatchFolder(msg as CodeWatchFolderMessage),
     };
@@ -173,7 +181,7 @@ export class CodeHandlers {
    * Create a method stub and open it in the IDE.
    */
   private async _handleCodeCreateMethod(message: CodeCreateMethodMessage): Promise<void> {
-    const { id, conversationId, methodName, methodType, targetType } = message;
+    const { id, conversationId, methodName, methodType } = message;
 
     try {
       const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
@@ -192,7 +200,7 @@ export class CodeHandlers {
       }
 
       // Generate the method stub
-      const stub = this._generateMethodStub(methodName, methodType, targetType);
+      const stub = this._generateMethodStub(methodName, methodType, conversationId);
 
       let newContent: string;
       if (fileExists) {
@@ -362,6 +370,303 @@ export class CodeHandlers {
   }
 
   // ==========================================================================
+  // Delete Methods Silent (for programmatic deletion during node delete)
+  // ==========================================================================
+
+  /**
+   * Delete multiple methods without confirmation, returning the deleted code for each.
+   * All methods are deleted in a single file operation to avoid stale symbol issues.
+   */
+  private async _handleCodeDeleteMethodsSilent(message: CodeDeleteMethodsSilentMessage): Promise<void> {
+    const { id, conversationId, methodNames } = message;
+
+    try {
+      if (methodNames.length === 0) {
+        this._postMessage({
+          type: 'code:deleteMethodsSilentResult',
+          id,
+          success: true,
+          deletedMethods: {},
+        });
+        return;
+      }
+
+      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const uri = vscode.Uri.file(filePath);
+
+      // Read existing content
+      let existingContent: string;
+      try {
+        const fileData = await vscode.workspace.fs.readFile(uri);
+        existingContent = new TextDecoder().decode(fileData);
+      } catch {
+        // File doesn't exist - nothing to delete
+        this._postMessage({
+          type: 'code:deleteMethodsSilentResult',
+          id,
+          success: true,
+          deletedMethods: {},
+        });
+        return;
+      }
+
+      // Open document and get symbols to find method ranges
+      const document = await vscode.workspace.openTextDocument(uri);
+      const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+        'vscode.executeDocumentSymbolProvider',
+        uri
+      );
+
+      if (!symbols || !Array.isArray(symbols)) {
+        // Can't parse symbols - return empty
+        this._postMessage({
+          type: 'code:deleteMethodsSilentResult',
+          id,
+          success: true,
+          deletedMethods: {},
+        });
+        return;
+      }
+
+      // Find all methods and their ranges
+      const deletedMethods: Record<string, string> = {};
+      const rangesToDelete: Array<{ start: number; end: number }> = [];
+
+      for (const methodName of methodNames) {
+        const method = this._findSymbolByName(symbols, methodName);
+        if (!method) {
+          // Method not found - record empty string
+          deletedMethods[methodName] = '';
+          continue;
+        }
+
+        // Expand range to include attribute on line above
+        let startLine = method.range.start.line;
+        if (startLine > 0) {
+          const prevLine = document.lineAt(startLine - 1).text;
+          if (prevLine.includes('[Node')) {
+            startLine--;
+          }
+        }
+
+        const rangeToDelete = new vscode.Range(
+          new vscode.Position(startLine, 0),
+          new vscode.Position(method.range.end.line + 1, 0)
+        );
+
+        // Capture the code being deleted
+        deletedMethods[methodName] = document.getText(rangeToDelete);
+
+        // Store the byte offsets for deletion
+        rangesToDelete.push({
+          start: document.offsetAt(rangeToDelete.start),
+          end: document.offsetAt(rangeToDelete.end),
+        });
+      }
+
+      // Sort ranges in reverse order so we can delete from end to start
+      // (this keeps earlier offsets valid as we delete)
+      rangesToDelete.sort((a, b) => b.start - a.start);
+
+      // Remove all ranges from content
+      let newContent = existingContent;
+      for (const range of rangesToDelete) {
+        newContent = newContent.slice(0, range.start) + newContent.slice(range.end);
+      }
+
+      // Write the new content once
+      const encoder = new TextEncoder();
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
+
+      this._postMessage({
+        type: 'code:deleteMethodsSilentResult',
+        id,
+        success: true,
+        deletedMethods,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'code:deleteMethodsSilentResult',
+        id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // ==========================================================================
+  // Restore Method (for undo after node delete)
+  // ==========================================================================
+
+  /**
+   * Restore a previously deleted method.
+   */
+  private async _handleCodeRestoreMethod(message: CodeRestoreMethodMessage): Promise<void> {
+    const { id, conversationId, code } = message;
+
+    try {
+      if (!code) {
+        // Nothing to restore
+        this._postMessage({
+          type: 'code:restoreMethodResult',
+          id,
+          success: true,
+        });
+        return;
+      }
+
+      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const uri = vscode.Uri.file(filePath);
+
+      let existingContent = '';
+      let fileExists = false;
+
+      try {
+        const fileData = await vscode.workspace.fs.readFile(uri);
+        existingContent = new TextDecoder().decode(fileData);
+        fileExists = true;
+      } catch {
+        // File doesn't exist
+      }
+
+      let newContent: string;
+      if (fileExists) {
+        // Insert method before the closing brace of the class
+        const classEndMatch = existingContent.lastIndexOf('}');
+        if (classEndMatch !== -1) {
+          newContent =
+            existingContent.slice(0, classEndMatch) +
+            code +
+            existingContent.slice(classEndMatch);
+        } else {
+          newContent = existingContent + '\n' + code;
+        }
+      } else {
+        // Create new file - wrap in conversation class
+        // Extract just the method body (the code includes the attribute)
+        newContent = this._generateConversationFile(conversationId, code.trim());
+      }
+
+      // Create directory if needed
+      const dir = path.dirname(filePath);
+      await vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
+
+      // Write file
+      const encoder = new TextEncoder();
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
+
+      this._postMessage({
+        type: 'code:restoreMethodResult',
+        id,
+        success: true,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'code:restoreMethodResult',
+        id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // ==========================================================================
+  // Delete File (for conversation permanent delete)
+  // ==========================================================================
+
+  /**
+   * Delete an entire conversation code file, returning the content for undo.
+   */
+  private async _handleCodeDeleteFile(message: CodeDeleteFileMessage): Promise<void> {
+    const { id, conversationId } = message;
+
+    try {
+      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const uri = vscode.Uri.file(filePath);
+
+      // Read existing content
+      let deletedContent = '';
+      try {
+        const fileData = await vscode.workspace.fs.readFile(uri);
+        deletedContent = new TextDecoder().decode(fileData);
+      } catch {
+        // File doesn't exist - nothing to delete
+        this._postMessage({
+          type: 'code:deleteFileResult',
+          id,
+          success: true,
+          deletedContent: '',
+        });
+        return;
+      }
+
+      // Delete the file
+      await vscode.workspace.fs.delete(uri);
+
+      this._postMessage({
+        type: 'code:deleteFileResult',
+        id,
+        success: true,
+        deletedContent,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'code:deleteFileResult',
+        id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // ==========================================================================
+  // Restore File (for undo after conversation permanent delete)
+  // ==========================================================================
+
+  /**
+   * Restore an entire conversation code file.
+   */
+  private async _handleCodeRestoreFile(message: CodeRestoreFileMessage): Promise<void> {
+    const { id, conversationId, content } = message;
+
+    try {
+      if (!content) {
+        // Nothing to restore
+        this._postMessage({
+          type: 'code:restoreFileResult',
+          id,
+          success: true,
+        });
+        return;
+      }
+
+      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const uri = vscode.Uri.file(filePath);
+
+      // Create directory if needed
+      const dir = path.dirname(filePath);
+      await vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
+
+      // Write file
+      const encoder = new TextEncoder();
+      await vscode.workspace.fs.writeFile(uri, encoder.encode(content));
+
+      this._postMessage({
+        type: 'code:restoreFileResult',
+        id,
+        success: true,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'code:restoreFileResult',
+        id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  // ==========================================================================
   // Open Method
   // ==========================================================================
 
@@ -437,20 +742,20 @@ export class CodeHandlers {
   private _generateMethodStub(
     methodName: string,
     methodType: 'condition' | 'action',
-    targetType: 'node' | 'edge'
+    conversationId: number
   ): string {
     const attributeName = methodType === 'condition' ? 'NodeCondition' : 'NodeAction';
-    const idPart = methodName.replace(/^(Node|Edge)_(\d+)_(Condition|Action)$/, '$2');
+    const nodeId = methodName.replace(/^Node_(\d+)_(Condition|Action)$/, '$1');
 
     if (methodType === 'condition') {
-      return `    [${attributeName}("${targetType}_${idPart}")]
+      return `    [${attributeName}(${conversationId}, ${nodeId})]
     public static bool ${methodName}(IDialogueContext ctx)
     {
         // TODO: Implement condition
         return true;
     }`;
     } else {
-      return `    [${attributeName}("${targetType}_${idPart}")]
+      return `    [${attributeName}(${conversationId}, ${nodeId})]
     public static async Awaitable ${methodName}(IDialogueContext ctx)
     {
         // TODO: Implement action
@@ -465,7 +770,6 @@ export class CodeHandlers {
     return `// Auto-generated by GameScript
 // Conversation ID: ${conversationId}
 
-using System.Threading.Tasks;
 using GameScript;
 using UnityEngine;
 

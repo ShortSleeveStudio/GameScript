@@ -1,5 +1,6 @@
 import { db } from '$lib/db';
 import { registerUndoable, Undoable } from '$lib/undo';
+import { bridge } from '$lib/api/bridge';
 import {
   query,
   type Conversation,
@@ -173,6 +174,9 @@ export async function restore(conversationId: number): Promise<void> {
 // ============================================================================
 
 export async function permanentlyDelete(conversationId: number): Promise<void> {
+  // Delete the conversation code file (no undo for permanent delete)
+  await bridge.deleteCodeFile(conversationId);
+
   await db.transaction(async (tx) => {
     // 1. Get all nodes for this conversation
     const nodes = await db.select<Node>(

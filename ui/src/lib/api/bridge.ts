@@ -41,6 +41,10 @@ import type {
   CodeGetMethodMessage,
   CodeCreateMethodMessage,
   CodeDeleteMethodMessage,
+  CodeDeleteMethodsSilentMessage,
+  CodeRestoreMethodMessage,
+  CodeDeleteFileMessage,
+  CodeRestoreFileMessage,
   DatabaseType,
   DbResult,
   TransactionContext,
@@ -346,6 +350,38 @@ class ExtensionBridge {
           accepted: message.accepted,
           error: message.error,
         });
+        break;
+
+      case 'code:deleteMethodsSilentResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { deletedMethods: message.deletedMethods });
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'code:restoreMethodResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'code:deleteFileResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { deletedContent: message.deletedContent });
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'code:restoreFileResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
         break;
 
       case 'code:fileChanged':
@@ -963,8 +999,7 @@ class ExtensionBridge {
   async createMethod(
     conversationId: number,
     methodName: string,
-    methodType: 'condition' | 'action',
-    targetType: 'node' | 'edge'
+    methodType: 'condition' | 'action'
   ): Promise<boolean> {
     if (!this.isIde) {
       throw new Error('Code operations not available in standalone mode');
@@ -978,7 +1013,6 @@ class ExtensionBridge {
       conversationId,
       methodName,
       methodType,
-      targetType,
     };
 
     this.postMessage(message);
@@ -1004,6 +1038,100 @@ class ExtensionBridge {
       id,
       conversationId,
       methodName,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Delete multiple methods without confirmation (for programmatic deletion during node delete).
+   * Returns a map of method name to deleted code for undo.
+   * All methods are deleted in a single file operation to avoid stale symbol issues.
+   */
+  async deleteMethodsSilent(
+    conversationId: number,
+    methodNames: string[]
+  ): Promise<{ deletedMethods: Record<string, string> }> {
+    if (!this.isIde || methodNames.length === 0) {
+      return { deletedMethods: {} };
+    }
+
+    const { id, promise } = this.createRequest<{ deletedMethods: Record<string, string> }>();
+
+    const message: CodeDeleteMethodsSilentMessage = {
+      type: 'code:deleteMethodsSilent',
+      id,
+      conversationId,
+      methodNames,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Restore a previously deleted method (for undo after node delete).
+   */
+  async restoreMethod(
+    conversationId: number,
+    methodName: string,
+    code: string
+  ): Promise<void> {
+    if (!this.isIde || !code) {
+      return;
+    }
+
+    const { id, promise } = this.createRequest<void>();
+
+    const message: CodeRestoreMethodMessage = {
+      type: 'code:restoreMethod',
+      id,
+      conversationId,
+      methodName,
+      code,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Delete an entire conversation code file (for permanent conversation delete).
+   * Returns the deleted content for undo.
+   */
+  async deleteCodeFile(conversationId: number): Promise<{ deletedContent: string }> {
+    if (!this.isIde) {
+      return { deletedContent: '' };
+    }
+
+    const { id, promise } = this.createRequest<{ deletedContent: string }>();
+
+    const message: CodeDeleteFileMessage = {
+      type: 'code:deleteFile',
+      id,
+      conversationId,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Restore an entire conversation code file (for undo after permanent delete).
+   */
+  async restoreCodeFile(conversationId: number, content: string): Promise<void> {
+    if (!this.isIde || !content) {
+      return;
+    }
+
+    const { id, promise } = this.createRequest<void>();
+
+    const message: CodeRestoreFileMessage = {
+      type: 'code:restoreFile',
+      id,
+      conversationId,
+      content,
     };
 
     this.postMessage(message);

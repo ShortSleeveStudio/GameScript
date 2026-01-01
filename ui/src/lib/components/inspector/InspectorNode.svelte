@@ -156,7 +156,6 @@
                     columnName="has_condition"
                     undoText={NODE_UNDO_HAS_CONDITION}
                     methodType="condition"
-                    targetType="node"
                     {conversationId}
                     {isFolderConfigured}
                 />
@@ -171,7 +170,6 @@
                     columnName="has_action"
                     undoText={NODE_UNDO_HAS_ACTION}
                     methodType="action"
-                    targetType="node"
                     {conversationId}
                     {isFolderConfigured}
                 />

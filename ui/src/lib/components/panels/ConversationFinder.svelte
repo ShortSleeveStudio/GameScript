@@ -459,7 +459,7 @@
     </svelte:fragment>
 
     <svelte:fragment slot="right">
-      <ToggleButton active={isDeletedVisible} onClick={toggleShowDeleted}>
+      <ToggleButton active={isDeletedVisible} onclick={toggleShowDeleted}>
         {isDeletedVisible ? 'Hide' : 'Show'} Deleted
       </ToggleButton>
       <TableOptionsMenu {api} />

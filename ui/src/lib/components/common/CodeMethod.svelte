@@ -21,7 +21,7 @@
     import CodeMethodToggle from './CodeMethodToggle.svelte';
 
     interface Props {
-        /** The row view for the node or edge */
+        /** The row view for the node */
         rowView: IDbRowView<Row>;
         /** Column name for the boolean flag (e.g., 'has_condition', 'has_action') */
         columnName: string;
@@ -29,22 +29,20 @@
         undoText: string;
         /** Type of method: 'condition' or 'action' */
         methodType: 'condition' | 'action';
-        /** Type of target: 'node' or 'edge' */
-        targetType: 'node' | 'edge';
         /** The conversation ID (needed for file operations) */
         conversationId: number;
         /** Whether the code output folder is configured (passed from parent) */
         isFolderConfigured: boolean;
     }
 
-    let { rowView, columnName, undoText, methodType, targetType, conversationId, isFolderConfigured }: Props = $props();
+    let { rowView, columnName, undoText, methodType, conversationId, isFolderConfigured }: Props = $props();
 
     // Track pending state for toggle button
     let isPending = $state(false);
 
-    // Computed method name based on target type and ID
+    // Computed method name based on node ID
     let methodName = $derived(
-        `${targetType === 'node' ? 'Node' : 'Edge'}_${rowView.id}_${methodType === 'condition' ? 'Condition' : 'Action'}`
+        `Node_${rowView.id}_${methodType === 'condition' ? 'Condition' : 'Action'}`
     );
 
     // Track enabled state from row data (source of truth)
@@ -103,7 +101,7 @@
         isPending = true;
         try {
             // Create the method stub first
-            await bridge.createMethod(conversationId, methodName, methodType, targetType);
+            await bridge.createMethod(conversationId, methodName, methodType);
 
             // Update database with undo support
             await common.updateOne(rowView.tableType, oldRow, newRow, `${undoText} enabled`);

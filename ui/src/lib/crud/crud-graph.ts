@@ -15,6 +15,7 @@
 
 import { db } from '$lib/db';
 import { registerUndoable, Undoable } from '$lib/undo';
+import { bridge } from '$lib/api/bridge';
 import {
   query,
   type Node,
@@ -58,6 +59,48 @@ export async function deleteGraphSelection(
     nodeIds.push(node.id);
     if (node.voice_text) localizationIds.push(node.voice_text);
     if (node.ui_response_text) localizationIds.push(node.ui_response_text);
+  }
+
+  // Delete code methods for nodes that have them
+  // Group nodes by conversation to batch deletions (avoids stale symbol issues)
+  const nodesByConversation = new Map<number, Node[]>();
+  for (const node of nodes) {
+    if (node.has_condition || node.has_action) {
+      const existing = nodesByConversation.get(node.parent) ?? [];
+      existing.push(node);
+      nodesByConversation.set(node.parent, existing);
+    }
+  }
+
+  // Map: nodeId -> { conversationId, conditionCode, actionCode }
+  const capturedCodeMap = new Map<number, { conversationId: number; conditionCode: string; actionCode: string }>();
+
+  // Delete all methods per conversation in a single batch call
+  for (const [conversationId, convNodes] of nodesByConversation) {
+    const methodNames: string[] = [];
+    for (const node of convNodes) {
+      if (node.has_condition) {
+        methodNames.push(`Node_${node.id}_Condition`);
+      }
+      if (node.has_action) {
+        methodNames.push(`Node_${node.id}_Action`);
+      }
+    }
+
+    const result = await bridge.deleteMethodsSilent(conversationId, methodNames);
+
+    // Map results back to individual nodes
+    for (const node of convNodes) {
+      const conditionCode = result.deletedMethods[`Node_${node.id}_Condition`] ?? '';
+      const actionCode = result.deletedMethods[`Node_${node.id}_Action`] ?? '';
+      if (conditionCode || actionCode) {
+        capturedCodeMap.set(node.id, {
+          conversationId,
+          conditionCode,
+          actionCode,
+        });
+      }
+    }
   }
 
   // Data to capture for undo/redo
@@ -143,6 +186,16 @@ export async function deleteGraphSelection(
       description,
       // Undo: restore everything in reverse order
       async () => {
+        // Restore code methods first
+        for (const [nodeId, codeData] of capturedCodeMap) {
+          if (codeData.conditionCode) {
+            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Condition`, codeData.conditionCode);
+          }
+          if (codeData.actionCode) {
+            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Action`, codeData.actionCode);
+          }
+        }
+
         await db.transaction(async (tx) => {
           // Restore in reverse order of deletion
           if (capturedLocalizations.length > 0) {
@@ -161,6 +214,24 @@ export async function deleteGraphSelection(
       },
       // Redo: delete everything again
       async () => {
+        // Delete code methods again - batch by conversation
+        const methodsByConversation = new Map<number, string[]>();
+        for (const [nodeId, codeData] of capturedCodeMap) {
+          const methods = methodsByConversation.get(codeData.conversationId) ?? [];
+          if (codeData.conditionCode) {
+            methods.push(`Node_${nodeId}_Condition`);
+          }
+          if (codeData.actionCode) {
+            methods.push(`Node_${nodeId}_Action`);
+          }
+          if (methods.length > 0) {
+            methodsByConversation.set(codeData.conversationId, methods);
+          }
+        }
+        for (const [conversationId, methodNames] of methodsByConversation) {
+          await bridge.deleteMethodsSilent(conversationId, methodNames);
+        }
+
         await db.transaction(async (tx) => {
           // Delete in same order as original
           if (capturedProperties.length > 0) {

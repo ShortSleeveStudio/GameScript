@@ -975,7 +975,7 @@
     </div>
 
     <div class="toolbar-right">
-      <ToggleButton active={searchReplaceVisible} onClick={toggleSearchReplace}>
+      <ToggleButton active={searchReplaceVisible} onclick={toggleSearchReplace}>
         Search & Replace
       </ToggleButton>
       <TableOptionsMenu {api} onExportCsv={handleExportCsv} onImportCsv={handleImportCsv} />

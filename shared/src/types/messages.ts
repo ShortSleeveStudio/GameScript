@@ -155,11 +155,10 @@ export interface CodeCreateMethodMessage {
 	conversationId: number;
 	methodName: string;
 	methodType: 'condition' | 'action';
-	targetType: 'node' | 'edge';
 }
 
 /**
- * Request to delete a method with diff preview.
+ * Request to delete a method with diff preview (interactive).
  * Returns whether the user accepted or rejected the deletion.
  */
 export interface CodeDeleteMethodMessage {
@@ -167,6 +166,51 @@ export interface CodeDeleteMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string;
+}
+
+/**
+ * Request to delete multiple methods without confirmation (programmatic).
+ * Used when deleting nodes - returns the deleted code for each method for undo.
+ * Methods are deleted in a single file operation to avoid stale symbol issues.
+ */
+export interface CodeDeleteMethodsSilentMessage {
+	type: 'code:deleteMethodsSilent';
+	id: string;
+	conversationId: number;
+	methodNames: string[];
+}
+
+/**
+ * Request to restore a previously deleted method.
+ * Used for undo after node deletion.
+ */
+export interface CodeRestoreMethodMessage {
+	type: 'code:restoreMethod';
+	id: string;
+	conversationId: number;
+	methodName: string;
+	code: string;
+}
+
+/**
+ * Request to delete an entire conversation code file.
+ * Used when permanently deleting a conversation.
+ */
+export interface CodeDeleteFileMessage {
+	type: 'code:deleteFile';
+	id: string;
+	conversationId: number;
+}
+
+/**
+ * Request to restore an entire conversation code file.
+ * Used for undo after conversation deletion.
+ */
+export interface CodeRestoreFileMessage {
+	type: 'code:restoreFile';
+	id: string;
+	conversationId: number;
+	content: string;
 }
 
 /**
@@ -277,6 +321,10 @@ export type OutgoingMessage =
 	| CodeGetMethodMessage
 	| CodeCreateMethodMessage
 	| CodeDeleteMethodMessage
+	| CodeDeleteMethodsSilentMessage
+	| CodeRestoreMethodMessage
+	| CodeDeleteFileMessage
+	| CodeRestoreFileMessage
 	| CodeOpenMethodMessage
 	| CodeWatchFolderMessage;
 
@@ -503,7 +551,6 @@ export interface ScannerResultMessage {
 		methods: Array<{
 			name: string;
 			type: 'condition' | 'action';
-			targetType: 'node' | 'edge';
 			exists: boolean;
 		}>;
 	}>;
@@ -649,6 +696,74 @@ export interface CodeDeleteMethodErrorMessage {
 	error: string;
 }
 
+/**
+ * Response for silent batch method deletion (returns the deleted code for each method for undo).
+ */
+export interface CodeDeleteMethodsSilentResultMessage {
+	type: 'code:deleteMethodsSilentResult';
+	id: string;
+	success: true;
+	/** Map of method name to deleted code (includes attribute and body) */
+	deletedMethods: Record<string, string>;
+}
+
+export interface CodeDeleteMethodsSilentErrorMessage {
+	type: 'code:deleteMethodsSilentResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+/**
+ * Response for method restoration.
+ */
+export interface CodeRestoreMethodResultMessage {
+	type: 'code:restoreMethodResult';
+	id: string;
+	success: true;
+}
+
+export interface CodeRestoreMethodErrorMessage {
+	type: 'code:restoreMethodResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+/**
+ * Response for file deletion (returns the deleted content for undo).
+ */
+export interface CodeDeleteFileResultMessage {
+	type: 'code:deleteFileResult';
+	id: string;
+	success: true;
+	/** The full file content that was deleted */
+	deletedContent: string;
+}
+
+export interface CodeDeleteFileErrorMessage {
+	type: 'code:deleteFileResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+/**
+ * Response for file restoration.
+ */
+export interface CodeRestoreFileResultMessage {
+	type: 'code:restoreFileResult';
+	id: string;
+	success: true;
+}
+
+export interface CodeRestoreFileErrorMessage {
+	type: 'code:restoreFileResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
 export interface ThemeChangedMessage {
 	type: 'theme:changed';
 	isDark: boolean;
@@ -705,6 +820,14 @@ export type IncomingMessage =
 	| CodeCreateMethodErrorMessage
 	| CodeDeleteMethodResultMessage
 	| CodeDeleteMethodErrorMessage
+	| CodeDeleteMethodsSilentResultMessage
+	| CodeDeleteMethodsSilentErrorMessage
+	| CodeRestoreMethodResultMessage
+	| CodeRestoreMethodErrorMessage
+	| CodeDeleteFileResultMessage
+	| CodeDeleteFileErrorMessage
+	| CodeRestoreFileResultMessage
+	| CodeRestoreFileErrorMessage
 	| ThemeChangedMessage;
 
 // ============================================================================
