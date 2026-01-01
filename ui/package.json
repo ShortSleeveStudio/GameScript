@@ -1,0 +1,36 @@
+{
+  "name": "@gamescript/ui",
+  "version": "2.0.0",
+  "description": "GameScript graph editor web UI",
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --no-tsconfig --ignore \"src/lib/vendor\" --compiler-warnings \"a11y_click_events_have_key_events:ignore,a11y_no_static_element_interactions:ignore,a11y_no_noninteractive_element_interactions:ignore,a11y_no_noninteractive_tabindex:ignore,a11y_label_has_associated_control:ignore,a11y_interactive_supports_focus:ignore\"",
+    "check:watch": "svelte-kit sync && svelte-check --no-tsconfig --ignore \"src/lib/vendor\" --compiler-warnings \"a11y_click_events_have_key_events:ignore,a11y_no_static_element_interactions:ignore,a11y_no_noninteractive_element_interactions:ignore,a11y_no_noninteractive_tabindex:ignore,a11y_label_has_associated_control:ignore,a11y_interactive_supports_focus:ignore\" --watch",
+    "clean": "rm -rf dist .svelte-kit"
+  },
+  "dependencies": {
+    "@gamescript/shared": "workspace:*",
+    "@ag-grid-community/core": "^31.2.0",
+    "@ag-grid-community/infinite-row-model": "^31.2.0",
+    "@ag-grid-community/styles": "^31.2.0",
+    "@ag-grid-enterprise/column-tool-panel": "^31.2.0",
+    "@ag-grid-enterprise/core": "^31.2.0",
+    "@ag-grid-enterprise/filter-tool-panel": "^31.2.0",
+    "@ag-grid-enterprise/menu": "^31.2.0",
+    "@ag-grid-enterprise/side-bar": "^31.2.0",
+    "elkjs": "^0.11.0"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "^3.0.10",
+    "@sveltejs/kit": "^2.49.2",
+    "@sveltejs/vite-plugin-svelte": "^6.2.1",
+    "@xyflow/svelte": "^1.5.0",
+    "svelte": "^5.46.1",
+    "svelte-check": "^4.3.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0"
+  }
+}

@@ -1,0 +1,416 @@
+/**
+ * GameScript Theme Abstraction Layer
+ *
+ * This file defines IDE-agnostic CSS variables (--gs-*) that UI components use.
+ * Each IDE plugin injects its own values for these variables via CSS injection.
+ *
+ * The default values here are dark theme defaults for standalone/development use.
+ * IDE plugins override these by injecting CSS that sets --gs-* variables directly.
+ *
+ * Naming convention:
+ * - --gs-bg-*: Background colors
+ * - --gs-fg-*: Foreground/text colors
+ * - --gs-border-*: Border colors
+ * - --gs-input-*: Input field colors
+ * - --gs-button-*: Button colors
+ * - --gs-list-*: List/grid colors
+ * - --gs-font-*: Typography
+ *
+ * IDE Plugin Integration:
+ * - VSCode: Uses webview CSS injection to map --vscode-* to --gs-*
+ * - Rider (JCEF): Uses CSS injection to map JetBrains theme to --gs-*
+ * - Visual Studio (WebView2): Uses CSS injection to map VS theme to --gs-*
+ *
+ * Each IDE plugin is responsible for:
+ * 1. Detecting theme changes in the native IDE
+ * 2. Injecting CSS that sets --gs-* variables to appropriate values
+ * 3. Sending 'theme:changed' message to the bridge when theme changes
+ */
+
+/* Reset default browser styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+:root {
+  /* ========================================================================
+   * Typography (defaults for standalone mode)
+   * ======================================================================== */
+  --gs-font-family: var(--gs-font-family-override, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  --gs-font-family-mono: var(--gs-font-family-mono-override, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace);
+  --gs-font-size: var(--gs-font-size-override, 13px);
+  --gs-font-size-small: 11px;
+
+  /* ========================================================================
+   * Core Colors - Editor/Panel backgrounds (dark theme defaults)
+   * ======================================================================== */
+  --gs-bg-primary: var(--gs-bg-primary-override, #1e1e1e);
+  --gs-bg-secondary: var(--gs-bg-secondary-override, #252526);
+  --gs-bg-tertiary: var(--gs-bg-tertiary-override, #252526);
+  --gs-bg-header: var(--gs-bg-header-override, #3c3c3c);
+
+  /* ========================================================================
+   * Foreground/Text Colors (dark theme defaults)
+   * ======================================================================== */
+  --gs-fg-primary: var(--gs-fg-primary-override, #cccccc);
+  --gs-fg-secondary: var(--gs-fg-secondary-override, #858585);
+  --gs-fg-link: var(--gs-fg-link-override, #3794ff);
+  --gs-fg-error: var(--gs-fg-error-override, #f48771);
+
+  /* ========================================================================
+   * Border Colors (dark theme defaults)
+   * ======================================================================== */
+  --gs-border-primary: var(--gs-border-primary-override, #3c3c3c);
+  --gs-border-secondary: var(--gs-border-secondary-override, #454545);
+  --gs-border-focus: var(--gs-border-focus-override, #007fd4);
+  --gs-border-menu: var(--gs-border-menu-override, #454545);
+
+  /* ========================================================================
+   * Input Fields (dark theme defaults)
+   * ======================================================================== */
+  --gs-input-bg: var(--gs-input-bg-override, #3c3c3c);
+  --gs-input-fg: var(--gs-input-fg-override, #cccccc);
+  --gs-input-border: var(--gs-input-border-override, #3c3c3c);
+
+  /* ========================================================================
+   * Dropdowns (dark theme defaults)
+   * ======================================================================== */
+  --gs-dropdown-bg: var(--gs-dropdown-bg-override, #3c3c3c);
+  --gs-dropdown-fg: var(--gs-dropdown-fg-override, #cccccc);
+  --gs-dropdown-border: var(--gs-dropdown-border-override, #3c3c3c);
+
+  /* ========================================================================
+   * Buttons - Primary (dark theme defaults)
+   * ======================================================================== */
+  --gs-button-bg: var(--gs-button-bg-override, #0e639c);
+  --gs-button-fg: var(--gs-button-fg-override, #ffffff);
+  --gs-button-hover-bg: var(--gs-button-hover-bg-override, #1177bb);
+
+  /* ========================================================================
+   * Buttons - Secondary (dark theme defaults)
+   * ======================================================================== */
+  --gs-button-secondary-bg: var(--gs-button-secondary-bg-override, #3a3d41);
+  --gs-button-secondary-fg: var(--gs-button-secondary-fg-override, #cccccc);
+  --gs-button-secondary-hover-bg: var(--gs-button-secondary-hover-bg-override, #45494e);
+
+  /* ========================================================================
+   * Lists/Grids (dark theme defaults)
+   * ======================================================================== */
+  --gs-list-hover-bg: var(--gs-list-hover-bg-override, #2a2d2e);
+  --gs-list-selection-bg: var(--gs-list-selection-bg-override, #094771);
+
+  /* ========================================================================
+   * Badges (dark theme defaults)
+   * ======================================================================== */
+  --gs-badge-bg: var(--gs-badge-bg-override, #4d4d4d);
+  --gs-badge-fg: var(--gs-badge-fg-override, #ffffff);
+
+  /* ========================================================================
+   * Menus (dark theme defaults)
+   * ======================================================================== */
+  --gs-menu-bg: var(--gs-menu-bg-override, #252526);
+  --gs-menu-fg: var(--gs-menu-fg-override, #cccccc);
+  --gs-menu-selection-bg: var(--gs-menu-selection-bg-override, #094771);
+
+  /* ========================================================================
+   * Toolbar (dark theme defaults)
+   * ======================================================================== */
+  --gs-toolbar-hover-bg: var(--gs-toolbar-hover-bg-override, #5a5d5e);
+
+  /* ========================================================================
+   * Validation/Feedback (dark theme defaults)
+   * ======================================================================== */
+  --gs-error-bg: var(--gs-error-bg-override, #5a1d1d);
+  --gs-error-border: var(--gs-error-border-override, #be1100);
+  --gs-warning-bg: var(--gs-warning-bg-override, #352a05);
+  --gs-warning-border: var(--gs-warning-border-override, #b89500);
+
+  /* ========================================================================
+   * Status Indicators (dark theme defaults)
+   * ======================================================================== */
+  --gs-status-success: var(--gs-status-success-override, #89d185);
+  --gs-status-error: var(--gs-status-error-override, #f14c4c);
+
+  /* ========================================================================
+   * Shadows (dark theme defaults)
+   * ======================================================================== */
+  --gs-shadow: var(--gs-shadow-override, rgba(0, 0, 0, 0.5));
+
+  /* ========================================================================
+   * Golden Layout
+   * ======================================================================== */
+  --gl-tab-height: 24;
+  --gl-tab-width: 150;
+  --gl-tab-placeholder-width: 100px;
+  --gl-dropdown-arrow-size: 5px;
+  --z-index-gl-header: 10;
+
+  /* Map to IDE-agnostic colors (for Golden Layout compatibility) */
+  --cds-ui-background: var(--gs-bg-primary);
+  --cds-ui-01: var(--gs-bg-secondary);
+  --cds-ui-03: var(--gs-bg-tertiary);
+  --cds-ui-04: var(--gs-border-primary);
+  --cds-text-01: var(--gs-fg-primary);
+  --cds-text-02: var(--gs-fg-secondary);
+  --cds-interactive-02: var(--gs-border-focus);
+  --cds-interactive-04: var(--gs-border-focus);
+  --cds-hover-selected-ui: var(--gs-list-hover-bg);
+  --cds-button-separator: var(--gs-border-primary);
+  --cds-spacing-02: 0.25rem;
+  --cds-spacing-03: 0.5rem;
+}
+
+/* ============================================================================
+ * AG-Grid Panel Shared Styles
+ * Common styles shared by all AG-Grid-based panels:
+ * - ActorManager, Search, ConversationFinder, LocaleManager, LocalizationEditor
+ * ============================================================================ */
+
+/* Panel container */
+.gs-grid-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--gs-bg-primary);
+  color: var(--gs-fg-primary);
+}
+
+/* Toolbar */
+.gs-grid-panel .toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid var(--gs-border-primary);
+  flex-wrap: wrap;
+}
+
+.gs-grid-panel .toolbar-left,
+.gs-grid-panel .toolbar-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.gs-grid-panel .selection-info {
+  font-size: 12px;
+  color: var(--gs-fg-secondary);
+  padding: 0 8px;
+}
+
+/* Buttons */
+.gs-grid-panel .btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.15s;
+}
+
+.gs-grid-panel .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.gs-grid-panel .btn-primary {
+  background: var(--gs-button-bg);
+  color: var(--gs-button-fg);
+}
+
+.gs-grid-panel .btn-primary:hover:not(:disabled) {
+  background: var(--gs-button-hover-bg);
+}
+
+.gs-grid-panel .btn-secondary {
+  background: var(--gs-button-secondary-bg);
+  color: var(--gs-button-secondary-fg);
+}
+
+.gs-grid-panel .btn-secondary:hover:not(:disabled) {
+  background: var(--gs-button-secondary-hover-bg);
+}
+
+.gs-grid-panel .btn-danger {
+  background: var(--gs-error-bg);
+  color: var(--gs-fg-error);
+}
+
+.gs-grid-panel .btn-danger:hover:not(:disabled) {
+  background: #6b2222;
+}
+
+.gs-grid-panel .btn-ghost {
+  background: transparent;
+  color: var(--gs-fg-primary);
+  border: 1px solid var(--gs-border-primary);
+}
+
+.gs-grid-panel .btn-ghost:hover:not(:disabled) {
+  background: var(--gs-list-hover-bg);
+}
+
+.gs-grid-panel .btn-active {
+  background: var(--gs-warning-bg);
+  border-color: var(--gs-warning-border);
+  color: var(--gs-warning-border);
+}
+
+.gs-grid-panel .btn-active:hover:not(:disabled) {
+  background: var(--gs-warning-bg);
+}
+
+.gs-grid-panel .btn-sm {
+  padding: 2px 8px;
+  font-size: var(--gs-font-size-small);
+}
+
+/* Grid container */
+.gs-grid-panel .grid-container {
+  flex: 1;
+  min-height: 0;
+
+   /* Background colors */
+  --ag-background-color: var(--gs-bg-primary) !important;
+  --ag-foreground-color: var(--gs-fg-primary) !important;
+  --ag-header-foreground-color: var(--gs-fg-primary) !important;
+  --ag-subheader-background-color: var(--gs-bg-secondary) !important;
+  --ag-control-panel-background-color: var(--gs-bg-secondary) !important;
+  --ag-side-button-selected-background-color: var(--gs-bg-tertiary) !important;
+
+  /* Borders */
+  --ag-border-color: var(--gs-border-primary) !important;
+  --ag-secondary-border-color: var(--gs-border-secondary) !important;
+  --ag-input-focus-border-color: var(--gs-border-focus) !important;
+  --ag-wrapper-border-radius: 0px !important;
+
+  /* Rows */
+  --ag-row-background-color: var(--gs-bg-primary) !important;
+  --ag-odd-row-background-color: var(--gs-bg-primary) !important;
+  --ag-row-hover-color: var(--gs-list-hover-bg) !important;
+  --ag-selected-row-background-color: var(--gs-list-selection-bg) !important;
+
+  /* Inputs */
+  --ag-input-border-color: var(--gs-input-border) !important;
+
+  /* Menu colors */
+  --ag-menu-background-color: var(--gs-menu-bg) !important;
+  --ag-menu-border-color: var(--gs-border-menu) !important; 
+}
+
+/* Modal overlay */
+.gs-grid-panel .modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal dialog */
+.gs-grid-panel .modal {
+  background: var(--gs-bg-primary);
+  border: 1px solid var(--gs-border-primary);
+  border-radius: 4px;
+  padding: 20px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.gs-grid-panel .modal h2,
+.gs-grid-panel .modal h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gs-fg-primary);
+}
+
+.gs-grid-panel .modal p,
+.gs-grid-panel .modal .modal-text {
+  margin: 0 0 16px 0;
+  font-size: 13px;
+  color: var(--gs-fg-secondary);
+  line-height: 1.5;
+}
+
+.gs-grid-panel .modal .warning {
+  color: var(--gs-fg-error);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.gs-grid-panel .modal-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gs-fg-primary);
+}
+
+.gs-grid-panel .modal-actions,
+.gs-grid-panel .modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 0;
+}
+
+/* Search panel specific controls */
+.gs-grid-panel .controls {
+  padding: 12px;
+  border-bottom: 1px solid var(--gs-border-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gs-grid-panel .control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gs-grid-panel .control-label {
+  width: 60px;
+  font-size: 12px;
+  color: var(--gs-fg-secondary);
+}
+
+.gs-grid-panel .control-input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--gs-input-bg);
+  color: var(--gs-input-fg);
+  border: 1px solid var(--gs-input-border);
+  border-radius: 2px;
+}
+
+.gs-grid-panel .control-input:focus {
+  outline: none;
+  border-color: var(--gs-border-focus);
+}
+
+.gs-grid-panel .button-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}

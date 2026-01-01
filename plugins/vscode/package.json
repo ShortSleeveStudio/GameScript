@@ -1,0 +1,119 @@
+{
+  "name": "@gamescript/vscode",
+  "displayName": "GameScript",
+  "description": "Visual dialogue authoring for games",
+  "version": "2.0.0",
+  "publisher": "gamescript",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gamescript",
+          "title": "GameScript",
+          "icon": "$(comment-discussion)"
+        }
+      ]
+    },
+    "views": {
+      "gamescript": [
+        {
+          "type": "webview",
+          "id": "gamescript.sidebar",
+          "name": "GameScript",
+          "visibility": "visible"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "gamescript.openEditor",
+        "title": "Open Editor",
+        "category": "GameScript",
+        "icon": "$(book)"
+      },
+      {
+        "command": "gamescript.undo",
+        "title": "Undo",
+        "category": "GameScript"
+      },
+      {
+        "command": "gamescript.redo",
+        "title": "Redo",
+        "category": "GameScript"
+      },
+      {
+        "command": "gamescript.refreshRegistry",
+        "title": "Refresh Action/Condition Registry",
+        "category": "GameScript"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "gamescript.openEditor",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "gamescript.undo",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "gamescriptPanelFocused"
+      },
+      {
+        "command": "gamescript.redo",
+        "key": "ctrl+shift+z",
+        "mac": "cmd+shift+z",
+        "when": "gamescriptPanelFocused"
+      },
+      {
+        "command": "gamescript.redo",
+        "key": "ctrl+y",
+        "mac": "cmd+y",
+        "when": "gamescriptPanelFocused"
+      }
+    ],
+    "configuration": {
+      "title": "GameScript",
+      "properties": {
+        "gamescript.dialogueOutputPath": {
+          "type": "string",
+          "default": "Assets/Scripts/Dialogue",
+          "description": "Path (relative to workspace) where dialogue code files will be generated"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch",
+    "clean": "rm -rf dist",
+    "package": "vsce package --no-dependencies",
+    "lint": "eslint src --ext ts"
+  },
+  "dependencies": {
+    "@gamescript/shared": "workspace:*",
+    "@vscode/sqlite3": "^5.1.10-vscode",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/pg": "^8.11.5",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.5"
+  }
+}

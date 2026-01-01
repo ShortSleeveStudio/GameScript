@@ -1,0 +1,29 @@
+{
+  "name": "gamescript",
+  "version": "2.0.0",
+  "description": "Cross-platform dialogue authoring system",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@vscode/sqlite3",
+      "esbuild"
+    ]
+  }
+}

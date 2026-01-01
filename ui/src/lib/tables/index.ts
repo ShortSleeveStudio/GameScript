@@ -1,0 +1,14 @@
+/**
+ * Shared table views.
+ *
+ * These singleton stores provide reactive views of database tables
+ * that are commonly accessed throughout the application.
+ */
+
+export { actorsTable } from './actors.js';
+export { codeOutputFolderTableView, getCodeOutputFolder } from './code-output-folder.js';
+export { filtersTable } from './filters.js';
+export { localesTable } from './locales.js';
+export { localePrincipalTableView, getLocalePrincipal } from './locale-principal.js';
+export { systemCreatedLocaleTableView, getSystemCreatedLocale } from './locale-system-created.js';
+export { propertyTemplatesTable } from './property-templates.js';
