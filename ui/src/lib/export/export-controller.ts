@@ -13,7 +13,8 @@ import { bridge } from '$lib/api/bridge.js';
 import { snapshotExport } from '$lib/crud';
 import { SnapshotDataFetcher } from './snapshot-data-fetcher.js';
 import { serializeSnapshot } from './snapshot-serializer.js';
-import type { ExportProgress, ExportResult, ExportManifest } from './types.js';
+import type { ExportProgress, ExportResult, ExportManifest, ExportManifestLocale } from './types.js';
+import { localePrincipalTableView, getLocalePrincipal } from '$lib/tables/locale-principal.js';
 
 /**
  * Compute SHA-256 hash of binary data.
@@ -125,6 +126,14 @@ export class ExportController {
         completedLocales: 0,
       });
 
+      // Get primary locale for resolving localized names
+      const localePrincipal = getLocalePrincipal(localePrincipalTableView.rows);
+      const primaryLocaleId = localePrincipal?.data.principal ?? locales[0]?.id ?? 1;
+      const primaryLocaleColumn = `locale_${primaryLocaleId}`;
+
+      // Fetch localized names for all locales using primary locale
+      const localizedNames = await snapshotExport.getLocaleLocalizedNames(locales, primaryLocaleColumn);
+
       // Ensure output directories exist
       await bridge.makeDirectory(outputPath);
       const localesDir = `${outputPath}/locales`;
@@ -132,9 +141,12 @@ export class ExportController {
 
       // Load existing manifest for hash comparison
       const existingManifest = await this.loadManifest(outputPath);
+      const existingHashByName = new Map(
+        existingManifest?.locales.map((l) => [l.name, l.hash]) ?? []
+      );
 
-      // Track hashes for manifest
-      const newHashes: Record<string, string> = {};
+      // Build manifest locales as we process
+      const manifestLocales: ExportManifestLocale[] = [];
 
       // 2. Process each locale
       for (let i = 0; i < locales.length; i++) {
@@ -169,10 +181,13 @@ export class ExportController {
         // Serialize to FlatBuffers
         const binaryData = serializeSnapshot(snapshotData);
         const hash = await computeHash(binaryData);
-        newHashes[locale.name] = hash;
+
+        // Add to manifest locales
+        const localizedName = localizedNames.get(locale.id) ?? locale.name;
+        manifestLocales.push({ id: locale.id, name: locale.name, localizedName, hash });
 
         // Check if unchanged
-        if (existingManifest?.hashes[locale.name] === hash) {
+        if (existingHashByName.get(locale.name) === hash) {
           localesSkipped++;
           continue;
         }
@@ -206,9 +221,9 @@ export class ExportController {
       // 3. Write manifest
       const manifest: ExportManifest = {
         version: '1.0.0',
-        locales: locales.map((l) => l.name),
+        locales: manifestLocales,
+        primaryLocale: primaryLocaleId,
         exportedAt: new Date().toISOString(),
-        hashes: newHashes,
       };
 
       await bridge.writeFile(`${outputPath}/manifest.json`, JSON.stringify(manifest, null, 2));

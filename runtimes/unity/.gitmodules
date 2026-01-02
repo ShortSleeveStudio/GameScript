@@ -1,0 +1,3 @@
+[submodule "Grammars"]
+	path = Grammars
+	url = https://github.com/ShortSleeveStudio/GameScriptGrammars.git

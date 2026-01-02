@@ -1,0 +1,17 @@
+{
+  "name": "studio.shortsleeve.gamescriptunity",
+  "displayName": "GameScriptUnity",
+  "version": "0.0.24",
+  "unity": "2023.2",
+  "description": "Cross-platform dialogue middleware",
+  "keywords": [
+    "dialogue"
+  ],
+  "dependencies": {
+  },
+  "author": {
+    "name": "Short Sleeve Studio",
+    "email": "support@shortsleeve.studio",
+    "url": "https://www.shortsleeve.studio/gamescript"
+  }
+}

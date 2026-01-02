@@ -22,7 +22,7 @@ import {
   Int32Value,
   FloatValue,
   BoolValue,
-} from './generated/game-script.js';
+} from '@gamescript/flatbuffers';
 import type {
   LocaleSnapshot,
   ExportConversation,

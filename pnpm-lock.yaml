@@ -15,6 +15,12 @@ importers:
         specifier: ^5.4.5
         version: 5.9.3
 
+  core/generated/ts:
+    dependencies:
+      flatbuffers:
+        specifier: ^24.3.25
+        version: 24.12.23
+
   plugins/vscode:
     dependencies:
       '@gamescript/shared':
@@ -88,6 +94,9 @@ importers:
       '@ag-grid-enterprise/side-bar':
         specifier: ^31.2.0
         version: 31.3.4
+      '@gamescript/flatbuffers':
+        specifier: workspace:*
+        version: link:../core/generated/ts
       '@gamescript/shared':
         specifier: workspace:*
         version: link:../shared

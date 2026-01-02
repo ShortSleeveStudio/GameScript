@@ -47,6 +47,26 @@ export async function getAllLocales(): Promise<Locale[]> {
   return db.select<Locale>(TABLE_LOCALES, query<Locale>().orderBy('id', 'ASC').build());
 }
 
+/**
+ * Get localized names for locales using the specified locale column.
+ * Returns a map from locale ID to its localized display name.
+ */
+export async function getLocaleLocalizedNames(
+  locales: Locale[],
+  localeColumn: string
+): Promise<Map<number, string>> {
+  const localizationIds = locales.map((l) => l.localized_name);
+  const textMap = await getLocalizationTextForLocale(localizationIds, localeColumn);
+
+  const result = new Map<number, string>();
+  for (const locale of locales) {
+    const text = textMap.get(locale.localized_name);
+    // Fall back to locale name if no localized name
+    result.set(locale.id, text ?? locale.name);
+  }
+  return result;
+}
+
 // ============================================================================
 // Conversations
 // ============================================================================

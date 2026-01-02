@@ -18,8 +18,8 @@ GameScript is a cross-platform, IDE-centric dialogue authoring and runtime syste
 
 **V2 Solution**:
 - Conditions/actions written in native language (C#, C++, GDScript) in the developer's IDE
-- Methods marked with attributes: `[NodeCondition(id)]`, `[NodeAction(id)]`
-- Build-time source generator assigns integer IDs for O(1) function pointer lookup
+- Methods marked with attributes: `[NodeCondition(nodeId)]`, `[NodeAction(nodeId)]`
+- Runtime reflection builds jump tables for O(1) function dispatch
 - Graph editor shows read-only code previews
 
 **What lives where**:
@@ -37,18 +37,21 @@ GameScript is a cross-platform, IDE-centric dialogue authoring and runtime syste
 // Assets/Scripts/Dialogue/conv_123.cs
 public static class Conversation_123
 {
-    [NodeCondition(456)]
+    [NodeCondition(456, 123)]
     public static bool Node_456_Condition(IDialogueContext ctx)
-        => ctx.HasItem("gold", 10);
+        => GameState.PlayerGold >= 10;
 
-    [NodeAction(456)]
-    public static async ValueTask Node_456_Action(IDialogueContext ctx)
+    [NodeAction(456, 123)]
+    public static async Awaitable Node_456_Action(IDialogueContext ctx)
     {
-        ctx.RemoveItem("gold", 10);
-        await ctx.PlayAnimation("hand_over_gold");
+        GameState.PlayerGold -= 10;
+        await AnimationManager.Play("hand_over_gold");
+        // ctx provides node data (actor, text, properties) if needed
     }
 }
 ```
+
+`IDialogueContext` provides read-only access to node data (actor, text, properties, flags). Game-specific logic (inventory, animations) lives in your own systems.
 
 ### 2. IDE Integration
 
@@ -61,16 +64,18 @@ public static class Conversation_123
 
 **File watcher**: Extension watches `conv_*.cs` and updates previews on change.
 
-### 3. Build-Time Validation
+### 3. Function Binding (Jump Tables)
 
-1. Source generator scans for `[NodeCondition]`, `[NodeAction]` attributes
-2. Validates nodes with `has_condition=true`/`has_action=true` have methods
-3. Assigns stable integer IDs
-4. Generates `DialogueRegistry.cs` with lookup tables
+At runtime startup, the engine builds jump tables via reflection:
 
-**Runtime**: Array-based dispatch. Cost: one array index + one delegate call.
+1. Load snapshot, find max `node.Id` across all nodes
+2. Allocate arrays sized `maxNodeId + 1`: `Func<IDialogueContext, bool>[]` for conditions, `Func<IDialogueContext, Awaitable>[]` for actions
+3. Scan assemblies for methods with `[NodeCondition(nodeId, conversationId)]`, `[NodeAction(nodeId, conversationId)]` attributes
+4. Place function pointers at their `nodeId` index
 
-*Note: Consider pre-build generation during authoring for in-editor dialogue playback.*
+**Dispatch**: `conditions[node.Id](ctx)` / `actions[node.Id](ctx)`. O(1), cache-friendly.
+
+**Build-time validation**: Same jump table generation runs at build. If a node has `has_condition=true` or `has_action=true` but no corresponding method exists, fail the build.
 
 ### 4. Binary Snapshot System
 
@@ -82,9 +87,8 @@ public static class Conversation_123
 **Distribution: Loose-File Bundle**
 ```
 /GameScript/
-  manifest.json          # Version, locale list, chunk offsets
-  /locales/*.gsb         # Per-language dialogue/strings
-  /common/*.gsb          # Actors, variables
+  manifest.json          # Version, locales (id + code), primaryLocale, hashes
+  /locales/*.gsb         # Per-locale snapshots (dialogue, actors, localizations)
 ```
 
 **Update Strategy: Reactive Full Export**
@@ -164,34 +168,6 @@ Route through native IDE APIs:
 - (future) Cloud spreadsheet sync
 - (future) Engine plugin port for localization updates
 
----
-
-## Part 2: Way of Work
-
-### Non-Negotiable Principles
-
-0. **Don't make decisions without me.** No unilateral functionality changes. Don't ignore prior decisions.
-
-1. **Never lose reactivity.** Every change must maintain identical reactive behavior.
-
-2. **Never change functionality without approval.** Stop and discuss behavioral changes first.
-
-3. **Investigate downstream effects.** Trace all consumers before changing code.
-
-4. **Never take the easy way out.** Choose architecturally correct over quick fix.
-
-5. **First principles thinking.** Design as if building fresh with Svelte 5.
-
-6. **Incremental and testable.** Each phase = working, testable application.
-
-7. **Always improving.** Surface improvement opportunities.
-
-8. **Assume nothing.** Deep-dive diff functions with same names for feature parity.
-
-9. **Let the user know.** Use notification helpers:
-```typescript
-import { toastError, toastWarning, notifyError, notifyWarning } from '$lib/stores/notifications.js';
-```
 
 ### Reactivity Guidelines
 
@@ -232,6 +208,6 @@ const snapshot = tableView.getRowsById(activeNodeIds);
 ## Developer Workflow Summary
 
 1. **Write**: Native functions in IDE + design flow in GameScript Graph
-2. **Sync**: On Save → update SQL → export .gsb + function pointer table
-3. **Play**: Engine detects update, hot-reloads snapshot. Runtime uses `function_id` → lookup table → native call
+2. **Sync**: On Save → update SQL → export .gsb
+3. **Play**: Engine detects update, hot-reloads snapshot. Runtime uses jump table (nodeIndex → delegate) for dispatch
 4. **Edit**: In-engine localization edits refocus IDE to specific node/line

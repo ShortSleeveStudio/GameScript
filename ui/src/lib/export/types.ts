@@ -187,17 +187,27 @@ export interface ExportProgress {
 }
 
 /**
+ * Locale entry in the manifest.
+ */
+export interface ExportManifestLocale {
+  id: number;
+  name: string;
+  localizedName: string;
+  hash: string;
+}
+
+/**
  * Manifest file format stored alongside snapshots.
  */
 export interface ExportManifest {
   /** Schema version for the manifest format */
   version: string;
-  /** List of exported locale names */
-  locales: string[];
+  /** List of exported locales with id, code, and hash */
+  locales: ExportManifestLocale[];
+  /** ID of the primary locale */
+  primaryLocale: number;
   /** ISO timestamp of export */
   exportedAt: string;
-  /** SHA-256 hashes of each locale file, keyed by locale name */
-  hashes: Record<string, string>;
 }
 
 /**
