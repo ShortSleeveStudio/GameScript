@@ -27,5 +27,8 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 
+# Generated code
+ui/src/lib/export/generated/
+
 # Test
 coverage/

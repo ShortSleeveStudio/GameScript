@@ -58,6 +58,9 @@ export const TABLE_CONVERSATION_TAG_VALUES: TableRef = { id: 21, name: 'conversa
 export const TABLE_LOCALIZATION_TAG_CATEGORIES: TableRef = { id: 22, name: 'localization_tag_categories' };
 export const TABLE_LOCALIZATION_TAG_VALUES: TableRef = { id: 23, name: 'localization_tag_values' };
 
+// Settings tables
+export const TABLE_SNAPSHOT_OUTPUT_PATH: TableRef = { id: 24, name: 'snapshot_output_path' };
+
 export const DATABASE_TABLES: TableRef[] = [
   TABLE_TABLES,
   TABLE_AUTO_COMPLETES,
@@ -83,6 +86,7 @@ export const DATABASE_TABLES: TableRef[] = [
   TABLE_CONVERSATION_TAG_VALUES,
   TABLE_LOCALIZATION_TAG_CATEGORIES,
   TABLE_LOCALIZATION_TAG_VALUES,
+  TABLE_SNAPSHOT_OUTPUT_PATH,
 ];
 
 /** Set of known table names for efficient validation (e.g., SQL injection prevention) */
@@ -113,9 +117,12 @@ export interface NodeType {
   name: string;
 }
 
-export const NODE_TYPE_ROOT: NodeType = { id: 0, name: 'root' };
-export const NODE_TYPE_DIALOGUE: NodeType = { id: 1, name: 'dialogue' };
-export const NODE_TYPES: NodeType[] = [NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE];
+export const NODE_TYPE_ROOT = { id: 0, name: 'root' } as const;
+export const NODE_TYPE_DIALOGUE = { id: 1, name: 'dialogue' } as const;
+export const NODE_TYPES = [NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
+
+/** String literal type for node types (e.g., 'root' | 'dialogue') */
+export type NodeTypeName = (typeof NODE_TYPES)[number]['name'];
 
 // Edge types
 export interface EdgeType {
@@ -123,9 +130,12 @@ export interface EdgeType {
   name: string;
 }
 
-export const EDGE_TYPE_DEFAULT: EdgeType = { id: 0, name: 'default' };
-export const EDGE_TYPE_HIDDEN: EdgeType = { id: 1, name: 'hidden' };
-export const EDGE_TYPES: EdgeType[] = [EDGE_TYPE_DEFAULT, EDGE_TYPE_HIDDEN];
+export const EDGE_TYPE_DEFAULT = { id: 0, name: 'default' } as const;
+export const EDGE_TYPE_HIDDEN = { id: 1, name: 'hidden' } as const;
+export const EDGE_TYPES = [EDGE_TYPE_DEFAULT, EDGE_TYPE_HIDDEN] as const;
+
+/** String literal type for edge types (e.g., 'default' | 'hidden') */
+export type EdgeTypeName = (typeof EDGE_TYPES)[number]['name'];
 
 // Property types
 export interface PropertyTypeRef {
@@ -133,19 +143,22 @@ export interface PropertyTypeRef {
   name: string;
 }
 
-export const PROPERTY_TYPE_STRING: PropertyTypeRef = { id: 0, name: 'String' };
-export const PROPERTY_TYPE_INTEGER: PropertyTypeRef = { id: 1, name: 'Integer' };
-export const PROPERTY_TYPE_DECIMAL: PropertyTypeRef = { id: 2, name: 'Decimal' };
-export const PROPERTY_TYPE_BOOLEAN: PropertyTypeRef = { id: 3, name: 'Boolean' };
-export const PROPERTY_TYPE_EMPTY: PropertyTypeRef = { id: 4, name: 'Empty' };
+export const PROPERTY_TYPE_STRING = { id: 0, name: 'String' } as const;
+export const PROPERTY_TYPE_INTEGER = { id: 1, name: 'Integer' } as const;
+export const PROPERTY_TYPE_DECIMAL = { id: 2, name: 'Decimal' } as const;
+export const PROPERTY_TYPE_BOOLEAN = { id: 3, name: 'Boolean' } as const;
+export const PROPERTY_TYPE_EMPTY = { id: 4, name: 'Empty' } as const;
 
-export const PROPERTY_TYPES: PropertyTypeRef[] = [
+export const PROPERTY_TYPES = [
   PROPERTY_TYPE_STRING,
   PROPERTY_TYPE_INTEGER,
   PROPERTY_TYPE_DECIMAL,
   PROPERTY_TYPE_BOOLEAN,
   PROPERTY_TYPE_EMPTY,
-];
+] as const;
+
+/** String literal type for property types used in export (lowercase for FlatBuffers compatibility) */
+export type ExportPropertyTypeName = 'string' | 'integer' | 'decimal' | 'boolean';
 
 // Localization export options
 export interface LocalizationDivisionType {

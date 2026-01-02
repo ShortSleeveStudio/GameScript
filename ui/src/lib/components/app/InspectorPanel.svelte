@@ -1,11 +1,15 @@
 <script lang="ts">
     /**
-     * Fixed Inspector Panel with Connection Bar.
+     * Fixed Inspector Panel with Connection and Settings Bars.
      *
      * This component is always visible on the right side of the app.
      * It contains:
-     * - Connection bar at top (always visible, shows status and connect/disconnect)
+     * - Top bar with connection button (left) and settings button (right)
+     * - Connection accordion (expands below top bar when connection button clicked)
+     * - Settings accordion (expands below top bar when settings button clicked)
      * - Inspector content below (shows selected item properties)
+     *
+     * Only one accordion can be open at a time.
      */
     import { onMount } from 'svelte';
     import { bridge } from '$lib/api';
@@ -18,22 +22,26 @@
         connect as connectStore,
     } from '$lib/stores/connection.js';
     import Inspector from '$lib/components/inspector/Inspector.svelte';
+    import SettingsPanel from './SettingsPanel.svelte';
     import { Button, TabGroup, Input } from '$lib/components/common';
 
     // Notifications
     import { toastError } from '$lib/stores/notifications.js';
 
+    // Panel state - only one can be open at a time
+    type ActivePanel = 'none' | 'connection' | 'settings';
+    let activePanel: ActivePanel = $state('none');
+
     // Connection form state
-    let showConnectForm = false;
-    let selectedDbType: 'sqlite' | 'postgres' = 'sqlite';
-    let isConnecting = false;
+    let selectedDbType: 'sqlite' | 'postgres' = $state('sqlite');
+    let isConnecting = $state(false);
 
     // PostgreSQL form fields
-    let pgHost = 'localhost';
-    let pgPort = 5432;
-    let pgDatabase = '';
-    let pgUser = '';
-    let pgPassword = '';
+    let pgHost = $state('localhost');
+    let pgPort = $state(5432);
+    let pgDatabase = $state('');
+    let pgUser = $state('');
+    let pgPassword = $state('');
 
     // Load saved PostgreSQL config on mount (for form pre-fill)
     onMount(() => {
@@ -48,12 +56,22 @@
         }
     });
 
-    $: connected = $dbConnected;
-    $: currentDbType = $dbType;
-    $: status = $connectionStatus;
+    let connected = $derived($dbConnected);
+    let currentDbType = $derived($dbType);
+    let status = $derived($connectionStatus);
 
-    function toggleConnectForm() {
-        showConnectForm = !showConnectForm;
+    function toggleConnectionPanel() {
+        if (connected) {
+            // If connected, clicking disconnects
+            handleDisconnect();
+        } else {
+            // Toggle connection panel
+            activePanel = activePanel === 'connection' ? 'none' : 'connection';
+        }
+    }
+
+    function toggleSettingsPanel() {
+        activePanel = activePanel === 'settings' ? 'none' : 'settings';
     }
 
     async function handleCreateSqlite() {
@@ -62,7 +80,7 @@
             const result = await bridge.saveSqliteDialog();
             if (!result.cancelled && result.filePath) {
                 connectStore({ type: 'sqlite', filepath: result.filePath }, true);
-                showConnectForm = false;
+                activePanel = 'none';
             }
         } catch (error) {
             toastError('Failed to create database', error);
@@ -77,7 +95,7 @@
             const result = await bridge.openSqliteDialog();
             if (!result.cancelled && result.filePath) {
                 connectStore({ type: 'sqlite', filepath: result.filePath });
-                showConnectForm = false;
+                activePanel = 'none';
             }
         } catch (error) {
             toastError('Failed to open database', error);
@@ -99,7 +117,7 @@
                 username: pgUser,
                 password: pgPassword,
             });
-            showConnectForm = false;
+            activePanel = 'none';
         } catch (error) {
             toastError('Failed to connect', error);
         } finally {
@@ -118,44 +136,50 @@
 </script>
 
 <div class="inspector-panel">
-    <!-- Connection Bar -->
-    <div class="connection-bar">
-        <div class="connection-status">
+    <!-- Top Bar with Connection and Settings buttons -->
+    <div class="top-bar">
+        <button
+            class="top-bar-button connection-button"
+            class:active={activePanel === 'connection'}
+            class:connected
+            onclick={toggleConnectionPanel}
+            title={connected ? 'Click to disconnect' : 'Connect to database'}
+        >
             <span
                 class="status-dot"
                 class:connected
                 class:disconnected={!connected}
             ></span>
-            <span class="status-text">
+            <span class="button-text">
                 {#if status === 'connecting' || isConnecting}
                     Connecting...
                 {:else if connected}
                     {currentDbType === 'postgres' ? 'PostgreSQL' : 'SQLite'}
                 {:else}
-                    Not connected
+                    Connect
                 {/if}
             </span>
-        </div>
-        <div class="connection-actions">
-            {#if connected}
-                <Button variant="danger" size="small" onclick={handleDisconnect} title="Disconnect">
-                    Disconnect
-                </Button>
-            {:else}
-                <Button
-                    size="small"
-                    active={showConnectForm}
-                    onclick={toggleConnectForm}
-                >
-                    {showConnectForm ? 'Cancel' : 'Connect'}
-                </Button>
+            <span class="button-text-hover">Disconnect</span>
+            {#if !connected}
+                <span class="chevron" class:expanded={activePanel === 'connection'}>▾</span>
             {/if}
-        </div>
+        </button>
+
+        <button
+            class="top-bar-button"
+            class:active={activePanel === 'settings'}
+            onclick={toggleSettingsPanel}
+            title="Project settings"
+            disabled={!connected}
+        >
+            <span class="button-text">Settings</span>
+            <span class="chevron" class:expanded={activePanel === 'settings'}>▾</span>
+        </button>
     </div>
 
-    <!-- Connection Form (shown when not connected and user clicks Connect) -->
-    {#if !connected && showConnectForm}
-        <div class="connect-form">
+    <!-- Connection Panel (accordion) -->
+    {#if activePanel === 'connection' && !connected}
+        <div class="accordion-panel">
             <TabGroup
                 tabs={[
                     { id: 'sqlite', label: 'SQLite' },
@@ -209,6 +233,13 @@
         </div>
     {/if}
 
+    <!-- Settings Panel (accordion) -->
+    {#if activePanel === 'settings' && connected}
+        <div class="accordion-panel">
+            <SettingsPanel />
+        </div>
+    {/if}
+
     <!-- Inspector Content -->
     <div class="inspector-content">
         <Inspector />
@@ -224,21 +255,54 @@
         border-left: 1px solid var(--gs-border-primary);
     }
 
-    /* Connection Bar */
-    .connection-bar {
+    /* Top Bar */
+    .top-bar {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 12px;
+        gap: 4px;
+        padding: 6px 8px;
         background: var(--gs-bg-tertiary);
         border-bottom: 1px solid var(--gs-border-primary);
         flex-shrink: 0;
     }
 
-    .connection-status {
+    .top-bar-button {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
+        padding: 4px 8px;
+        background: var(--gs-bg-secondary);
+        border: 1px solid var(--gs-border-primary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: var(--gs-font-size-small);
+        color: var(--gs-fg-secondary);
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .top-bar-button:hover:not(:disabled) {
+        background: var(--gs-bg-hover);
+        border-color: var(--gs-border-secondary);
+    }
+
+    .top-bar-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .top-bar-button.active {
+        background: var(--gs-warning-bg);
+        border-color: var(--gs-warning-border);
+        color: var(--gs-warning-border);
+    }
+
+    .top-bar-button.active:hover:not(:disabled) {
+        background: var(--gs-warning-bg);
+    }
+
+    .top-bar-button.connected {
+        border-color: var(--gs-status-success);
     }
 
     .status-dot {
@@ -256,13 +320,48 @@
         background: var(--gs-status-error);
     }
 
-    .status-text {
-        font-size: var(--gs-font-size-small);
-        color: var(--gs-fg-secondary);
+    .button-text {
+        flex: 1;
+        text-align: left;
     }
 
-    /* Connection Form */
-    .connect-form {
+    /* Hover text for disconnect - hidden by default */
+    .button-text-hover {
+        display: none;
+        flex: 1;
+        text-align: left;
+        color: var(--gs-status-error);
+    }
+
+    /* When connected and hovered, show "Disconnect" and hide db name */
+    .connection-button.connected:hover .button-text {
+        display: none;
+    }
+
+    .connection-button.connected:hover .button-text-hover {
+        display: block;
+    }
+
+    .connection-button.connected:hover {
+        border-color: var(--gs-status-error);
+        background: var(--gs-bg-hover);
+    }
+
+    .connection-button.connected:hover .status-dot {
+        background: var(--gs-status-error);
+    }
+
+    .chevron {
+        font-size: 0.625rem;
+        transition: transform 0.15s;
+    }
+
+    .chevron.expanded {
+        transform: rotate(180deg);
+    }
+
+    /* Accordion Panel */
+    .accordion-panel {
         padding: 12px;
         background: var(--gs-bg-primary);
         border-bottom: 1px solid var(--gs-border-primary);
@@ -270,6 +369,8 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+        max-height: 60vh;
+        overflow-y: auto;
     }
 
     .sqlite-actions {

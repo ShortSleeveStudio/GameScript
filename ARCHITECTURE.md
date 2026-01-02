@@ -88,7 +88,8 @@ public static class Conversation_123
 ```
 
 **Update Strategy: Reactive Full Export**
-- Trigger: File Save (Ctrl+S) or Focus Loss (Alt-Tab)
+- Trigger: IDE Focus Loss (Alt-Tab) or manual "Export Now" button
+- Configuration: Settings panel in Inspector (snapshot output path, auto-export toggle)
 - Smart writing: Hash comparison, only write if changed (clean Git history)
 - Atomic swaps: Write to temp file, then rename
 
@@ -103,12 +104,18 @@ public static class Conversation_123
 | Panel | Purpose |
 |-------|---------|
 | Graph Editor | Visual node/edge editing (Svelte Flow) |
-| Inspector | Properties of selected items |
+| Inspector | Properties of selected items + project settings |
 | Conversation Finder | List/search conversations |
 | Localization Editor | Edit localized strings |
 | Actor Manager | Manage characters |
 | Locale Manager | Manage languages |
 | Search | Global content search |
+
+**Inspector Panel Layout**:
+- Top bar: Connection button (left) + Settings button (right)
+- Connection accordion: Database type tabs, connection form
+- Settings accordion: Snapshot output path, auto-export toggle, code workspace path, Export Now button
+- Inspector content: Properties of selected graph items
 
 **Supported IDEs**:
 - VS Code (primary): `vscode.window.createWebviewPanel()`

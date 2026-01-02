@@ -9,10 +9,12 @@
     "preview": "vite preview",
     "check": "svelte-kit sync && svelte-check --no-tsconfig --ignore \"src/lib/vendor\" --compiler-warnings \"a11y_click_events_have_key_events:ignore,a11y_no_static_element_interactions:ignore,a11y_no_noninteractive_element_interactions:ignore,a11y_no_noninteractive_tabindex:ignore,a11y_label_has_associated_control:ignore,a11y_interactive_supports_focus:ignore\"",
     "check:watch": "svelte-kit sync && svelte-check --no-tsconfig --ignore \"src/lib/vendor\" --compiler-warnings \"a11y_click_events_have_key_events:ignore,a11y_no_static_element_interactions:ignore,a11y_no_noninteractive_element_interactions:ignore,a11y_no_noninteractive_tabindex:ignore,a11y_label_has_associated_control:ignore,a11y_interactive_supports_focus:ignore\" --watch",
-    "clean": "rm -rf dist .svelte-kit"
+    "clean": "rm -rf dist .svelte-kit",
+    "generate:flatbuffers": "flatc --ts -o src/lib/export/generated src/lib/export/schema/snapshot.fbs"
   },
   "dependencies": {
     "@gamescript/shared": "workspace:*",
+    "flatbuffers": "^24.3.25",
     "@ag-grid-community/core": "^31.2.0",
     "@ag-grid-community/infinite-row-model": "^31.2.0",
     "@ag-grid-community/styles": "^31.2.0",

@@ -11,7 +11,9 @@
 
 import type {
   ColDef,
+  KeyCreatorParams,
   SetFilterValuesFuncParams,
+  ValueFormatterParams,
   ValueGetterParams,
 } from '@ag-grid-community/core';
 import type { BaseTagCategory, BaseTagValue, Row } from '@gamescript/shared';
@@ -149,8 +151,8 @@ export function buildTagColumns(config: BuildTagColumnsConfig): ColDef[] {
     // Get the value map for this category (for O(1) lookups)
     const valueMap = categoryValueMaps.get(categoryId) ?? new Map<number, string>();
 
-    // Get value names for Set Filter options
-    const valueNames = Array.from(valueMap.values());
+    // Get value IDs as strings for Set Filter (AG-Grid requires string values)
+    const valueIdStrings = Array.from(valueMap.keys()).map(id => String(id));
 
     tagColumns.push({
       headerName: category.name,
@@ -158,27 +160,28 @@ export function buildTagColumns(config: BuildTagColumnsConfig): ColDef[] {
       cellRenderer: GridCellRendererTag,
       cellEditor: GridCellEditorTag,
       cellEditorParams: { categoryId },
+      // Extract value from IDbRowView wrapper for AG-Grid
+      valueGetter: (params: ValueGetterParams<IDbRowView<Row>>) => {
+        if (!params.data) return null;
+        return params.data.data[colId] as number | null;
+      },
       filter: 'agSetColumnFilter',
       filterParams: {
-        // Provide tag value names for the filter dropdown
+        // Provide tag value IDs (as strings) for the filter
         values: (params: SetFilterValuesFuncParams) => {
-          // Note: This captures valueNames at column definition time.
-          // To get truly dynamic values, we'd need to re-read from context here.
-          // However, the $effect that rebuilds columns runs when values change,
+          // Note: This captures valueIdStrings at column definition time.
+          // The $effect that rebuilds columns runs when values change,
           // so this gets rebuilt with fresh data.
-          params.success(valueNames);
+          params.success(valueIdStrings);
         },
-        // Display empty values nicely
-        cellRenderer: (params: { value: string }) => params.value || '(Empty)',
-      },
-      // Value getter to convert ID to name for filtering
-      // Uses Map for O(1) lookup instead of Array.find which is O(n)
-      filterValueGetter: (params: ValueGetterParams<IDbRowView<Row>>) => {
-        if (!params.data) return null;
-        const tagValueId = params.data.data[colId] as number | null;
-        if (tagValueId == null) return null;
-        // O(1) Map lookup instead of O(n) Array.find
-        return valueMap.get(tagValueId) ?? null;
+        // Display names in the filter dropdown instead of IDs
+        valueFormatter: (params: ValueFormatterParams) => {
+          if (params.value == null) return '(Empty)';
+          const id = parseInt(params.value as string, 10);
+          return valueMap.get(id) ?? '(Unknown)';
+        },
+        // Ensure the filter model stores the ID string, not the formatted name
+        keyCreator: (params: KeyCreatorParams) => params.value,
       },
       flex: 1,
     });

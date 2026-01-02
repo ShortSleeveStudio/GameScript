@@ -18,8 +18,12 @@
     import { toastError } from '$lib/stores/notifications.js';
 
     // Code output folder - notify backend when it changes
-    import { codeOutputFolderTableView, getCodeOutputFolder } from '$lib/tables';
+    import { codeOutputFolderTableView, getCodeOutputFolder, snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
     import { bridge } from '$lib/api/bridge';
+
+    // Auto-export on blur
+    import { autoExportOnBlur } from '$lib/stores/layout-defaults.js';
+    import { exportController } from '$lib/export';
 
     // Track if stores are initialized
     let initialized = $state(false);
@@ -28,12 +32,75 @@
     let codeOutputFolderView = $derived(getCodeOutputFolder(codeOutputFolderTableView.rows));
     let codeOutputFolderValue = $derived(codeOutputFolderView?.data.value ?? null);
 
+    // Snapshot output path for auto-export
+    let snapshotOutputPathView = $derived(getSnapshotOutputPath(snapshotOutputPathTableView.rows));
+    let snapshotOutputPathValue = $derived(snapshotOutputPathView?.data.value ?? null);
+    let isSnapshotPathConfigured = $derived(
+        snapshotOutputPathValue !== null && snapshotOutputPathValue.trim() !== ''
+    );
+
     $effect(() => {
         // Only notify if we're in an IDE and connected to a database
         if (bridge.isIde && $dbConnected) {
             bridge.watchCodeFolder(codeOutputFolderValue);
         }
     });
+
+    // Auto-export configuration
+    /** Debounce delay in milliseconds to avoid rapid re-exports when quickly switching windows */
+    const AUTO_EXPORT_DEBOUNCE_MS = 500;
+
+    // Debounce timer for auto-export
+    let autoExportTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isAutoExporting = false;
+
+    /**
+     * Handle window blur event for auto-export.
+     * Uses debouncing to avoid rapid re-exports when quickly switching windows.
+     */
+    function handleWindowBlur(): void {
+        // Check if auto-export is enabled and path is configured
+        if (!$autoExportOnBlur || !isSnapshotPathConfigured || !snapshotOutputPathValue) {
+            return;
+        }
+
+        // Check if we're connected to a database
+        if (!$dbConnected) {
+            return;
+        }
+
+        // Don't start a new export if one is already in progress
+        if (isAutoExporting) {
+            return;
+        }
+
+        // Clear any pending export
+        if (autoExportTimeout) {
+            clearTimeout(autoExportTimeout);
+        }
+
+        // Debounce to avoid rapid re-exports
+        autoExportTimeout = setTimeout(async () => {
+            autoExportTimeout = null;
+            isAutoExporting = true;
+
+            try {
+                await exportController.exportAll(snapshotOutputPathValue!);
+            } finally {
+                isAutoExporting = false;
+            }
+        }, AUTO_EXPORT_DEBOUNCE_MS);
+    }
+
+    /**
+     * Clear pending auto-export when window regains focus.
+     */
+    function handleWindowFocus(): void {
+        if (autoExportTimeout) {
+            clearTimeout(autoExportTimeout);
+            autoExportTimeout = null;
+        }
+    }
 
     // Global error handler
     function handleError(event: ErrorEvent): void {
@@ -57,11 +124,22 @@
         // Set up global error handlers
         window.addEventListener('error', handleError);
         window.addEventListener('unhandledrejection', handleRejection);
+
+        // Set up auto-export on blur
+        window.addEventListener('blur', handleWindowBlur);
+        window.addEventListener('focus', handleWindowFocus);
     });
 
     onDestroy(() => {
         window.removeEventListener('error', handleError);
         window.removeEventListener('unhandledrejection', handleRejection);
+        window.removeEventListener('blur', handleWindowBlur);
+        window.removeEventListener('focus', handleWindowFocus);
+
+        // Clean up any pending auto-export
+        if (autoExportTimeout) {
+            clearTimeout(autoExportTimeout);
+        }
     });
 
     /**

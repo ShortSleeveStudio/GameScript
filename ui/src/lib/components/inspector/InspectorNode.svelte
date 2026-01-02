@@ -21,16 +21,13 @@
         RowColumnBoolean,
         CodeMethod,
         InspectorField,
-        Button,
+        CodeFolderSelector,
     } from '$lib/components/common';
     import RowColumnActor from '$lib/components/common/RowColumnActor.svelte';
     import RowColumnLocalization from '$lib/components/common/RowColumnLocalization.svelte';
     import RowColumnProperties from '$lib/components/common/RowColumnProperties.svelte';
     import { propertyTemplatesTable } from '$lib/tables/property-templates.js';
     import { codeOutputFolderTableView, getCodeOutputFolder } from '$lib/tables';
-    import { codeOutputFolder as codeOutputFolderCrud } from '$lib/crud';
-    import { bridge } from '$lib/api/bridge';
-    import { toastError } from '$lib/stores/notifications.js';
     import {
         NODE_UNDO_PREVENT_RESPONSE,
         NODE_UNDO_HAS_CONDITION,
@@ -51,27 +48,12 @@
     // Check if we have property templates
     let hasPropertyTemplates = $derived(propertyTemplatesTable && propertyTemplatesTable.rows.length > 0);
 
-    // Code output folder from reactive store
+    // Code output folder from reactive store (for condition/action display logic)
     let codeOutputFolderView = $derived(getCodeOutputFolder(codeOutputFolderTableView.rows));
     let codeOutputFolderValue = $derived(codeOutputFolderView?.data.value ?? null);
     let isFolderConfigured = $derived(
         codeOutputFolderValue !== null && codeOutputFolderValue.trim() !== ''
     );
-
-    /**
-     * Open folder picker and save the selected folder.
-     */
-    async function configureCodeFolder(): Promise<void> {
-        try {
-            const result = await bridge.selectFolderDialog('Select Code Output Folder');
-            if (result.cancelled || !result.filePath) {
-                return;
-            }
-            await codeOutputFolderCrud.setCodeOutputFolder(result.filePath);
-        } catch (error) {
-            toastError('Failed to configure code folder', error);
-        }
-    }
 </script>
 
 <h2>{nodeType} Node</h2>
@@ -125,28 +107,11 @@
             Conditions control whether this node is available. Actions run when the node plays.
         </p>
 
-        {#if !codeOutputFolderTableView.isInitialized}
-            <div class="code-folder-config">
-                <span class="code-folder-loading">Loading...</span>
-            </div>
-        {:else if !isFolderConfigured}
-            <div class="code-folder-warning">
-                <span class="code-folder-warning-text">Select a folder where code files will be generated.</span>
-                <Button variant="primary" size="small" onclick={configureCodeFolder}>
-                    Select Folder
-                </Button>
-            </div>
-        {:else}
-            <div class="code-folder-config">
-                <span class="code-folder-label">Code location:</span>
-                <span class="code-folder-path" title={codeOutputFolderValue ?? ''}>
-                    {codeOutputFolderValue}
-                </span>
-                <Button variant="ghost" size="small" onclick={configureCodeFolder} title="Change code location">
-                    Change
-                </Button>
-            </div>
+        <div class="code-folder-wrapper">
+            <CodeFolderSelector />
+        </div>
 
+        {#if isFolderConfigured}
             <InspectorField
                 label="Condition"
                 tooltip="A function that returns true if this node should be available, or false to hide it."
@@ -229,53 +194,7 @@
         line-height: 1.4;
     }
 
-    .code-folder-config {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .code-folder-wrapper {
         margin-bottom: 0.75rem;
-        padding: 0.5rem;
-        background: var(--gs-bg-tertiary);
-        border: 1px solid var(--gs-border-primary);
-        border-radius: 3px;
-    }
-
-    .code-folder-warning {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background: var(--gs-bg-tertiary);
-        border: 1px solid var(--gs-border-warning, var(--gs-border-primary));
-        border-radius: 3px;
-    }
-
-    .code-folder-warning-text {
-        font-size: 0.8rem;
-        color: var(--gs-fg-secondary);
-    }
-
-    .code-folder-label {
-        font-size: 0.75rem;
-        color: var(--gs-fg-secondary);
-        flex-shrink: 0;
-    }
-
-    .code-folder-loading {
-        font-size: 0.8rem;
-        color: var(--gs-fg-secondary);
-        font-style: italic;
-    }
-
-    .code-folder-path {
-        font-size: 0.75rem;
-        color: var(--gs-fg-primary);
-        font-family: var(--gs-font-mono, monospace);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1;
-        min-width: 0;
     }
 </style>

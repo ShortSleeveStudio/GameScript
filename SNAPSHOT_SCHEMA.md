@@ -6,9 +6,12 @@ This document describes the binary snapshot format (.gsb) used by game engine ru
 
 - **Format**: FlatBuffers (.gsb files)
 - **Distribution**: Per-locale snapshots in `/GameScript/locales/*.gsb`
-- **Design principle**: Denormalized, zero-copy, O(1) lookups by ID
+- **Design principle**: Index-based references, zero-copy, O(1) traversal
 
-All localized text is resolved at export time. Each locale gets its own snapshot with text baked in—no locale IDs or lookups at runtime.
+**Key design decisions:**
+- All localized text is resolved at export time. Each locale gets its own snapshot with text baked in.
+- All entity references use **array indices** instead of database IDs. This enables O(1) lookups without dictionaries.
+- Original database IDs are preserved for code/condition/action lookups (e.g., `Node_123_Condition`).
 
 ---
 
@@ -59,12 +62,17 @@ Each entity stores indices into these arrays via `tag_indices`.
 
 ```fbs
 table Conversation {
-  id: int32;
+  id: int32;                    // Original database ID (for code lookups)
   name: string;
   notes: string;
   is_layout_auto: bool;
   is_layout_vertical: bool;
-  tag_indices: [int32];  // Indices into conversation_tag_values arrays, -1 = untagged
+  tag_indices: [int32];         // Indices into conversation_tag_values arrays, -1 = untagged
+
+  // Quick access to conversation's nodes and edges
+  node_indices: [int32];        // INDICES into Snapshot.nodes array
+  edge_indices: [int32];        // INDICES into Snapshot.edges array
+  root_node_idx: int32;         // INDEX into Snapshot.nodes array (-1 = no root)
 }
 ```
 
@@ -73,22 +81,24 @@ table Conversation {
 - `tag_indices` array length matches `conversation_tag_names` length
 - Each index points into the corresponding `conversation_tag_values[i]` array
 - Value of `-1` means untagged for that category
+- `node_indices` and `edge_indices` provide O(1) access to a conversation's contents
+- `root_node_idx` points to the root node for quick dialogue start
 
 ### Nodes
 
 ```fbs
 enum NodeType : byte {
-  Dialogue,
-  // Add other types as needed
+  Root = 0,
+  Dialogue = 1,
 }
 
 table Node {
-  id: int32;
-  parent: int32;              // -> Conversation.id
+  id: int32;                    // Original database ID (for code lookups)
+  conversation_idx: int32;      // INDEX into Snapshot.conversations array
   type: NodeType;
-  actor: int32;               // -> Actor.id
-  voice_text: string;         // Resolved localized text
-  ui_response_text: string;   // Resolved localized text
+  actor_idx: int32;             // INDEX into Snapshot.actors array (-1 = no actor)
+  voice_text: string;           // Resolved localized text for this locale
+  ui_response_text: string;     // Resolved localized text for this locale
   has_condition: bool;
   has_action: bool;
   is_prevent_response: bool;
@@ -96,27 +106,33 @@ table Node {
   position_y: float;
   notes: string;
   properties: [NodeProperty];
+
+  // Graph traversal (indices into Snapshot.edges array)
+  outgoing_edge_indices: [int32];  // Edges where this node is source, sorted by priority
+  incoming_edge_indices: [int32];  // Edges where this node is target
 }
 ```
 
 **Notes:**
-- `voice_text` and `ui_response_text` are denormalized from the localizations table
+- `voice_text` and `ui_response_text` are resolved from localizations at export time
 - Position data included for potential in-engine visualization/debugging
 - `is_system_created` not exported
+- `outgoing_edge_indices` enables O(1) graph traversal without building dictionaries
+- `actor_idx` is -1 when the node has no actor assigned
 
 ### Edges
 
 ```fbs
 enum EdgeType : byte {
   Default = 0,
-  // Add other fixed types as needed
+  Hidden = 1,
 }
 
 table Edge {
-  id: int32;
-  parent: int32;    // -> Conversation.id
-  source: int32;    // -> Node.id
-  target: int32;    // -> Node.id
+  id: int32;                    // Original database ID (for reference)
+  conversation_idx: int32;      // INDEX into Snapshot.conversations array
+  source_idx: int32;            // INDEX into Snapshot.nodes array
+  target_idx: int32;            // INDEX into Snapshot.nodes array
   priority: int32;
   type: EdgeType;
 }
@@ -124,7 +140,8 @@ table Edge {
 
 **Notes:**
 - `notes` excluded (authoring-only metadata)
-- Edges should be sorted by `parent` then `priority` for efficient traversal
+- `source_idx` and `target_idx` are array indices, enabling O(1) node access
+- Edges in `Node.outgoing_edge_indices` are sorted by priority
 
 ### Actors
 
@@ -161,7 +178,7 @@ table Localization {
 
 ```fbs
 table PropertyTemplate {
-  id: int32;
+  id: int32;              // Original database ID (for reference)
   name: string;
   type: PropertyType;
 }
@@ -186,7 +203,7 @@ table FloatValue { value: float; }
 table BoolValue { value: bool; }
 
 table NodeProperty {
-  template: int32;        // -> PropertyTemplate.id
+  template_idx: int32;    // INDEX into Snapshot.property_templates array
   value: PropertyValue;
 }
 ```
@@ -194,6 +211,7 @@ table NodeProperty {
 **Notes:**
 - Properties are embedded in Node.properties array
 - Union ensures only one value type is stored per property
+- `template_idx` is an array index, not a database ID
 
 ---
 
@@ -243,18 +261,52 @@ byte[] buffer = File.ReadAllBytes($"GameScript/locales/{locale}.gsb");
 Snapshot snapshot = Snapshot.GetRootAsSnapshot(new ByteBuffer(buffer));
 ```
 
-### Lookups
+### Graph Traversal (Zero Post-Processing)
 
-Build index maps on load for O(1) access:
+Since all references are array indices, you can traverse the graph immediately:
 
 ```csharp
-Dictionary<int, int> conversationIndex;  // id -> array index
-Dictionary<int, int> nodeIndex;
-Dictionary<int, int> actorIndex;
+// Get a conversation and start at root
+var conversation = snapshot.Conversations(0);
+var rootNode = snapshot.Nodes(conversation.RootNodeIdx);
 
-// Then access:
-var node = snapshot.Nodes(nodeIndex[nodeId]);
-string text = node.VoiceText;
+// Walk the graph
+void WalkDialogue(Node node) {
+    // Get actor (if any)
+    if (node.ActorIdx >= 0) {
+        var actor = snapshot.Actors(node.ActorIdx);
+        Debug.Log($"{actor.LocalizedName}: {node.VoiceText}");
+    }
+
+    // Evaluate outgoing edges
+    for (int i = 0; i < node.OutgoingEdgeIndicesLength; i++) {
+        int edgeIdx = node.OutgoingEdgeIndices(i);
+        var edge = snapshot.Edges(edgeIdx);
+
+        // Check condition on target node
+        var targetNode = snapshot.Nodes(edge.TargetIdx);
+        if (!targetNode.HasCondition || EvaluateCondition(targetNode.Id)) {
+            WalkDialogue(targetNode);
+            break;  // Take first valid path
+        }
+    }
+}
+```
+
+### ID Lookups (When Needed)
+
+For code lookups (e.g., finding `Node_123_Condition`), build an ID map once:
+
+```csharp
+// Build on load if needed for code lookups
+Dictionary<int, int> nodeIdToIndex = new();
+for (int i = 0; i < snapshot.NodesLength; i++) {
+    nodeIdToIndex[snapshot.Nodes(i).Id] = i;
+}
+
+// Then use for condition/action dispatch
+int nodeIdx = nodeIdToIndex[nodeId];
+var node = snapshot.Nodes(nodeIdx);
 ```
 
 ### Conversation Tag Filtering (Unity Editor)

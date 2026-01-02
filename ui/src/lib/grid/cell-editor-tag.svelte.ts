@@ -141,6 +141,14 @@ export class GridCellEditorTag<RowType extends Row> implements ICellEditorComp {
   }
 
   /**
+   * Whether this editor is a popup.
+   * Returns true so the dropdown appears as an overlay.
+   */
+  isPopup(): boolean {
+    return true;
+  }
+
+  /**
    * Clean up when editor is destroyed.
    */
   destroy(): void {

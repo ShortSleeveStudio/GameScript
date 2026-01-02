@@ -32,3 +32,12 @@ export const graphMinimapVisible: Writable<boolean> = persisted(
   LS_KEY_MINIMAP_VISIBLE,
   true
 );
+
+// Export settings
+const LS_KEY_AUTO_EXPORT_ON_BLUR = 'gamescript:auto-export-on-blur';
+
+/** Whether to automatically export snapshots when the IDE loses focus. Defaults to false to avoid unexpected file writes. */
+export const autoExportOnBlur: Writable<boolean> = persisted(
+  LS_KEY_AUTO_EXPORT_ON_BLUR,
+  false
+);

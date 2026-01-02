@@ -1,7 +1,7 @@
 // Schema initialization utilities
 // Provides default data and initialization logic for new databases
 
-import { PROPERTY_TYPES, TABLE_CODE_OUTPUT_FOLDER } from '../types/constants.js';
+import { PROPERTY_TYPES, TABLE_CODE_OUTPUT_FOLDER, TABLE_SNAPSHOT_OUTPUT_PATH } from '../types/constants.js';
 
 export interface InitialRow {
   [key: string]: unknown;
@@ -125,6 +125,14 @@ export function generateInitializationSQL(): InitializationStatement[] {
     params: [],
   });
 
+  // =========================================================================
+  // Initialize snapshot output path setting (singleton, value starts as null)
+  // =========================================================================
+  statements.push({
+    sql: `INSERT INTO "${TABLE_SNAPSHOT_OUTPUT_PATH.name}" (value) VALUES (NULL)`,
+    params: [],
+  });
+
   return statements;
 }
 
@@ -171,6 +179,10 @@ export function getInitialData(): InitialTableData[] {
     },
     {
       tableName: TABLE_CODE_OUTPUT_FOLDER.name,
+      rows: [{ id: 1, value: null }],
+    },
+    {
+      tableName: TABLE_SNAPSHOT_OUTPUT_PATH.name,
       rows: [{ id: 1, value: null }],
     },
   ];

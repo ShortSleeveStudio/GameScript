@@ -169,6 +169,13 @@ export interface CodeOutputFolder extends Row {
 }
 
 ///
+/// Snapshot Output Path (singleton setting)
+///
+export interface SnapshotOutputPath extends Row {
+  value: string | null;
+}
+
+///
 /// Base Tag Types (for generic CRUD and UI components)
 ///
 

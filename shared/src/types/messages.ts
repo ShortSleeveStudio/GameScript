@@ -119,6 +119,33 @@ export interface FileAppendMessage {
 	content: string;
 }
 
+export interface FileMakeDirMessage {
+	type: 'file:mkdir';
+	id: string;
+	dirPath: string;
+}
+
+export interface FileWriteBinaryMessage {
+	type: 'file:writeBinary';
+	id: string;
+	filePath: string;
+	/** Binary content as base64-encoded string */
+	contentBase64: string;
+}
+
+export interface FileRenameMessage {
+	type: 'file:rename';
+	id: string;
+	oldPath: string;
+	newPath: string;
+}
+
+export interface FileExistsMessage {
+	type: 'file:exists';
+	id: string;
+	filePath: string;
+}
+
 export interface ScannerScanMessage {
 	type: 'scanner:scan';
 }
@@ -312,6 +339,10 @@ export type OutgoingMessage =
 	| FileWriteMessage
 	| FileCreateMessage
 	| FileAppendMessage
+	| FileMakeDirMessage
+	| FileWriteBinaryMessage
+	| FileRenameMessage
+	| FileExistsMessage
 	| ScannerScanMessage
 	| EditorOpenFileMessage
 	| EditorCreateFileMessage
@@ -539,6 +570,59 @@ export interface FileAppendResultMessage {
 
 export interface FileAppendErrorMessage {
 	type: 'file:appendResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface FileMakeDirResultMessage {
+	type: 'file:mkdirResult';
+	id: string;
+	success: true;
+}
+
+export interface FileMakeDirErrorMessage {
+	type: 'file:mkdirResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface FileWriteBinaryResultMessage {
+	type: 'file:writeBinaryResult';
+	id: string;
+	success: true;
+}
+
+export interface FileWriteBinaryErrorMessage {
+	type: 'file:writeBinaryResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface FileRenameResultMessage {
+	type: 'file:renameResult';
+	id: string;
+	success: true;
+}
+
+export interface FileRenameErrorMessage {
+	type: 'file:renameResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface FileExistsResultMessage {
+	type: 'file:existsResult';
+	id: string;
+	success: true;
+	exists: boolean;
+}
+
+export interface FileExistsErrorMessage {
+	type: 'file:existsResult';
 	id: string;
 	success: false;
 	error: string;
@@ -804,6 +888,14 @@ export type IncomingMessage =
 	| FileCreateErrorMessage
 	| FileAppendResultMessage
 	| FileAppendErrorMessage
+	| FileMakeDirResultMessage
+	| FileMakeDirErrorMessage
+	| FileWriteBinaryResultMessage
+	| FileWriteBinaryErrorMessage
+	| FileRenameResultMessage
+	| FileRenameErrorMessage
+	| FileExistsResultMessage
+	| FileExistsErrorMessage
 	| ScannerResultMessage
 	| ScannerResultsMessage
 	| ScannerErrorMessage

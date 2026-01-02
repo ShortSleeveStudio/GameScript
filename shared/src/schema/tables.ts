@@ -16,6 +16,7 @@ import {
   TABLE_PROPERTY_TEMPLATES,
   TABLE_NODE_PROPERTIES,
   TABLE_CODE_OUTPUT_FOLDER,
+  TABLE_SNAPSHOT_OUTPUT_PATH,
   TABLE_CONVERSATION_TAG_CATEGORIES,
   TABLE_CONVERSATION_TAG_VALUES,
   TABLE_LOCALIZATION_TAG_CATEGORIES,
@@ -209,6 +210,15 @@ export const codeOutputFolderTable: TableDefinition = {
   ],
 };
 
+// Snapshot output path setting (singleton table, single row with id = 1)
+export const snapshotOutputPathTable: TableDefinition = {
+  name: TABLE_SNAPSHOT_OUTPUT_PATH.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'value', type: 'TEXT' },
+  ],
+};
+
 // Conversation tag tables
 export const conversationTagCategoriesTable: TableDefinition = {
   name: TABLE_CONVERSATION_TAG_CATEGORIES.name,
@@ -266,4 +276,5 @@ export const allTables: TableDefinition[] = [
   nodePropertiesTable,
   notificationsTable,
   codeOutputFolderTable,
+  snapshotOutputPathTable,
 ];

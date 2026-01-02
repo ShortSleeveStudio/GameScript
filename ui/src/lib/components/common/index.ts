@@ -20,6 +20,7 @@ export { default as RowColumnColor } from './RowColumnColor.svelte';
 // Code/IDE integration components
 export { default as CodeMethod } from './CodeMethod.svelte';
 export { default as CodeMethodToggle } from './CodeMethodToggle.svelte';
+export { default as CodeFolderSelector } from './CodeFolderSelector.svelte';
 
 // Button components
 export { default as Button } from './Button.svelte';
@@ -46,6 +47,7 @@ export { default as InlineEdit } from './InlineEdit.svelte';
 
 // Inspector components
 export { default as InspectorField } from './InspectorField.svelte';
+export { default as InspectorTagFields } from './InspectorTagFields.svelte';
 
 // Form components
 export { default as FormField } from './FormField.svelte';

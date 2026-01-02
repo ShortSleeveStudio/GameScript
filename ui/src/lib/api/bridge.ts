@@ -32,6 +32,10 @@ import type {
   FileWriteMessage,
   FileCreateMessage,
   FileAppendMessage,
+  FileMakeDirMessage,
+  FileWriteBinaryMessage,
+  FileRenameMessage,
+  FileExistsMessage,
   ScannedAction,
   ScannedCondition,
   ChangeOperation,
@@ -57,6 +61,21 @@ import type {
 
 // Notifications
 import { toastError, toastWarning } from '$lib/stores/notifications.js';
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+/**
+ * Convert a Uint8Array to a base64 string for transport over postMessage.
+ */
+function uint8ArrayToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
 export interface DialogResult {
   cancelled: boolean;
@@ -419,6 +438,38 @@ class ExtensionBridge {
       case 'file:appendResult':
         if (message.success) {
           this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'file:mkdirResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'file:writeBinaryResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'file:renameResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'file:existsResult':
+        if (message.success) {
+          this.resolveRequest(message.id, message.exists);
         } else {
           this.resolveRequest(message.id, new Error(message.error));
         }
@@ -881,6 +932,97 @@ class ExtensionBridge {
       id,
       filePath,
       content,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Create a directory (and parent directories if needed).
+   * @param dirPath - Absolute path to the directory
+   */
+  async makeDirectory(dirPath: string): Promise<void> {
+    if (!this.isIde) {
+      throw new Error('File operations not available in standalone mode');
+    }
+
+    const { id, promise } = this.createRequest<void>();
+
+    const message: FileMakeDirMessage = {
+      type: 'file:mkdir',
+      id,
+      dirPath,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Write binary content to a file.
+   * @param filePath - Absolute path to the file
+   * @param content - Binary content as Uint8Array
+   */
+  async writeBinaryFile(filePath: string, content: Uint8Array): Promise<void> {
+    if (!this.isIde) {
+      throw new Error('File operations not available in standalone mode');
+    }
+
+    const { id, promise } = this.createRequest<void>();
+
+    // Convert Uint8Array to base64 for transport over postMessage
+    const contentBase64 = uint8ArrayToBase64(content);
+
+    const message: FileWriteBinaryMessage = {
+      type: 'file:writeBinary',
+      id,
+      filePath,
+      contentBase64,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Rename/move a file atomically.
+   * @param oldPath - Current file path
+   * @param newPath - New file path
+   */
+  async renameFile(oldPath: string, newPath: string): Promise<void> {
+    if (!this.isIde) {
+      throw new Error('File operations not available in standalone mode');
+    }
+
+    const { id, promise } = this.createRequest<void>();
+
+    const message: FileRenameMessage = {
+      type: 'file:rename',
+      id,
+      oldPath,
+      newPath,
+    };
+
+    this.postMessage(message);
+    return promise;
+  }
+
+  /**
+   * Check if a file exists.
+   * @param filePath - Absolute path to check
+   */
+  async fileExists(filePath: string): Promise<boolean> {
+    if (!this.isIde) {
+      throw new Error('File operations not available in standalone mode');
+    }
+
+    const { id, promise } = this.createRequest<boolean>();
+
+    const message: FileExistsMessage = {
+      type: 'file:exists',
+      id,
+      filePath,
     };
 
     this.postMessage(message);

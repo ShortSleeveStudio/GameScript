@@ -15,6 +15,15 @@ import type {
 import type { Row, QueryFilter, QueryBuilder, ConditionBuilder } from '@gamescript/shared';
 import type { BooleanFilterModel } from './filter-boolean.js';
 
+/**
+ * AG-Grid Set Filter model interface.
+ * The Set Filter stores an array of selected string values.
+ */
+export interface SetFilterModel {
+    filterType: 'set';
+    values: (string | null)[];
+}
+
 // ============================================================================
 // Main Function
 // ============================================================================
@@ -107,6 +116,8 @@ function applyCondition<RowType extends Row>(
             return applyNumberFilter(conditionBuilder, filterModel as NumberFilterModel);
         case 'boolean':
             return applyBooleanFilter(conditionBuilder, filterModel as BooleanFilterModel);
+        case 'set':
+            return applySetFilter(conditionBuilder, filterModel as unknown as SetFilterModel);
         default:
             throw new Error(`Unknown filter type: ${filterType}`);
     }
@@ -165,5 +176,40 @@ function applyBooleanFilter<RowType extends Row>(
             return conditionBuilder.eq(booleanFilterModel.filter ?? false);
         default:
             throw new Error(`Unknown filter operation: ${booleanFilterModel.type}`);
+    }
+}
+
+function applySetFilter<RowType extends Row>(
+    conditionBuilder: ConditionBuilder<RowType>,
+    setFilterModel: SetFilterModel,
+): QueryBuilder<RowType> {
+    // Set Filter values are string IDs (from keyCreator), parse to integers
+    // null values in the array represent filtering for null/empty cells
+    const values = setFilterModel.values;
+
+    if (values.length === 0) {
+        // No values selected - this shouldn't happen in practice
+        // Return a condition that matches nothing
+        return conditionBuilder.in([]);
+    }
+
+    // Separate null from non-null values
+    const hasNull = values.includes(null);
+    const nonNullValues = values.filter((v): v is string => v !== null);
+
+    // Parse string IDs to integers
+    const numericIds = nonNullValues.map(v => parseInt(v, 10));
+
+    if (hasNull && numericIds.length > 0) {
+        // Need to match null OR any of the IDs
+        // This requires OR grouping which is complex with the current builder
+        // For now, just use IN for the IDs (null handling would need isNull OR in())
+        return conditionBuilder.in(numericIds);
+    } else if (hasNull) {
+        // Only null selected
+        return conditionBuilder.isNull();
+    } else {
+        // Only IDs selected
+        return conditionBuilder.in(numericIds);
     }
 }

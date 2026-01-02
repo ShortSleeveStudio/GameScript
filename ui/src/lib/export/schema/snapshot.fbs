@@ -1,0 +1,153 @@
+// GameScript FlatBuffers Snapshot Schema
+// Binary format for game engine runtime consumption
+//
+// IMPORTANT: All references between entities use ARRAY INDICES, not database IDs.
+// This enables O(1) lookups without dictionaries at runtime.
+// Original database IDs are preserved for code/condition/action lookups.
+
+namespace GameScript;
+
+file_identifier "GSPT";  // GameScript Snapshot
+file_extension "gsb";
+
+// ============================================================================
+// Property System
+// ============================================================================
+
+// Wrapper tables needed for union scalars in FlatBuffers
+table Int32Value { value: int32; }
+table FloatValue { value: float; }
+table BoolValue { value: bool; }
+
+union PropertyValue {
+  string_val: string,
+  int_val: Int32Value,
+  decimal_val: FloatValue,
+  bool_val: BoolValue,
+}
+
+enum PropertyType : byte {
+  String = 0,
+  Integer = 1,
+  Decimal = 2,
+  Boolean = 3,
+}
+
+table PropertyTemplate {
+  id: int32;              // Original database ID (for reference)
+  name: string;
+  type: PropertyType;
+}
+
+table NodeProperty {
+  template_idx: int32;    // INDEX into Snapshot.property_templates array
+  value: PropertyValue;
+}
+
+// ============================================================================
+// Core Entities
+// ============================================================================
+
+enum NodeType : byte {
+  Root = 0,
+  Dialogue = 1,
+}
+
+table Node {
+  id: int32;                    // Original database ID (for code lookups)
+  conversation_idx: int32;      // INDEX into Snapshot.conversations array
+  type: NodeType;
+  actor_idx: int32;             // INDEX into Snapshot.actors array (-1 = no actor)
+  voice_text: string;           // Resolved localized text for this locale
+  ui_response_text: string;     // Resolved localized text for this locale
+  has_condition: bool;
+  has_action: bool;
+  is_prevent_response: bool;
+  position_x: float;
+  position_y: float;
+  notes: string;
+  properties: [NodeProperty];
+
+  // Graph traversal (indices into Snapshot.edges array)
+  outgoing_edge_indices: [int32];  // Edges where this node is source, sorted by priority
+  incoming_edge_indices: [int32];  // Edges where this node is target
+}
+
+enum EdgeType : byte {
+  Default = 0,
+  Hidden = 1,
+}
+
+table Edge {
+  id: int32;                    // Original database ID (for reference)
+  conversation_idx: int32;      // INDEX into Snapshot.conversations array
+  source_idx: int32;            // INDEX into Snapshot.nodes array
+  target_idx: int32;            // INDEX into Snapshot.nodes array
+  priority: int32;
+  type: EdgeType;
+}
+
+table Actor {
+  id: int32;                    // Original database ID (for reference)
+  name: string;                 // Internal name/identifier
+  localized_name: string;       // Resolved localized display name for this locale
+  color: string;                // Hex color, e.g., "#808080"
+}
+
+table Conversation {
+  id: int32;                    // Original database ID (for code lookups)
+  name: string;
+  notes: string;
+  is_layout_auto: bool;
+  is_layout_vertical: bool;
+  tag_indices: [int32];         // Indices into conversation_tag_values arrays, -1 = untagged
+
+  // Quick access to conversation's nodes and edges
+  node_indices: [int32];        // INDICES into Snapshot.nodes array
+  edge_indices: [int32];        // INDICES into Snapshot.edges array
+  root_node_idx: int32;         // INDEX into Snapshot.nodes array (-1 = no root)
+}
+
+table Localization {
+  id: int32;                    // Original database ID (for reference)
+  name: string;                 // Key, e.g., "menu.start", "item.sword.name"
+  text: string;                 // Resolved localized text for this locale
+  tag_indices: [int32];         // Indices into localization_tag_values arrays, -1 = untagged
+}
+
+// ============================================================================
+// Root Table
+// ============================================================================
+
+table Snapshot {
+  // Locale metadata for this snapshot
+  locale_id: int32;             // Original database ID of the locale
+  locale_name: string;          // Locale code, e.g., "en_US", "fr_FR"
+
+  // Conversation tags (for editor organization/filtering)
+  conversation_tag_names: [string];
+  conversation_tag_values: [StringArray];  // Values per category
+
+  // Dialogue data (all arrays are the source of truth for indices)
+  conversations: [Conversation];
+  nodes: [Node];
+  edges: [Edge];
+  actors: [Actor];
+
+  // Localization tags (for editor organization/filtering)
+  localization_tag_names: [string];
+  localization_tag_values: [StringArray];  // Values per category
+
+  // Localizations (non-dialogue strings)
+  localizations: [Localization];
+
+  // Property system
+  property_templates: [PropertyTemplate];
+}
+
+// Helper table for nested string arrays (FlatBuffers doesn't support [[string]])
+table StringArray {
+  values: [string];
+}
+
+root_type Snapshot;

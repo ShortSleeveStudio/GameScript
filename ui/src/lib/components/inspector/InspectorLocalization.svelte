@@ -14,6 +14,8 @@
     import type { IDbRowView } from '$lib/db';
     import { localesTable } from '$lib/tables/locales.js';
     import { localePrincipalTableView, getLocalePrincipal } from '$lib/tables/locale-principal.js';
+    import { localizationTagCategoriesTable, localizationTagValuesTable } from '$lib/tables';
+    import { localizations } from '$lib/crud';
     import RowColumnId from '../common/RowColumnId.svelte';
     import RowColumnInput from '../common/RowColumnInput.svelte';
     import RowColumnLocalizedTextArea from '../common/RowColumnLocalizedTextArea.svelte';
@@ -28,7 +30,7 @@
     } from '$lib/constants/events.js';
     import { focusOnNodeOfLocalization } from '$lib/utils/graph-helpers.js';
     import { focusLocalization } from '$lib/stores/focus.js';
-    import { Accordion, Button } from '$lib/components/common';
+    import { Accordion, Button, InspectorTagFields } from '$lib/components/common';
 
     interface Props {
         rowView: IDbRowView<Localization>;
@@ -145,6 +147,13 @@
             </div>
         {/if}
     {/if}
+
+    <InspectorTagFields
+        {rowView}
+        categoriesTable={localizationTagCategoriesTable}
+        valuesTable={localizationTagValuesTable}
+        crud={localizations}
+    />
 
     {#if showConversationButton && rowView.data.parent && rowView.data.is_system_created}
         <div class="button-group">
