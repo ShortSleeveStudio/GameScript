@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GameScript
 {
-    public class RunnerContext : IDialogueContext
+    public sealed class RunnerContext : IDialogueContext
     {
         #region Constants
         const int DefaultChoiceCapacity = 8;
@@ -21,13 +21,16 @@ namespace GameScript
         #endregion
 
         #region State
-        Snapshot _snapshot;
+        GameScriptDatabase _database;
         JumpTable _jumpTable;
         IGameScriptListener _listener;
         Settings _settings;
 
         int _conversationIndex;
         int _nodeIndex;
+
+        // Access snapshot through database to support live locale switching
+        Snapshot Snapshot => _database.Snapshot;
 
         AwaitableCompletionSource _readySource;
         AwaitableCompletionSource<int> _decisionSource;
@@ -52,22 +55,22 @@ namespace GameScript
         #endregion
 
         #region IDialogueContext Implementation
-        public int NodeId => _snapshot.Nodes[_nodeIndex].Id;
+        public int NodeId => Snapshot.Nodes[_nodeIndex].Id;
 
-        public int ConversationId => _snapshot.Conversations[_conversationIndex].Id;
+        public int ConversationId => Snapshot.Conversations[_conversationIndex].Id;
 
         public Actor Actor
         {
             get
             {
-                int actorIdx = _snapshot.Nodes[_nodeIndex].ActorIdx;
-                return _snapshot.Actors[actorIdx];
+                int actorIdx = Snapshot.Nodes[_nodeIndex].ActorIdx;
+                return Snapshot.Actors[actorIdx];
             }
         }
 
-        public string VoiceText => _snapshot.Nodes[_nodeIndex].VoiceText;
+        public string VoiceText => Snapshot.Nodes[_nodeIndex].VoiceText;
 
-        public string UIResponseText => _snapshot.Nodes[_nodeIndex].UiResponseText;
+        public string UIResponseText => Snapshot.Nodes[_nodeIndex].UiResponseText;
 
         public IReadOnlyList<NodeProperty> Properties
         {
@@ -76,7 +79,7 @@ namespace GameScript
                 if (_propertiesCachedForNodeIndex != _nodeIndex)
                 {
                     _properties.Clear();
-                    Node node = _snapshot.Nodes[_nodeIndex];
+                    Node node = Snapshot.Nodes[_nodeIndex];
                     IList<NodeProperty> props = node.Properties;
                     if (props != null)
                     {
@@ -94,19 +97,19 @@ namespace GameScript
         #endregion
 
         #region Execution
-        internal void Initialize(Snapshot snapshot, JumpTable jumpTable, int conversationIndex, IGameScriptListener listener)
+        internal void Initialize(GameScriptDatabase database, JumpTable jumpTable, int conversationIndex, IGameScriptListener listener)
         {
-            _snapshot = snapshot;
+            _database = database;
             _jumpTable = jumpTable;
             _conversationIndex = conversationIndex;
             _listener = listener;
-            _nodeIndex = _snapshot.Conversations[conversationIndex].RootNodeIdx;
+            _nodeIndex = Snapshot.Conversations[conversationIndex].RootNodeIdx;
             SequenceNumber = s_NextSequenceNumber++;
         }
 
         internal async Awaitable Run()
         {
-            ConversationRef conversationRef = new ConversationRef(_snapshot, _conversationIndex);
+            ConversationRef conversationRef = new ConversationRef(Snapshot, _conversationIndex);
 
             try
             {
@@ -118,7 +121,7 @@ namespace GameScript
                 // Main loop
                 while (true)
                 {
-                    NodeRef nodeRef = new NodeRef(_snapshot, _nodeIndex);
+                    NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
 
                     // Node Enter
                     _listener.OnNodeEnter(nodeRef, new ReadyNotifier(_readySource));
@@ -126,7 +129,7 @@ namespace GameScript
                     _readySource.Reset();
 
                     // Execute Action
-                    Node node = _snapshot.Nodes[_nodeIndex];
+                    Node node = Snapshot.Nodes[_nodeIndex];
                     if (node.HasAction)
                     {
                         ActionDelegate action = _jumpTable.Actions[_nodeIndex];
@@ -152,9 +155,9 @@ namespace GameScript
                     for (int i = 0; i < edgeCount; i++)
                     {
                         int edgeIdx = outgoingEdgeIndices[i];
-                        Edge edge = _snapshot.Edges[edgeIdx];
+                        Edge edge = Snapshot.Edges[edgeIdx];
                         int targetNodeIdx = edge.TargetIdx;
-                        Node targetNode = _snapshot.Nodes[targetNodeIdx];
+                        Node targetNode = Snapshot.Nodes[targetNodeIdx];
 
                         // Evaluate condition if present
                         bool conditionPassed = true;
@@ -183,7 +186,7 @@ namespace GameScript
 
                         if (conditionPassed)
                         {
-                            NodeRef targetRef = new NodeRef(_snapshot, targetNodeIdx);
+                            NodeRef targetRef = new NodeRef(Snapshot, targetNodeIdx);
                             _choices.Add(targetRef);
 
                             // Track actor consistency
@@ -262,7 +265,7 @@ namespace GameScript
             // Single choice with UI text = decision (unless settings prevent it)
             if (_choices.Count == 1 && !_settings.PreventSingleNodeChoices)
             {
-                string responseText = _snapshot.Nodes[_choices[0].Index].UiResponseText;
+                string responseText = Snapshot.Nodes[_choices[0].Index].UiResponseText;
                 return !string.IsNullOrEmpty(responseText) && allSameActor;
             }
 
@@ -271,7 +274,7 @@ namespace GameScript
 
         void Reset()
         {
-            _snapshot = null;
+            _database = null;
             _jumpTable = null;
             _listener = null;
             _conversationIndex = -1;

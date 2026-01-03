@@ -44,6 +44,11 @@
     -unity-font-style: bold;
 }
 
+.picker-item-label-placeholder {
+    -unity-font-style: italic;
+    color: rgba(255, 255, 255, 0.5);
+}
+
 .picker-item-sublabel {
     font-size: 10px;
     color: rgba(255, 255, 255, 0.6);

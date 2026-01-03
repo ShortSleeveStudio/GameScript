@@ -6,7 +6,7 @@ namespace GameScript
     /// Represents a locale entry in the manifest.
     /// </summary>
     [Serializable]
-    public class ManifestLocale
+    public sealed class ManifestLocale
     {
         public int id;
         public string name = string.Empty;
@@ -24,7 +24,7 @@ namespace GameScript
     /// Represents the manifest.json file that accompanies snapshot exports.
     /// </summary>
     [Serializable]
-    public class Manifest
+    public sealed class Manifest
     {
         public string version = string.Empty;
         public ManifestLocale[] locales = Array.Empty<ManifestLocale>();

@@ -38,12 +38,12 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 12
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -257,12 +257,15 @@ MonoBehaviour:
   m_ConversationContent: {fileID: 852428248}
   m_ConversationDropdown: {fileID: 1595849385}
   m_LocaleDropdown: {fileID: 1038387752}
-  m_TestSettings: {fileID: 11400000, guid: 86a9c8b75c42cbb43803cd4786e28ed7, type: 2}
-  m_ConversationReferences:
-  - {fileID: 11400000, guid: 99a3ad2e47d56ff4db63d7a3b39c3303, type: 2}
-  m_LocaleReferences:
-  - {fileID: 11400000, guid: da7b64951e366e34889443025aa8fdb2, type: 2}
   m_GameScriptRunner: {fileID: 81058003}
+  m_LocaleId:
+    value: 1
+  m_ConversationId:
+    value: 1
+  m_ActorId:
+    value: 2
+  m_LocalizationId:
+    value: 21
 --- !u!114 &81058003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -275,8 +278,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5707f365645e87841aafbfd52d799ad8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ExecutionOrder: -1
-  m_Settings: {fileID: 11400000, guid: 19dc571b8b509bc4c8ef44a4f0b703f0, type: 2}
+  _executionOrder: -1
+  _settings: {fileID: 11400000, guid: 19dc571b8b509bc4c8ef44a4f0b703f0, type: 2}
 --- !u!1 &118263273
 GameObject:
   m_ObjectHideFlags: 0

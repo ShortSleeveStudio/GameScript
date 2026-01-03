@@ -1302,6 +1302,19 @@ class ExtensionBridge {
       folderPath,
     });
   }
+
+  /**
+   * Set up file watcher for snapshot command files.
+   * Watches for command.tmp files written by game engine plugins (Unity, Godot).
+   * Called when the snapshot output folder is known/changes.
+   * Pass null to clear the watcher.
+   */
+  watchSnapshotFolder(folderPath: string | null): void {
+    this.postMessage({
+      type: 'snapshot:watchFolder',
+      folderPath,
+    });
+  }
 }
 
 // Singleton instance

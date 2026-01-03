@@ -14,6 +14,9 @@ namespace GameScript.Editor
     {
         const int ButtonWidth = 20;
         const int ButtonSpacing = 2;
+        const int FieldHeight = 18;
+        const int PaddingHorizontal = 4;
+        const int BorderRadius = 3;
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
@@ -44,18 +47,18 @@ namespace GameScript.Editor
             // Name display
             Label nameLabel = new Label();
             nameLabel.style.flexGrow = 1;
-            nameLabel.style.paddingLeft = 4;
-            nameLabel.style.paddingRight = 4;
+            nameLabel.style.paddingLeft = PaddingHorizontal;
+            nameLabel.style.paddingRight = PaddingHorizontal;
             nameLabel.style.backgroundColor = new Color(0, 0, 0, 0.2f);
-            nameLabel.style.borderTopLeftRadius = 3;
-            nameLabel.style.borderTopRightRadius = 3;
-            nameLabel.style.borderBottomLeftRadius = 3;
-            nameLabel.style.borderBottomRightRadius = 3;
+            nameLabel.style.borderTopLeftRadius = BorderRadius;
+            nameLabel.style.borderTopRightRadius = BorderRadius;
+            nameLabel.style.borderBottomLeftRadius = BorderRadius;
+            nameLabel.style.borderBottomRightRadius = BorderRadius;
             nameLabel.style.overflow = Overflow.Hidden;
             nameLabel.style.unityTextOverflowPosition = TextOverflowPosition.End;
             nameLabel.style.textOverflow = TextOverflow.Ellipsis;
             nameLabel.style.whiteSpace = WhiteSpace.NoWrap;
-            nameLabel.style.height = 18;
+            nameLabel.style.height = FieldHeight;
             nameLabel.style.unityTextAlign = TextAnchor.MiddleLeft;
             UpdateNameLabel(nameLabel, currentId);
             inputContainer.Add(nameLabel);
@@ -94,7 +97,7 @@ namespace GameScript.Editor
             // Edit button action
             editButton.clicked += () =>
             {
-                Debug.Log("TODO: Edit functionality");
+                GameScriptCommand.Navigate(GetEntityType(), valueProperty.intValue);
             };
 
             // Set initial button visibility
@@ -109,7 +112,7 @@ namespace GameScript.Editor
             button.text = text;
             button.tooltip = tooltip;
             button.style.width = ButtonWidth;
-            button.style.height = 18;
+            button.style.height = FieldHeight;
             button.style.paddingLeft = 0;
             button.style.paddingRight = 0;
             button.style.marginLeft = ButtonSpacing;
@@ -130,6 +133,8 @@ namespace GameScript.Editor
         protected abstract void ShowPicker(Rect buttonRect, int currentValue, Action<int> onSelected);
 
         protected abstract string GetDisplayName(int id);
+
+        protected abstract string GetEntityType();
 
         void UpdateNameLabel(Label label, int id)
         {

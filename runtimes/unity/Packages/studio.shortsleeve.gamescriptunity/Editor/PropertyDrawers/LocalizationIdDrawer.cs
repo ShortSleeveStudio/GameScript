@@ -17,5 +17,7 @@ namespace GameScript
         {
             return GameScriptDatabase.EditorGetLocalizationName(id);
         }
+
+        protected override string GetEntityType() => EntityType.Localization;
     }
 }

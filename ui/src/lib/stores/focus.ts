@@ -31,6 +31,13 @@ import type { FocusChangeEvent, LocalePrincipal  } from '@gamescript/shared';
 import type { TableType } from '$lib/db';
 import { dbConnected } from './connection.js';
 import type { UniqueNameTracker } from './unique-name-tracker.js';
+import { requestDockSelection } from '$lib/constants/events.js';
+import {
+    LAYOUT_ID_CONVERSATION_FINDER,
+    LAYOUT_ID_ACTOR_MANAGER,
+    LAYOUT_ID_LOCALE_MANAGER,
+    LAYOUT_ID_LOCALIZATION_EDITOR,
+} from '$lib/constants/default-layout.js';
 
 // Re-export for backwards compatibility with stores/index.ts
 export type { UniqueNameTracker };
@@ -487,6 +494,46 @@ export function isFocused(tableType: TableType, id: number): boolean {
     return focus[tableType.id]?.has(id) ?? false;
 }
 
+// ============================================================================
+// Navigation Functions (Focus + Panel Selection)
+// ============================================================================
+
+/**
+ * Navigate to a conversation: focus it and bring the Conversation Finder panel into view.
+ * Use this for external navigation (e.g., from game engine IPC).
+ */
+export function navigateToConversation(id: number): void {
+    focusConversation(id);
+    requestDockSelection(LAYOUT_ID_CONVERSATION_FINDER);
+}
+
+/**
+ * Navigate to an actor: focus it and bring the Actor Manager panel into view.
+ * Use this for external navigation (e.g., from game engine IPC).
+ */
+export function navigateToActor(id: number): void {
+    focusActor(id);
+    requestDockSelection(LAYOUT_ID_ACTOR_MANAGER);
+}
+
+/**
+ * Navigate to a locale: focus it and bring the Locale Manager panel into view.
+ * Use this for external navigation (e.g., from game engine IPC).
+ */
+export function navigateToLocale(id: number): void {
+    focusLocale(id);
+    requestDockSelection(LAYOUT_ID_LOCALE_MANAGER);
+}
+
+/**
+ * Navigate to a localization: focus it and bring the Localization Editor panel into view.
+ * Use this for external navigation (e.g., from game engine IPC).
+ */
+export function navigateToLocalization(id: number): void {
+    focusLocalization(id);
+    requestDockSelection(LAYOUT_ID_LOCALIZATION_EDITOR);
+}
+
 /**
  * Clear all focus state.
  */
@@ -510,6 +557,7 @@ export function clearAllFocus(): void {
  * Map FocusableTable strings to TableType constants.
  */
 const FOCUSABLE_TABLE_MAP: Record<string, TableType> = {
+    // Plural forms (used by internal focus system)
     conversations: TABLE_CONVERSATIONS,
     nodes: TABLE_NODES,
     edges: TABLE_EDGES,
@@ -518,9 +566,17 @@ const FOCUSABLE_TABLE_MAP: Record<string, TableType> = {
     localizations: TABLE_LOCALIZATIONS,
     conversation_tag_categories: TABLE_CONVERSATION_TAG_CATEGORIES,
     localization_tag_categories: TABLE_LOCALIZATION_TAG_CATEGORIES,
+    // Singular forms (used by game engine IPC commands)
+    conversation: TABLE_CONVERSATIONS,
+    actor: TABLE_ACTORS,
+    locale: TABLE_LOCALES,
+    localization: TABLE_LOCALIZATIONS,
 };
 
 let focusStoreInitialized = false;
+
+/** Singular entity types that trigger full navigation (from game engine IPC) */
+const IPC_ENTITY_TYPES = new Set(['conversation', 'actor', 'locale', 'localization']);
 
 /**
  * Initialize focus store and set up cross-panel synchronization.
@@ -537,7 +593,28 @@ export function initFocusStore(): void {
             return;
         }
 
-        // Convert FocusItem[] to Map<number, Focus>
+        // For IPC commands (singular entity types), use full navigation
+        // which includes focusing the item AND bringing the panel into view
+        if (IPC_ENTITY_TYPES.has(event.table) && event.items.length === 1) {
+            const id = event.items[0].id;
+            switch (event.table) {
+                case 'conversation':
+                    navigateToConversation(id);
+                    return;
+                case 'actor':
+                    navigateToActor(id);
+                    return;
+                case 'locale':
+                    navigateToLocale(id);
+                    return;
+                case 'localization':
+                    navigateToLocalization(id);
+                    return;
+            }
+        }
+
+        // For internal focus changes (plural table names), just update focus
+        // without switching panels
         const focusMap = new Map<number, Focus>();
         for (const item of event.items) {
             focusMap.set(item.id, {
@@ -546,8 +623,6 @@ export function initFocusStore(): void {
             });
         }
 
-        // Apply the focus change using REPLACE mode
-        // This replaces focus for this table while keeping other tables unchanged
         focusManager.focus({
             type: FOCUS_MODE_MODIFY,
             requests: [{

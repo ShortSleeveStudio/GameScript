@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -27,8 +28,9 @@ namespace GameScript.Editor
             if (string.IsNullOrEmpty(searchText))
                 return true;
 
-            bool nameMatch = item.Name.ToLowerInvariant().Contains(searchText);
-            bool subTextMatch = !string.IsNullOrEmpty(item.SubText) && item.SubText.ToLowerInvariant().Contains(searchText);
+            bool nameMatch = item.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+            bool subTextMatch = !string.IsNullOrEmpty(item.SubText) &&
+                item.SubText.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
             return nameMatch || subTextMatch;
         }
 

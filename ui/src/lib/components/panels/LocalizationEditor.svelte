@@ -37,7 +37,6 @@
     GridDatasource,
     GridCellRenderer,
     GridCellEditorText,
-    GridCellEditorConversationId,
     GRID_CACHE_BLOCK_SIZE,
     GRID_CACHE_MAX_BLOCKS,
     GRID_ROW_HEIGHT,
@@ -115,8 +114,7 @@
       colId: CONVERSATION_ID_COLUMN,
       resizable: false,
       cellRenderer: GridCellRenderer,
-      cellEditor: GridCellEditorConversationId,
-      editable: isCellEditable,
+      editable: false,
       filter: 'agNumberColumnFilter',
       filterParams: GRID_FILTER_PARAMS_NUMBER,
     },
@@ -227,20 +225,11 @@
   }
 
   async function handleCreate(): Promise<void> {
-    // If a single conversation is filtered, add to that
-    let conversationId: number = 0;
-    const filterModel: FilterModel = api?.getFilterModel() ?? {};
-    if (CONVERSATION_ID_COLUMN in filterModel) {
-      const filter = filterModel[CONVERSATION_ID_COLUMN] as NumberFilterModel;
-      if (filter.type === 'equals' && filter.filter != null) {
-        conversationId = filter.filter;
-      }
-    }
-
     // Create localization (undo is handled by crud layer)
+    // Parent is always null - localizations are organized by tags, not conversations
     await isLoading.wrapPromise(
       localizations.create({
-        parent: conversationId,
+        parent: null,
         name: '',
         is_system_created: false,
       })

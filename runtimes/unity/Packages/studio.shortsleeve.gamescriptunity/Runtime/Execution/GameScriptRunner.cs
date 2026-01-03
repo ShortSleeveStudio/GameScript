@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace GameScript
 {
-    public class GameScriptRunner : MonoBehaviour
+    public sealed class GameScriptRunner : MonoBehaviour
     {
         #region Inspector
         [Header("Runner Settings")]
@@ -50,10 +50,10 @@ namespace GameScript
             EnsureInitialized();
 
             RunnerContext context = ContextAcquire();
-            context.Initialize(_database.Snapshot, _jumpTable, conversationIndex, listener);
+            context.Initialize(_database, _jumpTable, conversationIndex, listener);
 
             // Start the conversation - it runs asynchronously and releases itself when done
-            RunConversationAsync(context);
+            _ = RunConversationAsync(context);
 
             return new ActiveConversation(this, context.SequenceNumber, context.ContextId);
         }
@@ -121,11 +121,15 @@ namespace GameScript
         #endregion
 
         #region Helpers
-        async void RunConversationAsync(RunnerContext context)
+        async Awaitable RunConversationAsync(RunnerContext context)
         {
             try
             {
                 await context.Run();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
             finally
             {

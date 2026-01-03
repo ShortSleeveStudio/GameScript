@@ -116,6 +116,7 @@ namespace GameScript
             catch (ReflectionTypeLoadException e)
             {
                 // Some types may fail to load, use what we can
+                Debug.LogWarning($"[GameScript] Some types in assembly '{assembly.GetName().Name}' could not be loaded. Using partial type list.");
                 types = e.Types;
             }
 

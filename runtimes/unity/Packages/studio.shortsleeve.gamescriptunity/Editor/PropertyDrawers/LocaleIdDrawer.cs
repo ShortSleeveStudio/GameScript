@@ -17,5 +17,7 @@ namespace GameScript
         {
             return GameScriptDatabase.EditorGetLocaleName(id);
         }
+
+        protected override string GetEntityType() => EntityType.Locale;
     }
 }

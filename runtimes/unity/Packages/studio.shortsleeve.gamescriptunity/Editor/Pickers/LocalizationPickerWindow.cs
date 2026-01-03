@@ -84,8 +84,8 @@ namespace GameScript.Editor
 
             if (!string.IsNullOrEmpty(searchText))
             {
-                bool nameMatch = item.Name.ToLowerInvariant().Contains(searchText);
-                bool textMatch = item.Text.ToLowerInvariant().Contains(searchText);
+                bool nameMatch = item.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                bool textMatch = item.Text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
                 if (!nameMatch && !textMatch)
                     return false;
             }
@@ -116,7 +116,16 @@ namespace GameScript.Editor
             Item item = filteredItems[index];
 
             Label nameLabel = element.Q<Label>("name");
-            nameLabel.text = item.Name;
+            if (string.IsNullOrEmpty(item.Name))
+            {
+                nameLabel.text = $"(id: {item.Id})";
+                nameLabel.AddToClassList("picker-item-label-placeholder");
+            }
+            else
+            {
+                nameLabel.text = item.Name;
+                nameLabel.RemoveFromClassList("picker-item-label-placeholder");
+            }
 
             Label textLabel = element.Q<Label>("text");
             string displayText = item.Text.Length > MaxDisplayTextLength

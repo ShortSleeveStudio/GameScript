@@ -47,6 +47,13 @@
         }
     });
 
+    $effect(() => {
+        // Set up snapshot command watcher for game engine IPC (Unity Edit button, etc.)
+        if (bridge.isIde && $dbConnected) {
+            bridge.watchSnapshotFolder(snapshotOutputPathValue);
+        }
+    });
+
     // Auto-export configuration
     /** Debounce delay in milliseconds to avoid rapid re-exports when quickly switching windows */
     const AUTO_EXPORT_DEBOUNCE_MS = 500;

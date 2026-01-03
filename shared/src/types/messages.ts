@@ -260,6 +260,17 @@ export interface CodeWatchFolderMessage {
 	folderPath: string | null;
 }
 
+/**
+ * Request to set up file watcher for the snapshot output folder.
+ * Watches for command.tmp files written by game engine plugins (Unity, Godot).
+ * Pass null to clear the watcher.
+ */
+export interface SnapshotWatchFolderMessage {
+	type: 'snapshot:watchFolder';
+	/** Relative path to the snapshot output folder, or null to clear */
+	folderPath: string | null;
+}
+
 export type NotificationLevel = 'info' | 'warning' | 'error';
 
 export interface NotifyMessage {
@@ -278,7 +289,12 @@ export interface StatusMessage {
 /**
  * Focus/selection types for cross-panel synchronization.
  */
-export type FocusableTable = 'conversations' | 'nodes' | 'edges' | 'actors' | 'locales' | 'localizations';
+// Plural forms used by internal focus system
+export type FocusableTablePlural = 'conversations' | 'nodes' | 'edges' | 'actors' | 'locales' | 'localizations';
+// Singular forms used by game engine IPC commands
+export type FocusableTableSingular = 'conversation' | 'actor' | 'locale' | 'localization';
+// Combined type for all focusable tables
+export type FocusableTable = FocusableTablePlural | FocusableTableSingular;
 
 export interface FocusItem {
 	id: number;
@@ -357,7 +373,8 @@ export type OutgoingMessage =
 	| CodeDeleteFileMessage
 	| CodeRestoreFileMessage
 	| CodeOpenMethodMessage
-	| CodeWatchFolderMessage;
+	| CodeWatchFolderMessage
+	| SnapshotWatchFolderMessage;
 
 // ============================================================================
 // Messages FROM Extension TO UI

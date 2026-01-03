@@ -78,7 +78,7 @@ namespace GameScript.Editor
 
             if (!string.IsNullOrEmpty(searchText))
             {
-                if (!item.Name.ToLowerInvariant().Contains(searchText))
+                if (item.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) < 0)
                     return false;
             }
 

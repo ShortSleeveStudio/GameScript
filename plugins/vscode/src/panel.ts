@@ -21,6 +21,7 @@ import type { PostMessageFn } from './handlers/types.js';
 // Constants
 const CONVERSATION_FILE_PATTERN = 'conv_*.cs';
 const CONVERSATION_FILE_REGEX = /conv_(\d+)\.cs$/;
+const COMMAND_FILENAME = 'command.tmp';
 
 /**
  * GameScript main editor panel.
@@ -146,6 +147,12 @@ export class GameScriptPanel {
     this._mediator.registerMany(createNotificationHandlers());
     this._mediator.registerMany(createEditorHandlers());
 
+    // Register snapshot watcher handler
+    this._mediator.register('snapshot:watchFolder', (msg) => {
+      const { folderPath } = msg as { folderPath: string | null };
+      this.setupSnapshotCommandWatcher(folderPath);
+    });
+
     // Set the webview's initial html content
     this._update();
 
@@ -248,11 +255,30 @@ export class GameScriptPanel {
   }
 
   // ==========================================================================
-  // File Watcher
+  // File Watchers
   // ==========================================================================
 
   /** The current code file watcher, if any */
   private _codeFileWatcher: vscode.FileSystemWatcher | undefined;
+
+  /** The current snapshot command watcher, if any */
+  private _snapshotCommandWatcher: vscode.FileSystemWatcher | undefined;
+
+  /**
+   * Normalize a folder path and create a glob pattern.
+   * Returns null if no workspace folder is available.
+   */
+  private createWatchPattern(folderPath: string, filename: string): vscode.RelativePattern | null {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      return null;
+    }
+
+    const normalizedPath = folderPath === '.' ? '' : folderPath.replace(/^\.\//, '');
+    const globPattern = normalizedPath ? `${normalizedPath}/${filename}` : filename;
+
+    return new vscode.RelativePattern(workspaceFolder, globPattern);
+  }
 
   /**
    * Set up a file watcher for conversation code files.
@@ -268,30 +294,20 @@ export class GameScriptPanel {
       this._hasCodeFileWatcher = false;
     }
 
-    // If no folder path, just clear
     if (!folderPath) {
       return;
     }
 
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
+    const pattern = this.createWatchPattern(folderPath, CONVERSATION_FILE_PATTERN);
+    if (!pattern) {
       console.warn('[Panel] Cannot set up code file watcher: no workspace folder');
       return;
     }
 
     try {
-      // Normalize the folder path - handle "." meaning workspace root
-      const normalizedPath = folderPath === '.' ? '' : folderPath.replace(/^\.\//, '');
-      const globPattern = normalizedPath ? `${normalizedPath}/${CONVERSATION_FILE_PATTERN}` : CONVERSATION_FILE_PATTERN;
-
-      const pattern = new vscode.RelativePattern(
-        workspaceFolder,
-        globPattern
-      );
-
       this._codeFileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
 
-      this._codeFileWatcher.onDidChange((uri: vscode.Uri) => {
+      const handleCodeFileChange = (uri: vscode.Uri) => {
         const match = uri.fsPath.match(CONVERSATION_FILE_REGEX);
         if (match) {
           const conversationId = parseInt(match[1], 10);
@@ -300,19 +316,10 @@ export class GameScriptPanel {
             conversationId,
           });
         }
-      });
+      };
 
-      this._codeFileWatcher.onDidCreate((uri: vscode.Uri) => {
-        const match = uri.fsPath.match(CONVERSATION_FILE_REGEX);
-        if (match) {
-          const conversationId = parseInt(match[1], 10);
-          this._panel.webview.postMessage({
-            type: 'code:fileChanged',
-            conversationId,
-          });
-        }
-      });
-
+      this._codeFileWatcher.onDidChange(handleCodeFileChange);
+      this._codeFileWatcher.onDidCreate(handleCodeFileChange);
       this._hasCodeFileWatcher = true;
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
@@ -321,6 +328,82 @@ export class GameScriptPanel {
       );
       console.error('[Panel] Failed to set up code file watcher:', error);
     }
+  }
+
+  /**
+   * Set up a file watcher for command files from game engine plugins.
+   * Called by the UI when the snapshot output folder is known/changes.
+   *
+   * @param folderPath - Relative path to watch, or null to clear the watcher
+   */
+  public setupSnapshotCommandWatcher(folderPath: string | null): void {
+    // Dispose existing watcher if any
+    if (this._snapshotCommandWatcher) {
+      this._snapshotCommandWatcher.dispose();
+      this._snapshotCommandWatcher = undefined;
+    }
+
+    if (!folderPath) {
+      return;
+    }
+
+    const pattern = this.createWatchPattern(folderPath, COMMAND_FILENAME);
+    if (!pattern) {
+      console.warn('[Panel] Cannot set up snapshot command watcher: no workspace folder');
+      return;
+    }
+
+    try {
+      this._snapshotCommandWatcher = vscode.workspace.createFileSystemWatcher(pattern);
+
+      const handleCommandFile = async (uri: vscode.Uri) => {
+        try {
+          const content = await vscode.workspace.fs.readFile(uri);
+          const command = JSON.parse(Buffer.from(content).toString('utf-8'));
+
+          // Delete the file after reading (ignore errors - file may already be gone)
+          try {
+            await vscode.workspace.fs.delete(uri);
+          } catch {
+            // File already deleted or inaccessible - that's fine
+          }
+
+          // Validate and handle navigate command
+          if (command.action === 'navigate' &&
+              typeof command.type === 'string' &&
+              typeof command.id === 'number') {
+            this.handleNavigateCommand(command.type, command.id);
+          }
+        } catch {
+          // Silently ignore errors - file may have been deleted or be incomplete
+        }
+      };
+
+      this._snapshotCommandWatcher.onDidChange(handleCommandFile);
+      this._snapshotCommandWatcher.onDidCreate(handleCommandFile);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[Panel] Failed to set up snapshot command watcher:', errorMsg);
+    }
+  }
+
+  /**
+   * Handle a navigation command from a game engine plugin.
+   */
+  private handleNavigateCommand(entityType: string, id: number): void {
+    const validTypes = ['conversation', 'actor', 'localization', 'locale'];
+    if (!validTypes.includes(entityType)) {
+      console.warn(`[Panel] Unknown entity type in navigate command: ${entityType}`);
+      return;
+    }
+
+    this._panel.webview.postMessage({
+      type: 'focus:broadcast',
+      table: entityType as 'conversation' | 'actor' | 'localization' | 'locale',
+      items: [{ id }],
+    });
+
+    this._panel.reveal();
   }
 
   // ==========================================================================
@@ -357,6 +440,11 @@ export class GameScriptPanel {
       this._codeFileWatcher = undefined;
     }
     this._hasCodeFileWatcher = false;
+
+    if (this._snapshotCommandWatcher) {
+      this._snapshotCommandWatcher.dispose();
+      this._snapshotCommandWatcher = undefined;
+    }
 
     this._panel.dispose();
 

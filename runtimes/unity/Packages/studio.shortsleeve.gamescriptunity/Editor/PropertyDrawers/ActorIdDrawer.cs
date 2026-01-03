@@ -17,5 +17,7 @@ namespace GameScript
         {
             return GameScriptDatabase.EditorGetActorName(id);
         }
+
+        protected override string GetEntityType() => EntityType.Actor;
     }
 }

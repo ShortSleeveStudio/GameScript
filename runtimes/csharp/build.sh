@@ -7,6 +7,7 @@ cd "$SCRIPT_DIR"
 CORE_OUTPUT="GameScript.Core/bin/Release/netstandard2.1"
 UNITY_OUTPUT="GameScript.Unity/bin/Release/netstandard2.1"
 EDITOR_OUTPUT="GameScript.Unity.Editor/bin/Release/netstandard2.1"
+UNITY_PLUGINS="../unity/Packages/studio.shortsleeve.gamescriptunity/Runtime/Plugins"
 DIST_DIR="dist"
 
 echo "=== Restoring dotnet tools ==="
@@ -14,6 +15,10 @@ dotnet tool restore
 
 echo "=== Building all projects ==="
 dotnet build GameScript.Unity.Editor/GameScript.Unity.Editor.csproj -c Release
+
+echo "=== Copying Core DLLs to Unity Plugins ==="
+cp "$CORE_OUTPUT/GameScript.Core.dll" "$UNITY_PLUGINS/"
+cp "$CORE_OUTPUT/FlatSharp.Runtime.dll" "$UNITY_PLUGINS/"
 
 echo "=== Creating distribution directory ==="
 rm -rf "$DIST_DIR"

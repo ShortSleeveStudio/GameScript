@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace GameScript
 {
-    public class GameScriptDatabase
+    public sealed class GameScriptDatabase
     {
         #region Constants
         const string ManifestFilename = "manifest.json";
@@ -19,7 +19,9 @@ namespace GameScript
         Manifest _manifest;
         Snapshot _snapshot;
         ManifestLocale _currentLocale;
+#if UNITY_EDITOR
         string _loadedHash;
+#endif
 
         // Cached paths (allocated once after manifest load)
         string _manifestPath;
@@ -31,6 +33,11 @@ namespace GameScript
         #endregion
 
         #region Public API
+        /// <summary>
+        /// Invoked after the locale has changed and the new snapshot is loaded.
+        /// </summary>
+        public event Action OnLocaleChanged;
+
         /// <summary>
         /// The currently loaded snapshot.
         /// </summary>
@@ -56,6 +63,7 @@ namespace GameScript
                 throw new ArgumentException($"Locale '{locale.Name}' not found in manifest");
 
             await LoadSnapshot(index, token);
+            OnLocaleChanged?.Invoke();
         }
         #endregion
 
@@ -123,7 +131,9 @@ namespace GameScript
         {
             _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
             _currentLocale = _manifest.Locales[localeIndex];
+#if UNITY_EDITOR
             _loadedHash = _currentLocale.Hash;
+#endif
         }
 
         int GetLocaleIndex(ManifestLocale locale)
@@ -224,6 +234,16 @@ namespace GameScript
 #if UNITY_EDITOR
         static GameScriptDatabase s_editorInstance;
         static string s_editorBasePath;
+
+        /// <summary>
+        /// Clears the static editor instance on domain reload.
+        /// </summary>
+        [UnityEditor.InitializeOnLoadMethod]
+        static void ClearEditorInstance()
+        {
+            s_editorInstance = null;
+            s_editorBasePath = null;
+        }
 
         /// <summary>
         /// Editor-only: Gets a shared database instance for property drawers and pickers.
