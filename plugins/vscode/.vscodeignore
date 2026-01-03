@@ -10,10 +10,13 @@ node_modules/**
 # Development files
 .gitignore
 .eslintrc*
-*.map
+
+# Source maps (not needed in production)
+**/*.map
 
 # Test files
 test/**
+test_workspace/**
 **/*.test.ts
 **/*.spec.ts
 
