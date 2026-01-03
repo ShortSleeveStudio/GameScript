@@ -1,9 +1,13 @@
 {
-  "name": "@gamescript/vscode",
+  "name": "gamescript",
   "displayName": "GameScript",
   "description": "Visual dialogue authoring for games",
   "version": "2.0.0",
   "publisher": "gamescript",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ShortSleeveStudio/GameScript"
+  },
   "private": true,
   "type": "module",
   "engines": {
