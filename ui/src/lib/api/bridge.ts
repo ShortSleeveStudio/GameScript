@@ -96,7 +96,7 @@ export interface DialogResult {
 export interface PendingRequest<T> {
   resolve: (value: T) => void;
   reject: (error: Error) => void;
-  timeout: ReturnType<typeof setTimeout>;
+  timeout: ReturnType<typeof setTimeout> | null;
 }
 
 
@@ -491,7 +491,9 @@ class ExtensionBridge {
       return;
     }
 
-    clearTimeout(pending.timeout);
+    if (pending.timeout !== null) {
+      clearTimeout(pending.timeout);
+    }
     this.pendingRequests.delete(id);
 
     if (result instanceof Error) {
@@ -513,14 +515,17 @@ class ExtensionBridge {
     return `req_${++this.requestIdCounter}_${Date.now()}`;
   }
 
-  private createRequest<T>(timeout = this.defaultTimeout): { id: string; promise: Promise<T> } {
+  private createRequest<T>(timeout: number | null = this.defaultTimeout): { id: string; promise: Promise<T> } {
     const id = this.generateRequestId();
 
     const promise = new Promise<T>((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        this.pendingRequests.delete(id);
-        reject(new Error(`Request ${id} timed out after ${timeout}ms`));
-      }, timeout);
+      // null timeout = no timeout (for dialogs waiting on user interaction)
+      const timeoutId = timeout === null
+        ? null
+        : setTimeout(() => {
+            this.pendingRequests.delete(id);
+            reject(new Error(`Request ${id} timed out after ${timeout}ms`));
+          }, timeout);
 
       this.pendingRequests.set(id, {
         resolve: resolve as (value: unknown) => void,
@@ -755,7 +760,7 @@ class ExtensionBridge {
       return { cancelled: true };
     }
 
-    const { id, promise } = this.createRequest<DialogResult>();
+    const { id, promise } = this.createRequest<DialogResult>(null);
 
     const message: DialogOpenSqliteMessage = {
       type: 'dialog:openSqlite',
@@ -775,7 +780,7 @@ class ExtensionBridge {
       return { cancelled: true };
     }
 
-    const { id, promise } = this.createRequest<DialogResult>();
+    const { id, promise } = this.createRequest<DialogResult>(null);
 
     const message: DialogSaveSqliteMessage = {
       type: 'dialog:saveSqlite',
@@ -795,7 +800,7 @@ class ExtensionBridge {
       return { cancelled: true };
     }
 
-    const { id, promise } = this.createRequest<DialogResult>();
+    const { id, promise } = this.createRequest<DialogResult>(null);
 
     const message: DialogOpenCsvMessage = {
       type: 'dialog:openCsv',
@@ -816,7 +821,7 @@ class ExtensionBridge {
       return { cancelled: true };
     }
 
-    const { id, promise } = this.createRequest<DialogResult>();
+    const { id, promise } = this.createRequest<DialogResult>(null);
 
     const message: DialogSaveCsvMessage = {
       type: 'dialog:saveCsv',
@@ -838,7 +843,7 @@ class ExtensionBridge {
       return { cancelled: true };
     }
 
-    const { id, promise } = this.createRequest<DialogResult>();
+    const { id, promise } = this.createRequest<DialogResult>(null);
 
     const message: DialogSelectFolderMessage = {
       type: 'dialog:selectFolder',

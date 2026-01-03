@@ -10,9 +10,13 @@ namespace GameScript
     [Serializable]
     public struct ConversationId : IEquatable<ConversationId>
     {
-        [SerializeField] internal int value;
+        public static readonly ConversationId None = new(-1);
+
+        [SerializeField] internal int value = -1;
 
         public ConversationId(int id) => value = id;
+
+        public bool IsValid => value >= 0;
 
         public static implicit operator int(ConversationId id) => id.value;
         public static explicit operator ConversationId(int id) => new(id);
@@ -33,9 +37,13 @@ namespace GameScript
     [Serializable]
     public struct LocalizationId : IEquatable<LocalizationId>
     {
-        [SerializeField] internal int value;
+        public static readonly LocalizationId None = new(-1);
+
+        [SerializeField] internal int value = -1;
 
         public LocalizationId(int id) => value = id;
+
+        public bool IsValid => value >= 0;
 
         public static implicit operator int(LocalizationId id) => id.value;
         public static explicit operator LocalizationId(int id) => new(id);
@@ -56,9 +64,13 @@ namespace GameScript
     [Serializable]
     public struct ActorId : IEquatable<ActorId>
     {
-        [SerializeField] internal int value;
+        public static readonly ActorId None = new(-1);
+
+        [SerializeField] internal int value = -1;
 
         public ActorId(int id) => value = id;
+
+        public bool IsValid => value >= 0;
 
         public static implicit operator int(ActorId id) => id.value;
         public static explicit operator ActorId(int id) => new(id);
@@ -79,9 +91,13 @@ namespace GameScript
     [Serializable]
     public struct LocaleId : IEquatable<LocaleId>
     {
-        [SerializeField] internal int value;
+        public static readonly LocaleId None = new(-1);
+
+        [SerializeField] internal int value = -1;
 
         public LocaleId(int id) => value = id;
+
+        public bool IsValid => value >= 0;
 
         public static implicit operator int(LocaleId id) => id.value;
         public static explicit operator LocaleId(int id) => new(id);
