@@ -359,21 +359,49 @@ namespace GameScript
         }
 
         /// <summary>
-        /// Editor-only: Gets a shared database instance for property drawers and pickers.
+        /// Editor-only: Gets a shared database instance for property drawers, pickers, and external tooling.
         /// Lazily loads the snapshot using settings. Only hot-reloads when not in play mode.
+        /// Returns null if settings are not configured or snapshot files don't exist.
+        /// </summary>
+        public static GameScriptDatabase EditorInstance
+        {
+            get
+            {
+                // EnsureEditorInstance handles lazy loading, validation, and hot-reload
+                EnsureEditorInstance();
+                return s_editorInstance;
+            }
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the raw snapshot for internal use.
         /// Internal to avoid exposing FlatSharp types.
         /// </summary>
         internal static Snapshot EditorGetSnapshot()
         {
+            EnsureEditorInstance();
+            return s_editorInstance?._snapshot;
+        }
+
+        static void EnsureEditorInstance()
+        {
             Settings settings = Settings.GetSettings();
             if (settings == null || string.IsNullOrEmpty(settings.GameDataPath))
-                return null;
+            {
+                s_editorInstance = null;
+                s_editorBasePath = null;
+                return;
+            }
 
             string basePath = settings.GameDataPath;
             string manifestPath = BuildPath(basePath, ManifestFilename);
 
             if (!File.Exists(manifestPath))
-                return null;
+            {
+                s_editorInstance = null;
+                s_editorBasePath = null;
+                return;
+            }
 
             // Check if settings path changed - invalidate cache
             if (s_editorInstance != null && s_editorBasePath != basePath)
@@ -415,18 +443,14 @@ namespace GameScript
             {
                 s_editorInstance.CheckForHotReload(basePath);
             }
-
-            return s_editorInstance._snapshot;
         }
 
         /// <summary>
         /// Editor-only: Gets the manifest for property drawers and pickers.
-        /// Call EditorGetSnapshot() first to ensure the manifest is loaded.
         /// </summary>
         public static Manifest EditorGetManifest()
         {
-            // Ensure snapshot (and manifest) is loaded
-            EditorGetSnapshot();
+            EnsureEditorInstance();
             return s_editorInstance?._manifest;
         }
 
