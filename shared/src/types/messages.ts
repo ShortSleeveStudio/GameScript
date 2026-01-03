@@ -171,17 +171,30 @@ export interface CodeGetMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string; // e.g., "Node_123_Condition"
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**
+ * Code template types for different game engines.
+ */
+export type CodeTemplateType = 'unity' | 'godot' | 'unreal';
+
+/**
  * Request to create a method stub and open it in the IDE.
+ * The UI generates the code; the IDE plugin just writes it.
  */
 export interface CodeCreateMethodMessage {
 	type: 'code:createMethod';
 	id: string;
 	conversationId: number;
 	methodName: string;
-	methodType: 'condition' | 'action';
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
+	/** Generated method stub code */
+	methodStub: string;
+	/** Generated file content (used when creating a new file) */
+	fileContent: string;
 }
 
 /**
@@ -193,6 +206,8 @@ export interface CodeDeleteMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string;
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**
@@ -205,6 +220,8 @@ export interface CodeDeleteMethodsSilentMessage {
 	id: string;
 	conversationId: number;
 	methodNames: string[];
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**
@@ -216,7 +233,12 @@ export interface CodeRestoreMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string;
+	/** The method code to restore (includes attribute and body) */
 	code: string;
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
+	/** Generated file content (used when recreating a deleted file) */
+	fileContent: string;
 }
 
 /**
@@ -227,6 +249,8 @@ export interface CodeDeleteFileMessage {
 	type: 'code:deleteFile';
 	id: string;
 	conversationId: number;
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**
@@ -238,6 +262,8 @@ export interface CodeRestoreFileMessage {
 	id: string;
 	conversationId: number;
 	content: string;
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**
@@ -247,6 +273,8 @@ export interface CodeOpenMethodMessage {
 	type: 'code:openMethod';
 	conversationId: number;
 	methodName: string;
+	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	fileExtension: string;
 }
 
 /**

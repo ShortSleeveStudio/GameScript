@@ -80,10 +80,15 @@ export function validateDialogueOutputPath(outputPath: string): void {
  * Validates that the resulting path stays within the workspace.
  *
  * @param conversationId The conversation ID (must be positive integer)
+ * @param fileExtension The file extension including the dot (e.g., '.cs', '.cpp')
  * @param codeOutputFolder The relative path to the code output folder (from database settings)
  * @throws Error if conversationId is invalid, no workspace folder is open, codeOutputFolder not set, or path escapes workspace
  */
-export function getConversationFilePath(conversationId: number, codeOutputFolder: string | undefined): string {
+export function getConversationFilePath(
+  conversationId: number,
+  fileExtension: string,
+  codeOutputFolder: string | undefined
+): string {
   validateConversationId(conversationId);
 
   if (!codeOutputFolder) {
@@ -96,7 +101,7 @@ export function getConversationFilePath(conversationId: number, codeOutputFolder
   const workspaceRoot = workspaceFolder.uri.fsPath;
 
   // Build the relative path and validate it stays within workspace
-  const relativePath = path.join(codeOutputFolder, `conv_${conversationId}.cs`);
+  const relativePath = path.join(codeOutputFolder, `conv_${conversationId}${fileExtension}`);
   validatePathContainment(relativePath, workspaceRoot);
 
   // Normalize the final path to remove any redundant segments

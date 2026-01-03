@@ -8,21 +8,34 @@
      * - Auto-export options (on save, on focus loss)
      * - Manual "Export Now" button
      */
-    import { Button, Checkbox, CodeFolderSelector } from '$lib/components/common';
-    import { snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
-    import { snapshotOutputPath as snapshotOutputPathCrud } from '$lib/crud';
+    import { Button, Checkbox, CodeFolderSelector, Dropdown } from '$lib/components/common';
+    import { snapshotOutputPathTableView, getSnapshotOutputPath, codeTemplateTableView, getCodeTemplate } from '$lib/tables';
+    import { snapshotOutputPath as snapshotOutputPathCrud, codeTemplate as codeTemplateCrud } from '$lib/crud';
+    import type { CodeTemplateValue } from '$lib/crud/crud-code-template.js';
     import { bridge } from '$lib/api/bridge';
     import { toastError, toastSuccess } from '$lib/stores/notifications.js';
     import { autoExportOnBlur } from '$lib/stores/layout-defaults.js';
     import { exportController } from '$lib/export';
 
-    // Reactive state from the shared table view
+    /** Code template options for the dropdown */
+    const CODE_TEMPLATE_OPTIONS = [
+        { value: 'unity', label: 'Unity (C# Awaitable)' },
+        { value: 'godot', label: 'Godot (C# Callback)' },
+        { value: 'unreal', label: 'Unreal (C++ Delegate)' },
+    ];
+
+    // Reactive state from the shared table views
     let snapshotOutputPathView = $derived(getSnapshotOutputPath(snapshotOutputPathTableView.rows));
     let snapshotOutputPathValue = $derived(snapshotOutputPathView?.data.value ?? null);
     let isSnapshotPathConfigured = $derived(
         snapshotOutputPathValue !== null && snapshotOutputPathValue.trim() !== ''
     );
-    let isInitialized = $derived(snapshotOutputPathTableView.isInitialized);
+    let isSnapshotInitialized = $derived(snapshotOutputPathTableView.isInitialized);
+
+    // Code template state
+    let codeTemplateView = $derived(getCodeTemplate(codeTemplateTableView.rows));
+    let codeTemplateValue = $derived((codeTemplateView?.data.value as CodeTemplateValue) ?? 'unity');
+    let isTemplateInitialized = $derived(codeTemplateTableView.isInitialized);
 
     // Export state - use Svelte store syntax for reactivity
     const exportProgress = exportController.progress;
@@ -108,6 +121,17 @@
     function handleCancelExport(): void {
         exportController.cancel();
     }
+
+    /**
+     * Handle code template change.
+     */
+    async function handleTemplateChange(value: string | number): Promise<void> {
+        try {
+            await codeTemplateCrud.setCodeTemplate(value as CodeTemplateValue);
+        } catch (error) {
+            toastError('Failed to update code template', error);
+        }
+    }
 </script>
 
 <div class="settings-panel">
@@ -116,7 +140,7 @@
 
         <div class="settings-field">
             <label class="settings-label">Output Path</label>
-            {#if !isInitialized}
+            {#if !isSnapshotInitialized}
                 <div class="settings-loading">Loading...</div>
             {:else if !isSnapshotPathConfigured}
                 <div class="settings-path-config">
@@ -152,6 +176,18 @@
         <div class="settings-field">
             <label class="settings-label">Output Folder</label>
             <CodeFolderSelector showWarning={false} label="" />
+        </div>
+        <div class="settings-field">
+            <label class="settings-label">Template</label>
+            {#if !isTemplateInitialized}
+                <div class="settings-loading">Loading...</div>
+            {:else}
+                <Dropdown
+                    options={CODE_TEMPLATE_OPTIONS}
+                    value={codeTemplateValue}
+                    onchange={handleTemplateChange}
+                />
+            {/if}
         </div>
     </div>
 

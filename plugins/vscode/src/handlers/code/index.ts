@@ -85,10 +85,10 @@ export class CodeHandlers {
    * Get method body using VSCode's document symbol provider.
    */
   private async _handleCodeGetMethod(message: CodeGetMethodMessage): Promise<void> {
-    const { id, conversationId, methodName } = message;
+    const { id, conversationId, methodName, fileExtension } = message;
 
     try {
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       // Check if file exists
@@ -179,12 +179,13 @@ export class CodeHandlers {
 
   /**
    * Create a method stub and open it in the IDE.
+   * The UI generates the code; this handler just writes it.
    */
   private async _handleCodeCreateMethod(message: CodeCreateMethodMessage): Promise<void> {
-    const { id, conversationId, methodName, methodType } = message;
+    const { id, conversationId, methodName, fileExtension, methodStub, fileContent } = message;
 
     try {
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       let existingContent = '';
@@ -199,29 +200,26 @@ export class CodeHandlers {
         // File doesn't exist, will create new
       }
 
-      // Generate the method stub
-      const stub = this._generateMethodStub(methodName, methodType, conversationId);
-
       let newContent: string;
       if (fileExists) {
-        // Insert method before the closing brace of the class.
-        // ASSUMPTION: Conversation files contain exactly one static class.
-        // The file structure is: comments/usings, namespace (optional), single class.
-        // We insert before the last '}' which should be the class closing brace.
+        // Insert method before the closing brace of the class/struct.
+        // ASSUMPTION: Conversation files contain exactly one static class/struct.
+        // The file structure is: comments/usings/includes, namespace (optional), single class/struct.
+        // We insert before the last '}' which should be the class/struct closing brace.
         const classEndMatch = existingContent.lastIndexOf('}');
         if (classEndMatch !== -1) {
           newContent =
             existingContent.slice(0, classEndMatch) +
             '\n' +
-            stub +
+            methodStub +
             '\n' +
             existingContent.slice(classEndMatch);
         } else {
-          newContent = existingContent + '\n' + stub;
+          newContent = existingContent + '\n' + methodStub;
         }
       } else {
-        // Create new file with class wrapper
-        newContent = this._generateConversationFile(conversationId, stub);
+        // Use the pre-generated file content
+        newContent = fileContent;
       }
 
       // Create directory if needed
@@ -233,8 +231,9 @@ export class CodeHandlers {
       await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
 
       // Open the file and navigate to the method
+      // Use ViewColumn.Beside to open next to the GameScript panel
       const document = await vscode.workspace.openTextDocument(uri);
-      const editor = await vscode.window.showTextDocument(document);
+      const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
 
       // Find the method position
       const methodIndex = newContent.indexOf(methodName);
@@ -267,10 +266,10 @@ export class CodeHandlers {
    * Delete a method with diff preview.
    */
   private async _handleCodeDeleteMethod(message: CodeDeleteMethodMessage): Promise<void> {
-    const { id, conversationId, methodName } = message;
+    const { id, conversationId, methodName, fileExtension } = message;
 
     try {
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       // Read existing content
@@ -378,7 +377,7 @@ export class CodeHandlers {
    * All methods are deleted in a single file operation to avoid stale symbol issues.
    */
   private async _handleCodeDeleteMethodsSilent(message: CodeDeleteMethodsSilentMessage): Promise<void> {
-    const { id, conversationId, methodNames } = message;
+    const { id, conversationId, methodNames, fileExtension } = message;
 
     try {
       if (methodNames.length === 0) {
@@ -391,7 +390,7 @@ export class CodeHandlers {
         return;
       }
 
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       // Read existing content
@@ -500,9 +499,10 @@ export class CodeHandlers {
 
   /**
    * Restore a previously deleted method.
+   * The UI generates the file content; this handler just writes it.
    */
   private async _handleCodeRestoreMethod(message: CodeRestoreMethodMessage): Promise<void> {
-    const { id, conversationId, code } = message;
+    const { id, conversationId, code, fileExtension, fileContent } = message;
 
     try {
       if (!code) {
@@ -515,7 +515,7 @@ export class CodeHandlers {
         return;
       }
 
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       let existingContent = '';
@@ -542,9 +542,8 @@ export class CodeHandlers {
           newContent = existingContent + '\n' + code;
         }
       } else {
-        // Create new file - wrap in conversation class
-        // Extract just the method body (the code includes the attribute)
-        newContent = this._generateConversationFile(conversationId, code.trim());
+        // Use the pre-generated file content from the UI
+        newContent = fileContent;
       }
 
       // Create directory if needed
@@ -578,10 +577,10 @@ export class CodeHandlers {
    * Delete an entire conversation code file, returning the content for undo.
    */
   private async _handleCodeDeleteFile(message: CodeDeleteFileMessage): Promise<void> {
-    const { id, conversationId } = message;
+    const { id, conversationId, fileExtension } = message;
 
     try {
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       // Read existing content
@@ -627,7 +626,7 @@ export class CodeHandlers {
    * Restore an entire conversation code file.
    */
   private async _handleCodeRestoreFile(message: CodeRestoreFileMessage): Promise<void> {
-    const { id, conversationId, content } = message;
+    const { id, conversationId, content, fileExtension } = message;
 
     try {
       if (!content) {
@@ -640,7 +639,7 @@ export class CodeHandlers {
         return;
       }
 
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
       // Create directory if needed
@@ -675,15 +674,15 @@ export class CodeHandlers {
    * Note: This is a fire-and-forget operation - no response is sent to webview.
    */
   private async _handleCodeOpenMethod(message: CodeOpenMethodMessage): Promise<void> {
-    const { conversationId, methodName } = message;
+    const { conversationId, methodName, fileExtension } = message;
 
     try {
-      const filePath = getConversationFilePath(conversationId, this._codeOutputFolder ?? undefined);
+      const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
-      // Open document
+      // Open document in ViewColumn.Beside to open next to the GameScript panel
       const document = await vscode.workspace.openTextDocument(uri);
-      const editor = await vscode.window.showTextDocument(document);
+      const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
 
       // Get symbols and find method
       const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
@@ -734,49 +733,5 @@ export class CodeHandlers {
       }
     }
     return null;
-  }
-
-  /**
-   * Generate a method stub for a condition or action.
-   */
-  private _generateMethodStub(
-    methodName: string,
-    methodType: 'condition' | 'action',
-    _conversationId: number
-  ): string {
-    const attributeName = methodType === 'condition' ? 'NodeCondition' : 'NodeAction';
-    const nodeId = methodName.replace(/^Node_(\d+)_(Condition|Action)$/, '$1');
-
-    if (methodType === 'condition') {
-      return `    [${attributeName}(${nodeId})]
-    public static bool ${methodName}(IDialogueContext ctx)
-    {
-        // TODO: Implement condition
-        return true;
-    }`;
-    } else {
-      return `    [${attributeName}(${nodeId})]
-    public static async Awaitable ${methodName}(IDialogueContext ctx)
-    {
-        // TODO: Implement action
-    }`;
-    }
-  }
-
-  /**
-   * Generate a new conversation code file.
-   */
-  private _generateConversationFile(conversationId: number, initialMethod: string): string {
-    return `// Auto-generated by GameScript
-// Conversation ID: ${conversationId}
-
-using GameScript;
-using UnityEngine;
-
-public static class Conversation_${conversationId}
-{
-${initialMethod}
-}
-`;
   }
 }

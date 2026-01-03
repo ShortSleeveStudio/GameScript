@@ -176,6 +176,14 @@ export interface SnapshotOutputPath extends Row {
 }
 
 ///
+/// Code Template (singleton setting)
+/// Stores the selected code template: 'unity' | 'godot' | 'unreal'
+///
+export interface CodeTemplate extends Row {
+  value: string | null;
+}
+
+///
 /// Base Tag Types (for generic CRUD and UI components)
 ///
 

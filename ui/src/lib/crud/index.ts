@@ -7,6 +7,7 @@ export * as localizations from './crud-localizations.js';
 export * as propertyTemplates from './crud-property-templates.js';
 export * as nodeProperties from './crud-node-properties.js';
 export * as codeOutputFolder from './crud-code-output-folder.js';
+export * as codeTemplate from './crud-code-template.js';
 export * as snapshotOutputPath from './crud-snapshot-output-path.js';
 export * as conversationTagCategories from './crud-conversation-tag-categories.js';
 export * as conversationTagValues from './crud-conversation-tag-values.js';

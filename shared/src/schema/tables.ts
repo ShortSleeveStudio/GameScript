@@ -17,6 +17,7 @@ import {
   TABLE_NODE_PROPERTIES,
   TABLE_CODE_OUTPUT_FOLDER,
   TABLE_SNAPSHOT_OUTPUT_PATH,
+  TABLE_CODE_TEMPLATE,
   TABLE_CONVERSATION_TAG_CATEGORIES,
   TABLE_CONVERSATION_TAG_VALUES,
   TABLE_LOCALIZATION_TAG_CATEGORIES,
@@ -219,6 +220,16 @@ export const snapshotOutputPathTable: TableDefinition = {
   ],
 };
 
+// Code template setting (singleton table, single row with id = 1)
+// Stores 'unity' | 'godot' | 'unreal'
+export const codeTemplateTable: TableDefinition = {
+  name: TABLE_CODE_TEMPLATE.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'value', type: 'TEXT' },
+  ],
+};
+
 // Conversation tag tables
 export const conversationTagCategoriesTable: TableDefinition = {
   name: TABLE_CONVERSATION_TAG_CATEGORIES.name,
@@ -277,4 +288,5 @@ export const allTables: TableDefinition[] = [
   notificationsTable,
   codeOutputFolderTable,
   snapshotOutputPathTable,
+  codeTemplateTable,
 ];

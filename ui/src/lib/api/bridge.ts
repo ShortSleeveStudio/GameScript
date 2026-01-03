@@ -49,6 +49,7 @@ import type {
   CodeRestoreMethodMessage,
   CodeDeleteFileMessage,
   CodeRestoreFileMessage,
+  CodeTemplateType,
   DatabaseType,
   DbResult,
   TransactionContext,
@@ -57,6 +58,12 @@ import type {
   CodeFileChangeEvent,
   BridgeEvents,
   BridgeEventName,
+} from '@gamescript/shared';
+
+import {
+  generateMethodStub,
+  generateConversationFile,
+  getFileExtension,
 } from '@gamescript/shared';
 
 // Notifications
@@ -1116,12 +1123,14 @@ class ExtensionBridge {
    */
   async getMethodBody(
     conversationId: number,
-    methodName: string
+    methodName: string,
+    template: CodeTemplateType = 'unity'
   ): Promise<{ body: string; filePath: string; lineNumber: number }> {
     if (!this.isIde) {
       throw new Error('Code operations not available in standalone mode');
     }
 
+    const fileExtension = getFileExtension(template);
     const { id, promise } = this.createRequest<{ body: string; filePath: string; lineNumber: number }>();
 
     const message: CodeGetMethodMessage = {
@@ -1129,6 +1138,7 @@ class ExtensionBridge {
       id,
       conversationId,
       methodName,
+      fileExtension,
     };
 
     this.postMessage(message);
@@ -1137,15 +1147,22 @@ class ExtensionBridge {
 
   /**
    * Create a method stub and open it in the IDE.
+   * Generates the code in the UI and sends it to the IDE plugin for writing.
    */
   async createMethod(
     conversationId: number,
     methodName: string,
-    methodType: 'condition' | 'action'
+    methodType: 'condition' | 'action',
+    template: CodeTemplateType = 'unity'
   ): Promise<boolean> {
     if (!this.isIde) {
       throw new Error('Code operations not available in standalone mode');
     }
+
+    // Generate the code in the UI (shared across all IDE plugins)
+    const methodStub = generateMethodStub(methodName, methodType, template);
+    const fileContent = generateConversationFile(conversationId, methodStub, template);
+    const fileExtension = getFileExtension(template);
 
     const { id, promise } = this.createRequest<boolean>();
 
@@ -1154,7 +1171,9 @@ class ExtensionBridge {
       id,
       conversationId,
       methodName,
-      methodType,
+      fileExtension,
+      methodStub,
+      fileContent,
     };
 
     this.postMessage(message);
@@ -1167,12 +1186,14 @@ class ExtensionBridge {
    */
   async deleteMethod(
     conversationId: number,
-    methodName: string
+    methodName: string,
+    template: CodeTemplateType = 'unity'
   ): Promise<{ accepted: boolean; error?: string }> {
     if (!this.isIde) {
       return { accepted: false, error: 'Code operations not available in standalone mode' };
     }
 
+    const fileExtension = getFileExtension(template);
     const { id, promise } = this.createRequest<{ accepted: boolean; error?: string }>();
 
     const message: CodeDeleteMethodMessage = {
@@ -1180,6 +1201,7 @@ class ExtensionBridge {
       id,
       conversationId,
       methodName,
+      fileExtension,
     };
 
     this.postMessage(message);
@@ -1193,12 +1215,14 @@ class ExtensionBridge {
    */
   async deleteMethodsSilent(
     conversationId: number,
-    methodNames: string[]
+    methodNames: string[],
+    template: CodeTemplateType = 'unity'
   ): Promise<{ deletedMethods: Record<string, string> }> {
     if (!this.isIde || methodNames.length === 0) {
       return { deletedMethods: {} };
     }
 
+    const fileExtension = getFileExtension(template);
     const { id, promise } = this.createRequest<{ deletedMethods: Record<string, string> }>();
 
     const message: CodeDeleteMethodsSilentMessage = {
@@ -1206,6 +1230,7 @@ class ExtensionBridge {
       id,
       conversationId,
       methodNames,
+      fileExtension,
     };
 
     this.postMessage(message);
@@ -1214,15 +1239,21 @@ class ExtensionBridge {
 
   /**
    * Restore a previously deleted method (for undo after node delete).
+   * Generates the file wrapper in case the file was completely deleted.
    */
   async restoreMethod(
     conversationId: number,
     methodName: string,
-    code: string
+    code: string,
+    template: CodeTemplateType = 'unity'
   ): Promise<void> {
     if (!this.isIde || !code) {
       return;
     }
+
+    // Generate file content in case the file was deleted and needs to be recreated
+    const fileContent = generateConversationFile(conversationId, code.trim(), template);
+    const fileExtension = getFileExtension(template);
 
     const { id, promise } = this.createRequest<void>();
 
@@ -1232,6 +1263,8 @@ class ExtensionBridge {
       conversationId,
       methodName,
       code,
+      fileExtension,
+      fileContent,
     };
 
     this.postMessage(message);
@@ -1242,17 +1275,22 @@ class ExtensionBridge {
    * Delete an entire conversation code file (for permanent conversation delete).
    * Returns the deleted content for undo.
    */
-  async deleteCodeFile(conversationId: number): Promise<{ deletedContent: string }> {
+  async deleteCodeFile(
+    conversationId: number,
+    template: CodeTemplateType = 'unity'
+  ): Promise<{ deletedContent: string }> {
     if (!this.isIde) {
       return { deletedContent: '' };
     }
 
+    const fileExtension = getFileExtension(template);
     const { id, promise } = this.createRequest<{ deletedContent: string }>();
 
     const message: CodeDeleteFileMessage = {
       type: 'code:deleteFile',
       id,
       conversationId,
+      fileExtension,
     };
 
     this.postMessage(message);
@@ -1262,11 +1300,16 @@ class ExtensionBridge {
   /**
    * Restore an entire conversation code file (for undo after permanent delete).
    */
-  async restoreCodeFile(conversationId: number, content: string): Promise<void> {
+  async restoreCodeFile(
+    conversationId: number,
+    content: string,
+    template: CodeTemplateType = 'unity'
+  ): Promise<void> {
     if (!this.isIde || !content) {
       return;
     }
 
+    const fileExtension = getFileExtension(template);
     const { id, promise } = this.createRequest<void>();
 
     const message: CodeRestoreFileMessage = {
@@ -1274,6 +1317,7 @@ class ExtensionBridge {
       id,
       conversationId,
       content,
+      fileExtension,
     };
 
     this.postMessage(message);
@@ -1283,11 +1327,17 @@ class ExtensionBridge {
   /**
    * Open a method in the IDE (go to symbol).
    */
-  openMethod(conversationId: number, methodName: string): void {
+  openMethod(
+    conversationId: number,
+    methodName: string,
+    template: CodeTemplateType = 'unity'
+  ): void {
+    const fileExtension = getFileExtension(template);
     this.postMessage({
       type: 'code:openMethod',
       conversationId,
       methodName,
+      fileExtension,
     });
   }
 

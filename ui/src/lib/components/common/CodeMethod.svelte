@@ -12,13 +12,18 @@
      * The parent component (InspectorNode) handles folder configuration.
      */
     import { type IDbRowView } from '$lib/db';
-    import type { Row } from '@gamescript/shared';
+    import type { Row, CodeTemplateType } from '@gamescript/shared';
     import { common } from '$lib/crud';
     import { bridge } from '$lib/api/bridge';
     import { toastError } from '$lib/stores/notifications.js';
+    import { codeTemplateTableView, getCodeTemplate } from '$lib/tables';
     import { onDestroy } from 'svelte';
     import Button from './Button.svelte';
     import CodeMethodToggle from './CodeMethodToggle.svelte';
+
+    // Get the current code template from the settings
+    let codeTemplateView = $derived(getCodeTemplate(codeTemplateTableView.rows));
+    let codeTemplate = $derived((codeTemplateView?.data.value as CodeTemplateType) ?? 'unity');
 
     interface Props {
         /** The row view for the node */
@@ -100,8 +105,8 @@
 
         isPending = true;
         try {
-            // Create the method stub first
-            await bridge.createMethod(conversationId, methodName, methodType);
+            // Create the method stub first (using the selected template)
+            await bridge.createMethod(conversationId, methodName, methodType, codeTemplate);
 
             // Update database with undo support
             await common.updateOne(rowView.tableType, oldRow, newRow, `${undoText} enabled`);

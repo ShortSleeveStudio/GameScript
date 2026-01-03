@@ -60,6 +60,7 @@ export const TABLE_LOCALIZATION_TAG_VALUES: TableRef = { id: 23, name: 'localiza
 
 // Settings tables
 export const TABLE_SNAPSHOT_OUTPUT_PATH: TableRef = { id: 24, name: 'snapshot_output_path' };
+export const TABLE_CODE_TEMPLATE: TableRef = { id: 25, name: 'code_template' };
 
 export const DATABASE_TABLES: TableRef[] = [
   TABLE_TABLES,
@@ -87,6 +88,7 @@ export const DATABASE_TABLES: TableRef[] = [
   TABLE_LOCALIZATION_TAG_CATEGORIES,
   TABLE_LOCALIZATION_TAG_VALUES,
   TABLE_SNAPSHOT_OUTPUT_PATH,
+  TABLE_CODE_TEMPLATE,
 ];
 
 /** Set of known table names for efficient validation (e.g., SQL injection prevention) */
