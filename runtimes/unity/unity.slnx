@@ -3,6 +3,7 @@
   <Project Path="Unity.MemoryProfiler.Editor.csproj" />
   <Project Path="Unity.PlasticSCM.Editor.csproj" />
   <Project Path="Unity.2D.Aseprite.Editor.csproj" />
+  <Project Path="GameScript.Editor.csproj" />
   <Project Path="Unity.VisualScripting.Flow.csproj" />
   <Project Path="Unity.Timeline.Editor.csproj" />
   <Project Path="Unity.Mathematics.csproj" />
@@ -18,6 +19,7 @@
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
+  <Project Path="GameScriptUnity.csproj" />
   <Project Path="Unity.2D.Tilemap.Editor.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="PsdPlugin.csproj" />
@@ -28,7 +30,6 @@
   <Project Path="Unity.Rider.Editor.csproj" />
   <Project Path="Unity.InternalAPIEditorBridge.001.csproj" />
   <Project Path="Unity.2D.SpriteShape.Runtime.csproj" />
-  <Project Path="GameScriptUnity.csproj" />
   <Project Path="Unity.VisualScripting.State.Editor.csproj" />
   <Project Path="ScriptablePacker.csproj" />
   <Project Path="Unity.Burst.CodeGen.csproj" />
@@ -38,7 +39,6 @@
   <Project Path="Unity.2D.Animation.Runtime.csproj" />
   <Project Path="UnityEditor.UI.csproj" />
   <Project Path="Unity.TextMeshPro.csproj" />
-  <Project Path="GameScript.Editor.csproj" />
   <Project Path="Unity.VisualScripting.SettingsProvider.Editor.csproj" />
   <Project Path="Unity.2D.IK.Editor.csproj" />
   <Project Path="Unity.InternalAPIEngineBridge.001.csproj" />

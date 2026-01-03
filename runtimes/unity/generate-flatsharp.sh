@@ -7,7 +7,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCHEMA_PATH="$SCRIPT_DIR/../../core/schema/snapshot.fbs"
 CSHARP_DIR="$SCRIPT_DIR/../csharp"
 CORE_DIR="$CSHARP_DIR/GameScript.Core"
-UNITY_PACKAGE="$SCRIPT_DIR/Packages/studio.shortsleeve.gamescriptunity"
+UNITY_PACKAGE="$SCRIPT_DIR/Packages/studio.shortsleeve.gamescript"
 GENERATED_DIR="$UNITY_PACKAGE/Runtime/Generated"
 PLUGINS_DIR="$UNITY_PACKAGE/Runtime/Plugins"
 
@@ -40,11 +40,11 @@ echo "=== Step 2: Post-processing FlatSharp generated code for Unity ==="
 TEMP_FILE=$(mktemp)
 
 # Disable nullable (Unity C# 9 limitation)
-# Assembly isolation is provided by GameScriptUnity.asmdef - no extern alias needed
+# Assembly isolation is provided by GameScript.asmdef - no extern alias needed
 cat > "$TEMP_FILE" << 'HEADER'
 // Post-processed for Unity compatibility
 // - Disabled nullable reference types (Unity C# 9 limitation)
-// - FlatSharp isolation provided by GameScriptUnity.asmdef
+// - FlatSharp isolation provided by GameScript.asmdef
 #nullable disable
 #pragma warning disable CS8669 // Nullable annotations in generated code
 HEADER

@@ -16,7 +16,7 @@ All refactoring work is complete.
 
 ### 2. Assembly Isolation (No Extern Alias Needed)
 - Unity's asmdef system provides isolation - extern alias was unnecessary
-- `GameScriptUnity.asmdef` has `overrideReferences: true` and lists `FlatSharp.Runtime.dll`
+- `GameScript.asmdef` has `overrideReferences: true` and lists `FlatSharp.Runtime.dll`
 - `FlatSharp.Runtime.dll.meta` has `isExplicitlyReferenced: 1` (Auto Referenced unchecked)
 - Users cannot access FlatSharp types unless they explicitly reference the DLL
 

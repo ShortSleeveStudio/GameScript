@@ -85,7 +85,7 @@ namespace GameScript.Editor
 
             // Load stylesheet
             StyleSheet styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(
-                "Packages/studio.shortsleeve.gamescriptunity/Editor/Styles/gamescript-picker.uss"
+                "Packages/studio.shortsleeve.gamescript/Editor/Styles/gamescript-picker.uss"
             );
             if (styleSheet != null)
                 root.styleSheets.Add(styleSheet);

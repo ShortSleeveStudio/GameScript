@@ -1,6 +1,6 @@
 // Post-processed for Unity compatibility
 // - Disabled nullable reference types (Unity C# 9 limitation)
-// - FlatSharp isolation provided by GameScriptUnity.asmdef
+// - FlatSharp isolation provided by GameScript.asmdef
 #nullable disable
 #pragma warning disable CS8669 // Nullable annotations in generated code
 //------------------------------------------------------------------------------

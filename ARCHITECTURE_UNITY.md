@@ -335,7 +335,7 @@ bool Matches(Conversation conv, int[] selectedPerCategory)
 ## 7. Project Structure
 
 ```
-Packages/studio.shortsleeve.gamescriptunity/
+Packages/studio.shortsleeve.gamescript/
   Runtime/
     GameScriptRunner.cs       # MonoBehaviour entry point
     GameScriptDatabase.cs     # Snapshot loading, hot-reload

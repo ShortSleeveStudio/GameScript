@@ -76,7 +76,7 @@ runtimes/csharp/
 ├── build.sh                      # Builds + ILRepack merge
 └── dist/                         # Output DLLs (gitignored)
 
-runtimes/unity/Packages/studio.shortsleeve.gamescriptunity/
+runtimes/unity/Packages/studio.shortsleeve.gamescript/
 ├── Runtime/
 │   ├── Execution/                # Runner, Database, Context
 │   ├── Refs.cs, Ids.cs           # Wrapper types
