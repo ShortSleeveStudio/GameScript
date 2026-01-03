@@ -1,5 +1,5 @@
 import * as esbuild from 'esbuild';
-import { mkdirSync, existsSync, cpSync } from 'fs';
+import { mkdirSync, existsSync, cpSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,9 +17,11 @@ const targetUiPath = join(__dirname, 'dist/ui');
 
 function copyUiDist() {
   if (existsSync(uiDistPath)) {
-    if (!existsSync(targetUiPath)) {
-      mkdirSync(targetUiPath, { recursive: true });
+    // Clean target first to remove stale hashed files from previous builds
+    if (existsSync(targetUiPath)) {
+      rmSync(targetUiPath, { recursive: true });
     }
+    mkdirSync(targetUiPath, { recursive: true });
     cpSync(uiDistPath, targetUiPath, { recursive: true });
     console.log('Copied UI dist to extension');
   } else {

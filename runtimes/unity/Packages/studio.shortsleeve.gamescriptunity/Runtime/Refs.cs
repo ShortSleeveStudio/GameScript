@@ -1,6 +1,119 @@
 namespace GameScript
 {
     /// <summary>
+    /// The type of a node property value.
+    /// </summary>
+    public enum NodePropertyType : sbyte
+    {
+        String = 0,
+        Integer = 1,
+        Decimal = 2,
+        Boolean = 3,
+    }
+
+    /// <summary>
+    /// Lightweight wrapper around a FlatSharp NodeProperty providing convenient property access.
+    /// This is a struct holding a snapshot reference and the property data - zero allocation.
+    /// </summary>
+    public readonly struct NodePropertyRef
+    {
+        readonly Snapshot _snapshot;
+        readonly NodeProperty _property;
+
+        internal NodePropertyRef(Snapshot snapshot, NodeProperty property)
+        {
+            _snapshot = snapshot;
+            _property = property;
+        }
+
+        /// <summary>
+        /// The name of this property (from the property template).
+        /// </summary>
+        public string Name => _snapshot.PropertyTemplates[_property.TemplateIdx].Name;
+
+        /// <summary>
+        /// The type of this property's value.
+        /// </summary>
+        public NodePropertyType Type => (NodePropertyType)_snapshot.PropertyTemplates[_property.TemplateIdx].Type;
+
+        /// <summary>
+        /// Gets the string value. Throws if Type is not String.
+        /// </summary>
+        public string StringValue => _property.Value.Value.string_val;
+
+        /// <summary>
+        /// Gets the integer value. Throws if Type is not Integer.
+        /// </summary>
+        public int IntValue => _property.Value.Value.int_val.Value;
+
+        /// <summary>
+        /// Gets the decimal/float value. Throws if Type is not Decimal.
+        /// </summary>
+        public float FloatValue => _property.Value.Value.decimal_val.Value;
+
+        /// <summary>
+        /// Gets the boolean value. Throws if Type is not Boolean.
+        /// </summary>
+        public bool BoolValue => _property.Value.Value.bool_val.Value;
+
+        /// <summary>
+        /// Tries to get the string value.
+        /// </summary>
+        public bool TryGetString(out string value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out string str))
+            {
+                value = str!;
+                return true;
+            }
+            value = null!;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the integer value.
+        /// </summary>
+        public bool TryGetInt(out int value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out Int32Value intVal))
+            {
+                value = intVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the decimal/float value.
+        /// </summary>
+        public bool TryGetFloat(out float value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out FloatValue floatVal))
+            {
+                value = floatVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the boolean value.
+        /// </summary>
+        public bool TryGetBool(out bool value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out BoolValue boolVal))
+            {
+                value = boolVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Lightweight wrapper around a FlatSharp Node providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
@@ -89,9 +202,9 @@ namespace GameScript
         /// <summary>
         /// Gets a property by index.
         /// </summary>
-        public NodeProperty GetProperty(int i)
+        public NodePropertyRef GetProperty(int i)
         {
-            return _snapshot.Nodes[_index].Properties[i];
+            return new NodePropertyRef(_snapshot, _snapshot.Nodes[_index].Properties[i]);
         }
 
         /// <summary>
@@ -308,5 +421,46 @@ namespace GameScript
         /// The localized text.
         /// </summary>
         public string Text => _snapshot.Localizations[_index].Text;
+    }
+
+    /// <summary>
+    /// Lightweight wrapper around a ManifestLocale providing convenient property access.
+    /// This is a struct holding a manifest reference and index - zero allocation.
+    /// </summary>
+    public readonly struct LocaleRef
+    {
+        readonly Manifest _manifest;
+        readonly int _index;
+
+        internal LocaleRef(Manifest manifest, int index)
+        {
+            _manifest = manifest;
+            _index = index;
+        }
+
+        /// <summary>
+        /// The index of this locale in the manifest's Locales array.
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// The original database ID of this locale.
+        /// </summary>
+        public int Id => _manifest.Locales[_index].Id;
+
+        /// <summary>
+        /// The internal name/code of this locale (e.g., "en-US").
+        /// </summary>
+        public string Name => _manifest.Locales[_index].Name;
+
+        /// <summary>
+        /// The localized display name of this locale (e.g., "English (US)").
+        /// </summary>
+        public string LocalizedName => _manifest.Locales[_index].LocalizedName;
+
+        /// <summary>
+        /// The hash of the snapshot for this locale (used for hot-reload detection).
+        /// </summary>
+        internal string Hash => _manifest.Locales[_index].Hash;
     }
 }

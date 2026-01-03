@@ -43,15 +43,15 @@ public class Tester : MonoBehaviour
 
     private void PopulateDropdowns()
     {
-        Snapshot snapshot = m_GameScriptRunner.Database.Snapshot;
-        Manifest manifest = m_GameScriptRunner.Database.Manifest;
+        GameScriptDatabase database = m_GameScriptRunner.Database;
 
         // Load Conversation Options
         List<TMP_Dropdown.OptionData> conversationOptions = new();
         m_ConversationDropdown.ClearOptions();
-        for (int i = 0; i < snapshot.Conversations.Count; i++)
+        int conversationCount = database.ConversationCount;
+        for (int i = 0; i < conversationCount; i++)
         {
-            Conversation conv = snapshot.Conversations[i];
+            ConversationRef conv = database.GetConversation(i);
             conversationOptions.Add(new TMP_Dropdown.OptionData(conv.Name));
         }
         m_ConversationDropdown.AddOptions(conversationOptions);
@@ -59,9 +59,10 @@ public class Tester : MonoBehaviour
         // Load Locale Options
         List<TMP_Dropdown.OptionData> localeOptions = new();
         m_LocaleDropdown.ClearOptions();
-        for (int i = 0; i < manifest.Locales.Length; i++)
+        int localeCount = database.LocaleCount;
+        for (int i = 0; i < localeCount; i++)
         {
-            ManifestLocale locale = manifest.Locales[i];
+            LocaleRef locale = database.GetLocale(i);
             string displayName = !string.IsNullOrEmpty(locale.LocalizedName)
                 ? locale.LocalizedName
                 : locale.Name;
@@ -70,23 +71,7 @@ public class Tester : MonoBehaviour
         m_LocaleDropdown.AddOptions(localeOptions);
 
         // Set dropdown to current locale
-        int currentLocaleIndex = FindLocaleDropdownIndex(m_GameScriptRunner.Database.CurrentLocale);
-        if (currentLocaleIndex >= 0)
-        {
-            m_LocaleDropdown.SetValueWithoutNotify(currentLocaleIndex);
-        }
-    }
-
-    private int FindLocaleDropdownIndex(ManifestLocale locale)
-    {
-        if (locale == null) return -1;
-        Manifest manifest = m_GameScriptRunner.Database.Manifest;
-        for (int i = 0; i < manifest.Locales.Length; i++)
-        {
-            if (manifest.Locales[i].Id == locale.Id)
-                return i;
-        }
-        return -1;
+        m_LocaleDropdown.SetValueWithoutNotify(database.CurrentLocale.Index);
     }
     #endregion
 
@@ -104,7 +89,7 @@ public class Tester : MonoBehaviour
 
     public async void OnLocaleSelected()
     {
-        ManifestLocale locale = m_GameScriptRunner.Database.Manifest.Locales[m_LocaleDropdown.value];
+        LocaleRef locale = m_GameScriptRunner.Database.GetLocale(m_LocaleDropdown.value);
         await m_GameScriptRunner.Database.ChangeLocale(locale, destroyCancellationToken);
     }
 

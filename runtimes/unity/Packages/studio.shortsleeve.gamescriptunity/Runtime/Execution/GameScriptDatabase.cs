@@ -18,7 +18,7 @@ namespace GameScript
         #region State
         Manifest _manifest;
         Snapshot _snapshot;
-        ManifestLocale _currentLocale;
+        int _currentLocaleIndex = -1;
 #if UNITY_EDITOR
         string _loadedHash;
 #endif
@@ -39,35 +39,162 @@ namespace GameScript
         public event Action OnLocaleChanged;
 
         /// <summary>
-        /// The currently loaded snapshot.
-        /// </summary>
-        public Snapshot Snapshot => _snapshot;
-
-        /// <summary>
-        /// The manifest containing available locales and metadata.
-        /// </summary>
-        public Manifest Manifest => _manifest;
-
-        /// <summary>
         /// The currently loaded locale.
         /// </summary>
-        public ManifestLocale CurrentLocale => _currentLocale;
+        public LocaleRef CurrentLocale => new LocaleRef(_manifest, _currentLocaleIndex);
 
         /// <summary>
         /// Changes the current locale and reloads the snapshot.
         /// </summary>
-        public async Awaitable ChangeLocale(ManifestLocale locale, CancellationToken token = default)
+        public async Awaitable ChangeLocale(LocaleRef locale, CancellationToken token = default)
         {
-            int index = GetLocaleIndex(locale);
-            if (index < 0)
-                throw new ArgumentException($"Locale '{locale.Name}' not found in manifest");
-
-            await LoadSnapshot(index, token);
+            await LoadSnapshot(locale.Index, token);
             OnLocaleChanged?.Invoke();
+        }
+
+        // ===== Conversations =====
+
+        /// <summary>
+        /// The number of conversations in the current snapshot.
+        /// </summary>
+        public int ConversationCount => _snapshot?.Conversations?.Count ?? 0;
+
+        /// <summary>
+        /// Gets a conversation by index.
+        /// </summary>
+        public ConversationRef GetConversation(int index)
+        {
+            return new ConversationRef(_snapshot, index);
+        }
+
+        /// <summary>
+        /// Finds a conversation by ID.
+        /// </summary>
+        public ConversationRef FindConversation(ConversationId id) => FindConversation((int)id);
+
+        /// <summary>
+        /// Finds a conversation by ID.
+        /// </summary>
+        public ConversationRef FindConversation(int id)
+        {
+            int count = ConversationCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_snapshot.Conversations[i].Id == id)
+                    return GetConversation(i);
+            }
+            throw new KeyNotFoundException($"Conversation with ID {id} not found");
+        }
+
+        // ===== Actors =====
+
+        /// <summary>
+        /// The number of actors in the current snapshot.
+        /// </summary>
+        public int ActorCount => _snapshot?.Actors?.Count ?? 0;
+
+        /// <summary>
+        /// Gets an actor by index.
+        /// </summary>
+        public ActorRef GetActor(int index)
+        {
+            return new ActorRef(_snapshot, index);
+        }
+
+        /// <summary>
+        /// Finds an actor by ID.
+        /// </summary>
+        public ActorRef FindActor(ActorId id) => FindActor((int)id);
+
+        /// <summary>
+        /// Finds an actor by ID.
+        /// </summary>
+        public ActorRef FindActor(int id)
+        {
+            int count = ActorCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_snapshot.Actors[i].Id == id)
+                    return GetActor(i);
+            }
+            throw new KeyNotFoundException($"Actor with ID {id} not found");
+        }
+
+        // ===== Localizations =====
+
+        /// <summary>
+        /// The number of localizations in the current snapshot.
+        /// </summary>
+        public int LocalizationCount => _snapshot?.Localizations?.Count ?? 0;
+
+        /// <summary>
+        /// Gets a localization by index.
+        /// </summary>
+        public LocalizationRef GetLocalization(int index)
+        {
+            return new LocalizationRef(_snapshot, index);
+        }
+
+        /// <summary>
+        /// Finds a localization by ID.
+        /// </summary>
+        public LocalizationRef FindLocalization(LocalizationId id) => FindLocalization((int)id);
+
+        /// <summary>
+        /// Finds a localization by ID.
+        /// </summary>
+        public LocalizationRef FindLocalization(int id)
+        {
+            int count = LocalizationCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_snapshot.Localizations[i].Id == id)
+                    return GetLocalization(i);
+            }
+            throw new KeyNotFoundException($"Localization with ID {id} not found");
+        }
+
+        // ===== Locales (from Manifest, not Snapshot) =====
+
+        /// <summary>
+        /// The number of locales in the manifest.
+        /// </summary>
+        public int LocaleCount => _manifest?.Locales?.Length ?? 0;
+
+        /// <summary>
+        /// Gets a locale by index.
+        /// </summary>
+        public LocaleRef GetLocale(int index)
+        {
+            return new LocaleRef(_manifest, index);
+        }
+
+        /// <summary>
+        /// Finds a locale from the manifest by ID.
+        /// </summary>
+        public LocaleRef FindLocale(LocaleId id) => FindLocale((int)id);
+
+        /// <summary>
+        /// Finds a locale from the manifest by ID.
+        /// </summary>
+        public LocaleRef FindLocale(int id)
+        {
+            int count = LocaleCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_manifest.Locales[i].Id == id)
+                    return GetLocale(i);
+            }
+            throw new KeyNotFoundException($"Locale with ID {id} not found");
         }
         #endregion
 
         #region Internal API
+        /// <summary>
+        /// The currently loaded snapshot. Internal to avoid exposing FlatSharp types.
+        /// </summary>
+        internal Snapshot Snapshot => _snapshot;
+
         /// <summary>
         /// Initializes the database by loading the manifest and primary locale snapshot.
         /// </summary>
@@ -75,26 +202,23 @@ namespace GameScript
         {
             await LoadManifestAndCachePaths(settings.GameDataPath, token);
 
-            ManifestLocale primaryLocale = _manifest.GetPrimaryLocale();
-            if (primaryLocale == null)
+            int primaryIndex = _manifest.PrimaryLocaleIndex;
+            if (_manifest.Locales == null || _manifest.Locales.Length == 0)
                 throw new InvalidOperationException("No locales defined in manifest");
 
-            int index = GetLocaleIndex(primaryLocale);
-            await LoadSnapshot(index, token);
+            if (primaryIndex < 0 || primaryIndex >= _manifest.Locales.Length)
+                primaryIndex = 0;
+
+            await LoadSnapshot(primaryIndex, token);
         }
 
         /// <summary>
         /// Initializes with a specific locale instead of the primary.
         /// </summary>
-        internal async Awaitable Initialize(Settings settings, ManifestLocale locale, CancellationToken token)
+        internal async Awaitable Initialize(Settings settings, LocaleRef locale, CancellationToken token)
         {
             await LoadManifestAndCachePaths(settings.GameDataPath, token);
-
-            int index = GetLocaleIndex(locale);
-            if (index < 0)
-                throw new ArgumentException($"Locale '{locale.Name}' not found in manifest");
-
-            await LoadSnapshot(index, token);
+            await LoadSnapshot(locale.Index, token);
         }
         #endregion
 
@@ -130,21 +254,10 @@ namespace GameScript
         void SetSnapshot(int localeIndex, byte[] buffer)
         {
             _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
-            _currentLocale = _manifest.Locales[localeIndex];
+            _currentLocaleIndex = localeIndex;
 #if UNITY_EDITOR
-            _loadedHash = _currentLocale.Hash;
+            _loadedHash = _manifest.Locales[localeIndex].Hash;
 #endif
-        }
-
-        int GetLocaleIndex(ManifestLocale locale)
-        {
-            ManifestLocale[] locales = _manifest.Locales;
-            for (int i = 0; i < locales.Length; i++)
-            {
-                if (locales[i].Id == locale.Id)
-                    return i;
-            }
-            return -1;
         }
 
         static int GetLocaleIndexByName(ManifestLocale[] locales, string name)
@@ -248,8 +361,9 @@ namespace GameScript
         /// <summary>
         /// Editor-only: Gets a shared database instance for property drawers and pickers.
         /// Lazily loads the snapshot using settings. Only hot-reloads when not in play mode.
+        /// Internal to avoid exposing FlatSharp types.
         /// </summary>
-        public static Snapshot EditorGetSnapshot()
+        internal static Snapshot EditorGetSnapshot()
         {
             Settings settings = Settings.GetSettings();
             if (settings == null || string.IsNullOrEmpty(settings.GameDataPath))
@@ -282,14 +396,16 @@ namespace GameScript
                 s_editorInstance.CacheSnapshotPaths(basePath);
 
                 // Load primary locale snapshot
-                ManifestLocale primaryLocale = s_editorInstance._manifest.GetPrimaryLocale();
-                if (primaryLocale != null)
+                int primaryIndex = s_editorInstance._manifest.PrimaryLocaleIndex;
+                if (s_editorInstance._manifest.Locales != null && s_editorInstance._manifest.Locales.Length > 0)
                 {
-                    int index = s_editorInstance.GetLocaleIndex(primaryLocale);
-                    if (index >= 0 && File.Exists(s_editorInstance._snapshotPaths[index]))
+                    if (primaryIndex < 0 || primaryIndex >= s_editorInstance._manifest.Locales.Length)
+                        primaryIndex = 0;
+
+                    if (File.Exists(s_editorInstance._snapshotPaths[primaryIndex]))
                     {
-                        byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[index]);
-                        s_editorInstance.SetSnapshot(index, buffer);
+                        byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[primaryIndex]);
+                        s_editorInstance.SetSnapshot(primaryIndex, buffer);
                     }
                 }
             }
@@ -402,7 +518,7 @@ namespace GameScript
 
         void CheckForHotReload(string basePath)
         {
-            if (_manifest == null || _currentLocale == null)
+            if (_manifest == null || _currentLocaleIndex < 0)
                 return;
 
             if (!File.Exists(_manifestPath))
@@ -410,7 +526,9 @@ namespace GameScript
 
             Manifest freshManifest = LoadManifestSync(_manifestPath);
 
-            int index = GetLocaleIndexByName(freshManifest.Locales, _currentLocale.Name);
+            // Find current locale by name in the fresh manifest
+            string currentLocaleName = _manifest.Locales[_currentLocaleIndex].Name;
+            int index = GetLocaleIndexByName(freshManifest.Locales, currentLocaleName);
             if (index < 0)
                 return;
 

@@ -35,10 +35,8 @@ namespace GameScript
         AwaitableCompletionSource _readySource;
         AwaitableCompletionSource<int> _decisionSource;
 
-        // Reusable lists for collecting data without allocation
+        // Reusable list for collecting choices without allocation
         readonly List<NodeRef> _choices;
-        readonly List<NodeProperty> _properties;
-        int _propertiesCachedForNodeIndex;
         #endregion
 
         #region Constructor
@@ -49,8 +47,6 @@ namespace GameScript
             _readySource = new AwaitableCompletionSource();
             _decisionSource = new AwaitableCompletionSource<int>();
             _choices = new List<NodeRef>(DefaultChoiceCapacity);
-            _properties = new List<NodeProperty>();
-            _propertiesCachedForNodeIndex = -1;
         }
         #endregion
 
@@ -59,12 +55,12 @@ namespace GameScript
 
         public int ConversationId => Snapshot.Conversations[_conversationIndex].Id;
 
-        public Actor Actor
+        public ActorRef Actor
         {
             get
             {
                 int actorIdx = Snapshot.Nodes[_nodeIndex].ActorIdx;
-                return Snapshot.Actors[actorIdx];
+                return new ActorRef(Snapshot, actorIdx);
             }
         }
 
@@ -72,27 +68,11 @@ namespace GameScript
 
         public string UIResponseText => Snapshot.Nodes[_nodeIndex].UiResponseText;
 
-        public IReadOnlyList<NodeProperty> Properties
+        public int PropertyCount => Snapshot.Nodes[_nodeIndex].Properties?.Count ?? 0;
+
+        public NodePropertyRef GetProperty(int index)
         {
-            get
-            {
-                if (_propertiesCachedForNodeIndex != _nodeIndex)
-                {
-                    _properties.Clear();
-                    Node node = Snapshot.Nodes[_nodeIndex];
-                    IList<NodeProperty> props = node.Properties;
-                    if (props != null)
-                    {
-                        int count = props.Count;
-                        for (int i = 0; i < count; i++)
-                        {
-                            _properties.Add(props[i]);
-                        }
-                    }
-                    _propertiesCachedForNodeIndex = _nodeIndex;
-                }
-                return _properties;
-            }
+            return new NodePropertyRef(Snapshot, Snapshot.Nodes[_nodeIndex].Properties[index]);
         }
         #endregion
 
@@ -279,9 +259,7 @@ namespace GameScript
             _listener = null;
             _conversationIndex = -1;
             _nodeIndex = -1;
-            _propertiesCachedForNodeIndex = -1;
             _choices.Clear();
-            _properties.Clear();
         }
         #endregion
     }

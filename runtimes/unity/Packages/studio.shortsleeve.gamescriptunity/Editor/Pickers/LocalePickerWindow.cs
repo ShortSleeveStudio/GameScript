@@ -16,8 +16,10 @@ namespace GameScript.Editor
             if (manifest?.Locales == null)
                 return;
 
-            foreach (ManifestLocale locale in manifest.Locales)
+            int count = manifest.Locales.Length;
+            for (int i = 0; i < count; i++)
             {
+                ManifestLocale locale = manifest.Locales[i];
                 allItems.Add(new PickerItem
                 {
                     Id = locale.Id,

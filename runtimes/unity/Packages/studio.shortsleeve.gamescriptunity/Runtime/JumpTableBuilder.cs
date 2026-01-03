@@ -31,7 +31,7 @@ namespace GameScript
         }
     }
 
-    public static class JumpTableBuilder
+    internal static class JumpTableBuilder
     {
         /// <summary>
         /// Scans all loaded assemblies for methods with NodeCondition and NodeAction

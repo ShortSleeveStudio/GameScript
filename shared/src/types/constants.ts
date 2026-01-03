@@ -145,18 +145,16 @@ export interface PropertyTypeRef {
   name: string;
 }
 
-export const PROPERTY_TYPE_STRING = { id: 0, name: 'String' } as const;
-export const PROPERTY_TYPE_INTEGER = { id: 1, name: 'Integer' } as const;
-export const PROPERTY_TYPE_DECIMAL = { id: 2, name: 'Decimal' } as const;
-export const PROPERTY_TYPE_BOOLEAN = { id: 3, name: 'Boolean' } as const;
-export const PROPERTY_TYPE_EMPTY = { id: 4, name: 'Empty' } as const;
+export const PROPERTY_TYPE_STRING = { id: 1, name: 'String' } as const;
+export const PROPERTY_TYPE_INTEGER = { id: 2, name: 'Integer' } as const;
+export const PROPERTY_TYPE_DECIMAL = { id: 3, name: 'Decimal' } as const;
+export const PROPERTY_TYPE_BOOLEAN = { id: 4, name: 'Boolean' } as const;
 
 export const PROPERTY_TYPES = [
   PROPERTY_TYPE_STRING,
   PROPERTY_TYPE_INTEGER,
   PROPERTY_TYPE_DECIMAL,
   PROPERTY_TYPE_BOOLEAN,
-  PROPERTY_TYPE_EMPTY,
 ] as const;
 
 /** String literal type for property types used in export (lowercase for FlatBuffers compatibility) */

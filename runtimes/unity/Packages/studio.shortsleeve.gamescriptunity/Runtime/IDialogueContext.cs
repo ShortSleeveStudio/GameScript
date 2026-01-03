@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace GameScript
 {
     /// <summary>
@@ -21,7 +19,7 @@ namespace GameScript
         /// <summary>
         /// The actor for the current node.
         /// </summary>
-        Actor Actor { get; }
+        ActorRef Actor { get; }
 
         /// <summary>
         /// The localized voice/dialogue text for the current node.
@@ -34,8 +32,13 @@ namespace GameScript
         string UIResponseText { get; }
 
         /// <summary>
-        /// Custom properties attached to the current node.
+        /// The number of custom properties attached to the current node.
         /// </summary>
-        IReadOnlyList<NodeProperty> Properties { get; }
+        int PropertyCount { get; }
+
+        /// <summary>
+        /// Gets a custom property by index.
+        /// </summary>
+        NodePropertyRef GetProperty(int index);
     }
 }

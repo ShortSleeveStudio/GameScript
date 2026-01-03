@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <RootNamespace>GameScript</RootNamespace>
     <AssemblyName>GameScript.Core</AssemblyName>
 
@@ -34,5 +34,10 @@
   <ItemGroup>
     <FlatSharpSchema Include="..\..\..\core\schema\snapshot.fbs" />
   </ItemGroup>
+
+  <!-- FlatSharp compiler options - disable nullable for Unity C# 9 compatibility -->
+  <PropertyGroup>
+    <FlatSharpNullable>false</FlatSharpNullable>
+  </PropertyGroup>
 
 </Project>

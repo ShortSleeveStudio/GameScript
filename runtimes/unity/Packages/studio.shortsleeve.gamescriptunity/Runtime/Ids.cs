@@ -6,17 +6,18 @@ namespace GameScript
     /// <summary>
     /// Serializable wrapper for a conversation database ID.
     /// Use in Inspector fields to get a searchable picker with tag filters.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
     /// </summary>
     [Serializable]
     public struct ConversationId : IEquatable<ConversationId>
     {
-        public static readonly ConversationId None = new(-1);
+        public static readonly ConversationId None = default;
 
-        [SerializeField] internal int value = -1;
+        [SerializeField] internal int value;
 
         public ConversationId(int id) => value = id;
 
-        public bool IsValid => value >= 0;
+        public bool IsValid => value > 0;
 
         public static implicit operator int(ConversationId id) => id.value;
         public static explicit operator ConversationId(int id) => new(id);
@@ -33,17 +34,18 @@ namespace GameScript
     /// <summary>
     /// Serializable wrapper for a localization database ID.
     /// Use in Inspector fields to get a searchable picker with tag filters.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
     /// </summary>
     [Serializable]
     public struct LocalizationId : IEquatable<LocalizationId>
     {
-        public static readonly LocalizationId None = new(-1);
+        public static readonly LocalizationId None = default;
 
-        [SerializeField] internal int value = -1;
+        [SerializeField] internal int value;
 
         public LocalizationId(int id) => value = id;
 
-        public bool IsValid => value >= 0;
+        public bool IsValid => value > 0;
 
         public static implicit operator int(LocalizationId id) => id.value;
         public static explicit operator LocalizationId(int id) => new(id);
@@ -60,17 +62,18 @@ namespace GameScript
     /// <summary>
     /// Serializable wrapper for an actor database ID.
     /// Use in Inspector fields to get a searchable picker.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
     /// </summary>
     [Serializable]
     public struct ActorId : IEquatable<ActorId>
     {
-        public static readonly ActorId None = new(-1);
+        public static readonly ActorId None = default;
 
-        [SerializeField] internal int value = -1;
+        [SerializeField] internal int value;
 
         public ActorId(int id) => value = id;
 
-        public bool IsValid => value >= 0;
+        public bool IsValid => value > 0;
 
         public static implicit operator int(ActorId id) => id.value;
         public static explicit operator ActorId(int id) => new(id);
@@ -87,17 +90,18 @@ namespace GameScript
     /// <summary>
     /// Serializable wrapper for a locale database ID.
     /// Use in Inspector fields to get a searchable picker.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
     /// </summary>
     [Serializable]
     public struct LocaleId : IEquatable<LocaleId>
     {
-        public static readonly LocaleId None = new(-1);
+        public static readonly LocaleId None = default;
 
-        [SerializeField] internal int value = -1;
+        [SerializeField] internal int value;
 
         public LocaleId(int id) => value = id;
 
-        public bool IsValid => value >= 0;
+        public bool IsValid => value > 0;
 
         public static implicit operator int(LocaleId id) => id.value;
         public static explicit operator LocaleId(int id) => new(id);

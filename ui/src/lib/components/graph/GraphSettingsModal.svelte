@@ -19,7 +19,6 @@
     import {
         PROPERTY_TYPES,
         PROPERTY_TYPE_STRING,
-        PROPERTY_TYPE_EMPTY,
         TABLE_NODES,
         type PropertyTemplate,
     } from '@gamescript/shared';
@@ -40,9 +39,7 @@
     // Property Templates
     // ============================================================================
 
-    // Filter out PROPERTY_TYPE_EMPTY for the dropdown
     const propertyTypeOptions: TypeOption[] = PROPERTY_TYPES
-        .filter(t => t.id !== PROPERTY_TYPE_EMPTY.id)
         .map(t => ({ id: t.id, name: t.name }));
 
     async function handleAddTemplate() {

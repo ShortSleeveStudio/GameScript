@@ -17,25 +17,23 @@ namespace GameScript
             int count = currentNode.PropertyCount;
             for (int i = 0; i < count; i++)
             {
-                NodeProperty prop = currentNode.GetProperty(i);
-                PropertyValue? val = prop.Value;
-                if (!val.HasValue) continue;
-                switch (val.Value.Kind)
+                NodePropertyRef prop = currentNode.GetProperty(i);
+                switch (prop.Type)
                 {
-                    case PropertyValue.ItemKind.string_val:
-                        Debug.Log(val.Value.string_val);
+                    case NodePropertyType.String:
+                        Debug.Log($"{prop.Name}: {prop.StringValue}");
                         break;
-                    case PropertyValue.ItemKind.int_val:
-                        Debug.Log(val.Value.int_val.Value);
+                    case NodePropertyType.Integer:
+                        Debug.Log($"{prop.Name}: {prop.IntValue}");
                         break;
-                    case PropertyValue.ItemKind.decimal_val:
-                        Debug.Log(val.Value.decimal_val.Value);
+                    case NodePropertyType.Decimal:
+                        Debug.Log($"{prop.Name}: {prop.FloatValue}");
                         break;
-                    case PropertyValue.ItemKind.bool_val:
-                        Debug.Log(val.Value.bool_val.Value);
+                    case NodePropertyType.Boolean:
+                        Debug.Log($"{prop.Name}: {prop.BoolValue}");
                         break;
                     default:
-                        Debug.Log("Unknown property value kind: " + val.Value.Kind);
+                        Debug.Log($"{prop.Name}: Unknown property type");
                         break;
                 }
             }
