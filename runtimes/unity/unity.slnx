@@ -19,7 +19,7 @@
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
-  <Project Path="GameScriptUnity.csproj" />
+  <Project Path="GameScript.csproj" />
   <Project Path="Unity.2D.Tilemap.Editor.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="PsdPlugin.csproj" />

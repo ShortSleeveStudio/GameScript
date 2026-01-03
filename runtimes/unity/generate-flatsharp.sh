@@ -25,7 +25,7 @@ cd "$CSHARP_DIR"
 dotnet build GameScript.Core/GameScript.Core.csproj -c Release
 
 # Step 2: Post-process and copy the FlatSharp generated file
-GENERATED_SOURCE="$CORE_DIR/obj/Release/netstandard2.1/FlatSharp.generated.cs"
+GENERATED_SOURCE="$CORE_DIR/obj/Release/netstandard2.0/FlatSharp.generated.cs"
 OUTPUT_FILE="$GENERATED_DIR/FlatSharp.generated.cs"
 
 if [ ! -f "$GENERATED_SOURCE" ]; then
@@ -76,7 +76,7 @@ echo "Copied: Command.cs"
 # Step 4: Copy FlatSharp.Runtime.dll
 echo ""
 echo "=== Step 4: Copying FlatSharp.Runtime.dll ==="
-FLATSHARP_DLL="$CORE_DIR/bin/Release/netstandard2.1/FlatSharp.Runtime.dll"
+FLATSHARP_DLL="$CORE_DIR/bin/Release/netstandard2.0/FlatSharp.Runtime.dll"
 if [ -f "$FLATSHARP_DLL" ]; then
     cp "$FLATSHARP_DLL" "$PLUGINS_DIR/"
     echo "Copied: $PLUGINS_DIR/FlatSharp.Runtime.dll"
