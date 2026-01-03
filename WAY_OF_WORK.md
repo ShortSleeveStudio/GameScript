@@ -20,4 +20,4 @@
 
 8. **Assume nothing.** Deep-dive diff functions with same names for feature parity.
 
-9. **Avoid allocation in runtimes.** The game engine runtimes need to be very careful to avoid runtime allocation.
+9. **Avoid allocation in runtimes.** The game engine runtimes need to be very careful to avoid runtime allocation. Also, don't use 'var' and use new() where possible.

@@ -21,9 +21,10 @@
     import { codeOutputFolderTableView, getCodeOutputFolder, snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
     import { bridge } from '$lib/api/bridge';
 
-    // Auto-export on blur
+    // Auto-export on blur and keyboard shortcut
     import { autoExportOnBlur } from '$lib/stores/layout-defaults.js';
     import { exportController } from '$lib/export';
+    import { wasSavePressed } from '$lib/utils/keybinding.js';
 
     // Track if stores are initialized
     let initialized = $state(false);
@@ -55,22 +56,26 @@
     let isAutoExporting = false;
 
     /**
+     * Check if export is possible (connected + path configured).
+     */
+    function canExport(): boolean {
+        return $dbConnected && isSnapshotPathConfigured && snapshotOutputPathValue !== null;
+    }
+
+    /**
+     * Trigger an export if possible and not already running.
+     */
+    function triggerExport(): void {
+        if (!canExport() || exportController.isRunning) return;
+        exportController.exportAll(snapshotOutputPathValue!);
+    }
+
+    /**
      * Handle window blur event for auto-export.
      * Uses debouncing to avoid rapid re-exports when quickly switching windows.
      */
     function handleWindowBlur(): void {
-        // Check if auto-export is enabled and path is configured
-        if (!$autoExportOnBlur || !isSnapshotPathConfigured || !snapshotOutputPathValue) {
-            return;
-        }
-
-        // Check if we're connected to a database
-        if (!$dbConnected) {
-            return;
-        }
-
-        // Don't start a new export if one is already in progress
-        if (isAutoExporting) {
+        if (!$autoExportOnBlur || !canExport() || isAutoExporting) {
             return;
         }
 
@@ -102,6 +107,17 @@
         }
     }
 
+    /**
+     * Handle keyboard shortcuts.
+     * Ctrl+S / Cmd+S triggers export.
+     */
+    function handleKeydown(event: KeyboardEvent): void {
+        if (wasSavePressed(event)) {
+            event.preventDefault();
+            triggerExport();
+        }
+    }
+
     // Global error handler
     function handleError(event: ErrorEvent): void {
         event.preventDefault();
@@ -128,6 +144,9 @@
         // Set up auto-export on blur
         window.addEventListener('blur', handleWindowBlur);
         window.addEventListener('focus', handleWindowFocus);
+
+        // Set up keyboard shortcuts
+        window.addEventListener('keydown', handleKeydown);
     });
 
     onDestroy(() => {
@@ -135,6 +154,7 @@
         window.removeEventListener('unhandledrejection', handleRejection);
         window.removeEventListener('blur', handleWindowBlur);
         window.removeEventListener('focus', handleWindowFocus);
+        window.removeEventListener('keydown', handleKeydown);
 
         // Clean up any pending auto-export
         if (autoExportTimeout) {

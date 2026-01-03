@@ -20,10 +20,10 @@ export const GRID_CACHE_BLOCK_SIZE = 100;
 export const GRID_CACHE_MAX_BLOCKS = 3;
 
 /** Standard row height in pixels */
-export const GRID_ROW_HEIGHT = 32;
+export const GRID_ROW_HEIGHT = 44;
 
 /** Standard header height in pixels */
-export const GRID_HEADER_HEIGHT = 32;
+export const GRID_HEADER_HEIGHT = 44;
 
 /** Column group header height (0 to hide) */
 export const GRID_GROUP_HEADER_HEIGHT = 10;

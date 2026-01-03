@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace GameScript
@@ -8,47 +7,36 @@ namespace GameScript
     {
         public static Dictionary<string, bool> S = new();
 
-        public static async void TestLease(Lease lease, int millis = 1000)
-        {
-            Debug.Log($"Waiting {millis} milliseconds");
-            await Task.Delay(millis);
-            Debug.Log("Done waiting, let's do this!");
-            lease.Release();
-        }
-
-        public static void TestNode(Node currentNode)
+        public static void TestNode(NodeRef currentNode)
         {
             Debug.Log($"Current Node: {currentNode.Id}");
         }
 
-        public static void PrintProperties(Node currentNode)
+        public static void PrintProperties(NodeRef currentNode)
         {
-            if (currentNode.Properties != null)
+            int count = currentNode.PropertyCount;
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < currentNode.Properties.Length; i++)
+                NodeProperty prop = currentNode.GetProperty(i);
+                PropertyValue? val = prop.Value;
+                if (!val.HasValue) continue;
+                switch (val.Value.Kind)
                 {
-                    Property prop = currentNode.Properties[i];
-                    switch (prop)
-                    {
-                        case StringProperty stringProperty:
-                            Debug.Log(stringProperty.GetString());
-                            break;
-                        case IntegerProperty integerProperty:
-                            Debug.Log(integerProperty.GetInteger());
-                            break;
-                        case DecimalProperty decimalProperty:
-                            Debug.Log(decimalProperty.GetDecimal());
-                            break;
-                        case BooleanProperty booleanProperty:
-                            Debug.Log(booleanProperty.GetBoolean());
-                            break;
-                        case EmptyProperty:
-                            Debug.Log("empty");
-                            break;
-                        default:
-                            Debug.Log("Unknown Prop type: " + prop);
-                            break;
-                    }
+                    case PropertyValue.ItemKind.string_val:
+                        Debug.Log(val.Value.string_val);
+                        break;
+                    case PropertyValue.ItemKind.int_val:
+                        Debug.Log(val.Value.int_val.Value);
+                        break;
+                    case PropertyValue.ItemKind.decimal_val:
+                        Debug.Log(val.Value.decimal_val.Value);
+                        break;
+                    case PropertyValue.ItemKind.bool_val:
+                        Debug.Log(val.Value.bool_val.Value);
+                        break;
+                    default:
+                        Debug.Log("Unknown property value kind: " + val.Value.Kind);
+                        break;
                 }
             }
         }

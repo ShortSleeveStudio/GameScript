@@ -54,18 +54,18 @@ Developers write conditions and actions in their IDE with full tooling support:
 ```csharp
 public static class TavernConversation
 {
-    [NodeCondition(456, 123)]  // nodeId, conversationId
+    [NodeCondition(456)]  // nodeId
     public static bool HasGold(IDialogueContext ctx)
         => GameState.PlayerGold >= 10;
 
-    [NodeAction(456, 123)]
+    [NodeAction(456)]
     public static async Awaitable PayGold(IDialogueContext ctx)
     {
         GameState.PlayerGold -= 10;
         await AnimationManager.Play("hand_over_gold");
 
         // Can access node data if needed
-        var actor = ctx.Actor;  // Who's speaking
+        Actor actor = ctx.Actor;  // Who's speaking
     }
 }
 ```
@@ -79,21 +79,21 @@ Game-specific logic (inventory, animations, etc.) is accessed through your own s
 On startup, reflection scans for attributed methods and builds jump tables:
 
 ```csharp
-// Attributes include nodeId and conversationId
-[NodeCondition(nodeId, conversationId)]
-[NodeAction(nodeId, conversationId)]
+// Attributes specify nodeId
+[NodeCondition(nodeId)]
+[NodeAction(nodeId)]
 
 // At startup:
-// 1. Load snapshot, find max node.Id
-// 2. Allocate arrays: conditions[maxNodeId + 1], actions[maxNodeId + 1]
+// 1. Load snapshot, build ID-to-index map
+// 2. Allocate arrays parallel to snapshot.Nodes
 // 3. Scan assemblies for attributed methods
-// 4. Place function pointers at their nodeId index
+// 4. Place function pointers at their node's array index
 
 // At runtime:
 if (node.HasCondition)
-    bool result = conditions[node.Id](context);
+    bool result = conditions[nodeIndex](context);
 if (node.HasAction)
-    await actions[node.Id](context);
+    await actions[nodeIndex](context);
 ```
 
 **Why arrays, not dictionaries:**

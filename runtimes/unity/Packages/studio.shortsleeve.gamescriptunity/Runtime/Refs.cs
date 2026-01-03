@@ -1,7 +1,7 @@
 namespace GameScript
 {
     /// <summary>
-    /// Lightweight wrapper around a FlatBuffers Node providing convenient property access.
+    /// Lightweight wrapper around a FlatSharp Node providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
     public readonly struct NodeRef
@@ -23,12 +23,12 @@ namespace GameScript
         /// <summary>
         /// The original database ID of this node.
         /// </summary>
-        public int Id => _snapshot.Nodes(_index).Value.Id;
+        public int Id => _snapshot.Nodes[_index].Id;
 
         /// <summary>
         /// The type of this node (Root or Dialogue).
         /// </summary>
-        public NodeType Type => _snapshot.Nodes(_index).Value.Type;
+        public NodeType Type => _snapshot.Nodes[_index].Type;
 
         /// <summary>
         /// The actor for this node.
@@ -37,7 +37,7 @@ namespace GameScript
         {
             get
             {
-                int actorIdx = _snapshot.Nodes(_index).Value.ActorIdx;
+                int actorIdx = _snapshot.Nodes[_index].ActorIdx;
                 return new ActorRef(_snapshot, actorIdx);
             }
         }
@@ -45,53 +45,53 @@ namespace GameScript
         /// <summary>
         /// The localized voice/dialogue text for this node.
         /// </summary>
-        public string VoiceText => _snapshot.Nodes(_index).Value.VoiceText;
+        public string VoiceText => _snapshot.Nodes[_index].VoiceText;
 
         /// <summary>
         /// The localized UI response text (for choice buttons) for this node.
         /// </summary>
-        public string UIResponseText => _snapshot.Nodes(_index).Value.UiResponseText;
+        public string UIResponseText => _snapshot.Nodes[_index].UiResponseText;
 
         /// <summary>
         /// Whether this node has a condition method.
         /// </summary>
-        public bool HasCondition => _snapshot.Nodes(_index).Value.HasCondition;
+        public bool HasCondition => _snapshot.Nodes[_index].HasCondition;
 
         /// <summary>
         /// Whether this node has an action method.
         /// </summary>
-        public bool HasAction => _snapshot.Nodes(_index).Value.HasAction;
+        public bool HasAction => _snapshot.Nodes[_index].HasAction;
 
         /// <summary>
         /// Whether this node prevents showing response choices.
         /// </summary>
-        public bool IsPreventResponse => _snapshot.Nodes(_index).Value.IsPreventResponse;
+        public bool IsPreventResponse => _snapshot.Nodes[_index].IsPreventResponse;
 
         /// <summary>
         /// The number of outgoing edges from this node.
         /// </summary>
-        public int OutgoingEdgeCount => _snapshot.Nodes(_index).Value.OutgoingEdgeIndicesLength;
+        public int OutgoingEdgeCount => _snapshot.Nodes[_index].OutgoingEdgeIndices?.Count ?? 0;
 
         /// <summary>
         /// Gets an outgoing edge by index.
         /// </summary>
         public EdgeRef GetOutgoingEdge(int i)
         {
-            int edgeIdx = _snapshot.Nodes(_index).Value.OutgoingEdgeIndices(i);
+            int edgeIdx = _snapshot.Nodes[_index].OutgoingEdgeIndices[i];
             return new EdgeRef(_snapshot, edgeIdx);
         }
 
         /// <summary>
         /// The number of properties on this node.
         /// </summary>
-        public int PropertyCount => _snapshot.Nodes(_index).Value.PropertiesLength;
+        public int PropertyCount => _snapshot.Nodes[_index].Properties?.Count ?? 0;
 
         /// <summary>
         /// Gets a property by index.
         /// </summary>
         public NodeProperty GetProperty(int i)
         {
-            return _snapshot.Nodes(_index).Value.Properties(i).Value;
+            return _snapshot.Nodes[_index].Properties[i];
         }
 
         /// <summary>
@@ -101,14 +101,14 @@ namespace GameScript
         {
             get
             {
-                int convIdx = _snapshot.Nodes(_index).Value.ConversationIdx;
+                int convIdx = _snapshot.Nodes[_index].ConversationIdx;
                 return new ConversationRef(_snapshot, convIdx);
             }
         }
     }
 
     /// <summary>
-    /// Lightweight wrapper around a FlatBuffers Conversation providing convenient property access.
+    /// Lightweight wrapper around a FlatSharp Conversation providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
     public readonly struct ConversationRef
@@ -130,12 +130,12 @@ namespace GameScript
         /// <summary>
         /// The original database ID of this conversation.
         /// </summary>
-        public int Id => _snapshot.Conversations(_index).Value.Id;
+        public int Id => _snapshot.Conversations[_index].Id;
 
         /// <summary>
         /// The name of this conversation.
         /// </summary>
-        public string Name => _snapshot.Conversations(_index).Value.Name;
+        public string Name => _snapshot.Conversations[_index].Name;
 
         /// <summary>
         /// The root node of this conversation.
@@ -144,7 +144,7 @@ namespace GameScript
         {
             get
             {
-                int rootIdx = _snapshot.Conversations(_index).Value.RootNodeIdx;
+                int rootIdx = _snapshot.Conversations[_index].RootNodeIdx;
                 return new NodeRef(_snapshot, rootIdx);
             }
         }
@@ -152,34 +152,34 @@ namespace GameScript
         /// <summary>
         /// The number of nodes in this conversation.
         /// </summary>
-        public int NodeCount => _snapshot.Conversations(_index).Value.NodeIndicesLength;
+        public int NodeCount => _snapshot.Conversations[_index].NodeIndices?.Count ?? 0;
 
         /// <summary>
         /// Gets a node by index within this conversation.
         /// </summary>
         public NodeRef GetNode(int i)
         {
-            int nodeIdx = _snapshot.Conversations(_index).Value.NodeIndices(i);
+            int nodeIdx = _snapshot.Conversations[_index].NodeIndices[i];
             return new NodeRef(_snapshot, nodeIdx);
         }
 
         /// <summary>
         /// The number of edges in this conversation.
         /// </summary>
-        public int EdgeCount => _snapshot.Conversations(_index).Value.EdgeIndicesLength;
+        public int EdgeCount => _snapshot.Conversations[_index].EdgeIndices?.Count ?? 0;
 
         /// <summary>
         /// Gets an edge by index within this conversation.
         /// </summary>
         public EdgeRef GetEdge(int i)
         {
-            int edgeIdx = _snapshot.Conversations(_index).Value.EdgeIndices(i);
+            int edgeIdx = _snapshot.Conversations[_index].EdgeIndices[i];
             return new EdgeRef(_snapshot, edgeIdx);
         }
     }
 
     /// <summary>
-    /// Lightweight wrapper around a FlatBuffers Actor providing convenient property access.
+    /// Lightweight wrapper around a FlatSharp Actor providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
     public readonly struct ActorRef
@@ -201,26 +201,26 @@ namespace GameScript
         /// <summary>
         /// The original database ID of this actor.
         /// </summary>
-        public int Id => _snapshot.Actors(_index).Value.Id;
+        public int Id => _snapshot.Actors[_index].Id;
 
         /// <summary>
         /// The internal name/identifier of this actor.
         /// </summary>
-        public string Name => _snapshot.Actors(_index).Value.Name;
+        public string Name => _snapshot.Actors[_index].Name;
 
         /// <summary>
         /// The localized display name of this actor.
         /// </summary>
-        public string LocalizedName => _snapshot.Actors(_index).Value.LocalizedName;
+        public string LocalizedName => _snapshot.Actors[_index].LocalizedName;
 
         /// <summary>
         /// The color of this actor (hex format, e.g., "#808080").
         /// </summary>
-        public string Color => _snapshot.Actors(_index).Value.Color;
+        public string Color => _snapshot.Actors[_index].Color;
     }
 
     /// <summary>
-    /// Lightweight wrapper around a FlatBuffers Edge providing convenient property access.
+    /// Lightweight wrapper around a FlatSharp Edge providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
     public readonly struct EdgeRef
@@ -242,7 +242,7 @@ namespace GameScript
         /// <summary>
         /// The original database ID of this edge.
         /// </summary>
-        public int Id => _snapshot.Edges(_index).Value.Id;
+        public int Id => _snapshot.Edges[_index].Id;
 
         /// <summary>
         /// The source node of this edge.
@@ -251,7 +251,7 @@ namespace GameScript
         {
             get
             {
-                int sourceIdx = _snapshot.Edges(_index).Value.SourceIdx;
+                int sourceIdx = _snapshot.Edges[_index].SourceIdx;
                 return new NodeRef(_snapshot, sourceIdx);
             }
         }
@@ -263,7 +263,7 @@ namespace GameScript
         {
             get
             {
-                int targetIdx = _snapshot.Edges(_index).Value.TargetIdx;
+                int targetIdx = _snapshot.Edges[_index].TargetIdx;
                 return new NodeRef(_snapshot, targetIdx);
             }
         }
@@ -271,11 +271,11 @@ namespace GameScript
         /// <summary>
         /// The priority of this edge (higher = preferred).
         /// </summary>
-        public int Priority => _snapshot.Edges(_index).Value.Priority;
+        public int Priority => _snapshot.Edges[_index].Priority;
     }
 
     /// <summary>
-    /// Lightweight wrapper around a FlatBuffers Localization providing convenient property access.
+    /// Lightweight wrapper around a FlatSharp Localization providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
     public readonly struct LocalizationRef
@@ -297,16 +297,16 @@ namespace GameScript
         /// <summary>
         /// The original database ID of this localization.
         /// </summary>
-        public int Id => _snapshot.Localizations(_index).Value.Id;
+        public int Id => _snapshot.Localizations[_index].Id;
 
         /// <summary>
         /// The key/name of this localization (e.g., "menu.start").
         /// </summary>
-        public string Name => _snapshot.Localizations(_index).Value.Name;
+        public string Name => _snapshot.Localizations[_index].Name;
 
         /// <summary>
         /// The localized text.
         /// </summary>
-        public string Text => _snapshot.Localizations(_index).Value.Text;
+        public string Text => _snapshot.Localizations[_index].Text;
     }
 }

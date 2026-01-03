@@ -10,6 +10,9 @@ namespace GameScript;
 file_identifier "GSPT";  // GameScript Snapshot
 file_extension "gsb";
 
+// FlatSharp attribute for serializer generation
+attribute "fs_serializer";
+
 // ============================================================================
 // Property System
 // ============================================================================
@@ -119,7 +122,7 @@ table Localization {
 // Root Table
 // ============================================================================
 
-table Snapshot {
+table Snapshot (fs_serializer) {
   // Locale metadata for this snapshot
   locale_id: int32;             // Original database ID of the locale
   locale_name: string;          // Locale code, e.g., "en_US", "fr_FR"

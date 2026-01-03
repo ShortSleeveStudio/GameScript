@@ -41,40 +41,65 @@ namespace GameScript
         /// <returns>A JumpTable with conditions and actions arrays parallel to snapshot.Nodes.</returns>
         public static JumpTable Build(Snapshot snapshot)
         {
-            int nodeCount = snapshot.NodesLength;
+            IList<Node> nodes = snapshot.Nodes;
+            int nodeCount = nodes?.Count ?? 0;
 
             // Build a map from database ID to array index
-            var idToIndex = new Dictionary<int, int>(nodeCount);
+            Dictionary<int, int> idToIndex = new Dictionary<int, int>(nodeCount);
             for (int i = 0; i < nodeCount; i++)
             {
-                var node = snapshot.Nodes(i);
-                if (node.HasValue)
+                Node node = nodes[i];
+                if (node != null)
                 {
-                    idToIndex[node.Value.Id] = i;
+                    idToIndex[node.Id] = i;
                 }
             }
 
-            var conditions = new ConditionDelegate[nodeCount];
-            var actions = new ActionDelegate[nodeCount];
+            ConditionDelegate[] conditions = new ConditionDelegate[nodeCount];
+            ActionDelegate[] actions = new ActionDelegate[nodeCount];
 
             // Scan all assemblies for attributed methods
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = 0; i < assemblies.Length; i++)
             {
-                // Skip system assemblies for performance
-                var name = assembly.GetName().Name;
-                if (name.StartsWith("System") ||
-                    name.StartsWith("Microsoft") ||
-                    name.StartsWith("Unity") ||
-                    name.StartsWith("mscorlib") ||
-                    name.StartsWith("netstandard"))
-                {
+                Assembly assembly = assemblies[i];
+                if (ShouldSkipAssembly(assembly))
                     continue;
-                }
 
                 ScanAssembly(assembly, idToIndex, conditions, actions);
             }
 
             return new JumpTable(conditions, actions);
+        }
+
+        static bool ShouldSkipAssembly(Assembly assembly)
+        {
+            // Skip dynamic assemblies (they can't have our attributes)
+            if (assembly.IsDynamic)
+                return true;
+
+            string name = assembly.GetName().Name;
+            if (string.IsNullOrEmpty(name))
+                return true;
+
+            // Skip known system/framework assemblies
+            // Using ordinal comparison for performance
+            if (name.StartsWith("System", StringComparison.Ordinal) ||
+                name.StartsWith("Microsoft", StringComparison.Ordinal) ||
+                name.StartsWith("Unity", StringComparison.Ordinal) ||
+                name.StartsWith("UnityEngine", StringComparison.Ordinal) ||
+                name.StartsWith("UnityEditor", StringComparison.Ordinal) ||
+                name.StartsWith("mscorlib", StringComparison.Ordinal) ||
+                name.StartsWith("netstandard", StringComparison.Ordinal) ||
+                name.StartsWith("Mono.", StringComparison.Ordinal) ||
+                name.StartsWith("nunit", StringComparison.OrdinalIgnoreCase) ||
+                name.StartsWith("Newtonsoft", StringComparison.Ordinal) ||
+                name.Equals("GameScript.Core", StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         static void ScanAssembly(
@@ -94,15 +119,18 @@ namespace GameScript
                 types = e.Types;
             }
 
-            foreach (var type in types)
+            for (int t = 0; t < types.Length; t++)
             {
+                Type type = types[t];
                 if (type == null) continue;
 
-                foreach (var method in type.GetMethods(
-                    BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                MethodInfo[] methods = type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                for (int m = 0; m < methods.Length; m++)
                 {
+                    MethodInfo method = methods[m];
+
                     // Check for NodeCondition attribute
-                    var conditionAttr = method.GetCustomAttribute<NodeConditionAttribute>();
+                    NodeConditionAttribute conditionAttr = method.GetCustomAttribute<NodeConditionAttribute>();
                     if (conditionAttr != null)
                     {
                         if (ValidateConditionSignature(method))
@@ -128,7 +156,7 @@ namespace GameScript
                     }
 
                     // Check for NodeAction attribute
-                    var actionAttr = method.GetCustomAttribute<NodeActionAttribute>();
+                    NodeActionAttribute actionAttr = method.GetCustomAttribute<NodeActionAttribute>();
                     if (actionAttr != null)
                     {
                         if (ValidateActionSignature(method))
@@ -162,7 +190,7 @@ namespace GameScript
             if (!method.IsStatic) return false;
             if (method.ReturnType != typeof(bool)) return false;
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             if (parameters.Length != 1) return false;
             if (!typeof(IDialogueContext).IsAssignableFrom(parameters[0].ParameterType)) return false;
 
@@ -175,7 +203,7 @@ namespace GameScript
             if (!method.IsStatic) return false;
             if (method.ReturnType != typeof(Awaitable)) return false;
 
-            var parameters = method.GetParameters();
+            ParameterInfo[] parameters = method.GetParameters();
             if (parameters.Length != 1) return false;
             if (!typeof(IDialogueContext).IsAssignableFrom(parameters[0].ParameterType)) return false;
 

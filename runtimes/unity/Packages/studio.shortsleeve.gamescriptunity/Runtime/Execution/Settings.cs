@@ -5,44 +5,22 @@ namespace GameScript
 {
     public class Settings : ScriptableObject
     {
+        #region Constants
+        const string AppName = "GameScript";
+        const string SettingsAssetName = "GameScriptSettings";
+        #endregion
+
         #region Runtime Settings
         public uint InitialConversationPool;
         public bool PreventSingleNodeChoices;
         #endregion
 
         #region Editor Settings
-        // All paths stored as relative for portability
-        public string DatabasePath; // Relative to project root
-        public string DatabaseVersion;
-        public string GeneratedPath; // Relative to Assets folder
-        public string GameDataPath; // Relative to StreamingAssets folder (used at runtime)
+        public string GameDataPath; // Relative to StreamingAssets folder
         #endregion
 
         #region Path Helpers
 #if UNITY_EDITOR
-        /// <summary>
-        /// Gets the absolute path to the database file
-        /// </summary>
-        public string GetAbsoluteDatabasePath()
-        {
-            if (string.IsNullOrEmpty(DatabasePath))
-                return string.Empty;
-
-            string projectRoot = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-            return Path.GetFullPath(Path.Combine(projectRoot, DatabasePath)).Replace('\\', '/');
-        }
-
-        /// <summary>
-        /// Gets the absolute path to the generated code folder
-        /// </summary>
-        public string GetAbsoluteGeneratedPath()
-        {
-            if (string.IsNullOrEmpty(GeneratedPath))
-                return string.Empty;
-
-            return Path.GetFullPath(Path.Combine(Application.dataPath, GeneratedPath)).Replace('\\', '/');
-        }
-
         /// <summary>
         /// Gets the absolute path to the game data folder
         /// </summary>
@@ -84,13 +62,12 @@ namespace GameScript
             {
                 settings = CreateInstance<Settings>();
                 settings.InitialConversationPool = 1;
-                settings.GameDataPath = RuntimeConstants.k_AppName; // Default to relative path
-                // This is called in OnValidate
+                settings.GameDataPath = AppName; // Default to relative path
                 UnityEditor.EditorApplication.delayCall += () =>
                 {
                     UnityEditor.AssetDatabase.CreateAsset(
                         settings,
-                        $"Assets/{RuntimeConstants.k_SettingsAssetName}.asset"
+                        $"Assets/{SettingsAssetName}.asset"
                     );
                     UnityEditor.AssetDatabase.SaveAssets();
                 };

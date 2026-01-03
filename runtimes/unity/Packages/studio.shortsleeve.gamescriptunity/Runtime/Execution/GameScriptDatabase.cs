@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using FlatBuffers;
+using FlatSharp;
 using UnityEngine;
 
 namespace GameScript
@@ -32,18 +33,8 @@ namespace GameScript
         #region Public API
         /// <summary>
         /// The currently loaded snapshot.
-        /// In editor, automatically reloads if the manifest hash has changed.
         /// </summary>
-        public Snapshot Snapshot
-        {
-            get
-            {
-#if UNITY_EDITOR
-                CheckForHotReload();
-#endif
-                return _snapshot;
-            }
-        }
+        public Snapshot Snapshot => _snapshot;
 
         /// <summary>
         /// The manifest containing available locales and metadata.
@@ -108,7 +99,12 @@ namespace GameScript
             // Load manifest
             _manifest = await LoadManifestAsync(_manifestPath, token);
 
-            // Pre-allocate and cache all snapshot paths
+            // Cache snapshot paths
+            CacheSnapshotPaths(basePath);
+        }
+
+        void CacheSnapshotPaths(string basePath)
+        {
             _snapshotPaths = new string[_manifest.Locales.Length];
             for (int i = 0; i < _manifest.Locales.Length; i++)
             {
@@ -120,8 +116,12 @@ namespace GameScript
         async Awaitable LoadSnapshot(int localeIndex, CancellationToken token)
         {
             byte[] buffer = await LoadBytesAsync(_snapshotPaths[localeIndex], token);
+            SetSnapshot(localeIndex, buffer);
+        }
 
-            _snapshot = Snapshot.GetRootAsSnapshot(new ByteBuffer(buffer));
+        void SetSnapshot(int localeIndex, byte[] buffer)
+        {
+            _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
             _currentLocale = _manifest.Locales[localeIndex];
             _loadedHash = _currentLocale.Hash;
         }
@@ -222,7 +222,165 @@ namespace GameScript
 #endif
 
 #if UNITY_EDITOR
-        void CheckForHotReload()
+        static GameScriptDatabase s_editorInstance;
+        static string s_editorBasePath;
+
+        /// <summary>
+        /// Editor-only: Gets a shared database instance for property drawers and pickers.
+        /// Lazily loads the snapshot using settings. Only hot-reloads when not in play mode.
+        /// </summary>
+        public static Snapshot EditorGetSnapshot()
+        {
+            Settings settings = Settings.GetSettings();
+            if (settings == null || string.IsNullOrEmpty(settings.GameDataPath))
+                return null;
+
+            string basePath = settings.GameDataPath;
+            string manifestPath = BuildPath(basePath, ManifestFilename);
+
+            if (!File.Exists(manifestPath))
+                return null;
+
+            // Check if settings path changed - invalidate cache
+            if (s_editorInstance != null && s_editorBasePath != basePath)
+            {
+                s_editorInstance = null;
+                s_editorBasePath = null;
+            }
+
+            if (s_editorInstance == null)
+            {
+                s_editorInstance = new GameScriptDatabase();
+                s_editorBasePath = basePath;
+            }
+
+            // Load manifest and snapshot if not loaded
+            if (s_editorInstance._manifest == null)
+            {
+                s_editorInstance._manifestPath = manifestPath;
+                s_editorInstance._manifest = s_editorInstance.LoadManifestSync(manifestPath);
+                s_editorInstance.CacheSnapshotPaths(basePath);
+
+                // Load primary locale snapshot
+                ManifestLocale primaryLocale = s_editorInstance._manifest.GetPrimaryLocale();
+                if (primaryLocale != null)
+                {
+                    int index = s_editorInstance.GetLocaleIndex(primaryLocale);
+                    if (index >= 0 && File.Exists(s_editorInstance._snapshotPaths[index]))
+                    {
+                        byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[index]);
+                        s_editorInstance.SetSnapshot(index, buffer);
+                    }
+                }
+            }
+
+            // Only hot-reload when not in play mode (edit time only)
+            if (!UnityEditor.EditorApplication.isPlaying)
+            {
+                s_editorInstance.CheckForHotReload(basePath);
+            }
+
+            return s_editorInstance._snapshot;
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the manifest for property drawers and pickers.
+        /// Call EditorGetSnapshot() first to ensure the manifest is loaded.
+        /// </summary>
+        public static Manifest EditorGetManifest()
+        {
+            // Ensure snapshot (and manifest) is loaded
+            EditorGetSnapshot();
+            return s_editorInstance?._manifest;
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the display name for a conversation by ID.
+        /// </summary>
+        public static string EditorGetConversationName(int id)
+        {
+            Snapshot snapshot = EditorGetSnapshot();
+            if (snapshot == null)
+                return null;
+
+            IList<Conversation> conversations = snapshot.Conversations;
+            if (conversations == null)
+                return null;
+
+            int count = conversations.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Conversation conv = conversations[i];
+                if (conv != null && conv.Id == id)
+                    return conv.Name;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the display name for an actor by ID.
+        /// </summary>
+        public static string EditorGetActorName(int id)
+        {
+            Snapshot snapshot = EditorGetSnapshot();
+            if (snapshot == null)
+                return null;
+
+            IList<Actor> actors = snapshot.Actors;
+            if (actors == null)
+                return null;
+
+            int count = actors.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Actor actor = actors[i];
+                if (actor != null && actor.Id == id)
+                    return actor.Name;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the display name for a localization by ID.
+        /// </summary>
+        public static string EditorGetLocalizationName(int id)
+        {
+            Snapshot snapshot = EditorGetSnapshot();
+            if (snapshot == null)
+                return null;
+
+            IList<Localization> localizations = snapshot.Localizations;
+            if (localizations == null)
+                return null;
+
+            int count = localizations.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Localization loc = localizations[i];
+                if (loc != null && loc.Id == id)
+                    return loc.Name;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Editor-only: Gets the display name for a locale by ID.
+        /// </summary>
+        public static string EditorGetLocaleName(int id)
+        {
+            Manifest manifest = EditorGetManifest();
+            if (manifest?.Locales == null)
+                return null;
+
+            for (int i = 0; i < manifest.Locales.Length; i++)
+            {
+                if (manifest.Locales[i].Id == id)
+                    return manifest.Locales[i].Name;
+            }
+            return null;
+        }
+
+        void CheckForHotReload(string basePath)
         {
             if (_manifest == null || _currentLocale == null)
                 return;
@@ -241,11 +399,11 @@ namespace GameScript
                 return;
 
             // Snapshot has changed, reload synchronously
-            byte[] buffer = File.ReadAllBytes(_snapshotPaths[index]);
-            _snapshot = Snapshot.GetRootAsSnapshot(new ByteBuffer(buffer));
-            _loadedHash = freshLocale.Hash;
+            // Also refresh path cache in case locale names changed
             _manifest = freshManifest;
-            _currentLocale = freshLocale;
+            CacheSnapshotPaths(basePath);
+            byte[] buffer = File.ReadAllBytes(_snapshotPaths[index]);
+            SetSnapshot(index, buffer);
         }
 #endif
         #endregion

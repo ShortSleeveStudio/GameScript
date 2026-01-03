@@ -1,0 +1,16 @@
+# Build outputs
+bin/
+obj/
+dist/
+
+# NuGet
+*.nupkg
+.nuget/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# Debug
+*.pdb

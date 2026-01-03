@@ -235,15 +235,15 @@
 
     <!-- Settings Panel (accordion) -->
     {#if activePanel === 'settings' && connected}
-        <div class="accordion-panel">
+        <div class="accordion-panel settings-panel">
             <SettingsPanel />
         </div>
+    {:else}
+        <!-- Inspector Content (hidden when settings panel is open) -->
+        <div class="inspector-content">
+            <Inspector />
+        </div>
     {/if}
-
-    <!-- Inspector Content -->
-    <div class="inspector-content">
-        <Inspector />
-    </div>
 </div>
 
 <style>
@@ -371,6 +371,13 @@
         gap: 12px;
         max-height: 60vh;
         overflow-y: auto;
+    }
+
+    /* Settings panel expands to fill available space */
+    .accordion-panel.settings-panel {
+        flex: 1;
+        max-height: none;
+        border-bottom: none;
     }
 
     .sqlite-actions {

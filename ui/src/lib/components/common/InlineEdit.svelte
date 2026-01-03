@@ -62,10 +62,12 @@
     }
 
     function save(): void {
+        // Guard: only save if we're still editing (prevents double-save from Enter + blur)
+        if (!editing) return;
+        editing = false;
         if (editValue !== value) {
             onsave?.(editValue);
         }
-        editing = false;
     }
 
     function cancel(): void {

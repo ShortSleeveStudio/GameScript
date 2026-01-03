@@ -131,6 +131,10 @@ export class ExportController {
       const primaryLocaleId = localePrincipal?.data.principal ?? locales[0]?.id ?? 1;
       const primaryLocaleColumn = `locale_${primaryLocaleId}`;
 
+      // Find primary locale index in the locales array
+      const primaryLocaleIndex = locales.findIndex((l) => l.id === primaryLocaleId);
+      const resolvedPrimaryLocaleIndex = primaryLocaleIndex >= 0 ? primaryLocaleIndex : 0;
+
       // Fetch localized names for all locales using primary locale
       const localizedNames = await snapshotExport.getLocaleLocalizedNames(locales, primaryLocaleColumn);
 
@@ -222,7 +226,7 @@ export class ExportController {
       const manifest: ExportManifest = {
         version: '1.0.0',
         locales: manifestLocales,
-        primaryLocale: primaryLocaleId,
+        primaryLocale: resolvedPrimaryLocaleIndex,
         exportedAt: new Date().toISOString(),
       };
 

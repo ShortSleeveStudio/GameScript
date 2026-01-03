@@ -204,7 +204,7 @@ export interface ExportManifest {
   version: string;
   /** List of exported locales with id, code, and hash */
   locales: ExportManifestLocale[];
-  /** ID of the primary locale */
+  /** Index into locales array for the primary locale */
   primaryLocale: number;
   /** ISO timestamp of export */
   exportedAt: string;

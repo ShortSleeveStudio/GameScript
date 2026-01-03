@@ -742,20 +742,20 @@ export class CodeHandlers {
   private _generateMethodStub(
     methodName: string,
     methodType: 'condition' | 'action',
-    conversationId: number
+    _conversationId: number
   ): string {
     const attributeName = methodType === 'condition' ? 'NodeCondition' : 'NodeAction';
     const nodeId = methodName.replace(/^Node_(\d+)_(Condition|Action)$/, '$1');
 
     if (methodType === 'condition') {
-      return `    [${attributeName}(${conversationId}, ${nodeId})]
+      return `    [${attributeName}(${nodeId})]
     public static bool ${methodName}(IDialogueContext ctx)
     {
         // TODO: Implement condition
         return true;
     }`;
     } else {
-      return `    [${attributeName}(${conversationId}, ${nodeId})]
+      return `    [${attributeName}(${nodeId})]
     public static async Awaitable ${methodName}(IDialogueContext ctx)
     {
         // TODO: Implement action

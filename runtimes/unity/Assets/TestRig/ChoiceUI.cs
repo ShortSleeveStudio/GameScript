@@ -11,9 +11,6 @@ public class ChoiceUI : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI m_ButtonText;
-
-    [SerializeField]
-    private TesterSettings m_TestSettings;
     #endregion
 
     #region API

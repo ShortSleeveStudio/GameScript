@@ -9,9 +9,6 @@ public class HistoryItemUI : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI m_VoiceText;
-
-    [SerializeField]
-    private TesterSettings m_TestSettings;
     #endregion
 
     #region API

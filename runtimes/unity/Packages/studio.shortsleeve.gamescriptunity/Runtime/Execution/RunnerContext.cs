@@ -35,6 +35,7 @@ namespace GameScript
         // Reusable lists for collecting data without allocation
         readonly List<NodeRef> _choices;
         readonly List<NodeProperty> _properties;
+        int _propertiesCachedForNodeIndex;
         #endregion
 
         #region Constructor
@@ -45,38 +46,47 @@ namespace GameScript
             _readySource = new AwaitableCompletionSource();
             _decisionSource = new AwaitableCompletionSource<int>();
             _choices = new List<NodeRef>(DefaultChoiceCapacity);
-            _properties = new();
+            _properties = new List<NodeProperty>();
+            _propertiesCachedForNodeIndex = -1;
         }
         #endregion
 
         #region IDialogueContext Implementation
-        public int NodeId => _snapshot.Nodes(_nodeIndex).Value.Id;
+        public int NodeId => _snapshot.Nodes[_nodeIndex].Id;
 
-        public int ConversationId => _snapshot.Conversations(_conversationIndex).Value.Id;
+        public int ConversationId => _snapshot.Conversations[_conversationIndex].Id;
 
         public Actor Actor
         {
             get
             {
-                int actorIdx = _snapshot.Nodes(_nodeIndex).Value.ActorIdx;
-                return _snapshot.Actors(actorIdx).Value;
+                int actorIdx = _snapshot.Nodes[_nodeIndex].ActorIdx;
+                return _snapshot.Actors[actorIdx];
             }
         }
 
-        public string VoiceText => _snapshot.Nodes(_nodeIndex).Value.VoiceText;
+        public string VoiceText => _snapshot.Nodes[_nodeIndex].VoiceText;
 
-        public string UIResponseText => _snapshot.Nodes(_nodeIndex).Value.UiResponseText;
+        public string UIResponseText => _snapshot.Nodes[_nodeIndex].UiResponseText;
 
         public IReadOnlyList<NodeProperty> Properties
         {
             get
             {
-                _properties.Clear();
-                Node node = _snapshot.Nodes(_nodeIndex).Value;
-                int count = node.PropertiesLength;
-                for (int i = 0; i < count; i++)
+                if (_propertiesCachedForNodeIndex != _nodeIndex)
                 {
-                    _properties.Add(node.Properties(i).Value);
+                    _properties.Clear();
+                    Node node = _snapshot.Nodes[_nodeIndex];
+                    IList<NodeProperty> props = node.Properties;
+                    if (props != null)
+                    {
+                        int count = props.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            _properties.Add(props[i]);
+                        }
+                    }
+                    _propertiesCachedForNodeIndex = _nodeIndex;
                 }
                 return _properties;
             }
@@ -90,13 +100,13 @@ namespace GameScript
             _jumpTable = jumpTable;
             _conversationIndex = conversationIndex;
             _listener = listener;
-            _nodeIndex = _snapshot.Conversations(conversationIndex).Value.RootNodeIdx;
+            _nodeIndex = _snapshot.Conversations[conversationIndex].RootNodeIdx;
             SequenceNumber = s_NextSequenceNumber++;
         }
 
         internal async Awaitable Run()
         {
-            ConversationRef conversationRef = new(_snapshot, _conversationIndex);
+            ConversationRef conversationRef = new ConversationRef(_snapshot, _conversationIndex);
 
             try
             {
@@ -108,7 +118,7 @@ namespace GameScript
                 // Main loop
                 while (true)
                 {
-                    NodeRef nodeRef = new(_snapshot, _nodeIndex);
+                    NodeRef nodeRef = new NodeRef(_snapshot, _nodeIndex);
 
                     // Node Enter
                     _listener.OnNodeEnter(nodeRef, new ReadyNotifier(_readySource));
@@ -116,7 +126,7 @@ namespace GameScript
                     _readySource.Reset();
 
                     // Execute Action
-                    Node node = _snapshot.Nodes(_nodeIndex).Value;
+                    Node node = _snapshot.Nodes[_nodeIndex];
                     if (node.HasAction)
                     {
                         ActionDelegate action = _jumpTable.Actions[_nodeIndex];
@@ -137,13 +147,14 @@ namespace GameScript
                     bool allSameActor = true;
                     int firstActorIdx = -1;
 
-                    int edgeCount = node.OutgoingEdgeIndicesLength;
+                    IList<int> outgoingEdgeIndices = node.OutgoingEdgeIndices;
+                    int edgeCount = outgoingEdgeIndices?.Count ?? 0;
                     for (int i = 0; i < edgeCount; i++)
                     {
-                        int edgeIdx = node.OutgoingEdgeIndices(i);
-                        Edge edge = _snapshot.Edges(edgeIdx).Value;
+                        int edgeIdx = outgoingEdgeIndices[i];
+                        Edge edge = _snapshot.Edges[edgeIdx];
                         int targetNodeIdx = edge.TargetIdx;
-                        Node targetNode = _snapshot.Nodes(targetNodeIdx).Value;
+                        Node targetNode = _snapshot.Nodes[targetNodeIdx];
 
                         // Evaluate condition if present
                         bool conditionPassed = true;
@@ -154,9 +165,15 @@ namespace GameScript
                             {
                                 // Temporarily set node index for condition context
                                 int savedNodeIndex = _nodeIndex;
-                                _nodeIndex = targetNodeIdx;
-                                conditionPassed = condition(this);
-                                _nodeIndex = savedNodeIndex;
+                                try
+                                {
+                                    _nodeIndex = targetNodeIdx;
+                                    conditionPassed = condition(this);
+                                }
+                                finally
+                                {
+                                    _nodeIndex = savedNodeIndex;
+                                }
                             }
                             else
                             {
@@ -166,7 +183,7 @@ namespace GameScript
 
                         if (conditionPassed)
                         {
-                            NodeRef targetRef = new(_snapshot, targetNodeIdx);
+                            NodeRef targetRef = new NodeRef(_snapshot, targetNodeIdx);
                             _choices.Add(targetRef);
 
                             // Track actor consistency
@@ -245,7 +262,7 @@ namespace GameScript
             // Single choice with UI text = decision (unless settings prevent it)
             if (_choices.Count == 1 && !_settings.PreventSingleNodeChoices)
             {
-                string responseText = _snapshot.Nodes(_choices[0].Index).Value.UiResponseText;
+                string responseText = _snapshot.Nodes[_choices[0].Index].UiResponseText;
                 return !string.IsNullOrEmpty(responseText) && allSameActor;
             }
 
@@ -254,13 +271,14 @@ namespace GameScript
 
         void Reset()
         {
-            SequenceNumber = 0;
-            _snapshot = default;
+            _snapshot = null;
             _jumpTable = null;
             _listener = null;
             _conversationIndex = -1;
             _nodeIndex = -1;
+            _propertiesCachedForNodeIndex = -1;
             _choices.Clear();
+            _properties.Clear();
         }
         #endregion
     }

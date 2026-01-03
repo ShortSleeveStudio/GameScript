@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm -r build",
+    "build:csharp": "./runtimes/csharp/build.sh",
     "dev": "pnpm -r --parallel dev",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",

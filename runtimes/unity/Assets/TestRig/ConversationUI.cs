@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using GameScript;
 using UnityEngine;
 using UnityEngine.UI;
@@ -26,9 +25,6 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
 
     [SerializeField]
     private ScrollRect m_HistoryScrollRect;
-
-    [SerializeField]
-    private TesterSettings m_TestSettings;
     #endregion
 
     #region State
@@ -40,13 +36,13 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     #region Initialization
     public void Initialize(
         GameScriptRunner runner,
-        uint conversationId,
+        int conversationIndex,
         Action<ConversationUI> onComplete
     )
     {
         m_GameScriptRunner = runner;
         m_OnComplete = onComplete;
-        m_ActiveConversation = m_GameScriptRunner.StartConversation(conversationId, this);
+        m_ActiveConversation = m_GameScriptRunner.StartConversation(conversationIndex, this);
     }
     #endregion
 
@@ -58,13 +54,13 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     }
     #endregion
 
-    #region Runner Listerner
-    public void OnConversationEnter(Conversation conversation, ReadyNotifier readyNotifier)
+    #region Runner Listener
+    public void OnConversationEnter(ConversationRef conversation, ReadyNotifier readyNotifier)
     {
         readyNotifier.OnReady();
     }
 
-    public void OnConversationExit(Conversation conversation, ReadyNotifier readyNotifier)
+    public void OnConversationExit(ConversationRef conversation, ReadyNotifier readyNotifier)
     {
         for (int i = m_HistoryContent.transform.childCount - 1; i >= 0; i--)
         {
@@ -74,16 +70,14 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         m_OnComplete(this);
     }
 
-    public void OnNodeExit(List<Node> nodes, DecisionNotifier decisionNotifier)
+    public void OnNodeExit(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier)
     {
-        for (int i = 0; i < nodes.Count; i++)
+        for (int i = 0; i < choices.Count; i++)
         {
-            Node node = nodes[i];
+            NodeRef node = choices[i];
             GameObject choiceGO = Instantiate(m_ChoiceItemPrefab);
             ChoiceUI choiceUI = choiceGO.GetComponent<ChoiceUI>();
-            string buttonText = "";
-            if (node.UIResponseText != null)
-                buttonText = node.UIResponseText.GetLocalization(m_TestSettings.CurrentLocale);
+            string buttonText = node.UIResponseText ?? "";
             choiceUI.SetButtonText(buttonText);
             choiceUI.RegisterButtonHandler(() =>
             {
@@ -93,27 +87,27 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         }
     }
 
-    public void OnNodeEnter(Node node, ReadyNotifier readyNotifier)
+    public void OnNodeEnter(NodeRef node, ReadyNotifier readyNotifier)
     {
-        if (node.VoiceText != null)
+        string voiceText = node.VoiceText;
+        if (!string.IsNullOrEmpty(voiceText))
         {
             GameObject historyItemGO = Instantiate(m_HistoryItemPrefab);
             HistoryItemUI historyItem = historyItemGO.GetComponent<HistoryItemUI>();
-            string actorName =
-                node.Actor.LocalizedName != null
-                    ? node.Actor.LocalizedName.GetLocalization(m_TestSettings.CurrentLocale)
-                    : "<Player Name Missing>";
-            string voiceText = node.VoiceText.GetLocalization(m_TestSettings.CurrentLocale);
+            ActorRef actor = node.Actor;
+            string actorName = actor.LocalizedName ?? actor.Name ?? "<Actor Missing>";
             historyItem.SetVoiceText(voiceText);
             historyItem.SetActorName(actorName);
             historyItemGO.transform.SetParent(m_HistoryContent.transform);
             Delay(k_ReadTimeMillis, readyNotifier);
         }
         else
+        {
             readyNotifier.OnReady();
+        }
     }
 
-    public void OnNodeExit(Node node, ReadyNotifier readyNotifier)
+    public void OnNodeExit(NodeRef currentNode, ReadyNotifier readyNotifier)
     {
         for (int i = m_ChoiceContent.transform.childCount - 1; i >= 0; i--)
         {
@@ -122,13 +116,13 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         readyNotifier.OnReady();
     }
 
-    public void OnError(Conversation conversation, Exception e) => Debug.LogException(e);
+    public void OnError(ConversationRef conversation, Exception e) => Debug.LogException(e);
     #endregion
 
     #region Helpers
     private async void Delay(int millis, ReadyNotifier readyNotifier)
     {
-        await Task.Delay(millis);
+        await Awaitable.WaitForSecondsAsync(millis / 1000f);
         readyNotifier.OnReady();
     }
     #endregion
