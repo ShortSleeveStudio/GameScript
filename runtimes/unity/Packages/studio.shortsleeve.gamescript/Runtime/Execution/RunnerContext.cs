@@ -221,6 +221,9 @@ namespace GameScript
                 _listener.OnConversationExit(conversationRef, new ReadyNotifier(_readySource));
                 await _readySource.Awaitable;
                 _readySource.Reset();
+
+                // Final cleanup signal
+                _listener.OnCleanup(conversationRef);
             }
             catch (Exception e)
             {

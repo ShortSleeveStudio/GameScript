@@ -81,6 +81,13 @@ namespace GameScript
         void OnConversationExit(ConversationRef conversation, ReadyNotifier readyNotifier);
 
         /// <summary>
+        /// Called after OnConversationExit's ReadyNotifier.OnReady() is processed,
+        /// right before the RunnerContext is released back to the pool.
+        /// Use this for final cleanup: notifying managers, releasing resources, etc.
+        /// </summary>
+        void OnCleanup(ConversationRef conversation);
+
+        /// <summary>
         /// Called when an error occurs during conversation execution.
         /// </summary>
         void OnError(ConversationRef conversation, System.Exception e);

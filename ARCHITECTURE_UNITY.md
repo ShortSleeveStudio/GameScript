@@ -194,6 +194,8 @@ ConversationExit
     ↓ (OnConversationExit callback)
 ConversationExitWait
     ↓ (wait for ReadyNotifier)
+Cleanup
+    ↓ (OnCleanup callback - synchronous)
 Idle (context returned to pool)
 ```
 
@@ -261,6 +263,7 @@ public interface IGameScriptListener
     void OnNodeExit(List<NodeRef> choices, DecisionNotifier notifier);  // Player choice
     void OnNodeExit(NodeRef node, ReadyNotifier notifier);              // Auto-advance
     void OnConversationExit(ConversationRef conv, ReadyNotifier notifier);
+    void OnCleanup(ConversationRef conv);                               // Final cleanup
     void OnError(ConversationRef conv, Exception e);
 }
 ```
