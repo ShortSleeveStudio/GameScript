@@ -19,7 +19,7 @@ public class Tester : MonoBehaviour
     private TMP_Dropdown m_LocaleDropdown;
 
     [SerializeField]
-    private GameScriptRunner m_GameScriptRunner;
+    private GameScriptBehaviour m_GameScriptBehaviour;
 
     [SerializeField]
     private LocaleId m_LocaleId;
@@ -37,13 +37,13 @@ public class Tester : MonoBehaviour
     #region Unity Lifecycle Methods
     private async void Start()
     {
-        await m_GameScriptRunner.Initialize(destroyCancellationToken);
+        await m_GameScriptBehaviour.Initialize(destroyCancellationToken);
         PopulateDropdowns();
     }
 
     private void PopulateDropdowns()
     {
-        GameScriptDatabase database = m_GameScriptRunner.Database;
+        GameScriptDatabase database = m_GameScriptBehaviour.Database;
 
         // Load Conversation Options
         List<TMP_Dropdown.OptionData> conversationOptions = new();
@@ -84,13 +84,13 @@ public class Tester : MonoBehaviour
         GameObject newConversationUI = Instantiate(m_ConversationPrefab);
         newConversationUI.transform.SetParent(m_ConversationContent.transform);
         ConversationUI conversationUI = newConversationUI.GetComponent<ConversationUI>();
-        conversationUI.Initialize(m_GameScriptRunner, conversationIndex, OnConversationFinished);
+        conversationUI.Initialize(m_GameScriptBehaviour.Runner, conversationIndex, OnConversationFinished);
     }
 
     public async void OnLocaleSelected()
     {
-        LocaleRef locale = m_GameScriptRunner.Database.GetLocale(m_LocaleDropdown.value);
-        await m_GameScriptRunner.Database.ChangeLocale(locale, destroyCancellationToken);
+        LocaleRef locale = m_GameScriptBehaviour.Database.GetLocale(m_LocaleDropdown.value);
+        await m_GameScriptBehaviour.Database.ChangeLocale(locale, destroyCancellationToken);
     }
 
     public void OnConversationFinished(ConversationUI conversationUI)

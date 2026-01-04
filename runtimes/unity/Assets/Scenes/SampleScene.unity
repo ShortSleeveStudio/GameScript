@@ -257,11 +257,11 @@ MonoBehaviour:
   m_ConversationContent: {fileID: 852428248}
   m_ConversationDropdown: {fileID: 1595849385}
   m_LocaleDropdown: {fileID: 1038387752}
-  m_GameScriptRunner: {fileID: 81058003}
+  m_GameScriptBehaviour: {fileID: 81058003}
   m_LocaleId:
     value: 1
   m_ConversationId:
-    value: 1
+    value: 0
   m_ActorId:
     value: 2
   m_LocalizationId:
@@ -275,11 +275,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 81057998}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5707f365645e87841aafbfd52d799ad8, type: 3}
+  m_Script: {fileID: 11500000, guid: fb808e9c87fbe4afdbd43d2a6251deab, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
-  _executionOrder: -1
+  m_EditorClassIdentifier: GameScript::GameScript.GameScriptBehaviour
   _settings: {fileID: 11400000, guid: 19dc571b8b509bc4c8ef44a4f0b703f0, type: 2}
+  _initializeOnAwake: 1
+  _localeId:
+    value: 0
 --- !u!1 &118263273
 GameObject:
   m_ObjectHideFlags: 0

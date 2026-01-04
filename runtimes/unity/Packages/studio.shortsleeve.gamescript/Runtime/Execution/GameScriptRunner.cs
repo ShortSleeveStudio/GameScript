@@ -5,41 +5,49 @@ using UnityEngine;
 
 namespace GameScript
 {
-    public sealed class GameScriptRunner : MonoBehaviour
+    /// <summary>
+    /// The dialogue execution engine. This is a pure C# class that can be instantiated
+    /// directly with a database. Use GameScriptBehaviour for Unity Inspector integration.
+    /// </summary>
+    public sealed class GameScriptRunner
     {
-        #region Inspector
-        [Header("Runner Settings")]
-        [SerializeField]
-#pragma warning disable CS0414
-        int _executionOrder = -1;
-#pragma warning restore CS0414
-
-        [SerializeField]
-        Settings _settings;
-        #endregion
-
         #region State
-        LinkedList<RunnerContext> _contextsActive;
-        LinkedList<RunnerContext> _contextsInactive;
-        Thread _mainThread;
-        GameScriptDatabase _database;
-        JumpTable _jumpTable;
+        readonly LinkedList<RunnerContext> _contextsActive;
+        readonly LinkedList<RunnerContext> _contextsInactive;
+        readonly Thread _mainThread;
+        readonly GameScriptDatabase _database;
+        readonly JumpTable _jumpTable;
+        readonly Settings _settings;
         #endregion
 
-        #region Public API
-        public GameScriptDatabase Database => _database;
-
-        public async Awaitable Initialize(CancellationToken token = default)
+        #region Constructor
+        /// <summary>
+        /// Creates a new runner with the specified database and settings.
+        /// </summary>
+        public GameScriptRunner(GameScriptDatabase database, Settings settings)
         {
-            if (_database != null)
-                throw new InvalidOperationException("GameScript has already been initialized");
-
-            _database = new GameScriptDatabase();
-            await _database.Initialize(_settings, token);
+            _database = database ?? throw new ArgumentNullException(nameof(database));
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _mainThread = Thread.CurrentThread;
+            _contextsActive = new LinkedList<RunnerContext>();
+            _contextsInactive = new LinkedList<RunnerContext>();
 
             // Build jump table from snapshot
             _jumpTable = JumpTableBuilder.Build(_database.Snapshot);
+
+            // Pre-allocate context pool
+            for (uint i = 0; i < _settings.InitialConversationPool; i++)
+            {
+                _contextsInactive.AddLast(new RunnerContext(_settings));
+            }
         }
+        #endregion
+
+        #region Public API
+        /// <summary>
+        /// The database this runner was created with.
+        /// </summary>
+        public GameScriptDatabase Database => _database;
 
         /// <summary>
         /// Starts a conversation by index.
@@ -47,7 +55,6 @@ namespace GameScript
         public ActiveConversation StartConversation(int conversationIndex, IGameScriptListener listener)
         {
             EnsureMainThread();
-            EnsureInitialized();
 
             RunnerContext context = ContextAcquire();
             context.Initialize(_database, _jumpTable, conversationIndex, listener);
@@ -63,6 +70,15 @@ namespace GameScript
         /// </summary>
         public ActiveConversation StartConversation(ConversationRef conversation, IGameScriptListener listener)
         {
+            return StartConversation(conversation.Index, listener);
+        }
+
+        /// <summary>
+        /// Starts a conversation by ID.
+        /// </summary>
+        public ActiveConversation StartConversation(ConversationId conversationId, IGameScriptListener listener)
+        {
+            ConversationRef conversation = _database.FindConversation(conversationId);
             return StartConversation(conversation.Index, listener);
         }
 
@@ -101,21 +117,6 @@ namespace GameScript
                 LinkedListNode<RunnerContext> next = node.Next;
                 ContextRelease(node);
                 node = next;
-            }
-        }
-        #endregion
-
-        #region Unity Lifecycle
-        void Awake()
-        {
-            _mainThread = Thread.CurrentThread;
-            _contextsActive = new LinkedList<RunnerContext>();
-            _contextsInactive = new LinkedList<RunnerContext>();
-
-            // Pre-allocate context pool
-            for (uint i = 0; i < _settings.InitialConversationPool; i++)
-            {
-                _contextsInactive.AddLast(new RunnerContext(_settings));
             }
         }
         #endregion
@@ -190,29 +191,6 @@ namespace GameScript
             if (_mainThread != Thread.CurrentThread)
                 throw new InvalidOperationException("GameScript APIs must be called from the main thread");
         }
-
-        void EnsureInitialized()
-        {
-            if (_database == null)
-                throw new InvalidOperationException("GameScript has not been initialized. Call Initialize() first.");
-        }
-        #endregion
-
-        #region Editor
-#if UNITY_EDITOR
-        void OnValidate()
-        {
-            UnityEditor.MonoScript monoScript = UnityEditor.MonoScript.FromMonoBehaviour(this);
-            int currentExecutionOrder = UnityEditor.MonoImporter.GetExecutionOrder(monoScript);
-            if (currentExecutionOrder != _executionOrder)
-            {
-                UnityEditor.MonoImporter.SetExecutionOrder(monoScript, _executionOrder);
-            }
-
-            if (!_settings)
-                _settings = Settings.GetSettings();
-        }
-#endif
         #endregion
     }
 }

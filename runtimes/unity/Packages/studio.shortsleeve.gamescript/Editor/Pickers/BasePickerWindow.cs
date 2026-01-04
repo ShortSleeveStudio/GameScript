@@ -62,10 +62,10 @@ namespace GameScript.Editor
             window.onSelected = onSelected;
             window.titleContent = new GUIContent(window.WindowTitle);
 
-            // Position below the button
+            // Position below the button, aligned to right edge
             Vector2 windowSize = window.WindowSize;
-            Vector2 screenPos = GUIUtility.GUIToScreenPoint(new Vector2(buttonRect.x, buttonRect.yMax));
-            window.position = new Rect(screenPos.x, screenPos.y, windowSize.x, windowSize.y);
+            Vector2 screenPos = GUIUtility.GUIToScreenPoint(new Vector2(buttonRect.xMax, buttonRect.yMax));
+            window.position = new Rect(screenPos.x - windowSize.x, screenPos.y, windowSize.x, windowSize.y);
 
             window.ShowPopup();
             window.Focus();

@@ -9,27 +9,37 @@ namespace GameScript
 {
     public sealed class GameScriptDatabase
     {
-        #region Constants
-        const string ManifestFilename = "manifest.json";
-        const string LocalesFolder = "locales";
-        const string SnapshotExtension = ".gsb";
-        #endregion
-
         #region State
-        Manifest _manifest;
+        readonly GameScriptManifest _gsManifest;
         Snapshot _snapshot;
         int _currentLocaleIndex = -1;
 #if UNITY_EDITOR
         string _loadedHash;
 #endif
-
-        // Cached paths (allocated once after manifest load)
-        string _manifestPath;
-        string[] _snapshotPaths; // Indexed same as Manifest.Locales
         #endregion
 
         #region Constructor
-        internal GameScriptDatabase() { }
+        GameScriptDatabase(GameScriptManifest manifest)
+        {
+            _gsManifest = manifest;
+        }
+
+        // Editor-only constructor for legacy EditorInstance pattern
+#if UNITY_EDITOR
+        GameScriptDatabase() { _gsManifest = null; }
+#endif
+        #endregion
+
+        #region Factory
+        /// <summary>
+        /// Creates a new database instance for the specified locale.
+        /// </summary>
+        internal static async Awaitable<GameScriptDatabase> Create(GameScriptManifest manifest, LocaleRef locale, CancellationToken token)
+        {
+            GameScriptDatabase database = new(manifest);
+            await database.LoadSnapshot(locale.Index, token);
+            return database;
+        }
         #endregion
 
         #region Public API
@@ -39,9 +49,14 @@ namespace GameScript
         public event Action OnLocaleChanged;
 
         /// <summary>
+        /// The manifest this database was created from.
+        /// </summary>
+        public GameScriptManifest Manifest => _gsManifest;
+
+        /// <summary>
         /// The currently loaded locale.
         /// </summary>
-        public LocaleRef CurrentLocale => new LocaleRef(_manifest, _currentLocaleIndex);
+        public LocaleRef CurrentLocale => new(_gsManifest.Manifest, _currentLocaleIndex);
 
         /// <summary>
         /// Changes the current locale and reloads the snapshot.
@@ -222,39 +237,27 @@ namespace GameScript
             throw new KeyNotFoundException($"Edge with ID {id} not found");
         }
 
-        // ===== Locales (from Manifest, not Snapshot) =====
+        // ===== Locales (delegated to Manifest) =====
 
         /// <summary>
         /// The number of locales in the manifest.
         /// </summary>
-        public int LocaleCount => _manifest?.Locales?.Length ?? 0;
+        public int LocaleCount => _gsManifest?.LocaleCount ?? 0;
 
         /// <summary>
         /// Gets a locale by index.
         /// </summary>
-        public LocaleRef GetLocale(int index)
-        {
-            return new LocaleRef(_manifest, index);
-        }
+        public LocaleRef GetLocale(int index) => _gsManifest.GetLocale(index);
 
         /// <summary>
         /// Finds a locale from the manifest by ID.
         /// </summary>
-        public LocaleRef FindLocale(LocaleId id) => FindLocale((int)id);
+        public LocaleRef FindLocale(LocaleId id) => _gsManifest.FindLocale(id);
 
         /// <summary>
         /// Finds a locale from the manifest by ID.
         /// </summary>
-        public LocaleRef FindLocale(int id)
-        {
-            int count = LocaleCount;
-            for (int i = 0; i < count; i++)
-            {
-                if (_manifest.Locales[i].Id == id)
-                    return GetLocale(i);
-            }
-            throw new KeyNotFoundException($"Locale with ID {id} not found");
-        }
+        public LocaleRef FindLocale(int id) => _gsManifest.FindLocale(id);
         #endregion
 
         #region Internal API
@@ -262,60 +265,13 @@ namespace GameScript
         /// The currently loaded snapshot. Internal to avoid exposing FlatSharp types.
         /// </summary>
         internal Snapshot Snapshot => _snapshot;
-
-        /// <summary>
-        /// Initializes the database by loading the manifest and primary locale snapshot.
-        /// </summary>
-        internal async Awaitable Initialize(Settings settings, CancellationToken token)
-        {
-            await LoadManifestAndCachePaths(settings.GameDataPath, token);
-
-            int primaryIndex = _manifest.PrimaryLocaleIndex;
-            if (_manifest.Locales == null || _manifest.Locales.Length == 0)
-                throw new InvalidOperationException("No locales defined in manifest");
-
-            if (primaryIndex < 0 || primaryIndex >= _manifest.Locales.Length)
-                primaryIndex = 0;
-
-            await LoadSnapshot(primaryIndex, token);
-        }
-
-        /// <summary>
-        /// Initializes with a specific locale instead of the primary.
-        /// </summary>
-        internal async Awaitable Initialize(Settings settings, LocaleRef locale, CancellationToken token)
-        {
-            await LoadManifestAndCachePaths(settings.GameDataPath, token);
-            await LoadSnapshot(locale.Index, token);
-        }
         #endregion
 
         #region Private API
-        async Awaitable LoadManifestAndCachePaths(string basePath, CancellationToken token)
-        {
-            // Build and cache manifest path
-            _manifestPath = BuildPath(basePath, ManifestFilename);
-
-            // Load manifest
-            _manifest = await LoadManifestAsync(_manifestPath, token);
-
-            // Cache snapshot paths
-            CacheSnapshotPaths(basePath);
-        }
-
-        void CacheSnapshotPaths(string basePath)
-        {
-            _snapshotPaths = new string[_manifest.Locales.Length];
-            for (int i = 0; i < _manifest.Locales.Length; i++)
-            {
-                string localeName = _manifest.Locales[i].Name;
-                _snapshotPaths[i] = BuildPath(basePath, LocalesFolder, localeName + SnapshotExtension);
-            }
-        }
-
         async Awaitable LoadSnapshot(int localeIndex, CancellationToken token)
         {
-            byte[] buffer = await LoadBytesAsync(_snapshotPaths[localeIndex], token);
+            string snapshotPath = _gsManifest.GetSnapshotPath(localeIndex);
+            byte[] buffer = await GameScriptPaths.LoadBytesAsync(snapshotPath, token);
             SetSnapshot(localeIndex, buffer);
         }
 
@@ -324,95 +280,21 @@ namespace GameScript
             _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
             _currentLocaleIndex = localeIndex;
 #if UNITY_EDITOR
-            _loadedHash = _manifest.Locales[localeIndex].Hash;
+            _loadedHash = _gsManifest.Manifest.Locales[localeIndex].Hash;
 #endif
         }
+        #endregion
 
-        static int GetLocaleIndexByName(ManifestLocale[] locales, string name)
-        {
-            for (int i = 0; i < locales.Length; i++)
-            {
-                if (locales[i].Name == name)
-                    return i;
-            }
-            return -1;
-        }
-
-        static string BuildPath(params string[] parts)
-        {
-            string relativePath = Path.Combine(parts);
-            return Path.Combine(Application.streamingAssetsPath, relativePath);
-        }
-
-        async Awaitable<Manifest> LoadManifestAsync(string fullPath, CancellationToken token)
-        {
-            string json = await LoadTextAsync(fullPath, token);
-            return JsonUtility.FromJson<Manifest>(json);
-        }
-
-        Manifest LoadManifestSync(string fullPath)
-        {
-            string json = File.ReadAllText(fullPath);
-            return JsonUtility.FromJson<Manifest>(json);
-        }
-
-        static async Awaitable<string> LoadTextAsync(string fullPath, CancellationToken token)
-        {
-#if (UNITY_ANDROID || UNITY_WEBGL) && !UNITY_EDITOR
-            return await LoadTextViaWebRequest(fullPath, token);
-#else
-            return await File.ReadAllTextAsync(fullPath, token);
-#endif
-        }
-
-        static async Awaitable<byte[]> LoadBytesAsync(string fullPath, CancellationToken token)
-        {
-#if (UNITY_ANDROID || UNITY_WEBGL) && !UNITY_EDITOR
-            return await LoadBytesViaWebRequest(fullPath, token);
-#else
-            return await File.ReadAllBytesAsync(fullPath, token);
-#endif
-        }
-
-#if (UNITY_ANDROID || UNITY_WEBGL) && !UNITY_EDITOR
-        async Awaitable<string> LoadTextViaWebRequest(string fullPath, CancellationToken token)
-        {
-            using (UnityEngine.Networking.UnityWebRequest www = CreateWebRequest(fullPath))
-            {
-                await SendWebRequest(www, token);
-                return www.downloadHandler.text;
-            }
-        }
-
-        async Awaitable<byte[]> LoadBytesViaWebRequest(string fullPath, CancellationToken token)
-        {
-            using (UnityEngine.Networking.UnityWebRequest www = CreateWebRequest(fullPath))
-            {
-                await SendWebRequest(www, token);
-                return www.downloadHandler.data;
-            }
-        }
-
-        static UnityEngine.Networking.UnityWebRequest CreateWebRequest(string fullPath)
-        {
-            // Convert file path to proper file:// URI, handling special characters
-            Uri fileUri = new Uri(fullPath);
-            return UnityEngine.Networking.UnityWebRequest.Get(fileUri.AbsoluteUri);
-        }
-
-        async Awaitable SendWebRequest(UnityEngine.Networking.UnityWebRequest www, CancellationToken token)
-        {
-            UnityEngine.Networking.UnityWebRequestAsyncOperation operation = www.SendWebRequest();
-
-            while (!operation.isDone)
-                await Awaitable.NextFrameAsync(token);
-
-            if (www.result != UnityEngine.Networking.UnityWebRequest.Result.Success)
-                throw new Exception($"Failed to load {www.url}: {www.error}");
-        }
-#endif
-
+        #region Editor
 #if UNITY_EDITOR
+        // Legacy editor support - maintains the EditorInstance pattern for property drawers
+        // This uses a separate code path that doesn't require GameScriptManifest
+
+        // Editor-only state for legacy pattern
+        Manifest _editorManifest;
+        string _manifestPath;
+        string[] _snapshotPaths;
+
         static GameScriptDatabase s_editorInstance;
         static string s_editorBasePath;
 
@@ -435,7 +317,6 @@ namespace GameScript
         {
             get
             {
-                // EnsureEditorInstance handles lazy loading, validation, and hot-reload
                 EnsureEditorInstance();
                 return s_editorInstance;
             }
@@ -462,7 +343,7 @@ namespace GameScript
             }
 
             string basePath = settings.GameDataPath;
-            string manifestPath = BuildPath(basePath, ManifestFilename);
+            string manifestPath = GameScriptPaths.BuildPath(basePath, GameScriptPaths.ManifestFilename);
 
             if (!File.Exists(manifestPath))
             {
@@ -485,23 +366,23 @@ namespace GameScript
             }
 
             // Load manifest and snapshot if not loaded
-            if (s_editorInstance._manifest == null)
+            if (s_editorInstance._editorManifest == null)
             {
                 s_editorInstance._manifestPath = manifestPath;
-                s_editorInstance._manifest = s_editorInstance.LoadManifestSync(manifestPath);
-                s_editorInstance.CacheSnapshotPaths(basePath);
+                s_editorInstance._editorManifest = LoadManifestSync(manifestPath);
+                s_editorInstance.CacheEditorSnapshotPaths(basePath);
 
                 // Load primary locale snapshot
-                int primaryIndex = s_editorInstance._manifest.PrimaryLocaleIndex;
-                if (s_editorInstance._manifest.Locales != null && s_editorInstance._manifest.Locales.Length > 0)
+                int primaryIndex = s_editorInstance._editorManifest.PrimaryLocaleIndex;
+                if (s_editorInstance._editorManifest.Locales != null && s_editorInstance._editorManifest.Locales.Length > 0)
                 {
-                    if (primaryIndex < 0 || primaryIndex >= s_editorInstance._manifest.Locales.Length)
+                    if (primaryIndex < 0 || primaryIndex >= s_editorInstance._editorManifest.Locales.Length)
                         primaryIndex = 0;
 
                     if (File.Exists(s_editorInstance._snapshotPaths[primaryIndex]))
                     {
                         byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[primaryIndex]);
-                        s_editorInstance.SetSnapshot(primaryIndex, buffer);
+                        s_editorInstance.SetEditorSnapshot(primaryIndex, buffer);
                     }
                 }
             }
@@ -519,7 +400,7 @@ namespace GameScript
         public static Manifest EditorGetManifest()
         {
             EnsureEditorInstance();
-            return s_editorInstance?._manifest;
+            return s_editorInstance?._editorManifest;
         }
 
         /// <summary>
@@ -608,9 +489,21 @@ namespace GameScript
             return null;
         }
 
+        void CacheEditorSnapshotPaths(string basePath)
+        {
+            _snapshotPaths = GameScriptPaths.BuildSnapshotPaths(basePath, _editorManifest.Locales);
+        }
+
+        void SetEditorSnapshot(int localeIndex, byte[] buffer)
+        {
+            _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
+            _currentLocaleIndex = localeIndex;
+            _loadedHash = _editorManifest.Locales[localeIndex].Hash;
+        }
+
         void CheckForHotReload(string basePath)
         {
-            if (_manifest == null || _currentLocaleIndex < 0)
+            if (_editorManifest == null || _currentLocaleIndex < 0)
                 return;
 
             if (!File.Exists(_manifestPath))
@@ -619,7 +512,7 @@ namespace GameScript
             Manifest freshManifest = LoadManifestSync(_manifestPath);
 
             // Find current locale by name in the fresh manifest
-            string currentLocaleName = _manifest.Locales[_currentLocaleIndex].Name;
+            string currentLocaleName = _editorManifest.Locales[_currentLocaleIndex].Name;
             int index = GetLocaleIndexByName(freshManifest.Locales, currentLocaleName);
             if (index < 0)
                 return;
@@ -630,10 +523,26 @@ namespace GameScript
 
             // Snapshot has changed, reload synchronously
             // Also refresh path cache in case locale names changed
-            _manifest = freshManifest;
-            CacheSnapshotPaths(basePath);
+            _editorManifest = freshManifest;
+            CacheEditorSnapshotPaths(basePath);
             byte[] buffer = File.ReadAllBytes(_snapshotPaths[index]);
-            SetSnapshot(index, buffer);
+            SetEditorSnapshot(index, buffer);
+        }
+
+        static Manifest LoadManifestSync(string fullPath)
+        {
+            string json = File.ReadAllText(fullPath);
+            return JsonUtility.FromJson<Manifest>(json);
+        }
+
+        static int GetLocaleIndexByName(ManifestLocale[] locales, string name)
+        {
+            for (int i = 0; i < locales.Length; i++)
+            {
+                if (locales[i].Name == name)
+                    return i;
+            }
+            return -1;
         }
 #endif
         #endregion
