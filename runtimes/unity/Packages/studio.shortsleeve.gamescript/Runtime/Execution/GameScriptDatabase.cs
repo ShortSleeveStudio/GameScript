@@ -154,6 +154,74 @@ namespace GameScript
             throw new KeyNotFoundException($"Localization with ID {id} not found");
         }
 
+        // ===== Nodes =====
+
+        /// <summary>
+        /// The number of nodes in the current snapshot.
+        /// </summary>
+        public int NodeCount => _snapshot?.Nodes?.Count ?? 0;
+
+        /// <summary>
+        /// Gets a node by index.
+        /// </summary>
+        public NodeRef GetNode(int index)
+        {
+            return new NodeRef(_snapshot, index);
+        }
+
+        /// <summary>
+        /// Finds a node by ID.
+        /// </summary>
+        public NodeRef FindNode(NodeId id) => FindNode((int)id);
+
+        /// <summary>
+        /// Finds a node by ID.
+        /// </summary>
+        public NodeRef FindNode(int id)
+        {
+            int count = NodeCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_snapshot.Nodes[i].Id == id)
+                    return GetNode(i);
+            }
+            throw new KeyNotFoundException($"Node with ID {id} not found");
+        }
+
+        // ===== Edges =====
+
+        /// <summary>
+        /// The number of edges in the current snapshot.
+        /// </summary>
+        public int EdgeCount => _snapshot?.Edges?.Count ?? 0;
+
+        /// <summary>
+        /// Gets an edge by index.
+        /// </summary>
+        public EdgeRef GetEdge(int index)
+        {
+            return new EdgeRef(_snapshot, index);
+        }
+
+        /// <summary>
+        /// Finds an edge by ID.
+        /// </summary>
+        public EdgeRef FindEdge(EdgeId id) => FindEdge((int)id);
+
+        /// <summary>
+        /// Finds an edge by ID.
+        /// </summary>
+        public EdgeRef FindEdge(int id)
+        {
+            int count = EdgeCount;
+            for (int i = 0; i < count; i++)
+            {
+                if (_snapshot.Edges[i].Id == id)
+                    return GetEdge(i);
+            }
+            throw new KeyNotFoundException($"Edge with ID {id} not found");
+        }
+
         // ===== Locales (from Manifest, not Snapshot) =====
 
         /// <summary>
