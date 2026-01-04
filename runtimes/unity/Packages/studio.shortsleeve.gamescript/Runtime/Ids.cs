@@ -114,4 +114,60 @@ namespace GameScript
         public static bool operator ==(LocaleId left, LocaleId right) => left.value == right.value;
         public static bool operator !=(LocaleId left, LocaleId right) => left.value != right.value;
     }
+
+    /// <summary>
+    /// Serializable wrapper for a node database ID.
+    /// Use in Inspector fields or for programmatic node lookups.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
+    /// </summary>
+    [Serializable]
+    public struct NodeId : IEquatable<NodeId>
+    {
+        public static readonly NodeId None = default;
+
+        [SerializeField] internal int value;
+
+        public NodeId(int id) => value = id;
+
+        public bool IsValid => value > 0;
+
+        public static implicit operator int(NodeId id) => id.value;
+        public static explicit operator NodeId(int id) => new(id);
+
+        public bool Equals(NodeId other) => value == other.value;
+        public override bool Equals(object obj) => obj is NodeId other && Equals(other);
+        public override int GetHashCode() => value;
+        public override string ToString() => value.ToString();
+
+        public static bool operator ==(NodeId left, NodeId right) => left.value == right.value;
+        public static bool operator !=(NodeId left, NodeId right) => left.value != right.value;
+    }
+
+    /// <summary>
+    /// Serializable wrapper for an edge database ID.
+    /// Use in Inspector fields or for programmatic edge lookups.
+    /// Database IDs start at 1, so 0 means "not set" (works with default struct initialization).
+    /// </summary>
+    [Serializable]
+    public struct EdgeId : IEquatable<EdgeId>
+    {
+        public static readonly EdgeId None = default;
+
+        [SerializeField] internal int value;
+
+        public EdgeId(int id) => value = id;
+
+        public bool IsValid => value > 0;
+
+        public static implicit operator int(EdgeId id) => id.value;
+        public static explicit operator EdgeId(int id) => new(id);
+
+        public bool Equals(EdgeId other) => value == other.value;
+        public override bool Equals(object obj) => obj is EdgeId other && Equals(other);
+        public override int GetHashCode() => value;
+        public override string ToString() => value.ToString();
+
+        public static bool operator ==(EdgeId left, EdgeId right) => left.value == right.value;
+        public static bool operator !=(EdgeId left, EdgeId right) => left.value != right.value;
+    }
 }
