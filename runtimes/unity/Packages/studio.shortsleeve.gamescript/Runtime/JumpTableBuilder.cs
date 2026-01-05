@@ -131,7 +131,17 @@ namespace GameScript
                     MethodInfo method = methods[m];
 
                     // Check for NodeCondition attribute
-                    NodeConditionAttribute conditionAttr = method.GetCustomAttribute<NodeConditionAttribute>();
+                    NodeConditionAttribute conditionAttr;
+                    try
+                    {
+                        conditionAttr = method.GetCustomAttribute<NodeConditionAttribute>();
+                    }
+                    catch (Exception)
+                    {
+                        // Skip methods where we can't load attribute metadata
+                        // (e.g., missing assembly references like JetBrains.Annotations)
+                        continue;
+                    }
                     if (conditionAttr != null)
                     {
                         if (ValidateConditionSignature(method))
@@ -157,7 +167,16 @@ namespace GameScript
                     }
 
                     // Check for NodeAction attribute
-                    NodeActionAttribute actionAttr = method.GetCustomAttribute<NodeActionAttribute>();
+                    NodeActionAttribute actionAttr;
+                    try
+                    {
+                        actionAttr = method.GetCustomAttribute<NodeActionAttribute>();
+                    }
+                    catch (Exception)
+                    {
+                        // Skip methods where we can't load attribute metadata
+                        continue;
+                    }
                     if (actionAttr != null)
                     {
                         if (ValidateActionSignature(method))
