@@ -2,7 +2,7 @@
   "name": "gamescript",
   "displayName": "GameScript",
   "description": "Visual dialogue authoring for games",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "publisher": "ShortSleeveStudio",
   "repository": {
     "type": "git",
@@ -46,6 +46,11 @@
         "icon": "$(book)"
       },
       {
+        "command": "gamescript.refreshRegistry",
+        "title": "Refresh Action/Condition Registry",
+        "category": "GameScript"
+      },
+      {
         "command": "gamescript.undo",
         "title": "Undo",
         "category": "GameScript"
@@ -56,9 +61,39 @@
         "category": "GameScript"
       },
       {
-        "command": "gamescript.refreshRegistry",
-        "title": "Refresh Action/Condition Registry",
+        "command": "gamescript.save",
+        "title": "Save",
         "category": "GameScript"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gamescript.undo",
+        "key": "cmd+z",
+        "win": "ctrl+z",
+        "linux": "ctrl+z",
+        "when": "gamescriptPanelFocused"
+      },
+      {
+        "command": "gamescript.redo",
+        "key": "cmd+shift+z",
+        "win": "ctrl+shift+z",
+        "linux": "ctrl+shift+z",
+        "when": "gamescriptPanelFocused"
+      },
+      {
+        "command": "gamescript.redo",
+        "key": "cmd+y",
+        "win": "ctrl+y",
+        "linux": "ctrl+y",
+        "when": "gamescriptPanelFocused"
+      },
+      {
+        "command": "gamescript.save",
+        "key": "cmd+s",
+        "win": "ctrl+s",
+        "linux": "ctrl+s",
+        "when": "gamescriptPanelFocused"
       }
     ],
     "menus": {
@@ -69,26 +104,6 @@
         }
       ]
     },
-    "keybindings": [
-      {
-        "command": "gamescript.undo",
-        "key": "ctrl+z",
-        "mac": "cmd+z",
-        "when": "gamescriptPanelFocused"
-      },
-      {
-        "command": "gamescript.redo",
-        "key": "ctrl+shift+z",
-        "mac": "cmd+shift+z",
-        "when": "gamescriptPanelFocused"
-      },
-      {
-        "command": "gamescript.redo",
-        "key": "ctrl+y",
-        "mac": "cmd+y",
-        "when": "gamescriptPanelFocused"
-      }
-    ],
     "configuration": {
       "title": "GameScript",
       "properties": {

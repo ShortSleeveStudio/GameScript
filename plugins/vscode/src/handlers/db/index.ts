@@ -17,7 +17,9 @@ import type {
   DbTransactionBeginMessage,
   DbTransactionCommitMessage,
   DbTransactionRollbackMessage,
-  DbConnectMessage,
+  DbOpenMessage,
+  DbCloseMessage,
+  DbStartNotificationsMessage,
   DbNotificationMeta,
 } from '@gamescript/shared';
 import type { DatabaseManager } from '../../database.js';
@@ -51,8 +53,9 @@ export class DbHandlers {
       'db:transaction:begin': (msg) => this._handleDbTransactionBegin(msg as DbTransactionBeginMessage),
       'db:transaction:commit': (msg) => this._handleDbTransactionCommit(msg as DbTransactionCommitMessage),
       'db:transaction:rollback': (msg) => this._handleDbTransactionRollback(msg as DbTransactionRollbackMessage),
-      'db:connect': (msg) => this._handleDbConnect(msg as DbConnectMessage),
-      'db:disconnect': () => this._handleDbDisconnect(),
+      'db:open': (msg) => this._handleDbOpen(msg as DbOpenMessage),
+      'db:close': (msg) => this._handleDbClose(msg as DbCloseMessage),
+      'db:startNotifications': (msg) => this._handleDbStartNotifications(msg as DbStartNotificationsMessage),
     };
   }
 
@@ -281,28 +284,66 @@ export class DbHandlers {
   // Connection Management
   // ==========================================================================
 
-  private async _handleDbConnect(message: DbConnectMessage): Promise<void> {
+  /**
+   * Handle db:open - Open a raw database connection (no validation).
+   */
+  private async _handleDbOpen(message: DbOpenMessage): Promise<void> {
     try {
-      await this._databaseManager.connect(message.config, message.createNew);
-      await this._sendConnectionStatus();
-      await this._databaseManager.startChangeNotifications();
-    } catch (error) {
-      console.error(`[DbHandlers] Connection error:`, error);
+      await this._databaseManager.open(message.config);
       this._postMessage({
-        type: 'db:error',
-        error: error instanceof Error ? error.message : 'Connection failed',
+        type: 'db:openResult',
+        id: message.id,
+        success: true,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'db:openResult',
+        id: message.id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to open connection',
       });
     }
   }
 
-  private async _handleDbDisconnect(): Promise<void> {
+  /**
+   * Handle db:close - Close the database connection.
+   */
+  private async _handleDbClose(message: DbCloseMessage): Promise<void> {
     try {
-      await this._databaseManager.dispose();
-      await this._sendConnectionStatus();
+      await this._databaseManager.close();
+      this._postMessage({
+        type: 'db:closeResult',
+        id: message.id,
+        success: true,
+      });
     } catch (error) {
       this._postMessage({
-        type: 'db:error',
-        error: error instanceof Error ? error.message : 'Disconnect failed',
+        type: 'db:closeResult',
+        id: message.id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to close connection',
+      });
+    }
+  }
+
+  /**
+   * Handle db:startNotifications - Start listening for database changes.
+   * Called by the UI after schema validation/initialization completes.
+   */
+  private async _handleDbStartNotifications(message: DbStartNotificationsMessage): Promise<void> {
+    try {
+      await this._databaseManager.startChangeNotifications();
+      this._postMessage({
+        type: 'db:startNotificationsResult',
+        id: message.id,
+        success: true,
+      });
+    } catch (error) {
+      this._postMessage({
+        type: 'db:startNotificationsResult',
+        id: message.id,
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to start change notifications',
       });
     }
   }

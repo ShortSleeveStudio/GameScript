@@ -27,16 +27,16 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Register undo/redo commands - forward to panel
+  // Register edit commands that forward to the webview
   context.subscriptions.push(
     vscode.commands.registerCommand('gamescript.undo', () => {
-      GameScriptPanel.sendToPanel({ type: 'undo' });
-    })
-  );
-
-  context.subscriptions.push(
+      GameScriptPanel.sendToPanel({ type: 'edit:undo' });
+    }),
     vscode.commands.registerCommand('gamescript.redo', () => {
-      GameScriptPanel.sendToPanel({ type: 'redo' });
+      GameScriptPanel.sendToPanel({ type: 'edit:redo' });
+    }),
+    vscode.commands.registerCommand('gamescript.save', () => {
+      GameScriptPanel.sendToPanel({ type: 'edit:save' });
     })
   );
 

@@ -101,6 +101,8 @@
 
     // Tables
     import { actorsTable } from '$lib/tables/actors.js';
+    import { codeTemplateTableView, getCodeTemplate } from '$lib/tables';
+    import type { CodeTemplateType } from '@gamescript/shared';
 
     // Notifications
     import { toastError } from '$lib/stores/notifications.js';
@@ -242,6 +244,10 @@
     let actorOptions = $derived(actorsTable.rows.map(actorRowView => {
         return { value: actorRowView.id, label: actorRowView.data?.name ?? '' };
     }));
+
+    // Code template for file operations
+    let codeTemplateView = $derived(getCodeTemplate(codeTemplateTableView.rows));
+    let codeTemplate: CodeTemplateType = $derived((codeTemplateView?.data.value as CodeTemplateType) ?? 'unity');
 
     // Focused conversation data
     let focusedConversation: Conversation | undefined = $derived(
@@ -469,19 +475,25 @@
 
     // Layout coalescing - multiple layout requests collapse into one per frame
     let layoutScheduled = false;
+    // Layout version counter - incremented on each layout request, used to detect stale results
+    let layoutVersion = 0;
 
     function scheduleLayout(): void {
         if (layoutScheduled) return;
         layoutScheduled = true;
+        layoutVersion++;
 
+        const currentVersion = layoutVersion;
         requestAnimationFrame(() => {
             layoutScheduled = false;
-            void processLayout();
+            void processLayout(currentVersion);
         });
     }
 
-    async function processLayout(): Promise<void> {
+    async function processLayout(version: number): Promise<void> {
         if (!focusedRowView || !focusedRowView.data.is_layout_auto) return;
+        // Check if a newer layout was requested - discard stale computation
+        if (version !== layoutVersion) return;
 
         let flowNodes: GraphNode[] = [...nodes];
         if (flowNodes.length === 0) return;
@@ -595,6 +607,8 @@
             children: elkNodes,
             edges: elkEdges,
         });
+        // Check if layout was superseded during async operation
+        if (version !== layoutVersion) return;
         if (!focusedRowView?.data.is_layout_auto) return;
 
         flowNodes = [...nodes];
@@ -635,6 +649,8 @@
                 blur();
                 return;
             }
+            // Check if layout was superseded during async operation
+            if (version !== layoutVersion) return;
             if (!focusedRowView?.data.is_layout_auto) return;
         }
 
@@ -723,7 +739,7 @@
         isLoading = true;
         try {
             const filteredNodes = nodesToDelete.filter((n) => n.type !== NODE_TYPES.ROOT);
-            await deleteGraphSelection(filteredNodes, edgesToDelete);
+            await deleteGraphSelection(filteredNodes, edgesToDelete, codeTemplate);
         } catch (error) {
             toastError('Failed to delete', error);
             blur();

@@ -55,15 +55,50 @@ export interface DbRunMessage {
 	context?: TransactionContext;
 }
 
-export interface DbConnectMessage {
-	type: 'db:connect';
+/** Request to open a raw database connection (no validation) */
+export interface DbOpenMessage {
+	type: 'db:open';
+	id: string;
 	config: DatabaseConfig;
-	/** If true, create a new database (initialize schema) */
-	createNew?: boolean;
 }
 
-export interface DbDisconnectMessage {
-	type: 'db:disconnect';
+/** Response after raw connection attempt */
+export interface DbOpenResultMessage {
+	type: 'db:openResult';
+	id: string;
+	success: boolean;
+	error?: string;
+}
+
+/** Request to close the database connection */
+export interface DbCloseMessage {
+	type: 'db:close';
+	id: string;
+}
+
+/** Response after close attempt */
+export interface DbCloseResultMessage {
+	type: 'db:closeResult';
+	id: string;
+	success: boolean;
+	error?: string;
+}
+
+/**
+ * Request to start change notifications (LISTEN/NOTIFY for PostgreSQL).
+ * Sent by the UI after schema validation/initialization completes.
+ */
+export interface DbStartNotificationsMessage {
+	type: 'db:startNotifications';
+	id: string;
+}
+
+/** Response after starting change notifications */
+export interface DbStartNotificationsResultMessage {
+	type: 'db:startNotificationsResult';
+	id: string;
+	success: boolean;
+	error?: string;
 }
 
 export interface DialogOpenSqliteMessage {
@@ -279,13 +314,15 @@ export interface CodeOpenMethodMessage {
 
 /**
  * Request to set up file watcher for code files.
- * Sent by UI when code output folder is known/changes.
- * Pass null/undefined to clear the watcher.
+ * Sent by UI when code output folder or file extension changes.
+ * Pass null folderPath to clear the watcher.
  */
 export interface CodeWatchFolderMessage {
 	type: 'code:watchFolder';
 	/** Relative path to the code output folder, or null to clear */
 	folderPath: string | null;
+	/** File extension to watch (e.g., '.cs' or '.cpp'), defaults to '.cs' */
+	fileExtension?: string;
 }
 
 /**
@@ -372,8 +409,9 @@ export type OutgoingMessage =
 	| DbTransactionBeginMessage
 	| DbTransactionCommitMessage
 	| DbTransactionRollbackMessage
-	| DbConnectMessage
-	| DbDisconnectMessage
+	| DbOpenMessage
+	| DbCloseMessage
+	| DbStartNotificationsMessage
 	| DialogOpenSqliteMessage
 	| DialogSaveSqliteMessage
 	| DialogOpenCsvMessage
@@ -743,7 +781,10 @@ export interface CodeMethodResultMessage {
 	type: 'code:methodResult';
 	id: string;
 	success: true;
+	/** Method body (signature + implementation), used for preview display */
 	body: string;
+	/** Full method text including preceding attributes, used for undo/restore */
+	fullText: string;
 	filePath: string;
 	lineNumber: number;
 }
@@ -899,6 +940,23 @@ export interface ThemeChangedMessage {
 }
 
 /**
+ * Edit command messages sent from IDE to UI.
+ * These are triggered by keyboard shortcuts intercepted by the IDE plugin
+ * to prevent conflicts with the IDE's native undo/redo/save.
+ */
+export interface EditUndoMessage {
+	type: 'edit:undo';
+}
+
+export interface EditRedoMessage {
+	type: 'edit:redo';
+}
+
+export interface EditSaveMessage {
+	type: 'edit:save';
+}
+
+/**
  * Union type of all messages sent FROM Extension TO UI
  */
 export type IncomingMessage =
@@ -918,6 +976,9 @@ export type IncomingMessage =
 	| DbTransactionCommitErrorMessage
 	| DbTransactionRollbackResultMessage
 	| DbTransactionRollbackErrorMessage
+	| DbOpenResultMessage
+	| DbCloseResultMessage
+	| DbStartNotificationsResultMessage
 	| DbErrorMessage
 	| DbChangedMessage
 	| DialogResultMessage
@@ -965,7 +1026,10 @@ export type IncomingMessage =
 	| CodeDeleteFileErrorMessage
 	| CodeRestoreFileResultMessage
 	| CodeRestoreFileErrorMessage
-	| ThemeChangedMessage;
+	| ThemeChangedMessage
+	| EditUndoMessage
+	| EditRedoMessage
+	| EditSaveMessage;
 
 // ============================================================================
 // Bridge Event Types
@@ -997,6 +1061,10 @@ export interface BridgeEvents {
 	focusChanged: (event: FocusChangeEvent) => void;
 	codeFileChanged: (event: CodeFileChangeEvent) => void;
 	themeChanged: (isDark: boolean) => void;
+	/** Edit commands from IDE (keyboard shortcuts intercepted by plugin) */
+	editUndo: () => void;
+	editRedo: () => void;
+	editSave: () => void;
 }
 
 export type BridgeEventName = keyof BridgeEvents;

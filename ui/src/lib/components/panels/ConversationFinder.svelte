@@ -56,7 +56,8 @@
   import { toastError, toastSuccess } from '$lib/stores/notifications.js';
   import { isDarkMode } from '$lib/stores/theme.js';
   import { IsLoadingStore } from '$lib/stores/is-loading.js';
-  import { conversationTagCategoriesTable, conversationTagValuesTable } from '$lib/tables';
+  import { conversationTagCategoriesTable, conversationTagValuesTable, codeTemplateTableView, getCodeTemplate } from '$lib/tables';
+  import type { CodeTemplateType } from '@gamescript/shared';
   import {
     graphLayoutAutoLayoutDefault,
     graphLayoutVerticalDefault,
@@ -126,6 +127,10 @@
   let columnDefs: (ColDef | ColGroupDef)[] = [...staticColumns];
   let columnIdSet: Set<string> = new Set();
   let visibilityHandle: GridVisibilityHandle | undefined;
+
+  // Code template for file operations
+  let codeTemplateView = $derived(getCodeTemplate(codeTemplateTableView.rows));
+  let codeTemplate: CodeTemplateType = $derived((codeTemplateView?.data.value as CodeTemplateType) ?? 'unity');
 
   function getGridApi(): GridApi {
     return api;
@@ -198,7 +203,7 @@
       (async () => {
         try {
           for (const conv of selectedConversations) {
-            await conversations.permanentlyDelete(conv.id);
+            await conversations.permanentlyDelete(conv.id, codeTemplate);
           }
 
           api?.refreshInfiniteCache();

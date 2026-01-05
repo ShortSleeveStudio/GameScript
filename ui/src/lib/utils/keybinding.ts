@@ -56,6 +56,20 @@ export function wasSavePressed(e: KeyboardEvent): boolean {
 }
 
 /**
+ * Check if the undo shortcut was pressed (Ctrl+Z / Cmd+Z).
+ */
+export function wasUndoPressed(e: KeyboardEvent): boolean {
+    return isKeyCombo(e, 'z', { ctrl: true });
+}
+
+/**
+ * Check if the redo shortcut was pressed (Ctrl+Shift+Z / Cmd+Shift+Z or Ctrl+Y / Cmd+Y).
+ */
+export function wasRedoPressed(e: KeyboardEvent): boolean {
+    return isKeyCombo(e, 'z', { ctrl: true, shift: true }) || isKeyCombo(e, 'y', { ctrl: true });
+}
+
+/**
  * Check if Enter was pressed (without modifiers).
  */
 export function wasEnterPressed(e: KeyboardEvent): boolean {

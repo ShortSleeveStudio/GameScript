@@ -117,6 +117,11 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     }
 
     public void OnError(ConversationRef conversation, Exception e) => Debug.LogException(e);
+
+    public void OnCleanup(ConversationRef conversation)
+    {
+        // No cleanup needed for this simple UI
+    }
     #endregion
 
     #region Helpers

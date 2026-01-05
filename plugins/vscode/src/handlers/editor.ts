@@ -38,7 +38,7 @@ export function createEditorHandlers(): HandlerRecord {
     },
 
     'editor:createFile': async (message) => {
-      const { filePath, content } = message as EditorCreateFileMessage;
+      const { filePath, content, overwrite } = message as EditorCreateFileMessage & { overwrite?: boolean };
       const uri = vscode.Uri.file(filePath);
 
       try {
@@ -51,13 +51,13 @@ export function createEditorHandlers(): HandlerRecord {
           // File doesn't exist, safe to create
         }
 
-        if (fileExists) {
-          const overwrite = await vscode.window.showWarningMessage(
+        if (fileExists && !overwrite) {
+          const confirmed = await vscode.window.showWarningMessage(
             `File '${path.basename(filePath)}' already exists. Overwrite?`,
             { modal: true },
             'Overwrite'
           );
-          if (overwrite !== 'Overwrite') {
+          if (confirmed !== 'Overwrite') {
             return;
           }
         }

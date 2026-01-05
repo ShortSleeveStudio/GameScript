@@ -7,16 +7,17 @@
      * - Read-only code preview when enabled
      * - "Open in IDE" button to jump to the method
      * - Handles creation (stub) and deletion (with diff preview)
+     * - Full undo/redo support including code file restoration
      *
      * Used by InspectorNode for conditions and actions.
      * The parent component (InspectorNode) handles folder configuration.
      */
     import { type IDbRowView } from '$lib/db';
-    import type { Row, CodeTemplateType } from '@gamescript/shared';
-    import { common } from '$lib/crud';
+    import type { Node, CodeTemplateType } from '@gamescript/shared';
     import { bridge } from '$lib/api/bridge';
     import { toastError } from '$lib/stores/notifications.js';
     import { codeTemplateTableView, getCodeTemplate } from '$lib/tables';
+    import * as codeMethods from '$lib/crud/crud-code-methods';
     import { onDestroy } from 'svelte';
     import Button from './Button.svelte';
     import CodeMethodToggle from './CodeMethodToggle.svelte';
@@ -27,9 +28,9 @@
 
     interface Props {
         /** The row view for the node */
-        rowView: IDbRowView<Row>;
+        rowView: IDbRowView<Node>;
         /** Column name for the boolean flag (e.g., 'has_condition', 'has_action') */
-        columnName: string;
+        columnName: 'has_condition' | 'has_action';
         /** Undo text for the operation */
         undoText: string;
         /** Type of method: 'condition' or 'action' */
@@ -51,7 +52,7 @@
     );
 
     // Track enabled state from row data (source of truth)
-    let hasMethod = $derived(Boolean((rowView.data as Record<string, unknown>)[columnName]));
+    let hasMethod = $derived(Boolean(rowView.data[columnName]));
 
     // Code preview state
     let codePreview = $state<string | null>(null);
@@ -89,7 +90,7 @@
         previewError = null;
 
         try {
-            const result = await bridge.getMethodBody(conversationId, methodName);
+            const result = await bridge.getMethodBody(conversationId, methodName, codeTemplate);
             codePreview = result.body;
         } catch (error) {
             previewError = error instanceof Error ? error.message : 'Failed to load preview';
@@ -100,16 +101,16 @@
     }
 
     async function handleEnable(): Promise<void> {
-        const oldRow = { ...rowView.data };
-        const newRow = { ...oldRow, [columnName]: true };
-
         isPending = true;
         try {
-            // Create the method stub first (using the selected template)
-            await bridge.createMethod(conversationId, methodName, methodType, codeTemplate);
-
-            // Update database with undo support
-            await common.updateOne(rowView.tableType, oldRow, newRow, `${undoText} enabled`);
+            await codeMethods.enableMethod({
+                node: rowView.data,
+                conversationId,
+                methodName,
+                methodType,
+                codeTemplate,
+                undoDescription: `${undoText} enabled`,
+            });
         } catch (error) {
             toastError('Failed to create method', error);
         } finally {
@@ -118,17 +119,32 @@
     }
 
     async function handleDisable(): Promise<void> {
-        const oldRow = { ...rowView.data };
-        const newRow = { ...oldRow, [columnName]: false };
-
         isPending = true;
         try {
+            // Capture the current method code for undo (including attributes)
+            let capturedCode = '';
+            try {
+                const methodResult = await bridge.getMethodBody(conversationId, methodName, codeTemplate);
+                // Use fullText which includes the attribute, not just the body
+                capturedCode = methodResult.fullText || methodResult.body || '';
+            } catch {
+                // Method might not exist yet, that's ok
+            }
+
             // Show confirmation dialog and delete if accepted
-            const result = await bridge.deleteMethod(conversationId, methodName);
+            const result = await bridge.deleteMethod(conversationId, methodName, codeTemplate);
 
             if (result.accepted) {
                 // User accepted deletion - update database with undo support
-                await common.updateOne(rowView.tableType, oldRow, newRow, `${undoText} disabled`);
+                await codeMethods.disableMethod({
+                    node: rowView.data,
+                    conversationId,
+                    methodName,
+                    methodType,
+                    codeTemplate,
+                    capturedCode,
+                    undoDescription: `${undoText} disabled`,
+                });
             }
             // If rejected, nothing changes - hasMethod stays true
         } catch (error) {
@@ -139,7 +155,7 @@
     }
 
     function openInIDE(): void {
-        bridge.openMethod(conversationId, methodName);
+        bridge.openMethod(conversationId, methodName, codeTemplate);
     }
 </script>
 

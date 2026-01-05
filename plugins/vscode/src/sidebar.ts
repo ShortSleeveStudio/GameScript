@@ -189,6 +189,10 @@ export class GameScriptSidebarProvider implements vscode.WebviewViewProvider {
         <div class="shortcuts">
             <div class="shortcuts-title">Quick Actions</div>
             <div class="shortcut">
+                <span>Save/Export</span>
+                <span class="shortcut-key">Ctrl+S</span>
+            </div>
+            <div class="shortcut">
                 <span>Undo</span>
                 <span class="shortcut-key">Ctrl+Z</span>
             </div>

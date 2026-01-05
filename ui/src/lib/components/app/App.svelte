@@ -17,21 +17,25 @@
     // Notifications
     import { toastError } from '$lib/stores/notifications.js';
 
-    // Code output folder - notify backend when it changes
-    import { codeOutputFolderTableView, getCodeOutputFolder, snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
+    // Code file watcher settings - notify backend when folder or extension changes
+    import { codeOutputFolderTableView, getCodeOutputFolder, codeTemplateTableView, getCodeTemplate, snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
     import { bridge } from '$lib/api/bridge';
+    import { getFileExtension, type CodeTemplateType } from '@gamescript/shared';
 
     // Auto-export on blur and keyboard shortcut
     import { autoExportOnBlur } from '$lib/stores/layout-defaults.js';
-    import { exportController } from '$lib/export';
-    import { wasSavePressed } from '$lib/utils/keybinding.js';
+    import { exportController, triggerSave } from '$lib/export';
+    import { undo, redo } from '$lib/undo';
 
     // Track if stores are initialized
     let initialized = $state(false);
 
-    // Notify backend when code output folder changes so it can set up file watcher
+    // Code file watcher - re-triggers when folder or extension changes
     let codeOutputFolderView = $derived(getCodeOutputFolder(codeOutputFolderTableView.rows));
     let codeOutputFolderValue = $derived(codeOutputFolderView?.data.value ?? null);
+    let codeTemplateView = $derived(getCodeTemplate(codeTemplateTableView.rows));
+    let codeTemplateValue = $derived((codeTemplateView?.data.value ?? 'unity') as CodeTemplateType);
+    let codeFileExtension = $derived(getFileExtension(codeTemplateValue));
 
     // Snapshot output path for auto-export
     let snapshotOutputPathView = $derived(getSnapshotOutputPath(snapshotOutputPathTableView.rows));
@@ -41,9 +45,9 @@
     );
 
     $effect(() => {
-        // Only notify if we're in an IDE and connected to a database
+        // Set up code file watcher when folder or extension changes
         if (bridge.isIde && $dbConnected) {
-            bridge.watchCodeFolder(codeOutputFolderValue);
+            bridge.watchCodeFolder(codeOutputFolderValue, codeFileExtension);
         }
     });
 
@@ -67,14 +71,6 @@
      */
     function canExport(): boolean {
         return $dbConnected && isSnapshotPathConfigured && snapshotOutputPathValue !== null;
-    }
-
-    /**
-     * Trigger an export if possible and not already running.
-     */
-    function triggerExport(): void {
-        if (!canExport() || exportController.isRunning) return;
-        exportController.exportAll(snapshotOutputPathValue!);
     }
 
     /**
@@ -114,17 +110,6 @@
         }
     }
 
-    /**
-     * Handle keyboard shortcuts.
-     * Ctrl+S / Cmd+S triggers export.
-     */
-    function handleKeydown(event: KeyboardEvent): void {
-        if (wasSavePressed(event)) {
-            event.preventDefault();
-            triggerExport();
-        }
-    }
-
     // Global error handler
     function handleError(event: ErrorEvent): void {
         event.preventDefault();
@@ -135,6 +120,11 @@
         event.preventDefault();
         toastError('[GameScript] Unhandled rejection:', event.reason);
     }
+
+    // Unsubscribe functions for bridge events
+    let unsubUndo: (() => void) | null = null;
+    let unsubRedo: (() => void) | null = null;
+    let unsubSave: (() => void) | null = null;
 
     onMount(() => {
         // Initialize stores (pure initialization, no side effects)
@@ -152,8 +142,10 @@
         window.addEventListener('blur', handleWindowBlur);
         window.addEventListener('focus', handleWindowFocus);
 
-        // Set up keyboard shortcuts
-        window.addEventListener('keydown', handleKeydown);
+        // Subscribe to bridge events for edit commands (from IDE plugins)
+        unsubUndo = bridge.on('editUndo', () => undo());
+        unsubRedo = bridge.on('editRedo', () => redo());
+        unsubSave = bridge.on('editSave', () => triggerSave());
     });
 
     onDestroy(() => {
@@ -161,7 +153,11 @@
         window.removeEventListener('unhandledrejection', handleRejection);
         window.removeEventListener('blur', handleWindowBlur);
         window.removeEventListener('focus', handleWindowFocus);
-        window.removeEventListener('keydown', handleKeydown);
+
+        // Clean up bridge event subscriptions
+        unsubUndo?.();
+        unsubRedo?.();
+        unsubSave?.();
 
         // Clean up any pending auto-export
         if (autoExportTimeout) {

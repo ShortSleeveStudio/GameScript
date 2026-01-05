@@ -173,12 +173,21 @@ export function initConnectionStores(onConnected?: (type: DatabaseType) => void)
  * Attempt to reconnect to the last used database.
  * Returns true if a reconnect was attempted, false if no saved config exists.
  *
- * For SQLite: Attempts connection if filepath is saved.
+ * For SQLite: Attempts connection if filepath is saved AND file exists.
+ *   If the file was deleted, clears the saved config and returns false.
  * For PostgreSQL: Attempts connection without password (works with trust auth,
  *   peer auth, .pgpass, etc.). If password is required, connection will fail
  *   and the error handler will clear the saved config.
+ *
+ * This function awaits bridge readiness before attempting to connect.
+ * This is critical for JCEF (Rider) where the bridge is injected asynchronously.
  */
-export function tryAutoReconnect(): boolean {
+export async function tryAutoReconnect(): Promise<boolean> {
+    // Wait for bridge to be ready before attempting connection
+    // VS Code/standalone: resolves immediately
+    // JCEF (Rider): resolves when bridge injection completes
+    await bridge.ready();
+
     const savedConfig = loadConnectionConfig();
 
     if (!savedConfig) {
@@ -186,6 +195,21 @@ export function tryAutoReconnect(): boolean {
     }
 
     if (savedConfig.type === 'sqlite' && savedConfig.filepath) {
+        // Check if the SQLite file still exists before attempting to connect.
+        // This prevents auto-creating an empty database when the file was deleted.
+        try {
+            const exists = await bridge.fileExists(savedConfig.filepath);
+            if (!exists) {
+                // File was deleted - clear saved config so user sees fresh connection UI
+                clearConnectionConfig();
+                return false;
+            }
+        } catch {
+            // If we can't check file existence (e.g., standalone mode), clear config
+            clearConnectionConfig();
+            return false;
+        }
+
         connect({
             type: 'sqlite',
             filepath: savedConfig.filepath,

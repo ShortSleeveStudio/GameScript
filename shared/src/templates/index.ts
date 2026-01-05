@@ -158,19 +158,17 @@ ${initialMethod}
 function generateUnrealStub(
     methodName: string,
     methodType: 'condition' | 'action',
-    nodeId: string
+    _nodeId: string
 ): string {
     if (methodType === 'condition') {
-        return `    // Node ${nodeId} Condition
-    UFUNCTION()
+        return `    UFUNCTION()
     static bool ${methodName}(const FDialogueContext& Ctx)
     {
         // TODO: Implement condition
         return true;
     }`;
     } else {
-        return `    // Node ${nodeId} Action
-    UFUNCTION()
+        return `    UFUNCTION()
     static void ${methodName}(const FDialogueContext& Ctx, FOnActionComplete OnComplete)
     {
         // TODO: Implement action

@@ -33,12 +33,11 @@ export class CodeHandlers {
   private _codeOutputFolder: string | null = null;
 
   /** Callback to set up file watcher in panel */
-  private readonly _onWatchFolder: (folderPath: string | null) => void;
+  private readonly _onWatchFolder: (folderPath: string | null, fileExtension: string) => void;
 
   constructor(
     private readonly _postMessage: PostMessageFn,
-    private readonly _extensionUri: vscode.Uri,
-    onWatchFolder: (folderPath: string | null) => void
+    onWatchFolder: (folderPath: string | null, fileExtension: string) => void
   ) {
     this._onWatchFolder = onWatchFolder;
   }
@@ -68,13 +67,13 @@ export class CodeHandlers {
    * Set up file watcher for code files and cache the folder path.
    */
   private _handleCodeWatchFolder(message: CodeWatchFolderMessage): void {
-    const { folderPath } = message;
+    const { folderPath, fileExtension = '.cs' } = message;
 
     // Cache the folder path for use by other handlers
     this._codeOutputFolder = folderPath;
 
     // Notify panel to set up file watcher
-    this._onWatchFolder(folderPath);
+    this._onWatchFolder(folderPath, fileExtension);
   }
 
   // ==========================================================================
@@ -150,9 +149,8 @@ export class CodeHandlers {
         return;
       }
 
-      // Return the full method text (signature + body).
-      // We don't attempt to extract just the body because regex-based extraction
-      // is unreliable with nested braces, lambdas, and string literals.
+      // symbol.range includes attributes (per C# language server behavior)
+      // body and fullText are the same since range already includes attributes
       const methodText = document.getText(method.range);
 
       this._postMessage({
@@ -160,6 +158,7 @@ export class CodeHandlers {
         id,
         success: true,
         body: methodText,
+        fullText: methodText,
         filePath,
         lineNumber: method.range.start.line + 1,
       });
@@ -272,11 +271,10 @@ export class CodeHandlers {
       const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
-      // Read existing content
-      let existingContent: string;
+      // Open document (use buffer as source of truth, not disk)
+      let document: vscode.TextDocument;
       try {
-        const fileData = await vscode.workspace.fs.readFile(uri);
-        existingContent = new TextDecoder().decode(fileData);
+        document = await vscode.workspace.openTextDocument(uri);
       } catch {
         this._postMessage({
           type: 'code:deleteResult',
@@ -287,8 +285,6 @@ export class CodeHandlers {
         return;
       }
 
-      // Open document and get symbols to find method range
-      const document = await vscode.workspace.openTextDocument(uri);
       const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
         'vscode.executeDocumentSymbolProvider',
         uri
@@ -315,26 +311,10 @@ export class CodeHandlers {
         return;
       }
 
-      // Expand range to include attribute on line above
-      let startLine = method.range.start.line;
-      if (startLine > 0) {
-        const prevLine = document.lineAt(startLine - 1).text;
-        if (prevLine.includes('[Node')) {
-          startLine--;
-        }
-      }
+      // symbol.range includes attributes (per C# language server behavior)
+      const deletedText = document.getText(method.range);
 
-      // Create new content without the method
-      const rangeToDelete = new vscode.Range(
-        new vscode.Position(startLine, 0),
-        new vscode.Position(method.range.end.line + 1, 0)
-      );
-      const newContent =
-        existingContent.slice(0, document.offsetAt(rangeToDelete.start)) +
-        existingContent.slice(document.offsetAt(rangeToDelete.end));
-
-      // Show diff and ask for confirmation
-      const deletedText = document.getText(rangeToDelete);
+      // Show confirmation dialog
       const confirmed = await vscode.window.showWarningMessage(
         `Delete method '${methodName}'?\n\nThis will remove:\n${deletedText.slice(0, 200)}${deletedText.length > 200 ? '...' : ''}`,
         { modal: true },
@@ -342,9 +322,20 @@ export class CodeHandlers {
       );
 
       if (confirmed === 'Delete') {
-        // Write the new content
-        const encoder = new TextEncoder();
-        await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
+        // Create range to delete (from start of first line to start of line after method)
+        const startLine = method.range.start.line;
+        const endLine = method.range.end.line;
+        const lastLine = document.lineCount - 1;
+
+        const rangeToDelete = endLine < lastLine
+          ? new vscode.Range(startLine, 0, endLine + 1, 0)
+          : new vscode.Range(startLine, 0, endLine, document.lineAt(endLine).text.length);
+
+        // Use WorkspaceEdit for atomic deletion with proper undo/redo
+        const edit = new vscode.WorkspaceEdit();
+        edit.delete(uri, rangeToDelete);
+        await vscode.workspace.applyEdit(edit);
+        await document.save();
 
         this._postMessage({
           type: 'code:deleteResult',
@@ -374,7 +365,8 @@ export class CodeHandlers {
 
   /**
    * Delete multiple methods without confirmation, returning the deleted code for each.
-   * All methods are deleted in a single file operation to avoid stale symbol issues.
+   * Uses VSCode's Document Symbol Provider for accurate method detection.
+   * Optimized: sorts methods bottom-to-top and applies all deletions atomically via WorkspaceEdit.
    */
   private async _handleCodeDeleteMethodsSilent(message: CodeDeleteMethodsSilentMessage): Promise<void> {
     const { id, conversationId, methodNames, fileExtension } = message;
@@ -393,11 +385,9 @@ export class CodeHandlers {
       const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
-      // Read existing content
-      let existingContent: string;
+      // Check if file exists
       try {
-        const fileData = await vscode.workspace.fs.readFile(uri);
-        existingContent = new TextDecoder().decode(fileData);
+        await vscode.workspace.fs.stat(uri);
       } catch {
         // File doesn't exist - nothing to delete
         this._postMessage({
@@ -409,7 +399,7 @@ export class CodeHandlers {
         return;
       }
 
-      // Open document and get symbols to find method ranges
+      // Open document (use buffer as source of truth, not disk)
       const document = await vscode.workspace.openTextDocument(uri);
       const symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
         'vscode.executeDocumentSymbolProvider',
@@ -417,65 +407,59 @@ export class CodeHandlers {
       );
 
       if (!symbols || !Array.isArray(symbols)) {
-        // Can't parse symbols - return empty
+        // Can't parse symbols - return empty for all
+        const deletedMethods: Record<string, string> = {};
+        for (const name of methodNames) {
+          deletedMethods[name] = '';
+        }
         this._postMessage({
           type: 'code:deleteMethodsSilentResult',
           id,
           success: true,
-          deletedMethods: {},
+          deletedMethods,
         });
         return;
       }
 
-      // Find all methods and their ranges
+      // Map names to symbols and filter nulls
+      const targets = methodNames
+        .map(name => ({ name, symbol: this._findSymbolByName(symbols, name) }))
+        .filter((item): item is { name: string; symbol: vscode.DocumentSymbol } => item.symbol !== null);
+
+      // Sort DESCENDING by start line (bottom to top)
+      // This keeps line numbers valid as we build the edit
+      targets.sort((a, b) => b.symbol.range.start.line - a.symbol.range.start.line);
+
       const deletedMethods: Record<string, string> = {};
-      const rangesToDelete: Array<{ start: number; end: number }> = [];
+      const edit = new vscode.WorkspaceEdit();
 
-      for (const methodName of methodNames) {
-        const method = this._findSymbolByName(symbols, methodName);
-        if (!method) {
-          // Method not found - record empty string
-          deletedMethods[methodName] = '';
-          continue;
+      // Mark methods not found as empty
+      for (const name of methodNames) {
+        if (!targets.some(t => t.name === name)) {
+          deletedMethods[name] = '';
         }
-
-        // Expand range to include attribute on line above
-        let startLine = method.range.start.line;
-        if (startLine > 0) {
-          const prevLine = document.lineAt(startLine - 1).text;
-          if (prevLine.includes('[Node')) {
-            startLine--;
-          }
-        }
-
-        const rangeToDelete = new vscode.Range(
-          new vscode.Position(startLine, 0),
-          new vscode.Position(method.range.end.line + 1, 0)
-        );
-
-        // Capture the code being deleted
-        deletedMethods[methodName] = document.getText(rangeToDelete);
-
-        // Store the byte offsets for deletion
-        rangesToDelete.push({
-          start: document.offsetAt(rangeToDelete.start),
-          end: document.offsetAt(rangeToDelete.end),
-        });
       }
 
-      // Sort ranges in reverse order so we can delete from end to start
-      // (this keeps earlier offsets valid as we delete)
-      rangesToDelete.sort((a, b) => b.start - a.start);
+      // Build atomic edit for all deletions
+      for (const { name, symbol } of targets) {
+        // symbol.range includes attributes (per C# language server behavior)
+        deletedMethods[name] = document.getText(symbol.range);
 
-      // Remove all ranges from content
-      let newContent = existingContent;
-      for (const range of rangesToDelete) {
-        newContent = newContent.slice(0, range.start) + newContent.slice(range.end);
+        // Calculate deletion range: from start of first line to start of next line (if exists)
+        const startLine = symbol.range.start.line;
+        const endLine = symbol.range.end.line;
+        const lastLine = document.lineCount - 1;
+
+        const deleteRange = endLine < lastLine
+          ? new vscode.Range(startLine, 0, endLine + 1, 0)
+          : new vscode.Range(startLine, 0, endLine, document.lineAt(endLine).text.length);
+
+        edit.delete(uri, deleteRange);
       }
 
-      // Write the new content once
-      const encoder = new TextEncoder();
-      await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
+      // Apply all deletions atomically (handles undo/redo and buffer sync)
+      await vscode.workspace.applyEdit(edit);
+      await document.save();
 
       this._postMessage({
         type: 'code:deleteMethodsSilentResult',
@@ -499,7 +483,7 @@ export class CodeHandlers {
 
   /**
    * Restore a previously deleted method.
-   * The UI generates the file content; this handler just writes it.
+   * Uses WorkspaceEdit for atomic insertion that integrates with VSCode's undo/redo.
    */
   private async _handleCodeRestoreMethod(message: CodeRestoreMethodMessage): Promise<void> {
     const { id, conversationId, code, fileExtension, fileContent } = message;
@@ -518,41 +502,57 @@ export class CodeHandlers {
       const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
       const uri = vscode.Uri.file(filePath);
 
-      let existingContent = '';
+      // Check if file exists
       let fileExists = false;
-
       try {
-        const fileData = await vscode.workspace.fs.readFile(uri);
-        existingContent = new TextDecoder().decode(fileData);
+        await vscode.workspace.fs.stat(uri);
         fileExists = true;
       } catch {
         // File doesn't exist
       }
 
-      let newContent: string;
       if (fileExists) {
-        // Insert method before the closing brace of the class
-        const classEndMatch = existingContent.lastIndexOf('}');
-        if (classEndMatch !== -1) {
-          newContent =
-            existingContent.slice(0, classEndMatch) +
-            code +
-            existingContent.slice(classEndMatch);
-        } else {
-          newContent = existingContent + '\n' + code;
+        // Use document buffer as source of truth (not disk)
+        const document = await vscode.workspace.openTextDocument(uri);
+        const text = document.getText();
+
+        // Find the closing brace of the class/struct
+        const classEndIndex = text.lastIndexOf('}');
+        if (classEndIndex === -1) {
+          this._postMessage({
+            type: 'code:restoreMethodResult',
+            id,
+            success: false,
+            error: 'Could not find class closing brace',
+          });
+          return;
         }
+
+        // Calculate insertion position (before the closing brace)
+        const insertPosition = document.positionAt(classEndIndex);
+
+        // Ensure proper newline separation:
+        // - Add newline before code if the line before } isn't empty
+        // - Add newline after code to separate from }
+        const lineBeforeBrace = insertPosition.line > 0
+          ? document.lineAt(insertPosition.line - 1).text
+          : '';
+        const needsLeadingNewline = lineBeforeBrace.trim() !== '';
+        const codeToInsert = (needsLeadingNewline ? '\n' : '') + code + '\n';
+
+        // Use WorkspaceEdit for atomic insertion (integrates with undo/redo)
+        const edit = new vscode.WorkspaceEdit();
+        edit.insert(uri, insertPosition, codeToInsert);
+        await vscode.workspace.applyEdit(edit);
+        await document.save();
       } else {
-        // Use the pre-generated file content from the UI
-        newContent = fileContent;
+        // File doesn't exist - create it with the pre-generated content
+        const dir = path.dirname(filePath);
+        await vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
+
+        const encoder = new TextEncoder();
+        await vscode.workspace.fs.writeFile(uri, encoder.encode(fileContent));
       }
-
-      // Create directory if needed
-      const dir = path.dirname(filePath);
-      await vscode.workspace.fs.createDirectory(vscode.Uri.file(dir));
-
-      // Write file
-      const encoder = new TextEncoder();
-      await vscode.workspace.fs.writeFile(uri, encoder.encode(newContent));
 
       this._postMessage({
         type: 'code:restoreMethodResult',
@@ -716,6 +716,7 @@ export class CodeHandlers {
 
   /**
    * Recursively find a symbol by name.
+   * Handles both DocumentSymbol[] (modern) and guards against SymbolInformation[] (legacy).
    */
   private _findSymbolByName(
     symbols: vscode.DocumentSymbol[],
@@ -725,7 +726,8 @@ export class CodeHandlers {
       if (symbol.name === name) {
         return symbol;
       }
-      if (symbol.children && symbol.children.length > 0) {
+      // Guard against legacy SymbolInformation format (no 'children' property)
+      if ('children' in symbol && symbol.children && symbol.children.length > 0) {
         const found = this._findSymbolByName(symbol.children, name);
         if (found) {
           return found;
@@ -734,4 +736,5 @@ export class CodeHandlers {
     }
     return null;
   }
+
 }

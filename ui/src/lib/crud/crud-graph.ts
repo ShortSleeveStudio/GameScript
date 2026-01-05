@@ -22,6 +22,7 @@ import {
   type Edge,
   type NodeProperty,
   type Localization,
+  type CodeTemplateType,
   TABLE_NODES,
   TABLE_EDGES,
   TABLE_LOCALIZATIONS,
@@ -38,10 +39,12 @@ import {
  *
  * @param nodes - Nodes to delete (clones with current data)
  * @param edges - Edges to delete (clones with current data) - may overlap with connected edges
+ * @param codeTemplate - The code template for file operations (captured at delete time for undo/redo)
  */
 export async function deleteGraphSelection(
   nodes: Node[],
-  edges: Edge[]
+  edges: Edge[],
+  codeTemplate: CodeTemplateType
 ): Promise<void> {
   // Early exit if nothing to delete
   if (nodes.length === 0 && edges.length === 0) return;
@@ -87,7 +90,7 @@ export async function deleteGraphSelection(
       }
     }
 
-    const result = await bridge.deleteMethodsSilent(conversationId, methodNames);
+    const result = await bridge.deleteMethodsSilent(conversationId, methodNames, codeTemplate);
 
     // Map results back to individual nodes
     for (const node of convNodes) {
@@ -189,10 +192,10 @@ export async function deleteGraphSelection(
         // Restore code methods first
         for (const [nodeId, codeData] of capturedCodeMap) {
           if (codeData.conditionCode) {
-            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Condition`, codeData.conditionCode);
+            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Condition`, codeData.conditionCode, codeTemplate);
           }
           if (codeData.actionCode) {
-            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Action`, codeData.actionCode);
+            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Action`, codeData.actionCode, codeTemplate);
           }
         }
 
@@ -229,7 +232,7 @@ export async function deleteGraphSelection(
           }
         }
         for (const [conversationId, methodNames] of methodsByConversation) {
-          await bridge.deleteMethodsSilent(conversationId, methodNames);
+          await bridge.deleteMethodsSilent(conversationId, methodNames, codeTemplate);
         }
 
         await db.transaction(async (tx) => {

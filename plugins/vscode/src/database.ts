@@ -32,9 +32,8 @@
  * ============================================================================
  */
 
-import * as fs from 'fs';
 import type { DatabaseConfig, DatabaseType } from '@gamescript/shared';
-import { isKnownTableName, allTables, generateAllTablesSQL, generateInitializationSQL } from '@gamescript/shared';
+import { isKnownTableName } from '@gamescript/shared';
 
 // These will be dynamically imported to avoid loading both drivers
 interface Sqlite3Static {
@@ -279,19 +278,17 @@ export class DatabaseManager {
     return this._type;
   }
 
-  public async connect(config: DatabaseConfig, createNew = false): Promise<void> {
+  /**
+   * Open a raw database connection (no validation or schema initialization).
+   * Schema validation and initialization is handled by the UI layer.
+   */
+  public async open(config: DatabaseConfig): Promise<void> {
     await this.dispose();
 
     try {
       if (config.type === 'sqlite') {
         if (!config.filepath) {
           throw new Error('[DatabaseManager] SQLite filepath is required');
-        }
-
-        // Check if file exists when not creating new
-        const fileExists = fs.existsSync(config.filepath);
-        if (!createNew && !fileExists) {
-          throw new Error('Database file not found. The file may have been moved or deleted.');
         }
 
         // Dynamic import - ESM import of CJS module wraps exports in 'default'
@@ -319,24 +316,6 @@ export class DatabaseManager {
         // Enable WAL mode for better concurrency
         await this._sqliteDb.exec('PRAGMA journal_mode = WAL');
 
-        // Initialize schema if creating new database, otherwise validate it exists
-        if (createNew) {
-          await this._initializeSchema('sqlite');
-        } else {
-          const schemaExists = await this._checkSchemaExists('sqlite');
-          if (!schemaExists) {
-            // Check if database is empty (could auto-init) or corrupted (error)
-            const isEmpty = await this._isDatabaseEmpty('sqlite');
-            if (isEmpty) {
-              // Empty database file - auto-initialize schema
-              await this._initializeSchema('sqlite');
-            } else {
-              // Has tables but wrong schema - corrupted or wrong database
-              await this.dispose();
-              throw new Error('Database schema is invalid. The file contains data but is missing required tables.');
-            }
-          }
-        }
       } else if (config.type === 'postgres') {
         if (!config.host || !config.database || !config.user) {
           throw new Error('[DatabaseManager] PostgreSQL host, database, and user are required');
@@ -361,25 +340,6 @@ export class DatabaseManager {
 
         this._type = 'postgres';
         this._connected = true;
-
-        // Initialize schema if creating new database, otherwise validate it exists
-        if (createNew) {
-          await this._initializeSchema('postgres');
-        } else {
-          const schemaExists = await this._checkSchemaExists('postgres');
-          if (!schemaExists) {
-            // Check if database is empty (could auto-init) or has other data (error)
-            const isEmpty = await this._isDatabaseEmpty('postgres');
-            if (isEmpty) {
-              // Empty database - auto-initialize schema
-              await this._initializeSchema('postgres');
-            } else {
-              // Has tables but wrong schema - wrong database
-              await this.dispose();
-              throw new Error('Database schema is invalid. The database contains data but is missing required tables.');
-            }
-          }
-        }
       }
     } catch (error) {
       this._connected = false;
@@ -388,81 +348,11 @@ export class DatabaseManager {
   }
 
   /**
-   * Check if the database schema exists by looking for a core table.
-   * Returns true if schema exists, false if database is empty/corrupted.
+   * Close the database connection.
+   * Alias for dispose() but named consistently with open().
    */
-  private async _checkSchemaExists(dialect: 'sqlite' | 'postgres'): Promise<boolean> {
-    try {
-      if (dialect === 'sqlite') {
-        // Check if the 'conversations' table exists in sqlite_master
-        const result = await this.query<{ name: string }>(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='conversations'"
-        );
-        return result.length > 0;
-      } else {
-        // PostgreSQL: check if conversations table exists
-        const result = await this.query<{ exists: boolean }>(
-          "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'conversations') as exists"
-        );
-        return result.length > 0 && result[0].exists;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  /**
-   * Check if the database is empty (no user tables).
-   * Used to distinguish between "empty database" (auto-init schema) vs
-   * "non-empty but wrong schema" (error).
-   */
-  private async _isDatabaseEmpty(dialect: 'sqlite' | 'postgres'): Promise<boolean> {
-    try {
-      if (dialect === 'sqlite') {
-        // Check if any user tables exist (exclude sqlite_ internal tables)
-        const result = await this.query<{ count: number }>(
-          "SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
-        );
-        return result.length === 0 || result[0].count === 0;
-      } else {
-        // PostgreSQL: check if any tables exist in public schema
-        const result = await this.query<{ count: number }>(
-          "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'"
-        );
-        return result.length === 0 || Number(result[0].count) === 0;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  private async _initializeSchema(dialect: 'sqlite' | 'postgres'): Promise<void> {
-    console.log(`[DatabaseManager] Initializing schema for ${dialect}...`);
-
-    // Create tables - these are DDL statements, use exec()
-    const sql = generateAllTablesSQL(allTables, dialect);
-    console.log(`[DatabaseManager] Creating ${allTables.length} tables`);
-
-    const statements = sql.split(';').filter((s) => s.trim());
-    for (const stmt of statements) {
-      await this.exec(stmt);
-    }
-    console.log(`[DatabaseManager] Tables created successfully`);
-
-    // Initialize default data - these are DML statements with params, use run()
-    console.log(`[DatabaseManager] Inserting default data...`);
-    const initStatements = generateInitializationSQL();
-    for (const stmt of initStatements) {
-      // Check if it's an ALTER TABLE (DDL) or INSERT (DML)
-      const trimmed = stmt.sql.trim().toUpperCase();
-      if (trimmed.startsWith('ALTER')) {
-        await this.exec(stmt.sql);
-      } else {
-        await this.run(stmt.sql, stmt.params);
-      }
-    }
-
-    console.log('[DatabaseManager] Schema initialized successfully');
+  public async close(): Promise<void> {
+    await this.dispose();
   }
 
   // ==========================================================================

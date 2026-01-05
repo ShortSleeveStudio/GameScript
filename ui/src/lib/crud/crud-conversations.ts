@@ -8,6 +8,7 @@ import {
   type Edge,
   type NodeProperty,
   type Localization,
+  type CodeTemplateType,
   TABLE_CONVERSATIONS,
   TABLE_NODES,
   TABLE_EDGES,
@@ -173,9 +174,9 @@ export async function restore(conversationId: number): Promise<void> {
 // Permanent delete (cascades to all children)
 // ============================================================================
 
-export async function permanentlyDelete(conversationId: number): Promise<void> {
+export async function permanentlyDelete(conversationId: number, codeTemplate: CodeTemplateType): Promise<void> {
   // Delete the conversation code file (no undo for permanent delete)
-  await bridge.deleteCodeFile(conversationId);
+  await bridge.deleteCodeFile(conversationId, codeTemplate);
 
   await db.transaction(async (tx) => {
     // 1. Get all nodes for this conversation

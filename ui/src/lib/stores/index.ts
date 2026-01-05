@@ -158,7 +158,6 @@ import { dbConnected, initConnectionStores, tryAutoReconnect } from './connectio
 import { initThemeStore } from './theme.js';
 import { initRegistryStore } from './registry.js';
 import { initFocusStore } from './focus.js';
-import { undo, redo } from '$lib/undo';
 
 /**
  * Initialize all stores and set up bridge listeners.
@@ -186,18 +185,6 @@ export function initStores(): void {
 
   // Initialize database (sets up change listeners)
   db.init();
-
-  // Set up global message listener for undo/redo commands from extension
-  if (typeof window !== 'undefined') {
-    window.addEventListener('message', (event) => {
-      const message = event.data;
-      if (message.type === 'undo') {
-        undo();
-      } else if (message.type === 'redo') {
-        redo();
-      }
-    });
-  }
 }
 
 /**
@@ -207,5 +194,7 @@ export function initStores(): void {
 export function startApp(): void {
   // Attempt to auto-reconnect to the last used database
   // This is done after all stores are initialized so event handlers are ready
-  tryAutoReconnect();
+  // tryAutoReconnect() awaits bridge readiness internally, so JCEF (Rider)
+  // will wait for bridge injection before attempting connection
+  void tryAutoReconnect();
 }

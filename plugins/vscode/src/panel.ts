@@ -19,9 +19,30 @@ import { WebviewHtmlBuilder } from './webview/html-builder.js';
 import type { PostMessageFn } from './handlers/types.js';
 
 // Constants
-const CONVERSATION_FILE_PATTERN = 'conv_*.cs';
-const CONVERSATION_FILE_REGEX = /conv_(\d+)\.cs$/;
 const COMMAND_FILENAME = 'command.tmp';
+
+/**
+ * Normalize file extension by removing leading dot if present.
+ */
+function normalizeExtension(fileExtension: string): string {
+  return fileExtension.startsWith('.') ? fileExtension.slice(1) : fileExtension;
+}
+
+/**
+ * Create glob pattern for conversation files with given extension.
+ */
+function createConversationFilePattern(fileExtension: string): string {
+  return `conv_*.${normalizeExtension(fileExtension)}`;
+}
+
+/**
+ * Create regex for matching conversation files with given extension.
+ */
+function createConversationFileRegex(fileExtension: string): RegExp {
+  const ext = normalizeExtension(fileExtension);
+  const escapedExt = ext.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`conv_(\\d+)\\.${escapedExt}$`);
+}
 
 /**
  * GameScript main editor panel.
@@ -136,8 +157,7 @@ export class GameScriptPanel {
     );
     const codeHandlers = new CodeHandlers(
       postMessage,
-      extensionUri,
-      (folderPath) => this.setupCodeFileWatcher(folderPath)
+      (folderPath, fileExtension) => this.setupCodeFileWatcher(folderPath, fileExtension)
     );
 
     this._mediator.registerMany(dbHandlers.getHandlers());
@@ -285,8 +305,9 @@ export class GameScriptPanel {
    * Called by the UI when the code output folder is known/changes.
    *
    * @param folderPath - Relative path to watch, or null to clear the watcher
+   * @param fileExtension - File extension to watch (e.g., '.cs' or '.cpp')
    */
-  public setupCodeFileWatcher(folderPath: string | null): void {
+  public setupCodeFileWatcher(folderPath: string | null, fileExtension: string = '.cs'): void {
     // Dispose existing watcher if any
     if (this._codeFileWatcher) {
       this._codeFileWatcher.dispose();
@@ -298,7 +319,10 @@ export class GameScriptPanel {
       return;
     }
 
-    const pattern = this.createWatchPattern(folderPath, CONVERSATION_FILE_PATTERN);
+    const filePattern = createConversationFilePattern(fileExtension);
+    const fileRegex = createConversationFileRegex(fileExtension);
+
+    const pattern = this.createWatchPattern(folderPath, filePattern);
     if (!pattern) {
       console.warn('[Panel] Cannot set up code file watcher: no workspace folder');
       return;
@@ -308,7 +332,7 @@ export class GameScriptPanel {
       this._codeFileWatcher = vscode.workspace.createFileSystemWatcher(pattern);
 
       const handleCodeFileChange = (uri: vscode.Uri) => {
-        const match = uri.fsPath.match(CONVERSATION_FILE_REGEX);
+        const match = uri.fsPath.match(fileRegex);
         if (match) {
           const conversationId = parseInt(match[1], 10);
           this._panel.webview.postMessage({

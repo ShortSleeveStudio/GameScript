@@ -1,0 +1,7 @@
+<idea-plugin>
+    <!--
+        C/C++ support configuration for GameScript.
+        This file is loaded only when com.intellij.modules.cidr.lang is available (CLion).
+        It enables C++ code helpers for method finding/deletion/restoration.
+    -->
+</idea-plugin>

@@ -2,9 +2,11 @@
  * CRUD operations for nodes.
  *
  * All operations use db.ts methods and handle undo registration internally.
+ * Code file operations (conditions/actions) are handled via the bridge.
  */
 
 import { db } from '$lib/db';
+import { bridge } from '$lib/api/bridge';
 import { registerUndoable, Undoable } from '$lib/undo';
 import {
   query,

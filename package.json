@@ -1,18 +1,21 @@
 {
   "name": "gamescript",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Cross-platform dialogue authoring system",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "pnpm -r build",
     "build:unity": "./runtimes/unity/generate-flatsharp.sh",
+    "build:rider": "pnpm --filter @gamescript/ui build && cd plugins/rider && ./gradlew buildPlugin",
     "dev": "pnpm -r --parallel dev",
+    "dev:rider": "pnpm --filter @gamescript/ui build && cd plugins/rider && ./gradlew runIde",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
-    "package:vscode": "pnpm build && pnpm --filter gamescript package"
+    "package:vscode": "pnpm build && pnpm --filter gamescript package",
+    "package:rider": "pnpm build && cd plugins/rider && ./gradlew buildPlugin"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

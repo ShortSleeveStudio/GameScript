@@ -1,0 +1,68 @@
+<idea-plugin>
+    <id>com.shortsleevestudio.gamescript</id>
+    <name>GameScript</name>
+    <vendor email="support@shortsleevestudio.com" url="https://github.com/ShortSleeveStudio/GameScript">
+        Short Sleeve Studio
+    </vendor>
+
+    <description><![CDATA[
+        Visual dialogue authoring for games.
+
+        GameScript is a cross-platform dialogue authoring system that provides:
+        <ul>
+            <li>Visual graph editor for dialogue flows</li>
+            <li>Native C# condition and action authoring with full IDE support</li>
+            <li>SQLite and PostgreSQL database support</li>
+            <li>Binary snapshot export for Unity runtime</li>
+            <li>Localization management</li>
+        </ul>
+    ]]></description>
+
+    <!-- Core platform dependency -->
+    <depends>com.intellij.modules.platform</depends>
+    <!-- Required for CefLocalRequestHandler to serve resources via HTTPS -->
+    <depends>com.intellij.platform.images</depends>
+
+    <!-- C# support (Rider) - required for C# code helpers -->
+    <depends>com.intellij.modules.rider</depends>
+
+    <!-- C/C++ support (CLion) - optional, enables C++ code helpers -->
+    <depends optional="true" config-file="cpp-support.xml">com.intellij.modules.cidr.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- File Editor Provider - opens GameScript as editor tab -->
+        <fileEditorProvider
+            implementation="com.shortsleevestudio.gamescript.editor.GameScriptEditorProvider"/>
+
+        <!-- Tool Window Button - clicking opens the editor tab -->
+        <toolWindow
+            id="GameScript"
+            anchor="right"
+            icon="AllIcons.Nodes.Tag"
+            factoryClass="com.shortsleevestudio.gamescript.toolwindow.GameScriptToolWindowFactory"/>
+
+        <!-- Project-level Services -->
+        <projectService
+            serviceImplementation="com.shortsleevestudio.gamescript.services.GameScriptService"/>
+        <projectService
+            serviceImplementation="com.shortsleevestudio.gamescript.settings.GameScriptSettings"/>
+
+        <!-- Notification Group for balloon notifications -->
+        <notificationGroup
+            id="GameScript"
+            displayType="BALLOON"
+            toolWindowId="GameScript"/>
+
+    </extensions>
+
+    <actions>
+        <action
+            id="GameScript.OpenEditor"
+            class="com.shortsleevestudio.gamescript.actions.OpenEditorAction"
+            text="Open GameScript Editor"
+            description="Open the GameScript dialogue editor"
+            icon="AllIcons.Nodes.Tag">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>

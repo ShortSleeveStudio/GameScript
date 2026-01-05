@@ -50,7 +50,6 @@ import type {
   CodeDeleteFileMessage,
   CodeRestoreFileMessage,
   CodeTemplateType,
-  DatabaseType,
   DbResult,
   TransactionContext,
   DataChangeEvent,
@@ -64,7 +63,12 @@ import {
   generateMethodStub,
   generateConversationFile,
   getFileExtension,
+  getSchemaCheckSQL,
+  getTableCountSQL,
+  generateSchemaStatements,
 } from '@gamescript/shared';
+
+import type { DatabaseConfig } from '@gamescript/shared';
 
 // Notifications
 import { toastError, toastWarning } from '$lib/stores/notifications.js';
@@ -108,7 +112,8 @@ export interface PendingRequest<T> {
 // IDE Detection and Abstraction
 // ============================================================================
 
-type IdeType = 'vscode' | 'webview2' | 'cef' | 'standalone';
+// 'cef-pending' means we're in JCEF but the bridge hasn't been injected yet
+type IdeType = 'vscode' | 'webview2' | 'cef' | 'cef-pending' | 'standalone';
 
 interface IdeAdapter {
   type: IdeType;
@@ -148,23 +153,23 @@ function detectIde(): IdeAdapter {
     };
   }
 
-  // JetBrains JCEF - check for CefSharp or jbCefBrowser
-  const cef = (window as unknown as { cefQuery?: (query: { request: string }) => void; jbCefBrowser?: { postMessage: (msg: string) => void } }).cefQuery
-    || (window as unknown as { jbCefBrowser?: { postMessage: (msg: string) => void } }).jbCefBrowser;
-  if (cef) {
-    // JCEF typically uses window.postMessage for receiving
-    const jbBrowser = (window as unknown as { jbCefBrowser?: { postMessage: (msg: string) => void } }).jbCefBrowser;
+  // JetBrains JCEF - check for jbCefBrowser (injected by Rider plugin)
+  const jbBrowser = (window as unknown as { jbCefBrowser?: { postMessage: (msg: string) => void } }).jbCefBrowser;
+  if (jbBrowser) {
     return {
       type: 'cef',
-      postMessage: (msg) => {
-        if (jbBrowser) {
-          jbBrowser.postMessage(JSON.stringify(msg));
-        } else {
-          // Fallback to cefQuery
-          const cefQuery = (window as unknown as { cefQuery: (query: { request: string }) => void }).cefQuery;
-          cefQuery({ request: JSON.stringify(msg) });
-        }
-      },
+      postMessage: (msg) => jbBrowser.postMessage(JSON.stringify(msg)),
+      addMessageListener: (handler) => window.addEventListener('message', handler),
+    };
+  }
+
+  // Check for JCEF environment hint (set via query param before bridge injection)
+  // This allows us to distinguish "JCEF waiting for injection" from "true standalone"
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('env') === 'jcef') {
+    return {
+      type: 'cef-pending',
+      postMessage: () => {}, // No-op until bridge is injected
       addMessageListener: (handler) => window.addEventListener('message', handler),
     };
   }
@@ -186,8 +191,31 @@ class ExtensionBridge {
   private _ide: IdeAdapter;
   private _isInitialized = false;
 
+  // Bridge readiness state
+  private _readyPromise: Promise<void>;
+  private _resolveReady!: () => void;
+  private _isReady = false;
+
   constructor() {
+    this._readyPromise = new Promise((resolve) => {
+      this._resolveReady = resolve;
+    });
     this._ide = detectIde();
+
+    // cef-pending must wait for bridge injection before becoming ready
+    // All other types are ready immediately
+    if (this._ide.type !== 'cef-pending') {
+      this._markReady();
+    }
+  }
+
+  /**
+   * Mark the bridge as ready. Called once when the bridge becomes available.
+   */
+  private _markReady(): void {
+    if (this._isReady) return;
+    this._isReady = true;
+    this._resolveReady();
   }
 
   /**
@@ -198,19 +226,60 @@ class ExtensionBridge {
     if (this._isInitialized) return;
     this._isInitialized = true;
 
-    if (this._ide.type === 'standalone') {
+    // Listen for JCEF bridge injection event
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gamescript-bridge-ready', () => {
+        this.onBridgeReady();
+      });
+    }
+
+    // cef-pending waits for onBridgeReady to set up listeners
+    // standalone has no bridge to listen to
+    if (this._ide.type === 'standalone' || this._ide.type === 'cef-pending') {
       return;
     }
 
-    // Listen for messages from extension
+    // Set up message listener and notify extension
     this._ide.addMessageListener(this.handleMessage.bind(this));
-
-    // Notify extension that UI is ready
     this.postMessage({ type: 'ready' });
   }
 
   /**
+   * Called when the JCEF bridge is injected (after page load).
+   * Re-detects the IDE and sets up listeners.
+   */
+  private onBridgeReady(): void {
+    // Re-detect IDE now that jbCefBrowser is available
+    const newIde = detectIde();
+
+    // Transition from cef-pending to cef
+    if (newIde.type === 'cef' && this._ide.type === 'cef-pending') {
+      this._ide = newIde;
+
+      // Set up message listener
+      this._ide.addMessageListener(this.handleMessage.bind(this));
+
+      // Mark bridge as ready (resolves _readyPromise)
+      this._markReady();
+
+      // Notify extension that UI is ready
+      this.postMessage({ type: 'ready' });
+    }
+  }
+
+  /**
+   * Returns a promise that resolves when the bridge is ready to send/receive messages.
+   * - VS Code/WebView2: Resolves immediately (bridge available synchronously)
+   * - JCEF (Rider): Resolves when bridge injection completes (env=jcef query param)
+   * - Standalone: Resolves immediately (no bridge expected)
+   */
+  ready(): Promise<void> {
+    return this._readyPromise;
+  }
+
+  /**
    * Check if running in an IDE webview context (any IDE).
+   * Returns true for cef-pending since we know we're in an IDE, just waiting for bridge.
    */
   get isIde(): boolean {
     return this._ide.type !== 'standalone';
@@ -312,6 +381,30 @@ class ExtensionBridge {
         this.resolveRequest(message.id, message.success ? undefined : new Error(message.error));
         break;
 
+      case 'db:openResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true });
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'db:closeResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
+      case 'db:startNotificationsResult':
+        if (message.success) {
+          this.resolveRequest(message.id, undefined);
+        } else {
+          this.resolveRequest(message.id, new Error(message.error));
+        }
+        break;
+
       case 'db:error':
         this.emit('error', message.error);
         break;
@@ -355,6 +448,7 @@ class ExtensionBridge {
         if (message.success) {
           this.resolveRequest(message.id, {
             body: message.body,
+            fullText: message.fullText,
             filePath: message.filePath,
             lineNumber: message.lineNumber,
           });
@@ -480,6 +574,19 @@ class ExtensionBridge {
         } else {
           this.resolveRequest(message.id, new Error(message.error));
         }
+        break;
+
+      // Edit commands from IDE (keyboard shortcuts intercepted by plugin)
+      case 'edit:undo':
+        this.emit('editUndo');
+        break;
+
+      case 'edit:redo':
+        this.emit('editRedo');
+        break;
+
+      case 'edit:save':
+        this.emit('editSave');
         break;
     }
   }
@@ -721,30 +828,125 @@ class ExtensionBridge {
   }
 
   /**
-   * Connect to a database.
+   * Connect to a database with full validation and initialization.
+   * This is the new async connect flow that handles schema validation in the UI layer.
+   *
    * @param config - Database configuration
-   * @param createNew - If true, create a new database (initialize schema)
+   * @param createNew - If true, always initialize schema (for new databases)
    */
-  connect(
-    config: {
-      type: DatabaseType;
-      path?: string;
-      host?: string;
-      port?: number;
-      database?: string;
-      username?: string;
-      password?: string;
-    },
-    createNew = false
-  ): void {
-    this.postMessage({ type: 'db:connect', config, createNew });
+  async connect(config: DatabaseConfig, createNew = false): Promise<void> {
+    if (!this.isIde) {
+      throw new Error('Database connection not available in standalone mode');
+    }
+
+    const dialect = config.type === 'postgres' ? 'postgres' : 'sqlite';
+
+    // Step 1: Open raw connection
+    const openResult = await this._openConnection(config);
+    if (!openResult.success) {
+      throw new Error(openResult.error || 'Failed to open database connection');
+    }
+
+    try {
+      // Step 2: Check if schema exists
+      const schemaResult = await this.query<{ name?: string; table_name?: string }>(
+        getSchemaCheckSQL(dialect)
+      );
+      const schemaExists = schemaResult.length > 0;
+
+      if (schemaExists && !createNew) {
+        // Schema exists, start notifications and emit connected
+        await this._startNotifications();
+        this.emit('connected', config.type);
+        return;
+      }
+
+      if (!schemaExists) {
+        // Check if database is empty
+        const countResult = await this.query<{ count: number }>(getTableCountSQL(dialect));
+        const tableCount = countResult[0]?.count ?? 0;
+
+        if (tableCount > 0 && !createNew) {
+          // Has tables but wrong schema - invalid database
+          await this._closeConnection();
+          throw new Error(
+            'Database schema is invalid. The database contains data but is missing required tables.'
+          );
+        }
+      }
+
+      // Step 3: Initialize schema (empty db or createNew)
+      await this._initializeSchema(dialect);
+
+      // Step 4: Start notifications and emit connected
+      await this._startNotifications();
+      this.emit('connected', config.type);
+    } catch (error) {
+      // Close connection on any error
+      await this._closeConnection().catch(() => {});
+      throw error;
+    }
+  }
+
+  /**
+   * Open a raw database connection (no validation).
+   * @internal
+   */
+  private async _openConnection(
+    config: DatabaseConfig
+  ): Promise<{ success: boolean; error?: string }> {
+    const { id, promise } = this.createRequest<{ success: boolean; error?: string }>();
+    this.postMessage({ type: 'db:open', id, config });
+    return promise;
+  }
+
+  /**
+   * Close the database connection.
+   * @internal
+   */
+  private async _closeConnection(): Promise<void> {
+    const { id, promise } = this.createRequest<void>();
+    this.postMessage({ type: 'db:close', id });
+    return promise;
+  }
+
+  /**
+   * Initialize the database schema.
+   * @internal
+   */
+  private async _initializeSchema(dialect: 'sqlite' | 'postgres'): Promise<void> {
+    const statements = generateSchemaStatements(dialect);
+
+    for (const stmt of statements) {
+      if (stmt.isDDL) {
+        await this.exec(stmt.sql);
+      } else {
+        await this.run(stmt.sql, stmt.params);
+      }
+    }
+  }
+
+  /**
+   * Start change notifications (LISTEN/NOTIFY for PostgreSQL).
+   * Called after schema validation/initialization completes.
+   * @internal
+   */
+  private async _startNotifications(): Promise<void> {
+    const { id, promise } = this.createRequest<void>();
+    this.postMessage({ type: 'db:startNotifications', id });
+    return promise;
   }
 
   /**
    * Disconnect from the current database.
    */
-  disconnect(): void {
-    this.postMessage({ type: 'db:disconnect' });
+  async disconnect(): Promise<void> {
+    if (!this.isIde) {
+      return;
+    }
+
+    await this._closeConnection();
+    this.emit('disconnected');
   }
 
   // ==========================================================================
@@ -1125,18 +1327,19 @@ class ExtensionBridge {
   /**
    * Get the body of a method for preview display.
    * Uses IDE symbol provider to find and extract the method body.
+   * Returns both `body` (for display) and `fullText` (includes attributes, for undo).
    */
   async getMethodBody(
     conversationId: number,
     methodName: string,
     template: CodeTemplateType = 'unity'
-  ): Promise<{ body: string; filePath: string; lineNumber: number }> {
+  ): Promise<{ body: string; fullText: string; filePath: string; lineNumber: number }> {
     if (!this.isIde) {
       throw new Error('Code operations not available in standalone mode');
     }
 
     const fileExtension = getFileExtension(template);
-    const { id, promise } = this.createRequest<{ body: string; filePath: string; lineNumber: number }>();
+    const { id, promise } = this.createRequest<{ body: string; fullText: string; filePath: string; lineNumber: number }>();
 
     const message: CodeGetMethodMessage = {
       type: 'code:getMethod',
@@ -1351,10 +1554,11 @@ class ExtensionBridge {
    * Called when the code output folder is known/changes.
    * Pass null to clear the watcher.
    */
-  watchCodeFolder(folderPath: string | null): void {
+  watchCodeFolder(folderPath: string | null, fileExtension?: string): void {
     this.postMessage({
       type: 'code:watchFolder',
       folderPath,
+      fileExtension,
     });
   }
 
