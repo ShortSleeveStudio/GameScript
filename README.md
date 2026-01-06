@@ -282,6 +282,18 @@ Export format uses FlatBuffers for:
 - Minimal memory footprint
 - Per-locale bundles
 
+## Troubleshooting
+
+### Rider Plugin: Slow/Jerky Scrolling
+
+If you experience slow or jerky scrolling in the Rider plugin, disable out-of-process JCEF:
+
+1. Go to **Help → Find Action** (or press `Ctrl+Shift+A` / `Cmd+Shift+A`)
+2. Search for "Registry..."
+3. Find `ide.browser.jcef.out-of-process.enabled`
+4. Uncheck it
+5. Restart Rider
+
 ## Versioning
 
 See [VERSIONING.md](VERSIONING.md) for the list of files that need version bumps.
