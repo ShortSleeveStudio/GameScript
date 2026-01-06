@@ -1,58 +1,123 @@
 # GameScript
 
-A cross-platform dialogue authoring system for games. GameScript provides a visual graph editor embedded in IDEs, with runtime packages for Unity, Unreal, and Godot.
+A cross-platform dialogue authoring system for games. GameScript provides a visual graph editor embedded in IDEs (VS Code, Rider), with runtime packages for Unity, Unreal, and Godot.
 
-## Architecture Overview
+## What is GameScript?
 
-GameScript consists of three layers:
+GameScript is a complete dialogue middleware solution that lets game developers:
 
-1. **Authoring Layer** - A web-based visual graph editor embedded in IDE plugins (VS Code, Rider, Visual Studio)
-2. **Source of Truth** - A shared SQL database (PostgreSQL or SQLite) storing dialogue, nodes, actors, and localizations
-3. **Runtime Layer** - Lightweight packages for game engines that consume binary snapshots
+- **Design dialogue flows** using a visual node-based graph editor
+- **Write game logic** in native code (C#, C++, GDScript) with full IDE support
+- **Collaborate** using PostgreSQL for team projects or SQLite for solo development
+- **Deploy** high-performance binary snapshots to game engines
 
-### Key Design Principles
+Unlike traditional dialogue tools that use embedded scripting languages, GameScript keeps all game logic in native code files. Actions and conditions are regular functions that get full IDE support: autocomplete, debugging, refactoring, and type checking.
 
-- **Code lives in the IDE** - Actions and conditions are written in native code (C#, C++, GDScript) with full IDE support
-- **Database is source of truth** - Graph structure and localizations live in SQL; code lives in version-controlled files
-- **Binary snapshots** - FlatBuffers format for zero-copy, high-performance runtime access
-- **Single web UI** - Same Svelte-based editor across all IDE plugins
+## Features
+
+- **Visual Graph Editor** - Node-based dialogue authoring with drag-and-drop
+- **Multi-IDE Support** - VS Code and JetBrains Rider plugins
+- **Native Code Integration** - Conditions and actions written in C#/C++/GDScript
+- **Database-Backed** - PostgreSQL for teams, SQLite for individuals
+- **Localization** - Built-in multi-language support with CSV export
+- **Binary Snapshots** - FlatBuffers format for zero-copy runtime access
+- **Hot Reload** - Automatic export on save, instant updates in-engine
+- **Undo/Redo** - Full history with multiplayer resilience
+- **Golden Layout UI** - Customizable panel arrangement
 
 ## Repository Structure
 
 ```
 gamescript/
-├── core/
-│   ├── schema/              # FlatBuffer schemas (.fbs) and SQL migrations
-│   └── generated/           # Auto-generated code from schemas
-│       ├── ts/              # TypeScript (for UI and IDE plugins)
-│       ├── csharp/          # C# (for Unity, VS, Rider)
-│       └── cpp/             # C++ (for Unreal)
+├── core/                       # Core schemas and generated code
+│   ├── schema/                 # FlatBuffer schemas (.fbs)
+│   └── generated/              # Auto-generated code
+│       ├── ts/                 # TypeScript (UI, IDE plugins)
+│       ├── csharp/             # C# (Unity, .NET IDEs)
+│       └── cpp/                # C++ (Unreal)
 │
-├── ui/                      # Svelte web UI (graph editor)
+├── shared/                     # Shared TypeScript package
+│   └── src/                    # Types, query builders, utilities
+│
+├── ui/                         # Svelte web UI (graph editor)
 │   ├── src/
-│   └── dist/                # Built assets (copied into IDE plugins)
-│
-├── shared/                  # Shared TypeScript utilities
-│   └── src/                 # Types, helpers, query builders
+│   │   ├── lib/
+│   │   │   ├── api/            # Bridge to IDE plugins
+│   │   │   ├── components/     # Svelte components
+│   │   │   ├── db/             # Database abstraction layer
+│   │   │   └── stores/         # Svelte stores
+│   │   └── routes/             # SvelteKit routes
+│   └── dist/                   # Built assets
 │
 ├── plugins/
-│   ├── vscode/              # VS Code extension
-│   └── dotnet/              # Shared C# logic for .NET IDEs
-│       ├── visual-studio/   # Visual Studio extension
-│       └── rider/           # JetBrains Rider plugin
+│   ├── vscode/                 # VS Code extension
+│   │   └── src/
+│   │       ├── database.ts     # SQLite/PostgreSQL connections
+│   │       ├── panel.ts        # Webview panel management
+│   │       └── handlers/       # Message handlers
+│   ├── rider/                  # JetBrains Rider plugin (Kotlin)
+│   │   └── src/main/kotlin/
+│   └── dotnet/                 # Shared .NET code (future)
 │
 ├── runtimes/
-│   ├── unity/               # Unity package
-│   ├── unreal/              # Unreal plugin
-│   └── godot/               # Godot addon
+│   ├── unity/                  # Unity package
+│   │   └── Packages/studio.shortsleeve.gamescript/
+│   ├── csharp/                 # Shared C# runtime code
+│   ├── unreal/                 # Unreal plugin (planned)
+│   └── godot/                  # Godot addon (planned)
 │
-└── tools/                   # CLI tools for CI/CD and headless exports
+└── tools/                      # CLI tools (planned)
 ```
+
+## Component Overview
+
+### UI (`ui/`)
+
+The web-based graph editor built with:
+- **Svelte 5** - Reactive UI framework
+- **SvelteKit** - Build tooling and routing
+- **@xyflow/svelte** - Node graph visualization
+- **Golden Layout** - Dockable panel system
+- **ELK** - Automatic graph layout
+
+The UI is embedded in IDE plugins via webview and communicates through a message bridge.
+
+### Shared (`shared/`)
+
+TypeScript package containing:
+- Database schema types
+- SQL query builders
+- FlatBuffer type definitions
+- Shared utilities
+
+### VS Code Plugin (`plugins/vscode/`)
+
+Extension providing:
+- Webview panel hosting the UI
+- SQLite and PostgreSQL database connections
+- File system access for code generation
+- Binary snapshot export
+
+### Rider Plugin (`plugins/rider/`)
+
+Kotlin-based plugin for JetBrains Rider:
+- JCEF browser hosting the UI
+- Same database and file system capabilities as VS Code
+- Native IDE integration
+
+### Unity Runtime (`runtimes/unity/`)
+
+Unity package providing:
+- FlatBuffer snapshot loading
+- Dialogue state machine
+- Attribute-based function binding
+- Editor tooling
 
 ## Prerequisites
 
-- Node.js 18+
-- pnpm 8+
+- **Node.js** 18+
+- **pnpm** 8+
+- **JDK** 17+ (for Rider plugin)
 
 ## Getting Started
 
@@ -62,18 +127,16 @@ gamescript/
 pnpm install
 ```
 
-This installs dependencies for all workspace packages (UI, shared, VS Code plugin).
-
 ### Build Everything
 
 ```bash
 pnpm build
 ```
 
-Builds in order:
+Builds in dependency order:
 1. `shared/` - TypeScript utilities
 2. `ui/` - Svelte web UI
-3. `plugins/vscode/` - VS Code extension (copies UI dist into plugin)
+3. `plugins/vscode/` - VS Code extension
 
 ### Development Mode
 
@@ -83,30 +146,70 @@ pnpm dev
 
 Runs all packages in watch mode with hot reload.
 
-## Testing the VS Code Extension
+### Build Rider Plugin
 
-1. Open `plugins/vscode/` in VS Code
-2. Run `pnpm build` from the repository root
-3. Press **F5** to launch the Extension Development Host
-4. In the new VS Code window, click the GameScript icon in the Activity Bar
-
-Alternatively, use **"Run Extension (No Build)"** launch configuration if you've already built.
-
-## Workspace Packages
-
-| Package | Name | Description |
-|---------|------|-------------|
-| `ui/` | `@gamescript/ui` | Svelte-based graph editor |
-| `shared/` | `@gamescript/shared` | Shared TypeScript types and utilities |
-| `plugins/vscode/` | `@gamescript/vscode` | VS Code extension |
-
-Packages reference each other using pnpm workspace protocol:
-
-```json
-"dependencies": {
-  "@gamescript/shared": "workspace:*"
-}
+```bash
+pnpm build:rider
 ```
+
+Or manually:
+```bash
+cd plugins/rider
+./gradlew buildPlugin
+```
+
+The built plugin ZIP will be in `plugins/rider/build/distributions/`.
+
+## Testing
+
+### Run All Tests
+
+```bash
+pnpm test
+```
+
+### Test Individual Packages
+
+```bash
+# UI tests
+pnpm --filter @gamescript/ui test
+
+# Shared package tests
+pnpm --filter @gamescript/shared test
+```
+
+### Testing VS Code Extension
+
+1. Open the repository root in VS Code
+2. Run `pnpm build`
+3. Press **F5** to launch Extension Development Host
+4. Click the GameScript icon in the Activity Bar
+
+### Testing Rider Plugin
+
+```bash
+pnpm dev:rider
+```
+
+This builds the UI and launches a sandboxed Rider instance with the plugin.
+
+## Packaging
+
+### VS Code Extension
+
+```bash
+pnpm package:vscode
+```
+
+Creates `.vsix` file in `plugins/vscode/`.
+
+### Rider Plugin
+
+```bash
+pnpm package:rider
+```
+
+Creates plugin ZIP in `plugins/rider/build/distributions/`.
 
 ## Available Scripts
 
@@ -114,62 +217,79 @@ Packages reference each other using pnpm workspace protocol:
 |---------|-------------|
 | `pnpm install` | Install all dependencies |
 | `pnpm build` | Build all packages |
+| `pnpm build:rider` | Build Rider plugin |
 | `pnpm dev` | Run all packages in watch mode |
-| `pnpm clean` | Remove all build artifacts |
+| `pnpm dev:rider` | Build UI and run Rider sandbox |
+| `pnpm test` | Run all tests |
 | `pnpm lint` | Run linters |
-| `pnpm test` | Run tests |
 | `pnpm format` | Format code with Prettier |
+| `pnpm clean` | Remove build artifacts |
+| `pnpm package:vscode` | Package VS Code extension |
+| `pnpm package:rider` | Package Rider plugin |
 
-## Runtime Binary Format
+## Architecture
 
-GameScript exports dialogue data as FlatBuffer binaries (`.gsb` files):
+### Data Flow
 
-- **Zero-copy access** - Data is read directly from memory-mapped files
-- **Per-locale bundles** - Each language gets its own binary blob
-- **Atomic updates** - Files are written atomically to prevent corruption
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│  Graph UI   │ ──▶ │   Database   │ ──▶ │  .gsb File  │
+│  (Svelte)   │     │ (SQL/Postgres)│     │ (FlatBuffer)│
+└─────────────┘     └──────────────┘     └─────────────┘
+       │                                        │
+       │ Messages                               │ Load
+       ▼                                        ▼
+┌─────────────┐                          ┌─────────────┐
+│ IDE Plugin  │                          │   Engine    │
+│(VSCode/Rider)│                          │   Runtime   │
+└─────────────┘                          └─────────────┘
+```
 
-Export is triggered on save and only writes files when content has changed.
+### Native Code Integration
 
-## IDE Plugin Architecture
-
-All IDE plugins embed the same web UI and act as the "backend":
-
-- **VS Code** - Uses `vscode.window.createWebviewPanel()`
-- **Rider** - Uses JCEF (Chromium Embedded Framework)
-- **Visual Studio** - Uses WebView2
-
-The web UI communicates with the IDE via message passing. The IDE handles:
-- Database connections (SQLite/PostgreSQL)
-- File system access
-- Code generation and symbol lookup
-- Binary snapshot export
-
-## Engine Runtime Architecture
-
-Engine runtimes are lightweight consumers of `.gsb` files:
-
-1. Load locale bundle into memory at startup
-2. Use generated lookup tables for instant function dispatch
-3. Query nodes and edges with O(1) access via FlatBuffers
-
-Actions and conditions are native functions marked with attributes:
+Actions and conditions are written in native code with attribute markers:
 
 ```csharp
-// Unity example
+// Unity C# example
 [NodeCondition(456)]
-public static bool Node_456_Condition(IDialogueContext ctx)
+public static bool HasEnoughGold(IDialogueContext ctx)
 {
-    return ctx.HasItem("gold", 10);
+    return GameState.PlayerGold >= 10;
 }
 
 [NodeAction(456)]
-public static async ValueTask Node_456_Action(IDialogueContext ctx)
+public static async Awaitable HandOverGold(IDialogueContext ctx)
 {
-    ctx.RemoveItem("gold", 10);
-    await ctx.PlayAnimation("hand_over_gold");
+    GameState.PlayerGold -= 10;
+    await AnimationManager.Play("hand_over_gold");
 }
 ```
 
+At runtime, the engine builds jump tables for O(1) function dispatch.
+
+### Database
+
+- **SQLite** - Single-user, file-based, no setup required
+- **PostgreSQL** - Multi-user, real-time collaboration via LISTEN/NOTIFY
+
+Both support the same schema and UI. Switch between them in the connection panel.
+
+### Binary Snapshots
+
+Export format uses FlatBuffers for:
+- Zero-copy memory mapping
+- O(1) random access
+- Minimal memory footprint
+- Per-locale bundles
+
+## Versioning
+
+See [VERSIONING.md](VERSIONING.md) for the list of files that need version bumps.
+
+## Architecture Details
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for in-depth technical documentation.
+
 ## License
 
-Proprietary - All rights reserved.
+See [LICENSE.md](LICENSE.md).

@@ -37,11 +37,11 @@ GameScript is a cross-platform, IDE-centric dialogue authoring and runtime syste
 // Assets/Scripts/Dialogue/conv_123.cs
 public static class Conversation_123
 {
-    [NodeCondition(456, 123)]
+    [NodeCondition(456)]
     public static bool Node_456_Condition(IDialogueContext ctx)
         => GameState.PlayerGold >= 10;
 
-    [NodeAction(456, 123)]
+    [NodeAction(456)]
     public static async Awaitable Node_456_Action(IDialogueContext ctx)
     {
         GameState.PlayerGold -= 10;
