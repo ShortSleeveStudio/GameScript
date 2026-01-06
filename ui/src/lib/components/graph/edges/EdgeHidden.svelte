@@ -100,11 +100,8 @@
     let elkEdgeEndpoint: ElkPoint | undefined = $derived(elkEdge?.sections?.[elkEdge.sections.length - 1]?.endPoint);
     let isVertical: boolean = $derived(sourcePosition === Position.Bottom);
 
-    // Track current target positions for non-ELK layout
-    let currentTargetX = $state<number>(0);
-    let currentTargetY = $state<number>(0);
-
     // Compute path - reactive to position changes
+    // Returns [path, labelX, labelY, currentTargetX, currentTargetY]
     let pathResult = $derived(getPath(
         {
             sourceX,
@@ -121,6 +118,8 @@
     let path = $derived(pathResult[0]);
     let labelX = $derived(pathResult[1]);
     let labelY = $derived(pathResult[2]);
+    let currentTargetX = $derived(pathResult[3]);
+    let currentTargetY = $derived(pathResult[4]);
 
     function getPath(
         params: {
@@ -133,7 +132,7 @@
         },
         elkEdge: ElkExtendedEdge | undefined,
         hiddenEdgeToIndexMap: Map<string, number>,
-    ): [path: string, labelX: number, labelY: number, offsetX?: number, offsetY?: number] {
+    ): [path: string, labelX: number, labelY: number, targetX: number, targetY: number] {
         const spacing = (isVertical ? TAG_WIDTH : TAG_HEIGHT) * 2;
         let position: number | undefined = undefined;
         const index = hiddenEdgeToIndexMap.get(id);
@@ -146,48 +145,33 @@
         // Create a mutable copy of params for modification
         const p = { ...params };
 
-        if (elkEdge) {
-            if (isVertical) {
-                p.targetX = p.sourceX;
-                p.targetY = p.sourceY + TAG_DISTANCE_TO_NODE;
-                if (position !== undefined) {
-                    p.targetX += position;
-                }
-            } else {
-                p.targetX = p.sourceX + TAG_DISTANCE_TO_NODE;
-                p.targetY = p.sourceY;
-                if (position !== undefined) {
-                    p.targetY += position;
-                }
+        if (isVertical) {
+            p.targetX = p.sourceX;
+            p.targetY = p.sourceY + TAG_DISTANCE_TO_NODE;
+            if (position !== undefined) {
+                p.targetX += position;
             }
-            currentTargetX = p.targetX;
-            currentTargetY = p.targetY;
-
-            return getElkPath(elkEdge);
         } else {
-            if (isVertical) {
-                p.targetX = p.sourceX;
-                p.targetY = p.sourceY + TAG_DISTANCE_TO_NODE;
-                if (position !== undefined) {
-                    p.targetX += position;
-                }
-            } else {
-                p.targetX = p.sourceX + TAG_DISTANCE_TO_NODE;
-                p.targetY = p.sourceY;
-                if (position !== undefined) {
-                    p.targetY += position;
-                }
+            p.targetX = p.sourceX + TAG_DISTANCE_TO_NODE;
+            p.targetY = p.sourceY;
+            if (position !== undefined) {
+                p.targetY += position;
             }
-            currentTargetX = p.targetX;
-            currentTargetY = p.targetY;
-            return getBezierPath(p);
+        }
+
+        if (elkEdge) {
+            const [path, lX, lY] = getElkPath(elkEdge);
+            return [path, lX, lY, p.targetX, p.targetY];
+        } else {
+            const [path, lX, lY] = getBezierPath(p);
+            return [path, lX, lY, p.targetX, p.targetY];
         }
     }
 
-    function getElkPath(elkEdge: ElkExtendedEdge): [string, number, number, number, number] {
+    function getElkPath(elkEdge: ElkExtendedEdge): [string, number, number] {
         const sections = elkEdge.sections;
         if (!sections || sections.length === 0) {
-            return ['', 0, 0, 0, 0];
+            return ['', 0, 0];
         }
 
         let pathParts: string[] = [];
@@ -216,7 +200,7 @@
             }
         }
 
-        return [pathParts.join(' '), lX, lY, 0, 0];
+        return [pathParts.join(' '), lX, lY];
     }
 
     onMount(() => {

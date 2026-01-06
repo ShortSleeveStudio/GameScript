@@ -1,6 +1,6 @@
 {
   "name": "@gamescript/ui",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "description": "GameScript graph editor web UI",
   "type": "module",
   "scripts": {

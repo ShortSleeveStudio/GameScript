@@ -470,6 +470,11 @@ export class GameScriptPanel {
       this._snapshotCommandWatcher = undefined;
     }
 
+    // Close the database connection gracefully
+    this._databaseManager.dispose().catch((err) => {
+      console.error('[Panel] Failed to dispose database manager:', err);
+    });
+
     this._panel.dispose();
 
     this._disposables.forEach(d => d.dispose());

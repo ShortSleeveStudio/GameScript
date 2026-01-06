@@ -2,7 +2,7 @@
   "name": "gamescript",
   "displayName": "GameScript",
   "description": "Visual dialogue authoring for games",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "publisher": "ShortSleeveStudio",
   "repository": {
     "type": "git",
@@ -119,8 +119,8 @@
     "vscode:prepublish": "pnpm run build",
     "build": "node build.mjs",
     "dev": "node build.mjs --watch",
-    "clean": "rm -rf dist",
-    "package": "vsce package --no-dependencies",
+    "clean": "rm -rf dist /tmp/vscode-gamescript-package",
+    "package": "node package-extension.mjs",
     "lint": "eslint src --ext ts"
   },
   "dependencies": {
@@ -128,6 +128,10 @@
     "@vscode/sqlite3": "^5.1.10-vscode",
     "pg": "^8.11.5"
   },
+  "bundledDependencies": [
+    "@vscode/sqlite3",
+    "pg"
+  ],
   "devDependencies": {
     "@types/node": "^20.12.7",
     "@types/pg": "^8.11.5",

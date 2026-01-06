@@ -1,6 +1,6 @@
 {
   "name": "gamescript",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "description": "Cross-platform dialogue authoring system",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "test": "pnpm -r test",
     "clean": "pnpm -r clean",
-    "package:vscode": "pnpm build && pnpm --filter gamescript package",
+    "package:vscode": "pnpm build && pnpm --filter ./plugins/vscode package",
     "package:rider": "pnpm build && cd plugins/rider && ./gradlew buildPlugin"
   },
   "devDependencies": {

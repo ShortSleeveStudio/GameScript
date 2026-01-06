@@ -5,7 +5,7 @@ tsconfig.json
 
 # Build tools
 build.mjs
-node_modules/**
+package-extension.mjs
 
 # Development files
 .gitignore
@@ -29,6 +29,19 @@ pnpm-lock.yaml
 package-lock.json
 yarn.lock
 
+# Staging directory (should never be here, but just in case)
+.package-staging/**
+
 # Other
 .vscode/**
 .github/**
+
+# Exclude unnecessary parts of node_modules to reduce size
+node_modules/**/*.md
+node_modules/**/*.ts
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/.github/**
+node_modules/**/docs/**
+node_modules/**/example/**
+node_modules/**/examples/**

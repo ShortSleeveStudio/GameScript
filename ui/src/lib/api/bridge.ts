@@ -200,6 +200,16 @@ class ExtensionBridge {
     this._readyPromise = new Promise((resolve) => {
       this._resolveReady = resolve;
     });
+
+    // Register JCEF bridge event listener BEFORE detectIde() to avoid race condition.
+    // The Kotlin side fires 'gamescript-bridge-ready' immediately after page load,
+    // so we must be listening before that happens.
+    if (typeof window !== 'undefined') {
+      window.addEventListener('gamescript-bridge-ready', () => {
+        this.onBridgeReady();
+      });
+    }
+
     this._ide = detectIde();
 
     // cef-pending must wait for bridge injection before becoming ready
@@ -226,20 +236,18 @@ class ExtensionBridge {
     if (this._isInitialized) return;
     this._isInitialized = true;
 
-    // Listen for JCEF bridge injection event
-    if (typeof window !== 'undefined') {
-      window.addEventListener('gamescript-bridge-ready', () => {
-        this.onBridgeReady();
-      });
-    }
-
-    // cef-pending waits for onBridgeReady to set up listeners
     // standalone has no bridge to listen to
-    if (this._ide.type === 'standalone' || this._ide.type === 'cef-pending') {
+    if (this._ide.type === 'standalone') {
       return;
     }
 
-    // Set up message listener and notify extension
+    // cef-pending: onBridgeReady will handle setup when bridge is injected
+    // cef: onBridgeReady already ran, nothing to do
+    if (this._ide.type === 'cef-pending' || this._ide.type === 'cef') {
+      return;
+    }
+
+    // VS Code / WebView2: bridge available immediately
     this._ide.addMessageListener(this.handleMessage.bind(this));
     this.postMessage({ type: 'ready' });
   }
