@@ -12,7 +12,7 @@
     import { initStores, startApp, dbConnected } from '$lib/stores';
     import Dock from './Dock.svelte';
     import ResizableSplit from './ResizableSplit.svelte';
-    import InspectorPanel from './InspectorPanel.svelte';
+    import InspectorPanel, { type ActivePanel } from './InspectorPanel.svelte';
 
     // Notifications
     import { toastError } from '$lib/stores/notifications.js';
@@ -179,6 +179,10 @@
     }
 
     let connected = $derived($dbConnected);
+
+    // Inspector panel state - bound for backdrop rendering
+    let inspectorActivePanel: ActivePanel = $state('none');
+    let showBackdrop = $derived(inspectorActivePanel !== 'none');
 </script>
 
 <div class="app" oncontextmenu={handleContextMenu}>
@@ -195,6 +199,13 @@
         >
             {#snippet left()}
                 <div class="dock-container">
+                    {#if showBackdrop}
+                        <button
+                            class="backdrop"
+                            onclick={() => inspectorActivePanel = 'none'}
+                            aria-label="Close panel"
+                        ></button>
+                    {/if}
                     {#if connected}
                         <Dock />
                     {:else}
@@ -208,7 +219,7 @@
             {/snippet}
             {#snippet right()}
                 <div class="inspector-container">
-                    <InspectorPanel />
+                    <InspectorPanel bind:activePanel={inspectorActivePanel} />
                 </div>
             {/snippet}
         </ResizableSplit>
@@ -236,9 +247,19 @@
     }
 
     .dock-container {
+        position: relative;
         width: 100%;
         height: 100%;
         overflow: hidden;
+    }
+
+    .backdrop {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+        background: transparent;
+        border: none;
+        cursor: default;
     }
 
     .inspector-container {

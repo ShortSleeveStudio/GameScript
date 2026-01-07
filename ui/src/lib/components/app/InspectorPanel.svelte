@@ -28,9 +28,9 @@
     // Notifications
     import { toastError } from '$lib/stores/notifications.js';
 
-    // Panel state - only one can be open at a time
-    type ActivePanel = 'none' | 'connection' | 'settings';
-    let activePanel: ActivePanel = $state('none');
+    // Panel state - only one can be open at a time, bindable for parent backdrop
+    export type ActivePanel = 'none' | 'connection' | 'settings';
+    let { activePanel = $bindable<ActivePanel>('none') }: { activePanel?: ActivePanel } = $props();
 
     // Connection form state
     let selectedDbType: 'sqlite' | 'postgres' = $state('sqlite');
