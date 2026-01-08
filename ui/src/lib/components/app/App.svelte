@@ -110,15 +110,40 @@
         }
     }
 
+    // Extract a readable message from an error or unknown value
+    function extractErrorMessage(error: unknown): string {
+        if (error === null || error === undefined) return '(no message)';
+        if (typeof error === 'string') return error || '(empty string)';
+        if (error instanceof Error) return error.message || '(no message)';
+        if (typeof error === 'object') {
+            const obj = error as Record<string, unknown>;
+            if (typeof obj.message === 'string') return obj.message || '(no message)';
+            try {
+                return JSON.stringify(error);
+            } catch {
+                return Object.prototype.toString.call(error);
+            }
+        }
+        return String(error);
+    }
+
     // Global error handler
     function handleError(event: ErrorEvent): void {
         event.preventDefault();
-        toastError('[GameScript] Unhandled error:', event.error);
+        const error = event.error;
+        const message = extractErrorMessage(error);
+        const stack = error?.stack ?? `at ${event.filename}:${event.lineno}:${event.colno}`;
+        console.error('[GameScript] Unhandled error:', message, '\nStack:', stack);
+        toastError('[GameScript] Unhandled error:', message);
     }
 
     function handleRejection(event: PromiseRejectionEvent): void {
         event.preventDefault();
-        toastError('[GameScript] Unhandled rejection:', event.reason);
+        const reason = event.reason;
+        const message = extractErrorMessage(reason);
+        const stack = reason?.stack ?? '(no stack)';
+        console.error('[GameScript] Unhandled rejection:', message, '\nStack:', stack);
+        toastError('[GameScript] Unhandled rejection:', message);
     }
 
     // Unsubscribe functions for bridge events

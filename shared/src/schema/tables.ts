@@ -14,7 +14,9 @@ import {
   TABLE_NOTIFICATIONS,
   TABLE_PROPERTY_TYPES,
   TABLE_PROPERTY_TEMPLATES,
+  TABLE_PROPERTY_VALUES,
   TABLE_NODE_PROPERTIES,
+  TABLE_CONVERSATION_PROPERTIES,
   TABLE_CODE_OUTPUT_FOLDER,
   TABLE_SNAPSHOT_OUTPUT_PATH,
   TABLE_CODE_TEMPLATE,
@@ -23,6 +25,8 @@ import {
   TABLE_LOCALIZATION_TAG_CATEGORIES,
   TABLE_LOCALIZATION_TAG_VALUES,
 } from '../types/constants.js';
+
+export type OnDeleteAction = 'CASCADE' | 'SET NULL' | 'RESTRICT' | 'NO ACTION';
 
 export interface ColumnDefinition {
   name: string;
@@ -35,6 +39,7 @@ export interface ColumnDefinition {
   references?: {
     table: string;
     column: string;
+    onDelete?: OnDeleteAction; // Defaults to CASCADE if not specified
   };
 }
 
@@ -140,12 +145,42 @@ export const localizationsTable: TableDefinition = {
   ],
 };
 
+// Property values (predefined values for property templates)
+export const propertyValuesTable: TableDefinition = {
+  name: TABLE_PROPERTY_VALUES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'template_id', type: 'INTEGER', notNull: true, references: { table: 'property_templates', column: 'id' } },
+    { name: 'value_string', type: 'TEXT' },
+    { name: 'value_integer', type: 'INTEGER' },
+    { name: 'value_decimal', type: 'REAL' },
+    { name: 'value_boolean', type: 'BOOLEAN' },
+  ],
+};
+
 export const nodePropertiesTable: TableDefinition = {
   name: TABLE_NODE_PROPERTIES.name,
   columns: [
     { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
     { name: 'parent', type: 'INTEGER', notNull: true, references: { table: 'nodes', column: 'id' } },
     { name: 'template', type: 'INTEGER', notNull: true, references: { table: 'property_templates', column: 'id' } },
+    { name: 'is_reference', type: 'BOOLEAN', notNull: true, defaultValue: false },
+    { name: 'reference_value', type: 'INTEGER', references: { table: 'property_values', column: 'id', onDelete: 'SET NULL' } },
+    { name: 'value_string', type: 'TEXT' },
+    { name: 'value_integer', type: 'INTEGER' },
+    { name: 'value_decimal', type: 'REAL' },
+    { name: 'value_boolean', type: 'BOOLEAN' },
+  ],
+};
+
+export const conversationPropertiesTable: TableDefinition = {
+  name: TABLE_CONVERSATION_PROPERTIES.name,
+  columns: [
+    { name: 'id', type: 'INTEGER', primaryKey: true, autoIncrement: true },
+    { name: 'parent', type: 'INTEGER', notNull: true, references: { table: 'conversations', column: 'id' } },
+    { name: 'template', type: 'INTEGER', notNull: true, references: { table: 'property_templates', column: 'id' } },
+    { name: 'is_reference', type: 'BOOLEAN', notNull: true, defaultValue: false },
+    { name: 'reference_value', type: 'INTEGER', references: { table: 'property_values', column: 'id', onDelete: 'SET NULL' } },
     { name: 'value_string', type: 'TEXT' },
     { name: 'value_integer', type: 'INTEGER' },
     { name: 'value_decimal', type: 'REAL' },
@@ -282,9 +317,11 @@ export const allTables: TableDefinition[] = [
   actorsTable,
   actorPrincipalTable,
   propertyTemplatesTable,
+  propertyValuesTable,  // Must come after propertyTemplatesTable
   nodesTable,
   edgesTable,
   nodePropertiesTable,
+  conversationPropertiesTable,  // Must come after conversationsTable and propertyValuesTable
   notificationsTable,
   codeOutputFolderTable,
   snapshotOutputPathTable,

@@ -25,6 +25,7 @@ import {
     TABLE_LOCALIZATIONS,
     TABLE_CONVERSATION_TAG_CATEGORIES,
     TABLE_LOCALIZATION_TAG_CATEGORIES,
+    TABLE_PROPERTY_TEMPLATES,
 } from '@gamescript/shared';
 import type { IDbRowView } from '$lib/db/db-view-row-interface.js';
 import type { FocusChangeEvent, LocalePrincipal  } from '@gamescript/shared';
@@ -346,6 +347,16 @@ export const focusedLocalizationTagCategory: Readable<number | null> = derived(f
     $ids.length === 1 ? $ids[0] : null
 );
 
+/** Currently focused property template IDs */
+export const focusedPropertyTemplates: Readable<number[]> = derived(focusState, ($state) =>
+    Array.from($state.get(TABLE_PROPERTY_TEMPLATES.id)?.keys() ?? [])
+);
+
+/** The single focused property template (if exactly one is selected) */
+export const focusedPropertyTemplate: Readable<number | null> = derived(focusedPropertyTemplates, ($ids) =>
+    $ids.length === 1 ? $ids[0] : null
+);
+
 /** Whether anything is currently selected */
 export const hasSelection: Readable<boolean> = derived(focusState, ($state) => {
     for (const map of $state.values()) {
@@ -480,6 +491,22 @@ export function focusLocalizationTagCategory(id: number, payload?: FocusPayload)
         type: FOCUS_MODE_REPLACE,
         requests: [{
             tableType: TABLE_LOCALIZATION_TAG_CATEGORIES,
+            focus: focusMap,
+            type: FOCUS_REPLACE,
+        }],
+    });
+}
+
+/**
+ * Focus a single property template.
+ */
+export function focusPropertyTemplate(id: number, payload?: FocusPayload): void {
+    const focusMap = new Map<number, Focus>();
+    focusMap.set(id, { rowId: id, payload });
+    focusManager.focus({
+        type: FOCUS_MODE_REPLACE,
+        requests: [{
+            tableType: TABLE_PROPERTY_TEMPLATES,
             focus: focusMap,
             type: FOCUS_REPLACE,
         }],

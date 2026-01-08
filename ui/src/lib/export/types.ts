@@ -28,6 +28,8 @@ export interface ExportConversation {
   isLayoutVertical: boolean;
   /** Indices into tag values arrays, -1 = untagged for that category */
   tagIndices: number[];
+  /** Custom properties on this conversation */
+  properties: ExportConversationProperty[];
   /** Indices into ExportSnapshot.nodes */
   nodeIndices: number[];
   /** Indices into ExportSnapshot.edges */
@@ -47,18 +49,34 @@ export interface ExportPropertyTemplate {
 }
 
 /**
+ * Property value (shared between node and conversation properties).
+ * Only one field will be set based on the template type.
+ */
+export interface ExportPropertyValue {
+  stringVal?: string;
+  intVal?: number;
+  decimalVal?: number;
+  boolVal?: boolean;
+}
+
+/**
  * Exported node property with resolved template index.
  */
 export interface ExportNodeProperty {
   /** Index into ExportSnapshot.propertyTemplates */
   templateIdx: number;
   /** The property value (only one will be set based on type) */
-  value: {
-    stringVal?: string;
-    intVal?: number;
-    decimalVal?: number;
-    boolVal?: boolean;
-  };
+  value: ExportPropertyValue;
+}
+
+/**
+ * Exported conversation property with resolved template index.
+ */
+export interface ExportConversationProperty {
+  /** Index into ExportSnapshot.propertyTemplates */
+  templateIdx: number;
+  /** The property value (only one will be set based on type) */
+  value: ExportPropertyValue;
 }
 
 /**

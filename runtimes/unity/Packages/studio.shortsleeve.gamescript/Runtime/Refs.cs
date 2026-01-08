@@ -114,6 +114,108 @@ namespace GameScript
     }
 
     /// <summary>
+    /// Lightweight wrapper around a FlatSharp ConversationProperty providing convenient property access.
+    /// This is a struct holding a snapshot reference and the property data - zero allocation.
+    /// </summary>
+    public readonly struct ConversationPropertyRef
+    {
+        readonly Snapshot _snapshot;
+        readonly ConversationProperty _property;
+
+        internal ConversationPropertyRef(Snapshot snapshot, ConversationProperty property)
+        {
+            _snapshot = snapshot;
+            _property = property;
+        }
+
+        /// <summary>
+        /// The name of this property (from the property template).
+        /// </summary>
+        public string Name => _snapshot.PropertyTemplates[_property.TemplateIdx].Name;
+
+        /// <summary>
+        /// The type of this property's value.
+        /// </summary>
+        public NodePropertyType Type => (NodePropertyType)_snapshot.PropertyTemplates[_property.TemplateIdx].Type;
+
+        /// <summary>
+        /// Gets the string value. Throws if Type is not String.
+        /// </summary>
+        public string StringValue => _property.Value.Value.string_val;
+
+        /// <summary>
+        /// Gets the integer value. Throws if Type is not Integer.
+        /// </summary>
+        public int IntValue => _property.Value.Value.int_val.Value;
+
+        /// <summary>
+        /// Gets the decimal/float value. Throws if Type is not Decimal.
+        /// </summary>
+        public float FloatValue => _property.Value.Value.decimal_val.Value;
+
+        /// <summary>
+        /// Gets the boolean value. Throws if Type is not Boolean.
+        /// </summary>
+        public bool BoolValue => _property.Value.Value.bool_val.Value;
+
+        /// <summary>
+        /// Tries to get the string value.
+        /// </summary>
+        public bool TryGetString(out string value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out string str))
+            {
+                value = str!;
+                return true;
+            }
+            value = null!;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the integer value.
+        /// </summary>
+        public bool TryGetInt(out int value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out Int32Value intVal))
+            {
+                value = intVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the decimal/float value.
+        /// </summary>
+        public bool TryGetFloat(out float value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out FloatValue floatVal))
+            {
+                value = floatVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to get the boolean value.
+        /// </summary>
+        public bool TryGetBool(out bool value)
+        {
+            if (_property.Value.HasValue && _property.Value.Value.TryGet(out BoolValue boolVal))
+            {
+                value = boolVal!.Value;
+                return true;
+            }
+            value = default;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Lightweight wrapper around a FlatSharp Node providing convenient property access.
     /// This is a struct holding a snapshot reference and index - zero allocation.
     /// </summary>
@@ -288,6 +390,19 @@ namespace GameScript
         {
             int edgeIdx = _snapshot.Conversations[_index].EdgeIndices[i];
             return new EdgeRef(_snapshot, edgeIdx);
+        }
+
+        /// <summary>
+        /// The number of properties on this conversation.
+        /// </summary>
+        public int PropertyCount => _snapshot.Conversations[_index].Properties?.Count ?? 0;
+
+        /// <summary>
+        /// Gets a property by index.
+        /// </summary>
+        public ConversationPropertyRef GetProperty(int i)
+        {
+            return new ConversationPropertyRef(_snapshot, _snapshot.Conversations[_index].Properties[i]);
         }
     }
 

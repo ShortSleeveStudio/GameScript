@@ -43,7 +43,8 @@ class MessageBridge(
     init {
         setupJsQuery()
         setupLoadHandler()
-        Disposer.register(project, this)
+        // Note: This is registered as a child of GameScriptBrowserPanel,
+        // NOT the project. The panel handles disposal when the tab is closed.
     }
 
     /**
@@ -108,10 +109,16 @@ class MessageBridge(
         executeJavaScript(bridgeScript)
     }
 
+    @Volatile
+    private var disposed = false
+
     /**
      * Handle a message received from the UI.
      */
     private fun handleMessageFromUI(jsonMessage: String) {
+        if (disposed) {
+            return
+        }
         scope.launch(Dispatchers.IO) {
             try {
                 val message = JsonParser.parseString(jsonMessage).asJsonObject
@@ -185,7 +192,6 @@ class MessageBridge(
      */
     private fun executeJavaScript(script: String) {
         if (browser.isDisposed) {
-            LOG.warn("Cannot execute JS: browser is disposed")
             return
         }
         browser.cefBrowser.executeJavaScript(script, browser.cefBrowser.url, 0)

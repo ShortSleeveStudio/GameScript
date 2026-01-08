@@ -57,19 +57,29 @@ namespace GameScript
         void OnConversationEnter(ConversationRef conversation, ReadyNotifier readyNotifier);
 
         /// <summary>
-        /// Called before a node's action is executed.
+        /// Called when entering a node, before any action or speech.
         /// Call readyNotifier.OnReady() when ready to proceed.
         /// </summary>
         void OnNodeEnter(NodeRef node, ReadyNotifier readyNotifier);
 
         /// <summary>
+        /// Called when a dialogue node has speech to present.
+        /// This runs concurrently with the node's action (if any).
+        /// Call readyNotifier.OnReady() when the speech presentation is complete.
+        ///
+        /// Note: This is NOT called for logic nodes (nodes without speech text).
+        /// </summary>
+        void OnSpeech(NodeRef node, ReadyNotifier readyNotifier);
+
+        /// <summary>
         /// Called when the player must choose between multiple nodes.
         /// Call decisionNotifier.OnDecisionMade(chosenNode) with the selected node.
         /// </summary>
-        void OnNodeExit(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier);
+        void OnDecision(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier);
 
         /// <summary>
-        /// Called before auto-advancing to the next node.
+        /// Called before leaving the current node.
+        /// Use this for cleanup before advancing to the next node.
         /// Call readyNotifier.OnReady() when ready to proceed.
         /// </summary>
         void OnNodeExit(NodeRef currentNode, ReadyNotifier readyNotifier);

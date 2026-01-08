@@ -50,6 +50,7 @@ export const NODE_UNDO_PREVENT_RESPONSE = 'prevent response setting';
 export const NODE_UNDO_ACTOR = 'node actor';
 export const NODE_UNDO_HAS_CONDITION = 'node condition';
 export const NODE_UNDO_HAS_ACTION = 'node action';
+export const NODE_UNDO_TYPE = 'node type';
 
 /** Edges */
 export const EDGE_UNDO_PRIORITY = 'priority';

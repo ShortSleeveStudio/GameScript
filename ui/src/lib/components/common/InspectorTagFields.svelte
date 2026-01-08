@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="T extends Row">
     /**
      * Displays tag category fields in the inspector.
      *
@@ -22,19 +22,19 @@
     import InspectorField from './InspectorField.svelte';
     import Dropdown from './Dropdown.svelte';
 
-    interface EntityCrud<T extends Row> {
-        updateOne: (oldRow: T, newRow: T) => Promise<T>;
+    interface EntityCrud<TEntity extends Row> {
+        updateOne: (oldRow: TEntity, newRow: TEntity) => Promise<TEntity>;
     }
 
     interface Props {
         /** The entity row view (conversation or localization) */
-        rowView: IDbRowView<Row>;
+        rowView: IDbRowView<T>;
         /** Table view of tag categories */
         categoriesTable: IDbTableView<BaseTagCategory>;
         /** Table view of tag values */
         valuesTable: IDbTableView<BaseTagValue>;
         /** CRUD operations for the entity */
-        crud: EntityCrud<Row>;
+        crud: EntityCrud<T>;
     }
 
     let { rowView, categoriesTable, valuesTable, crud }: Props = $props();
@@ -64,8 +64,8 @@
         if (currentValue === newValueId) return;
 
         try {
-            const newRow = { ...oldRow, [columnName]: newValueId };
-            await isLoading.wrapPromise(crud.updateOne(oldRow, newRow as Row));
+            const newRow = { ...oldRow, [columnName]: newValueId } as T;
+            await isLoading.wrapPromise(crud.updateOne(oldRow, newRow));
         } catch (err) {
             toastError('Failed to update tag', err);
         }

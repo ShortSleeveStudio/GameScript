@@ -7,12 +7,14 @@ import {
   type Node,
   type Edge,
   type NodeProperty,
+  type ConversationProperty,
   type Localization,
   type CodeTemplateType,
   TABLE_CONVERSATIONS,
   TABLE_NODES,
   TABLE_EDGES,
   TABLE_NODE_PROPERTIES,
+  TABLE_CONVERSATION_PROPERTIES,
   TABLE_LOCALIZATIONS,
   NODE_TYPE_ROOT,
   DB_DEFAULT_ACTOR_ID,
@@ -234,7 +236,17 @@ export async function permanentlyDelete(conversationId: number, codeTemplate: Co
       await db.delete(TABLE_LOCALIZATIONS, conversationLocalizations.map(l => l.id), tx);
     }
 
-    // 8. Delete the conversation itself
+    // 8. Delete conversation properties
+    const conversationProperties = await db.select<ConversationProperty>(
+      TABLE_CONVERSATION_PROPERTIES,
+      query<ConversationProperty>().where('parent').eq(conversationId).build(),
+      tx
+    );
+    if (conversationProperties.length > 0) {
+      await db.delete(TABLE_CONVERSATION_PROPERTIES, conversationProperties.map(p => p.id), tx);
+    }
+
+    // 9. Delete the conversation itself
     await db.delete(TABLE_CONVERSATIONS, conversationId, tx);
   });
 }

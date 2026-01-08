@@ -130,7 +130,7 @@
 
   // State
   let gridElement: HTMLElement;
-  let api: GridApi;
+  let api: GridApi | undefined = $state();
   let datasource: GridDatasource<Localization>;
   let selectedRows: IDbRowView<Localization>[] = $state([]);
   let isLoading = new IsLoadingStore();
@@ -186,7 +186,7 @@
   }
 
   function getGridApi(): GridApi {
-    return api;
+    return api!;
   }
 
   function isCellEditable(params: EditableCallbackParams<IDbRowView<Localization>>): boolean {

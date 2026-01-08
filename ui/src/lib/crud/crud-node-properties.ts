@@ -12,6 +12,8 @@ import {
 export interface CreateNodePropertyParams {
   parent: number;
   template: number;
+  is_reference: boolean;
+  reference_value: number | null;
   value_string?: string;
   value_integer?: number;
   value_decimal?: number;
@@ -28,6 +30,8 @@ export async function create(params: CreateNodePropertyParams): Promise<NodeProp
     {
       parent: params.parent,
       template: params.template,
+      is_reference: params.is_reference,
+      reference_value: params.reference_value,
       value_string: params.value_string ?? '',
       value_integer: params.value_integer ?? 0,
       value_decimal: params.value_decimal ?? 0,

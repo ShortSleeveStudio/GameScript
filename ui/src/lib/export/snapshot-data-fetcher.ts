@@ -25,6 +25,8 @@ import type {
   Locale,
   PropertyTemplate,
   NodeProperty,
+  ConversationProperty,
+  PropertyValue,
   ConversationTagCategory,
   ConversationTagValue,
   LocalizationTagCategory,
@@ -42,6 +44,8 @@ import type {
   ExportLocalization,
   ExportPropertyTemplate,
   ExportNodeProperty,
+  ExportConversationProperty,
+  ExportPropertyValue,
   IdToIndexMaps,
 } from './types.js';
 
@@ -108,6 +112,8 @@ export class SnapshotDataFetcher {
       localizations,
       propertyTemplates,
       nodeProperties,
+      conversationProperties,
+      propertyValues,
     ] = await Promise.all([
       snapshotExport.getNonDeletedConversations(),
       snapshotExport.getNodesFromNonDeletedConversations(),
@@ -116,6 +122,8 @@ export class SnapshotDataFetcher {
       snapshotExport.getNonSystemLocalizations(),
       snapshotExport.getAllPropertyTemplates(),
       snapshotExport.getNodePropertiesFromNonDeletedConversations(),
+      snapshotExport.getConversationPropertiesFromNonDeletedConversations(),
+      snapshotExport.getAllPropertyValues(),
     ]);
     this.checkCancelled();
 
@@ -140,11 +148,20 @@ export class SnapshotDataFetcher {
     );
     this.checkCancelled();
 
+    // Build property value ID -> PropertyValue map once for resolving references
+    const propertyValueMap = new Map<number, PropertyValue>();
+    for (const pv of propertyValues) {
+      propertyValueMap.set(pv.id, pv);
+    }
+
     // Transform to export format
     const exportConversations = this.transformConversations(
       conversations,
       nodes,
       edges,
+      conversationProperties,
+      propertyTemplates,
+      propertyValueMap,
       conversationTagCategories,
       idMaps,
     );
@@ -153,6 +170,7 @@ export class SnapshotDataFetcher {
       edges,
       nodeProperties,
       propertyTemplates,
+      propertyValueMap,
       localizationTextMap,
       idMaps,
     );
@@ -314,9 +332,20 @@ export class SnapshotDataFetcher {
     conversations: Conversation[],
     nodes: Node[],
     edges: Edge[],
+    conversationProperties: ConversationProperty[],
+    propertyTemplates: PropertyTemplate[],
+    propertyValueMap: Map<number, PropertyValue>,
     tagCategories: ConversationTagCategory[],
     idMaps: IdToIndexMaps,
   ): ExportConversation[] {
+    // Build conversation ID -> properties map
+    const convPropertiesMap = new Map<number, ConversationProperty[]>();
+    for (const prop of conversationProperties) {
+      const list = convPropertiesMap.get(prop.parent) ?? [];
+      list.push(prop);
+      convPropertiesMap.set(prop.parent, list);
+    }
+
     return conversations.map((conv) => {
       // Find nodes belonging to this conversation
       const nodeIndices: number[] = [];
@@ -342,6 +371,10 @@ export class SnapshotDataFetcher {
       // Resolve tag indices
       const tagIndices = this.resolveConversationTagIndices(conv, tagCategories, idMaps);
 
+      // Transform conversation properties
+      const props = convPropertiesMap.get(conv.id) ?? [];
+      const exportProps = this.transformConversationProperties(props, propertyTemplates, propertyValueMap, idMaps);
+
       return {
         id: conv.id,
         name: conv.name,
@@ -349,6 +382,7 @@ export class SnapshotDataFetcher {
         isLayoutAuto: conv.is_layout_auto,
         isLayoutVertical: conv.is_layout_vertical,
         tagIndices,
+        properties: exportProps,
         nodeIndices,
         edgeIndices,
         rootNodeIdx,
@@ -388,6 +422,7 @@ export class SnapshotDataFetcher {
     edges: Edge[],
     nodeProperties: NodeProperty[],
     propertyTemplates: PropertyTemplate[],
+    propertyValueMap: Map<number, PropertyValue>,
     localizationTextMap: Map<number, string | null>,
     idMaps: IdToIndexMaps,
   ): ExportNode[] {
@@ -428,13 +463,16 @@ export class SnapshotDataFetcher {
 
       // Transform properties
       const props = nodePropertiesMap.get(node.id) ?? [];
-      const exportProps = this.transformNodeProperties(props, propertyTemplates, idMaps);
+      const exportProps = this.transformNodeProperties(props, propertyTemplates, propertyValueMap, idMaps);
+
+      // System-created nodes (e.g., root nodes) and logic nodes should have actorIdx = 0
+      const actorIdx = node.is_system_created || node.type === 'logic' ? 0 : (idMaps.actors.get(node.actor) ?? 0);
 
       return {
         id: node.id,
         conversationIdx: this.getRequiredIndex(idMaps.conversations, node.parent, 'conversation', node.id),
         type: node.type as NodeTypeName,
-        actorIdx: idMaps.actors.get(node.actor) ?? -1,
+        actorIdx,
         voiceText: node.voice_text !== null ? localizationTextMap.get(node.voice_text) ?? null : null,
         uiResponseText: node.ui_response_text !== null ? localizationTextMap.get(node.ui_response_text) ?? null : null,
         hasCondition: node.has_condition,
@@ -453,35 +491,113 @@ export class SnapshotDataFetcher {
   private transformNodeProperties(
     props: NodeProperty[],
     templates: PropertyTemplate[],
+    propertyValueMap: Map<number, PropertyValue>,
     idMaps: IdToIndexMaps,
   ): ExportNodeProperty[] {
-    return props.map((prop) => {
+    const result: ExportNodeProperty[] = [];
+
+    for (const prop of props) {
+      // Skip broken references (is_reference=true but reference_value=null)
+      if (prop.is_reference && prop.reference_value === null) {
+        continue;
+      }
+
       const templateIdx = idMaps.propertyTemplates.get(prop.template) ?? -1;
       const template = templates.find((t) => t.id === prop.template);
 
-      const value: ExportNodeProperty['value'] = {};
-      if (template) {
-        switch (template.type) {
-          case PROPERTY_TYPE_STRING.id:
-            value.stringVal = prop.value_string ?? undefined;
-            break;
-          case PROPERTY_TYPE_INTEGER.id:
-            value.intVal = prop.value_integer ?? undefined;
-            break;
-          case PROPERTY_TYPE_DECIMAL.id:
-            value.decimalVal = prop.value_decimal ?? undefined;
-            break;
-          case PROPERTY_TYPE_BOOLEAN.id:
-            value.boolVal = prop.value_boolean ?? undefined;
-            break;
-        }
-      }
+      // Resolve property value - if is_reference, get value from property_values table
+      const value = this.resolvePropertyValue(prop, template, propertyValueMap);
 
-      return {
+      result.push({
         templateIdx,
         value,
-      };
-    });
+      });
+    }
+
+    return result;
+  }
+
+  private transformConversationProperties(
+    props: ConversationProperty[],
+    templates: PropertyTemplate[],
+    propertyValueMap: Map<number, PropertyValue>,
+    idMaps: IdToIndexMaps,
+  ): ExportConversationProperty[] {
+    const result: ExportConversationProperty[] = [];
+
+    for (const prop of props) {
+      // Skip broken references (is_reference=true but reference_value=null)
+      if (prop.is_reference && prop.reference_value === null) {
+        continue;
+      }
+
+      const templateIdx = idMaps.propertyTemplates.get(prop.template) ?? -1;
+      const template = templates.find((t) => t.id === prop.template);
+
+      // Resolve property value - if is_reference, get value from property_values table
+      const value = this.resolvePropertyValue(prop, template, propertyValueMap);
+
+      result.push({
+        templateIdx,
+        value,
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * Resolve a property value, handling both direct values and references to predefined values.
+   */
+  private resolvePropertyValue(
+    prop: NodeProperty | ConversationProperty,
+    template: PropertyTemplate | undefined,
+    propertyValueMap: Map<number, PropertyValue>,
+  ): ExportPropertyValue {
+    const value: ExportPropertyValue = {};
+
+    if (!template) return value;
+
+    // If this is a reference to a predefined value, resolve it
+    if (prop.is_reference && prop.reference_value !== null) {
+      const predefinedValue = propertyValueMap.get(prop.reference_value);
+      if (predefinedValue) {
+        switch (template.type) {
+          case PROPERTY_TYPE_STRING.id:
+            value.stringVal = predefinedValue.value_string ?? undefined;
+            break;
+          case PROPERTY_TYPE_INTEGER.id:
+            value.intVal = predefinedValue.value_integer ?? undefined;
+            break;
+          case PROPERTY_TYPE_DECIMAL.id:
+            value.decimalVal = predefinedValue.value_decimal ?? undefined;
+            break;
+          case PROPERTY_TYPE_BOOLEAN.id:
+            value.boolVal = predefinedValue.value_boolean ?? undefined;
+            break;
+        }
+        return value;
+      }
+      // If reference not found, fall through to use direct value as fallback
+    }
+
+    // Use direct value from property
+    switch (template.type) {
+      case PROPERTY_TYPE_STRING.id:
+        value.stringVal = prop.value_string ?? undefined;
+        break;
+      case PROPERTY_TYPE_INTEGER.id:
+        value.intVal = prop.value_integer ?? undefined;
+        break;
+      case PROPERTY_TYPE_DECIMAL.id:
+        value.decimalVal = prop.value_decimal ?? undefined;
+        break;
+      case PROPERTY_TYPE_BOOLEAN.id:
+        value.boolVal = prop.value_boolean ?? undefined;
+        break;
+    }
+
+    return value;
   }
 
   private transformEdges(edges: Edge[], idMaps: IdToIndexMaps): ExportEdge[] {

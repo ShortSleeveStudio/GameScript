@@ -62,6 +62,12 @@ export const TABLE_LOCALIZATION_TAG_VALUES: TableRef = { id: 23, name: 'localiza
 export const TABLE_SNAPSHOT_OUTPUT_PATH: TableRef = { id: 24, name: 'snapshot_output_path' };
 export const TABLE_CODE_TEMPLATE: TableRef = { id: 25, name: 'code_template' };
 
+// Property values (predefined values for property templates)
+export const TABLE_PROPERTY_VALUES: TableRef = { id: 26, name: 'property_values' };
+
+// Conversation properties
+export const TABLE_CONVERSATION_PROPERTIES: TableRef = { id: 27, name: 'conversation_properties' };
+
 export const DATABASE_TABLES: TableRef[] = [
   TABLE_TABLES,
   TABLE_AUTO_COMPLETES,
@@ -89,6 +95,8 @@ export const DATABASE_TABLES: TableRef[] = [
   TABLE_LOCALIZATION_TAG_VALUES,
   TABLE_SNAPSHOT_OUTPUT_PATH,
   TABLE_CODE_TEMPLATE,
+  TABLE_PROPERTY_VALUES,
+  TABLE_CONVERSATION_PROPERTIES,
 ];
 
 /** Set of known table names for efficient validation (e.g., SQL injection prevention) */
@@ -121,7 +129,8 @@ export interface NodeType {
 
 export const NODE_TYPE_ROOT = { id: 0, name: 'root' } as const;
 export const NODE_TYPE_DIALOGUE = { id: 1, name: 'dialogue' } as const;
-export const NODE_TYPES = [NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE] as const;
+export const NODE_TYPE_LOGIC = { id: 2, name: 'logic' } as const;
+export const NODE_TYPES = [NODE_TYPE_ROOT, NODE_TYPE_DIALOGUE, NODE_TYPE_LOGIC] as const;
 
 /** String literal type for node types (e.g., 'root' | 'dialogue') */
 export type NodeTypeName = (typeof NODE_TYPES)[number]['name'];

@@ -96,6 +96,9 @@ async function focusOnNode(parentConversation: number, filter: QueryFilter<Node>
  * Navigate to the node that owns a localization (voice text or UI response text).
  */
 export async function focusOnNodeOfLocalization(localization: Localization): Promise<void> {
+    // Skip if localization has no parent conversation
+    if (localization.parent === null) return;
+
     await focusOnNode(
         localization.parent,
         query<Node>()

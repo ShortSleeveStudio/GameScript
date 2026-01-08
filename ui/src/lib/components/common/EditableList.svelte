@@ -16,7 +16,7 @@
   }
 </script>
 
-<script lang="ts" generics="T extends import('@gamescript/shared').Row & { name: string; type?: number }">
+<script lang="ts" generics="T extends import('@gamescript/shared').Row & { name?: string; type?: number }">
   import type { IDbRowView } from '$lib/db';
   import Button from './Button.svelte';
   import EditableListItem from './EditableListItem.svelte';
@@ -49,6 +49,8 @@
     ondelete?: (payload: { rowView: IDbRowView<T> }) => void;
     /** Callback when an item is selected */
     onselect?: (payload: { rowView: IDbRowView<T> }) => void;
+    /** Optional function to get display name for items without a 'name' property */
+    getDisplayName?: (data: T) => string;
   }
 
   let {
@@ -70,6 +72,7 @@
     ontypeChange,
     ondelete,
     onselect,
+    getDisplayName,
   }: Props = $props();
 
   // ============================================================================
@@ -119,7 +122,11 @@
   let dropdownTypeOptions = $derived(typeOptions.map(t => ({ value: t.id, label: t.name })));
 
   // Derive the name of the item to delete
-  let deleteItemName = $derived(rowViewToDelete ? (rowViewToDelete as IDbRowView<T>).data.name : '');
+  let deleteItemName = $derived.by(() => {
+    if (!rowViewToDelete) return '';
+    const data = (rowViewToDelete as IDbRowView<T>).data;
+    return getDisplayName ? getDisplayName(data) : (data.name ?? '');
+  });
 </script>
 
 <div class="section">
@@ -145,6 +152,7 @@
           ontypeChange={handleTypeChange}
           ondelete={confirmDelete}
           onselect={handleSelect}
+          {getDisplayName}
         />
       {:else}
         <div class="empty-state">{emptyText}</div>

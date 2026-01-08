@@ -23,7 +23,8 @@ class PostgresConnection(
     private val password: String?
 ) {
 
-    private var pool: com.github.jasync.sql.db.pool.ConnectionPool<PostgreSQLConnection>? = null
+    private var pool: ConnectionPool<PostgreSQLConnection>? = null
+    private var listenPool: ConnectionPool<PostgreSQLConnection>? = null
     private var listenConnection: PostgreSQLConnection? = null
 
     private val nextTransactionId = AtomicInteger(1)
@@ -54,8 +55,15 @@ class PostgresConnection(
      */
     fun close() {
         try {
-            listenConnection?.disconnect()
+            // Return listen connection to its pool before disconnecting
+            listenConnection?.let { conn ->
+                listenPool?.giveBack(conn)
+            }
             listenConnection = null
+            // Disconnect the listen pool (this properly releases server resources)
+            listenPool?.disconnect()
+            listenPool = null
+            // Disconnect main pool
             pool?.disconnect()
             pool = null
             activeTransactions.clear()
@@ -179,17 +187,21 @@ class PostgresConnection(
      * Start listening for notifications on a channel.
      * Uses a dedicated connection for LISTEN/NOTIFY.
      */
+    @Suppress("UNCHECKED_CAST")
     suspend fun startListening(channel: String, onNotification: (String) -> Unit) =
         withContext(Dispatchers.IO) {
-            // Create dedicated connection for listening
-            listenConnection = PostgreSQLConnectionBuilder.createConnectionPool {
+            // Create dedicated pool for listening (must store pool reference for proper cleanup)
+            listenPool = PostgreSQLConnectionBuilder.createConnectionPool {
                 this.host = this@PostgresConnection.host
                 this.port = this@PostgresConnection.port
                 this.database = this@PostgresConnection.database
                 this.username = this@PostgresConnection.user
                 this.password = this@PostgresConnection.password
                 this.maxActiveConnections = 1
-            }.connect().await() as PostgreSQLConnection
+            } as ConnectionPool<PostgreSQLConnection>
+
+            // Get a dedicated connection from the pool
+            listenConnection = listenPool!!.take().await()
 
             // Register notification listener
             listenConnection!!.registerNotifyListener { notification ->
@@ -207,8 +219,14 @@ class PostgresConnection(
      */
     suspend fun stopListening(channel: String) = withContext(Dispatchers.IO) {
         listenConnection?.sendQuery("UNLISTEN $channel")?.await()
-        listenConnection?.disconnect()
+        // Return connection to pool before disconnecting the pool
+        listenConnection?.let { conn ->
+            listenPool?.giveBack(conn)
+        }
         listenConnection = null
+        // Disconnect the pool to release server resources
+        listenPool?.disconnect()
+        listenPool = null
     }
 
     private fun queryResultToList(result: QueryResult): List<Map<String, Any?>> {

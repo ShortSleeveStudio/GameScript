@@ -17,6 +17,7 @@
         Localization,
         ConversationTagCategory,
         LocalizationTagCategory,
+        PropertyTemplate,
     } from '@gamescript/shared';
     import {
         type Focus,
@@ -38,6 +39,7 @@
         TABLE_LOCALIZATIONS,
         TABLE_CONVERSATION_TAG_CATEGORIES,
         TABLE_LOCALIZATION_TAG_CATEGORIES,
+        TABLE_PROPERTY_TEMPLATES,
         type IDbTableView,
         type IDbRowView,
     } from '$lib/db';
@@ -48,8 +50,9 @@
     import InspectorLocale from './InspectorLocale.svelte';
     import InspectorLocalization from './InspectorLocalization.svelte';
     import InspectorTagCategory from './InspectorTagCategory.svelte';
+    import InspectorPropertyTemplate from './InspectorPropertyTemplate.svelte';
     import { common, conversationTagCategories, conversationTagValues, localizationTagCategories, localizationTagValues } from '$lib/crud';
-    import { conversationTagValuesTable, localizationTagValuesTable } from '$lib/tables';
+    import { conversationTagValuesTable, localizationTagValuesTable, propertyValuesTable } from '$lib/tables';
 
     let focusedItems = $state(0);
     let inspectedFocus = $state<Focus | undefined>(undefined);
@@ -153,6 +156,11 @@
                         valuesTable={localizationTagValuesTable}
                         crud={localizationTagValues}
                         entityName="localizations"
+                    />
+                {:else if inspectedTableId === TABLE_PROPERTY_TEMPLATES.id}
+                    <InspectorPropertyTemplate
+                        rowView={rowView as IDbRowView<PropertyTemplate>}
+                        valuesTable={propertyValuesTable}
                     />
                 {/if}
             {/each}

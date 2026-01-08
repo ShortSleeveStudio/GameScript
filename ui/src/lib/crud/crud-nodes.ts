@@ -152,6 +152,136 @@ export async function createMany(paramsList: CreateNodeParams[]): Promise<Create
 // Update
 // ============================================================================
 
+/**
+ * Change a node's type between 'dialogue' and 'logic'.
+ *
+ * When changing to 'logic':
+ * - Deletes associated localizations
+ * - Sets voice_text and ui_response_text to null
+ *
+ * When changing to 'dialogue':
+ * - Creates new localizations
+ * - Sets voice_text and ui_response_text to the new localization IDs
+ *
+ * Root nodes cannot have their type changed.
+ */
+export async function updateType(nodeId: number, newType: 'dialogue' | 'logic'): Promise<void> {
+  // Capture current state for undo
+  let oldNode: Node | null = null;
+  const oldLocalizations: Localization[] = [];
+  let newNode: Node;
+  let newLocalizations: Localization[] = [];
+
+  await db.transaction(async (tx) => {
+    const node = await db.selectById<Node>(TABLE_NODES, nodeId, tx);
+    if (!node || node.type === newType || node.type === 'root') return;
+
+    oldNode = { ...node };
+
+    if (node.voice_text) {
+      const loc = await db.selectById<Localization>(TABLE_LOCALIZATIONS, node.voice_text, tx);
+      if (loc) oldLocalizations.push({ ...loc });
+    }
+    if (node.ui_response_text) {
+      const loc = await db.selectById<Localization>(TABLE_LOCALIZATIONS, node.ui_response_text, tx);
+      if (loc) oldLocalizations.push({ ...loc });
+    }
+
+    if (newType === 'logic') {
+      // Delete localizations
+      if (oldLocalizations.length > 0) {
+        await db.delete(TABLE_LOCALIZATIONS, oldLocalizations.map(l => l.id), tx);
+      }
+      // Update node
+      newNode = {
+        ...node,
+        type: 'logic',
+        voice_text: null,
+        ui_response_text: null,
+      };
+      await db.updateRows<Node>(TABLE_NODES, [newNode], tx);
+    } else {
+      // Create new localizations
+      const voiceLoc = await db.insert<Localization>(
+        TABLE_LOCALIZATIONS,
+        {
+          parent: node.parent,
+          name: null,
+          is_system_created: true,
+        },
+        tx
+      );
+      const responseLoc = await db.insert<Localization>(
+        TABLE_LOCALIZATIONS,
+        {
+          parent: node.parent,
+          name: null,
+          is_system_created: true,
+        },
+        tx
+      );
+      newLocalizations = [{ ...voiceLoc }, { ...responseLoc }];
+
+      // Update node
+      newNode = {
+        ...node,
+        type: 'dialogue',
+        voice_text: voiceLoc.id,
+        ui_response_text: responseLoc.id,
+      };
+      await db.updateRows<Node>(TABLE_NODES, [newNode], tx);
+    }
+  });
+
+  // If node wasn't found or type was already correct, don't register undo
+  if (!oldNode) return;
+
+  // Capture for closure (cast to non-null since we checked above)
+  const capturedOldNode: Node = oldNode as Node;
+  const capturedOldLocalizations = oldLocalizations.map(l => ({ ...l }));
+  const capturedNewNode: Node = newNode! as Node;
+  const capturedNewLocalizations = newLocalizations.map(l => ({ ...l }));
+
+  // Register undo
+  registerUndoable(
+    new Undoable(
+      'Change node type',
+      async () => {
+        await db.transaction(async (tx) => {
+          // Delete new localizations if they were created
+          if (capturedNewLocalizations.length > 0) {
+            await db.delete(TABLE_LOCALIZATIONS, capturedNewLocalizations.map(l => l.id), tx);
+          }
+          // Restore old localizations with their original IDs
+          if (capturedOldLocalizations.length > 0) {
+            for (const loc of capturedOldLocalizations) {
+              await db.insertWithId<Localization>(TABLE_LOCALIZATIONS, loc, tx);
+            }
+          }
+          // Restore old node state
+          await db.updateRows<Node>(TABLE_NODES, [capturedOldNode], tx);
+        });
+      },
+      async () => {
+        await db.transaction(async (tx) => {
+          // Delete old localizations if they existed
+          if (capturedOldLocalizations.length > 0) {
+            await db.delete(TABLE_LOCALIZATIONS, capturedOldLocalizations.map(l => l.id), tx);
+          }
+          // Restore new localizations with their original IDs
+          if (capturedNewLocalizations.length > 0) {
+            for (const loc of capturedNewLocalizations) {
+              await db.insertWithId<Localization>(TABLE_LOCALIZATIONS, loc, tx);
+            }
+          }
+          // Restore new node state
+          await db.updateRows<Node>(TABLE_NODES, [capturedNewNode], tx);
+        });
+      }
+    )
+  );
+}
+
 export async function updateMany(oldNodes: Node[], newNodes: Node[], skipUndo: boolean = false): Promise<Node[]> {
   const results = await db.updateRows<Node>(TABLE_NODES, newNodes);
 

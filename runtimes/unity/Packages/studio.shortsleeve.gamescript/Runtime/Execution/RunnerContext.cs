@@ -33,7 +33,9 @@ namespace GameScript
         Snapshot Snapshot => _database.Snapshot;
 
         AwaitableCompletionSource _readySource;
+        AwaitableCompletionSource _speechSource;
         AwaitableCompletionSource<int> _decisionSource;
+        WhenAllAwaiter _whenAllAwaiter;
 
         // Reusable list for collecting choices without allocation
         readonly List<NodeRef> _choices;
@@ -45,7 +47,9 @@ namespace GameScript
             ContextId = s_NextContextId++;
             _settings = settings;
             _readySource = new AwaitableCompletionSource();
+            _speechSource = new AwaitableCompletionSource();
             _decisionSource = new AwaitableCompletionSource<int>();
+            _whenAllAwaiter = new WhenAllAwaiter();
             _choices = new List<NodeRef>(DefaultChoiceCapacity);
         }
         #endregion
@@ -93,7 +97,7 @@ namespace GameScript
 
             try
             {
-                // Conversation Enter
+                // 1. Conversation Enter
                 _listener.OnConversationEnter(conversationRef, new ReadyNotifier(_readySource));
                 await _readySource.Awaitable;
                 _readySource.Reset();
@@ -102,28 +106,29 @@ namespace GameScript
                 while (true)
                 {
                     NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
+                    Node node = Snapshot.Nodes[_nodeIndex];
 
-                    // Node Enter
+                    // 2. Node Enter
                     _listener.OnNodeEnter(nodeRef, new ReadyNotifier(_readySource));
                     await _readySource.Awaitable;
                     _readySource.Reset();
 
-                    // Execute Action
-                    Node node = Snapshot.Nodes[_nodeIndex];
-                    if (node.HasAction)
+                    // 3. Action + Speech (type-dependent)
+                    if (node.Type == NodeType.Logic)
                     {
-                        ActionDelegate action = _jumpTable.Actions[_nodeIndex];
-                        if (action != null)
+                        // Logic nodes: action only, no speech
+                        if (node.HasAction)
                         {
-                            await action(this);
-                        }
-                        else
-                        {
-                            Debug.LogError($"[GameScript] Node {node.Id} has HasAction=true but no action method was found. Check build validation.");
+                            await ExecuteAction(node);
                         }
                     }
+                    else
+                    {
+                        // Dialogue/Root nodes: action and speech run concurrently
+                        await RunActionAndSpeechConcurrently(node, nodeRef);
+                    }
 
-                    // Evaluate outgoing edges and find valid targets
+                    // 4. Evaluate outgoing edges and find valid targets
                     _choices.Clear();
                     int highestPriority = int.MinValue;
                     int highestPriorityNodeIndex = -1;
@@ -188,41 +193,38 @@ namespace GameScript
                         }
                     }
 
-                    // No valid edges - conversation ends
-                    if (_choices.Count == 0)
-                    {
-                        _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
-                        await _readySource.Awaitable;
-                        _readySource.Reset();
-                        break;
-                    }
-
-                    // Determine if this is a player decision
-                    bool isDecision = ShouldShowDecision(node, allSameActor);
-
+                    // 5. Decision (optional) - if player must choose
+                    bool isDecision = _choices.Count > 0 && ShouldShowDecision(node, allSameActor);
                     if (isDecision)
                     {
-                        // Player choice
-                        _listener.OnNodeExit(_choices, new DecisionNotifier(_decisionSource));
+                        _listener.OnDecision(_choices, new DecisionNotifier(_decisionSource));
                         _nodeIndex = await _decisionSource.Awaitable;
                         _decisionSource.Reset();
                     }
-                    else
+                    else if (_choices.Count > 0)
                     {
                         // Auto-advance to highest priority node
-                        _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
-                        await _readySource.Awaitable;
-                        _readySource.Reset();
                         _nodeIndex = highestPriorityNodeIndex;
+                    }
+
+                    // 6. Node Exit (ALWAYS called)
+                    _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
+                    await _readySource.Awaitable;
+                    _readySource.Reset();
+
+                    // No valid edges - conversation ends
+                    if (_choices.Count == 0)
+                    {
+                        break;
                     }
                 }
 
-                // Conversation Exit
+                // 7. Conversation Exit
                 _listener.OnConversationExit(conversationRef, new ReadyNotifier(_readySource));
                 await _readySource.Awaitable;
                 _readySource.Reset();
 
-                // Final cleanup signal
+                // 8. Final cleanup signal
                 _listener.OnCleanup(conversationRef);
             }
             catch (Exception e)
@@ -233,6 +235,42 @@ namespace GameScript
             {
                 Reset();
             }
+        }
+
+        async Awaitable ExecuteAction(Node node)
+        {
+            ActionDelegate action = _jumpTable.Actions[_nodeIndex];
+            if (action != null)
+            {
+                await action(this);
+            }
+            else
+            {
+                Debug.LogError($"[GameScript] Node {node.Id} has HasAction=true but no action method was found. Check build validation.");
+            }
+        }
+
+        async Awaitable RunActionAndSpeechConcurrently(Node node, NodeRef nodeRef)
+        {
+            if (node.HasAction)
+            {
+                // Both action and speech run concurrently
+                _whenAllAwaiter.WhenAll(ExecuteAction(node), AwaitSpeech(nodeRef), _readySource);
+            }
+            else
+            {
+                // Speech only
+                _listener.OnSpeech(nodeRef, new ReadyNotifier(_readySource));
+            }
+            await _readySource.Awaitable;
+            _readySource.Reset();
+        }
+
+        async Awaitable AwaitSpeech(NodeRef nodeRef)
+        {
+            _listener.OnSpeech(nodeRef, new ReadyNotifier(_speechSource));
+            await _speechSource.Awaitable;
+            _speechSource.Reset();
         }
 
         bool ShouldShowDecision(Node currentNode, bool allSameActor)

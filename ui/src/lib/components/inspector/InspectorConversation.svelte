@@ -2,10 +2,11 @@
     /**
      * Inspector panel for Conversation rows.
      *
-     * Displays editable fields for conversation name, notes, and tags.
+     * Displays editable fields for conversation name, notes, tags, and custom properties.
      * Ported from GameScriptElectron.
      */
     import type { Conversation } from '@gamescript/shared';
+    import { TABLE_CONVERSATIONS } from '@gamescript/shared';
     import type { IDbRowView } from '$lib/db';
     import {
         RowColumnId,
@@ -15,13 +16,14 @@
         InspectorTagFields,
     } from '$lib/components/common';
     import LocalizationFilterButton from '$lib/components/common/LocalizationFilterButton.svelte';
+    import RowColumnConversationProperties from '$lib/components/common/RowColumnConversationProperties.svelte';
     import {
         CONVERSATION_PLACEHOLDER_NAME,
         CONVERSATION_PLACEHOLDER_NOTES,
         CONVERSATION_UNDO_NAME,
         CONVERSATION_UNDO_NOTES,
     } from '$lib/constants/settings';
-    import { conversationTagCategoriesTable, conversationTagValuesTable } from '$lib/tables';
+    import { conversationTagCategoriesTable, conversationTagValuesTable, propertyTemplatesTable } from '$lib/tables';
     import { conversations } from '$lib/crud';
 
     interface Props {
@@ -29,6 +31,12 @@
     }
 
     let { rowView }: Props = $props();
+
+    // Check if we have conversation property templates
+    let hasConversationPropertyTemplates = $derived(
+        propertyTemplatesTable &&
+        propertyTemplatesTable.rows.some(t => t.data.parent === TABLE_CONVERSATIONS.id)
+    );
 </script>
 
 <div class="inspector-conversation">
@@ -66,6 +74,15 @@
         valuesTable={conversationTagValuesTable}
         crud={conversations}
     />
+
+    {#if hasConversationPropertyTemplates}
+        <InspectorField
+            label="Custom Properties"
+            tooltip="Custom properties allow you to attach arbitrary data to this conversation."
+        >
+            <RowColumnConversationProperties {rowView} />
+        </InspectorField>
+    {/if}
 </div>
 
 <style>

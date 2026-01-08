@@ -47,6 +47,11 @@ table NodeProperty {
   value: PropertyValue;
 }
 
+table ConversationProperty {
+  template_idx: int32;    // INDEX into Snapshot.property_templates array
+  value: PropertyValue;
+}
+
 // ============================================================================
 // Core Entities
 // ============================================================================
@@ -54,6 +59,7 @@ table NodeProperty {
 enum NodeType : byte {
   Root = 0,
   Dialogue = 1,
+  Logic = 2,
 }
 
 table Node {
@@ -104,6 +110,7 @@ table Conversation {
   is_layout_auto: bool;
   is_layout_vertical: bool;
   tag_indices: [int32];         // Indices into conversation_tag_values arrays, -1 = untagged
+  properties: [ConversationProperty];
 
   // Quick access to conversation's nodes and edges
   node_indices: [int32];        // INDICES into Snapshot.nodes array

@@ -14,6 +14,7 @@ import {
   Localization,
   PropertyTemplate,
   NodeProperty,
+  ConversationProperty,
   StringArray,
   NodeType,
   EdgeType,
@@ -32,6 +33,7 @@ import type {
   ExportLocalization,
   ExportPropertyTemplate,
   ExportNodeProperty,
+  ExportConversationProperty,
 } from './types.js';
 
 /**
@@ -233,33 +235,49 @@ function buildNode(builder: flatbuffers.Builder, node: ExportNode): flatbuffers.
   return Node.endNode(builder);
 }
 
+/**
+ * Build a property value offset and determine its type.
+ * Shared helper for node and conversation properties.
+ */
+function buildPropertyValue(
+  builder: flatbuffers.Builder,
+  value: ExportNodeProperty['value'],
+): { type: PropertyValue; offset: flatbuffers.Offset } {
+  if (value.stringVal !== undefined) {
+    return {
+      type: PropertyValue.string_val,
+      offset: builder.createString(value.stringVal),
+    };
+  } else if (value.intVal !== undefined) {
+    Int32Value.startInt32Value(builder);
+    Int32Value.addValue(builder, value.intVal);
+    return {
+      type: PropertyValue.int_val,
+      offset: Int32Value.endInt32Value(builder),
+    };
+  } else if (value.decimalVal !== undefined) {
+    FloatValue.startFloatValue(builder);
+    FloatValue.addValue(builder, value.decimalVal);
+    return {
+      type: PropertyValue.decimal_val,
+      offset: FloatValue.endFloatValue(builder),
+    };
+  } else if (value.boolVal !== undefined) {
+    BoolValue.startBoolValue(builder);
+    BoolValue.addValue(builder, value.boolVal);
+    return {
+      type: PropertyValue.bool_val,
+      offset: BoolValue.endBoolValue(builder),
+    };
+  }
+  return { type: PropertyValue.NONE, offset: 0 };
+}
+
 function buildNodeProperty(
   builder: flatbuffers.Builder,
   prop: ExportNodeProperty,
 ): flatbuffers.Offset {
-  // Determine property value type and build the value
-  let valueType = PropertyValue.NONE;
-  let valueOffset: flatbuffers.Offset = 0;
-
-  if (prop.value.stringVal !== undefined) {
-    valueType = PropertyValue.string_val;
-    valueOffset = builder.createString(prop.value.stringVal);
-  } else if (prop.value.intVal !== undefined) {
-    Int32Value.startInt32Value(builder);
-    Int32Value.addValue(builder, prop.value.intVal);
-    valueOffset = Int32Value.endInt32Value(builder);
-    valueType = PropertyValue.int_val;
-  } else if (prop.value.decimalVal !== undefined) {
-    FloatValue.startFloatValue(builder);
-    FloatValue.addValue(builder, prop.value.decimalVal);
-    valueOffset = FloatValue.endFloatValue(builder);
-    valueType = PropertyValue.decimal_val;
-  } else if (prop.value.boolVal !== undefined) {
-    BoolValue.startBoolValue(builder);
-    BoolValue.addValue(builder, prop.value.boolVal);
-    valueOffset = BoolValue.endBoolValue(builder);
-    valueType = PropertyValue.bool_val;
-  }
+  const { type: valueType, offset: valueOffset } = buildPropertyValue(builder, prop.value);
 
   NodeProperty.startNodeProperty(builder);
   NodeProperty.addTemplateIdx(builder, prop.templateIdx);
@@ -268,6 +286,21 @@ function buildNodeProperty(
     NodeProperty.addValue(builder, valueOffset);
   }
   return NodeProperty.endNodeProperty(builder);
+}
+
+function buildConversationProperty(
+  builder: flatbuffers.Builder,
+  prop: ExportConversationProperty,
+): flatbuffers.Offset {
+  const { type: valueType, offset: valueOffset } = buildPropertyValue(builder, prop.value);
+
+  ConversationProperty.startConversationProperty(builder);
+  ConversationProperty.addTemplateIdx(builder, prop.templateIdx);
+  ConversationProperty.addValueType(builder, valueType);
+  if (valueOffset) {
+    ConversationProperty.addValue(builder, valueOffset);
+  }
+  return ConversationProperty.endConversationProperty(builder);
 }
 
 function buildConversation(
@@ -281,6 +314,12 @@ function buildConversation(
     conv.tagIndices.length > 0
       ? Conversation.createTagIndicesVector(builder, conv.tagIndices)
       : 0;
+
+  // Build conversation properties
+  const propertyOffsets = conv.properties.map((p) => buildConversationProperty(builder, p));
+  const propertiesVector =
+    propertyOffsets.length > 0 ? Conversation.createPropertiesVector(builder, propertyOffsets) : 0;
+
   const nodeIndicesVector =
     conv.nodeIndices.length > 0
       ? Conversation.createNodeIndicesVector(builder, conv.nodeIndices)
@@ -300,6 +339,9 @@ function buildConversation(
   Conversation.addIsLayoutVertical(builder, conv.isLayoutVertical);
   if (tagIndicesVector) {
     Conversation.addTagIndices(builder, tagIndicesVector);
+  }
+  if (propertiesVector) {
+    Conversation.addProperties(builder, propertiesVector);
   }
   if (nodeIndicesVector) {
     Conversation.addNodeIndices(builder, nodeIndicesVector);
@@ -356,6 +398,8 @@ function nodeTypeToEnum(type: string): NodeType {
       return NodeType.Root;
     case 'dialogue':
       return NodeType.Dialogue;
+    case 'logic':
+      return NodeType.Logic;
     default:
       return NodeType.Dialogue;
   }

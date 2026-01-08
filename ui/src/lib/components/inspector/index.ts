@@ -14,3 +14,4 @@ export { default as InspectorActor } from './InspectorActor.svelte';
 export { default as InspectorLocale } from './InspectorLocale.svelte';
 export { default as InspectorLocalization } from './InspectorLocalization.svelte';
 export { default as InspectorTagCategory } from './InspectorTagCategory.svelte';
+export { default as InspectorPropertyTemplate } from './InspectorPropertyTemplate.svelte';

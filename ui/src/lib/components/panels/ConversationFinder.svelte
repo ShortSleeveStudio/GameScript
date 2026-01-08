@@ -70,8 +70,8 @@
     type DbColumnDeleting,
   } from '$lib/constants/events.js';
   import { get } from 'svelte/store';  // Keep for graphLayoutAutoLayoutDefault and graphLayoutVerticalDefault
-  import { Button, ToggleButton, DeleteConfirmationModal, GridToolbar, TableOptionsMenu, TagCategorySettingsPanel } from '$lib/components/common';
-  import { focusConversationTagCategory, focusedConversationTagCategory } from '$lib/stores/focus.js';
+  import { Button, ToggleButton, DeleteConfirmationModal, GridToolbar, TableOptionsMenu, TagCategorySettingsPanel, PropertySettingsPanel } from '$lib/components/common';
+  import { focusConversationTagCategory, focusedConversationTagCategory, focusPropertyTemplate, focusedPropertyTemplate } from '$lib/stores/focus.js';
   import { conversationTagCategories } from '$lib/crud';
   import IconSettings from '$lib/components/icons/IconSettings.svelte';
 
@@ -116,7 +116,7 @@
 
   // State
   let gridElement: HTMLElement;
-  let api: GridApi;
+  let api: GridApi | undefined = $state();
   let datasource: GridDatasource<Conversation>;
   let selectedRows: IDbRowView<Conversation>[] = $state([]);
   let isDeletedVisible = $state(false);
@@ -133,7 +133,7 @@
   let codeTemplate: CodeTemplateType = $derived((codeTemplateView?.data.value as CodeTemplateType) ?? 'unity');
 
   function getGridApi(): GridApi {
-    return api;
+    return api!;
   }
 
   // ============================================================================
@@ -517,6 +517,13 @@
         crud={conversationTagCategories}
         focusCategory={focusConversationTagCategory}
         focusedCategoryId={$focusedConversationTagCategory}
+      />
+      <PropertySettingsPanel
+        description="Define custom properties that can be added to conversations. Click a property to manage its predefined values in the Inspector."
+        entityTable={TABLE_CONVERSATIONS}
+        entityName="conversations"
+        focusTemplate={focusPropertyTemplate}
+        focusedTemplateId={$focusedPropertyTemplate}
       />
     {/snippet}
   </GridToolbar>

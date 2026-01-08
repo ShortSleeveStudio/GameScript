@@ -3,9 +3,13 @@ import { registerUndoable, Undoable } from '$lib/undo';
 import {
   query,
   type PropertyTemplate,
+  type PropertyValue,
   type NodeProperty,
+  type ConversationProperty,
   TABLE_PROPERTY_TEMPLATES,
+  TABLE_PROPERTY_VALUES,
   TABLE_NODE_PROPERTIES,
+  TABLE_CONVERSATION_PROPERTIES,
 } from '@gamescript/shared';
 
 // ============================================================================
@@ -96,12 +100,16 @@ export async function remove(templateId: number): Promise<void> {
   const template = await db.selectById<PropertyTemplate>(TABLE_PROPERTY_TEMPLATES, templateId);
   if (!template) throw new Error(`Property template ${templateId} not found`);
 
-  // Hard delete: delete all node properties using this template, then delete the template
-  // This is intentionally NOT undoable - there could be thousands of node properties
+  // Hard delete: delete all related data, then delete the template
+  // This is intentionally NOT undoable - there could be thousands of properties
   // and the user is warned with a confirmation modal before proceeding
   await db.transaction(async (tx) => {
-    // Delete all node properties using this template via bulk delete
+    // Delete all node properties using this template
     await db.deleteWhere(TABLE_NODE_PROPERTIES, query<NodeProperty>().where('template').eq(templateId).build(), tx);
+    // Delete all conversation properties using this template
+    await db.deleteWhere(TABLE_CONVERSATION_PROPERTIES, query<ConversationProperty>().where('template').eq(templateId).build(), tx);
+    // Delete all predefined values for this template
+    await db.deleteWhere(TABLE_PROPERTY_VALUES, query<PropertyValue>().where('template_id').eq(templateId).build(), tx);
     // Delete template
     await db.delete(TABLE_PROPERTY_TEMPLATES, templateId, tx);
   });

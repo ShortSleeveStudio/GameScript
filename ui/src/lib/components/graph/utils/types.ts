@@ -38,6 +38,7 @@ export type GraphNode = FlowNode<NodeData>;
 export const NODE_TYPES = {
   ROOT: 'root',
   DIALOGUE: 'dialogue',
+  LOGIC: 'logic',
 } as const;
 
 export type NodeTypeName = (typeof NODE_TYPES)[keyof typeof NODE_TYPES];
@@ -136,6 +137,11 @@ export const NODE_DIMENSIONS = {
   [NODE_TYPES.DIALOGUE]: {
     width: NODE_CONTENT_WIDTH + PORT_CONTAINER_THICKNESS_PX * 2,
     height: NODE_TITLE_HEIGHT + NODE_COLOR_HEIGHT + NODE_UI_TEXT_HEIGHT + NODE_DIVIDER_HEIGHT + NODE_VOICE_TEXT_HEIGHT,
+  },
+  /** Logic node: content width + two ports (source and target), just title bar */
+  [NODE_TYPES.LOGIC]: {
+    width: NODE_CONTENT_WIDTH + PORT_CONTAINER_THICKNESS_PX * 2,
+    height: NODE_TITLE_HEIGHT,
   },
 } as const;
 

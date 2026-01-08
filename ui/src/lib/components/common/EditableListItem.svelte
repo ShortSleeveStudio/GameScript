@@ -1,4 +1,4 @@
-<script lang="ts" generics="T extends import('@gamescript/shared').Row & { name: string; type?: number }">
+<script lang="ts" generics="T extends import('@gamescript/shared').Row & { name?: string; type?: number }">
   /**
    * Single item row for EditableList component.
    *
@@ -28,6 +28,8 @@
     ontypeChange?: (payload: { rowView: IDbRowView<T>; type: number }) => void;
     ondelete?: (payload: { rowView: IDbRowView<T> }) => void;
     onselect?: (payload: { rowView: IDbRowView<T> }) => void;
+    /** Optional function to get display name for items without a 'name' property */
+    getDisplayName?: (data: T) => string;
   }
 
   // ============================================================================
@@ -44,7 +46,13 @@
     ontypeChange,
     ondelete,
     onselect,
+    getDisplayName,
   }: Props = $props();
+
+  // Compute display name - use getDisplayName if provided, otherwise use name property
+  let displayName = $derived(
+    getDisplayName ? getDisplayName(rowView.data) : (rowView.data.name ?? '')
+  );
 
   // ============================================================================
   // Handlers
@@ -83,7 +91,7 @@
 >
   <div class="item-name">
     <InlineEdit
-      value={rowView.data.name}
+      value={displayName}
       onsave={handleRename}
     />
   </div>

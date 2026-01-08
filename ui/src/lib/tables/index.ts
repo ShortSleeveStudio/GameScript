@@ -15,3 +15,4 @@ export { localesTable } from './locales.js';
 export { localePrincipalTableView, getLocalePrincipal } from './locale-principal.js';
 export { systemCreatedLocaleTableView, getSystemCreatedLocale } from './locale-system-created.js';
 export { propertyTemplatesTable } from './property-templates.js';
+export { propertyValuesTable } from './property-values.js';

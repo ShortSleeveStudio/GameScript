@@ -253,8 +253,8 @@ class DbHandlers(
             databaseManager.open(config)
             context.postResponse(id, "db:openResult", true)
         } catch (e: Exception) {
-            LOG.error("Open failed", e)
-            context.postResponse(id, "db:openResult", false, error = e.message)
+            LOG.error("db:open failed", e)
+            context.postResponse(id, "db:openResult", false, error = e.message ?: e.toString())
         }
     }
 

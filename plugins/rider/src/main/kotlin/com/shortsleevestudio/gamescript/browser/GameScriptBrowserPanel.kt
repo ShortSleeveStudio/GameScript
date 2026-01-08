@@ -204,11 +204,12 @@ class GameScriptBrowserPanel(
         browser.loadURL(UI_URL)
 
         // Register for disposal
+        // Note: This panel is registered as a child of GameScriptFileEditor,
+        // NOT the project. The file editor handles disposal when the tab is closed.
         Disposer.register(this, messageBridge)
         Disposer.register(this, databaseManager)
         Disposer.register(this, codeFileWatcher)
         Disposer.register(this, snapshotCommandWatcher)
-        Disposer.register(project, this)
     }
 
     /**

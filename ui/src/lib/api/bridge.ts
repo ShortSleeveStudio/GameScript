@@ -122,7 +122,30 @@ interface IdeAdapter {
 }
 
 /**
+ * Fire the bridge-ready event on next microtask.
+ * Using queueMicrotask ensures the event fires AFTER the event listener
+ * is registered in the ExtensionBridge constructor.
+ */
+function fireBridgeReady(): void {
+  queueMicrotask(() => {
+    window.dispatchEvent(new CustomEvent('gamescript-bridge-ready'));
+  });
+}
+
+/**
  * Detect which IDE environment we're running in and return an adapter.
+ *
+ * For all IDE types where the bridge is immediately available, we fire
+ * 'gamescript-bridge-ready' via queueMicrotask. This creates a unified
+ * protocol where all IDEs follow the same activation path:
+ *
+ * 1. detectIde() returns the adapter
+ * 2. 'gamescript-bridge-ready' event fires
+ * 3. ExtensionBridge._activateBridge() sets up listeners
+ *
+ * The only difference is timing:
+ * - vscode/webview2/cef/standalone: Event fires on next microtask
+ * - cef-pending: Event fires when Kotlin injects the bridge
  */
 function detectIde(): IdeAdapter {
   if (typeof window === 'undefined') {
@@ -136,6 +159,7 @@ function detectIde(): IdeAdapter {
       const acquireVsCodeApi = (window as unknown as { acquireVsCodeApi: () => VsCodeApi }).acquireVsCodeApi;
       window.vscode = acquireVsCodeApi();
     }
+    fireBridgeReady();
     return {
       type: 'vscode',
       postMessage: (msg) => window.vscode?.postMessage(msg),
@@ -146,6 +170,7 @@ function detectIde(): IdeAdapter {
   // Visual Studio WebView2
   const chrome = (window as unknown as { chrome?: { webview?: { postMessage: (msg: unknown) => void; addEventListener: (type: string, handler: (event: MessageEvent) => void) => void } } }).chrome;
   if (chrome?.webview) {
+    fireBridgeReady();
     return {
       type: 'webview2',
       postMessage: (msg) => chrome.webview!.postMessage(msg),
@@ -156,6 +181,7 @@ function detectIde(): IdeAdapter {
   // JetBrains JCEF - check for jbCefBrowser (injected by Rider plugin)
   const jbBrowser = (window as unknown as { jbCefBrowser?: { postMessage: (msg: string) => void } }).jbCefBrowser;
   if (jbBrowser) {
+    fireBridgeReady();
     return {
       type: 'cef',
       postMessage: (msg) => jbBrowser.postMessage(JSON.stringify(msg)),
@@ -165,6 +191,7 @@ function detectIde(): IdeAdapter {
 
   // Check for JCEF environment hint (set via query param before bridge injection)
   // This allows us to distinguish "JCEF waiting for injection" from "true standalone"
+  // Note: Do NOT fire bridge-ready here - Kotlin will fire it when bridge is injected
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.get('env') === 'jcef') {
     return {
@@ -175,6 +202,7 @@ function detectIde(): IdeAdapter {
   }
 
   // Standalone mode (dev server, browser)
+  fireBridgeReady();
   return { type: 'standalone', postMessage: () => {}, addMessageListener: () => {} };
 }
 
@@ -189,7 +217,6 @@ class ExtensionBridge {
   private readonly defaultTimeout = 30000; // 30 seconds
 
   private _ide: IdeAdapter;
-  private _isInitialized = false;
 
   // Bridge readiness state
   private _readyPromise: Promise<void>;
@@ -201,85 +228,50 @@ class ExtensionBridge {
       this._resolveReady = resolve;
     });
 
-    // Register JCEF bridge event listener BEFORE detectIde() to avoid race condition.
-    // The Kotlin side fires 'gamescript-bridge-ready' immediately after page load,
-    // so we must be listening before that happens.
+    // Listen for bridge-ready event BEFORE detectIde() to handle all timing scenarios.
+    // The event is fired by:
+    // - detectIde() via queueMicrotask for vscode/webview2/cef/standalone
+    // - Kotlin's injectBridge() for cef-pending → cef transition
     if (typeof window !== 'undefined') {
       window.addEventListener('gamescript-bridge-ready', () => {
-        this.onBridgeReady();
+        this._activateBridge();
       });
     }
 
     this._ide = detectIde();
-
-    // cef-pending must wait for bridge injection before becoming ready
-    // All other types are ready immediately
-    if (this._ide.type !== 'cef-pending') {
-      this._markReady();
-    }
   }
 
   /**
-   * Mark the bridge as ready. Called once when the bridge becomes available.
+   * Activate the bridge - set up message listeners and mark as ready.
+   * Called when 'gamescript-bridge-ready' event fires.
+   *
+   * This is the single activation path for ALL IDE types:
+   * - vscode/webview2/cef/standalone: Called on next microtask after constructor
+   * - cef-pending: Called when Kotlin injects the bridge
+   *
+   * The method is idempotent - safe to call multiple times.
    */
-  private _markReady(): void {
+  private _activateBridge(): void {
     if (this._isReady) return;
+
+    // Re-detect IDE in case we transitioned from cef-pending to cef
+    if (this._ide.type === 'cef-pending') {
+      this._ide = detectIde();
+    }
+
+    // Set up message listener (all IDE types except standalone)
+    if (this._ide.type !== 'standalone') {
+      this._ide.addMessageListener(this.handleMessage.bind(this));
+      this.postMessage({ type: 'ready' });
+    }
+
     this._isReady = true;
     this._resolveReady();
   }
 
   /**
-   * Initialize the bridge and set up message listeners.
-   * Call this once when the app starts.
-   */
-  init(): void {
-    if (this._isInitialized) return;
-    this._isInitialized = true;
-
-    // standalone has no bridge to listen to
-    if (this._ide.type === 'standalone') {
-      return;
-    }
-
-    // cef-pending: onBridgeReady will handle setup when bridge is injected
-    // cef: onBridgeReady already ran, nothing to do
-    if (this._ide.type === 'cef-pending' || this._ide.type === 'cef') {
-      return;
-    }
-
-    // VS Code / WebView2: bridge available immediately
-    this._ide.addMessageListener(this.handleMessage.bind(this));
-    this.postMessage({ type: 'ready' });
-  }
-
-  /**
-   * Called when the JCEF bridge is injected (after page load).
-   * Re-detects the IDE and sets up listeners.
-   */
-  private onBridgeReady(): void {
-    // Re-detect IDE now that jbCefBrowser is available
-    const newIde = detectIde();
-
-    // Transition from cef-pending to cef
-    if (newIde.type === 'cef' && this._ide.type === 'cef-pending') {
-      this._ide = newIde;
-
-      // Set up message listener
-      this._ide.addMessageListener(this.handleMessage.bind(this));
-
-      // Mark bridge as ready (resolves _readyPromise)
-      this._markReady();
-
-      // Notify extension that UI is ready
-      this.postMessage({ type: 'ready' });
-    }
-  }
-
-  /**
    * Returns a promise that resolves when the bridge is ready to send/receive messages.
-   * - VS Code/WebView2: Resolves immediately (bridge available synchronously)
-   * - JCEF (Rider): Resolves when bridge injection completes (env=jcef query param)
-   * - Standalone: Resolves immediately (no bridge expected)
+   * All IDE types follow the same activation protocol via 'gamescript-bridge-ready' event.
    */
   ready(): Promise<void> {
     return this._readyPromise;

@@ -77,7 +77,7 @@ function generateForeignKeysSQL(table: TableDefinition, dialect: DatabaseDialect
 
   for (const col of table.columns) {
     if (col.references) {
-      const onDelete = 'CASCADE';
+      const onDelete = col.references.onDelete ?? 'CASCADE';
       fks.push(
         `FOREIGN KEY (${col.name}) REFERENCES ${col.references.table}(${col.references.column}) ON DELETE ${onDelete}`
       );

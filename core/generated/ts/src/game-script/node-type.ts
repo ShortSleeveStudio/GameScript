@@ -4,5 +4,6 @@
 
 export enum NodeType {
   Root = 0,
-  Dialogue = 1
+  Dialogue = 1,
+  Logic = 2
 }

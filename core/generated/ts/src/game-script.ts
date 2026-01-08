@@ -5,6 +5,7 @@
 export { Actor } from './game-script/actor.js';
 export { BoolValue } from './game-script/bool-value.js';
 export { Conversation } from './game-script/conversation.js';
+export { ConversationProperty } from './game-script/conversation-property.js';
 export { Edge } from './game-script/edge.js';
 export { EdgeType } from './game-script/edge-type.js';
 export { FloatValue } from './game-script/float-value.js';

@@ -17,6 +17,8 @@ import {
   TABLE_LOCALIZATIONS,
   TABLE_PROPERTY_TEMPLATES,
   TABLE_NODE_PROPERTIES,
+  TABLE_CONVERSATION_PROPERTIES,
+  TABLE_PROPERTY_VALUES,
   TABLE_CONVERSATION_TAG_CATEGORIES,
   TABLE_CONVERSATION_TAG_VALUES,
   TABLE_LOCALIZATION_TAG_CATEGORIES,
@@ -30,6 +32,8 @@ import {
   type Locale,
   type PropertyTemplate,
   type NodeProperty,
+  type ConversationProperty,
+  type PropertyValue,
   type ConversationTagCategory,
   type ConversationTagValue,
   type LocalizationTagCategory,
@@ -249,5 +253,36 @@ export async function getLocalizationTagValues(): Promise<LocalizationTagValue[]
   return db.select<LocalizationTagValue>(
     TABLE_LOCALIZATION_TAG_VALUES,
     query<LocalizationTagValue>().orderBy('category_id', 'ASC').orderBy('id', 'ASC').build()
+  );
+}
+
+// ============================================================================
+// Conversation Properties
+// ============================================================================
+
+/**
+ * Get all conversation properties from non-deleted conversations.
+ */
+export async function getConversationPropertiesFromNonDeletedConversations(): Promise<ConversationProperty[]> {
+  const sql = `
+    SELECT cp.* FROM "conversation_properties" cp
+    JOIN "conversations" c ON cp.parent = c.id
+    WHERE c.is_deleted = ${db.placeholder(1)}
+    ORDER BY cp.id
+  `;
+  return bridge.query<ConversationProperty>(sql, [false]);
+}
+
+// ============================================================================
+// Property Values (Predefined Values)
+// ============================================================================
+
+/**
+ * Get all property values (predefined values for property templates).
+ */
+export async function getAllPropertyValues(): Promise<PropertyValue[]> {
+  return db.select<PropertyValue>(
+    TABLE_PROPERTY_VALUES,
+    query<PropertyValue>().orderBy('id', 'ASC').build()
   );
 }

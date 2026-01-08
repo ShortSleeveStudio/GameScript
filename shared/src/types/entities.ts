@@ -64,7 +64,9 @@ export interface LocalePrincipal extends Row, Principaled {}
 ///
 /// Localization
 ///
-export interface Localization extends Row, SystemCreatable, ConversationChild, Named {
+export interface Localization extends Row, SystemCreatable, Named {
+  // Localizations can optionally belong to a conversation, but are typically standalone
+  parent: number | null; // FK Conversation (nullable)
   // Dynamic locale columns: locale_1, locale_2, etc.
   [key: `locale_${number}`]: string | null;
   // Dynamic tag columns: tag_category_1, tag_category_2, etc.
@@ -150,11 +152,38 @@ export interface PropertyTemplate extends Row, Named {
 }
 
 ///
+/// Property Values (predefined values for property templates)
+///
+export interface PropertyValue extends Row {
+  template_id: number; // FK PropertyTemplate
+  value_string: string | null;
+  value_integer: number | null;
+  value_decimal: number | null;
+  value_boolean: boolean | null;
+}
+
+///
 /// Node Properties
 ///
 export interface NodeProperty extends Row {
   parent: number; // FK Node
   template: number; // FK PropertyTemplate
+  is_reference: boolean; // Whether this property uses a predefined value
+  reference_value: number | null; // FK PropertyValue (nullable)
+  value_string: string | null;
+  value_integer: number | null;
+  value_decimal: number | null;
+  value_boolean: boolean | null;
+}
+
+///
+/// Conversation Properties
+///
+export interface ConversationProperty extends Row {
+  parent: number; // FK Conversation
+  template: number; // FK PropertyTemplate
+  is_reference: boolean; // Whether this property uses a predefined value
+  reference_value: number | null; // FK PropertyValue (nullable)
   value_string: string | null;
   value_integer: number | null;
   value_decimal: number | null;

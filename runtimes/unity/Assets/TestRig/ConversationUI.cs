@@ -70,25 +70,15 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         m_OnComplete(this);
     }
 
-    public void OnNodeExit(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier)
-    {
-        for (int i = 0; i < choices.Count; i++)
-        {
-            NodeRef node = choices[i];
-            GameObject choiceGO = Instantiate(m_ChoiceItemPrefab);
-            ChoiceUI choiceUI = choiceGO.GetComponent<ChoiceUI>();
-            string buttonText = node.UIResponseText ?? "";
-            choiceUI.SetButtonText(buttonText);
-            choiceUI.RegisterButtonHandler(() =>
-            {
-                decisionNotifier.OnDecisionMade(node);
-            });
-            choiceGO.transform.SetParent(m_ChoiceContent.transform);
-        }
-    }
-
     public void OnNodeEnter(NodeRef node, ReadyNotifier readyNotifier)
     {
+        // Node enter is now just a setup phase - speech is handled in OnSpeech
+        readyNotifier.OnReady();
+    }
+
+    public void OnSpeech(NodeRef node, ReadyNotifier readyNotifier)
+    {
+        // Present speech text to the player
         string voiceText = node.VoiceText;
         if (!string.IsNullOrEmpty(voiceText))
         {
@@ -104,6 +94,24 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         else
         {
             readyNotifier.OnReady();
+        }
+    }
+
+    public void OnDecision(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier)
+    {
+        // Present choices to the player
+        for (int i = 0; i < choices.Count; i++)
+        {
+            NodeRef node = choices[i];
+            GameObject choiceGO = Instantiate(m_ChoiceItemPrefab);
+            ChoiceUI choiceUI = choiceGO.GetComponent<ChoiceUI>();
+            string buttonText = node.UIResponseText ?? "";
+            choiceUI.SetButtonText(buttonText);
+            choiceUI.RegisterButtonHandler(() =>
+            {
+                decisionNotifier.OnDecisionMade(node);
+            });
+            choiceGO.transform.SetParent(m_ChoiceContent.transform);
         }
     }
 

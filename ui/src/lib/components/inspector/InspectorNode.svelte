@@ -4,8 +4,9 @@
      *
      * Displays properties of a selected dialogue node:
      * - ID, Type, Conversation ID (read-only)
-     * - Actor selection
-     * - Voice text / UI response text (localization references with inline editing)
+     * - Node type dropdown (dialogue/logic, not shown for root)
+     * - Actor selection (dialogue nodes only)
+     * - Voice text / UI response text (dialogue nodes only)
      * - Code folder configuration (shared by condition and action)
      * - Condition (code method with preview)
      * - Action (code method with preview)
@@ -14,7 +15,7 @@
      *
      * Ported from GameScriptElectron, updated for v2 code-in-IDE approach.
      */
-    import type { Row } from '@gamescript/shared';
+    import type { Node } from '@gamescript/shared';
     import type { IDbRowView } from '$lib/db';
     import {
         RowColumnId,
@@ -22,6 +23,7 @@
         CodeMethod,
         InspectorField,
         CodeFolderSelector,
+        Dropdown,
     } from '$lib/components/common';
     import RowColumnActor from '$lib/components/common/RowColumnActor.svelte';
     import RowColumnLocalization from '$lib/components/common/RowColumnLocalization.svelte';
@@ -33,17 +35,33 @@
         NODE_UNDO_HAS_CONDITION,
         NODE_UNDO_HAS_ACTION,
     } from '$lib/constants/settings';
+    import { nodes } from '$lib/crud';
+    import { IsLoadingStore } from '$lib/stores/is-loading.js';
 
     interface Props {
-        rowView: IDbRowView<Row>;
+        rowView: IDbRowView<Node>;
     }
 
     let { rowView }: Props = $props();
 
-    // Computed display values - cast to access Node-specific fields
-    let nodeType = $derived((rowView.data as { type?: string }).type === 'root' ? 'Root' : 'Dialogue');
-    let isRoot = $derived((rowView.data as { type?: string }).type === 'root');
-    let conversationId = $derived((rowView.data as { parent?: number }).parent ?? 0);
+    // Loading state for type change
+    const isLoading = new IsLoadingStore();
+
+    // Node type dropdown options
+    const nodeTypeOptions = [
+        { value: 'dialogue', label: 'Dialogue' },
+        { value: 'logic', label: 'Logic' },
+    ];
+
+    // Computed display values
+    let nodeTypeDisplay = $derived(
+        rowView.data.type === 'root' ? 'Root' :
+        rowView.data.type === 'logic' ? 'Logic' : 'Dialogue'
+    );
+    let isRoot = $derived(rowView.data.type === 'root');
+    let isLogic = $derived(rowView.data.type === 'logic');
+    let isDialogue = $derived(rowView.data.type === 'dialogue');
+    let conversationId = $derived(rowView.data.parent);
 
     // Check if we have property templates
     let hasPropertyTemplates = $derived(propertyTemplatesTable && propertyTemplatesTable.rows.length > 0);
@@ -54,9 +72,20 @@
     let isFolderConfigured = $derived(
         codeOutputFolderValue !== null && codeOutputFolderValue.trim() !== ''
     );
+
+    // Handle node type change
+    async function onNodeTypeChange(newType: string | number): Promise<void> {
+        if (typeof newType !== 'string') return;
+        if (newType !== 'dialogue' && newType !== 'logic') return;
+        if (rowView.data.type === newType) return;
+
+        await isLoading.wrapPromise(
+            nodes.updateType(rowView.id, newType)
+        );
+    }
 </script>
 
-<h2>{nodeType} Node</h2>
+<h2>{nodeTypeDisplay} Node</h2>
 
 <InspectorField label="ID">
     <RowColumnId {rowView} />
@@ -66,40 +95,56 @@
     <RowColumnId {rowView} columnName={'parent'} />
 </InspectorField>
 
-<InspectorField label="Type">
-    <RowColumnId {rowView} columnName={'type'} />
-</InspectorField>
+{#if isRoot}
+    <InspectorField label="Type">
+        <RowColumnId {rowView} columnName={'type'} />
+    </InspectorField>
+{:else}
+    <InspectorField
+        label="Type"
+        tooltip="Dialogue nodes have speech text. Logic nodes run actions/conditions without speech."
+    >
+        <Dropdown
+            options={nodeTypeOptions}
+            value={rowView.data.type}
+            disabled={$isLoading}
+            onchange={onNodeTypeChange}
+        />
+    </InspectorField>
+{/if}
 
 {#if !isRoot}
-    <InspectorField label="Actor">
-        <RowColumnActor {rowView} columnName={'actor'} />
-    </InspectorField>
+    {#if isDialogue}
+        <InspectorField label="Actor">
+            <RowColumnActor {rowView} columnName={'actor'} />
+        </InspectorField>
 
-    <InspectorField
-        label="Voice Text"
-        tooltip="This is the localized text for the line that is spoken when this node plays during a conversation."
-    >
-        <RowColumnLocalization
-            {rowView}
-            columnName={'voice_text'}
-            showTitle={false}
-            showId={false}
-            showNickname={false}
-        />
-    </InspectorField>
+        <InspectorField
+            label="Voice Text"
+            tooltip="This is the localized text for the line that is spoken when this node plays during a conversation."
+        >
+            <RowColumnLocalization
+                {rowView}
+                columnName={'voice_text'}
+                showTitle={false}
+                showId={false}
+                showNickname={false}
+            />
+        </InspectorField>
 
-    <InspectorField
-        label="UI Response Text"
-        tooltip="In most games, the player is presented with a list of dialogue options they can select in response during a conversation. This localized text can be used for the UI element responsible for presenting the player with response options."
-    >
-        <RowColumnLocalization
-            {rowView}
-            columnName={'ui_response_text'}
-            showTitle={false}
-            showId={false}
-            showNickname={false}
-        />
-    </InspectorField>
+        <InspectorField
+            label="UI Response Text"
+            tooltip="In most games, the player is presented with a list of dialogue options they can select in response during a conversation. This localized text can be used for the UI element responsible for presenting the player with response options."
+        >
+            <RowColumnLocalization
+                {rowView}
+                columnName={'ui_response_text'}
+                showTitle={false}
+                showId={false}
+                showNickname={false}
+            />
+        </InspectorField>
+    {/if}
 
     <div class="code-section">
         <div class="code-section-header">Code</div>

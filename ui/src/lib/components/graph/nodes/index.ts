@@ -5,3 +5,4 @@
 export { default as NodeBase } from './NodeBase.svelte';
 export { default as NodeRoot } from './NodeRoot.svelte';
 export { default as NodeDialogue } from './NodeDialogue.svelte';
+export { default as NodeLogic } from './NodeLogic.svelte';

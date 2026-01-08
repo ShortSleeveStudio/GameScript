@@ -59,7 +59,7 @@
 
   // State
   let gridElement: HTMLElement;
-  let api: GridApi;
+  let api: GridApi | undefined = $state();
   let datasource: GridDatasource<Locale>;
   let selectedRows: IDbRowView<Locale>[] = $state([]);
   let isLoading = new IsLoadingStore();
@@ -80,7 +80,7 @@
   let localePrincipalRowView = $derived(getLocalePrincipal(localePrincipalTableView.rows));
 
   function getGridApi(): GridApi {
-    return api;
+    return api!;
   }
 
   function getPrincipalRowView(): IDbRowView<LocalePrincipal> | undefined {

@@ -62,6 +62,14 @@ export { default as ProgressModal } from './ProgressModal.svelte';
 
 // Panel components
 export { default as TagCategorySettingsPanel } from './TagCategorySettingsPanel.svelte';
+export { default as PropertyCombobox } from './PropertyCombobox.svelte';
+export type { PropertyComboboxChangePayload } from './PropertyCombobox.types.js';
+export { default as PropertySettingsPanel } from './PropertySettingsPanel.svelte';
+
+// Entity property components
+export { default as RowColumnEntityProperties } from './RowColumnEntityProperties.svelte';
+export { default as RowColumnProperties } from './RowColumnProperties.svelte';
+export { default as RowColumnConversationProperties } from './RowColumnConversationProperties.svelte';
 
 // Grid components
 export { default as GridToolbar } from './GridToolbar.svelte';

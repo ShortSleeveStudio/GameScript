@@ -57,6 +57,8 @@ class DatabaseManager(
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 ) : Disposable {
 
+    private val LOG = com.intellij.openapi.diagnostic.Logger.getInstance(DatabaseManager::class.java)
+
     private var sqliteConnection: SqliteConnection? = null
     private var postgresConnection: PostgresConnection? = null
     private var dbType: DatabaseType? = null
@@ -316,11 +318,12 @@ class DatabaseManager(
     }
 
     override fun dispose() {
-        kotlinx.coroutines.runBlocking {
-            stopChangeNotifications()
-        }
-        close()
+        // Cancel scope first to stop any pending operations
         scope.cancel()
+        // Close connections directly - this handles cleanup without blocking
+        // The close() method in PostgresConnection already handles returning
+        // the listen connection to the pool and disconnecting both pools
+        close()
     }
 
     companion object {

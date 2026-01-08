@@ -152,7 +152,6 @@ export {
 // Initialization
 // ============================================================================
 
-import { bridge } from '$lib/api';
 import { db } from '$lib/db';
 import { dbConnected, initConnectionStores, tryAutoReconnect } from './connection.js';
 import { initThemeStore } from './theme.js';
@@ -163,11 +162,11 @@ import { initFocusStore } from './focus.js';
  * Initialize all stores and set up bridge listeners.
  * This performs pure initialization without side effects.
  * Call this once when the app starts.
+ *
+ * Note: The bridge auto-activates via the 'gamescript-bridge-ready' event,
+ * so no explicit init() call is needed.
  */
 export function initStores(): void {
-  // Initialize bridge first
-  bridge.init();
-
   // Initialize individual stores
   // Pass callback to set db dialect when connected (avoids circular import)
   // Also reload all tables when connected (matches Electron's pattern)

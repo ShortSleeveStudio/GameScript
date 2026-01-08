@@ -4,6 +4,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { ConversationProperty } from '../game-script/conversation-property.js';
+
+
 export class Conversation {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -66,43 +69,53 @@ tagIndicesArray():Int32Array|null {
   return offset ? new Int32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
-nodeIndices(index: number):number|null {
+properties(index: number, obj?:ConversationProperty):ConversationProperty|null {
   const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? (obj || new ConversationProperty()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+propertiesLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 16);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
+}
+
+nodeIndices(index: number):number|null {
+  const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.readInt32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
 nodeIndicesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
+  const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 nodeIndicesArray():Int32Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 16);
+  const offset = this.bb!.__offset(this.bb_pos, 18);
   return offset ? new Int32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 edgeIndices(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
+  const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.readInt32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
 edgeIndicesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
+  const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 edgeIndicesArray():Int32Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 18);
+  const offset = this.bb!.__offset(this.bb_pos, 20);
   return offset ? new Int32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 rootNodeIdx():number {
-  const offset = this.bb!.__offset(this.bb_pos, 20);
+  const offset = this.bb!.__offset(this.bb_pos, 22);
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
 static startConversation(builder:flatbuffers.Builder) {
-  builder.startObject(9);
+  builder.startObject(10);
 }
 
 static addId(builder:flatbuffers.Builder, id:number) {
@@ -146,8 +159,24 @@ static startTagIndicesVector(builder:flatbuffers.Builder, numElems:number) {
   builder.startVector(4, numElems, 4);
 }
 
+static addProperties(builder:flatbuffers.Builder, propertiesOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(6, propertiesOffset, 0);
+}
+
+static createPropertiesVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startPropertiesVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
+}
+
 static addNodeIndices(builder:flatbuffers.Builder, nodeIndicesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(6, nodeIndicesOffset, 0);
+  builder.addFieldOffset(7, nodeIndicesOffset, 0);
 }
 
 static createNodeIndicesVector(builder:flatbuffers.Builder, data:number[]|Int32Array):flatbuffers.Offset;
@@ -168,7 +197,7 @@ static startNodeIndicesVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addEdgeIndices(builder:flatbuffers.Builder, edgeIndicesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(7, edgeIndicesOffset, 0);
+  builder.addFieldOffset(8, edgeIndicesOffset, 0);
 }
 
 static createEdgeIndicesVector(builder:flatbuffers.Builder, data:number[]|Int32Array):flatbuffers.Offset;
@@ -189,7 +218,7 @@ static startEdgeIndicesVector(builder:flatbuffers.Builder, numElems:number) {
 }
 
 static addRootNodeIdx(builder:flatbuffers.Builder, rootNodeIdx:number) {
-  builder.addFieldInt32(8, rootNodeIdx, 0);
+  builder.addFieldInt32(9, rootNodeIdx, 0);
 }
 
 static endConversation(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -197,7 +226,7 @@ static endConversation(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createConversation(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, notesOffset:flatbuffers.Offset, isLayoutAuto:boolean, isLayoutVertical:boolean, tagIndicesOffset:flatbuffers.Offset, nodeIndicesOffset:flatbuffers.Offset, edgeIndicesOffset:flatbuffers.Offset, rootNodeIdx:number):flatbuffers.Offset {
+static createConversation(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, notesOffset:flatbuffers.Offset, isLayoutAuto:boolean, isLayoutVertical:boolean, tagIndicesOffset:flatbuffers.Offset, propertiesOffset:flatbuffers.Offset, nodeIndicesOffset:flatbuffers.Offset, edgeIndicesOffset:flatbuffers.Offset, rootNodeIdx:number):flatbuffers.Offset {
   Conversation.startConversation(builder);
   Conversation.addId(builder, id);
   Conversation.addName(builder, nameOffset);
@@ -205,6 +234,7 @@ static createConversation(builder:flatbuffers.Builder, id:number, nameOffset:fla
   Conversation.addIsLayoutAuto(builder, isLayoutAuto);
   Conversation.addIsLayoutVertical(builder, isLayoutVertical);
   Conversation.addTagIndices(builder, tagIndicesOffset);
+  Conversation.addProperties(builder, propertiesOffset);
   Conversation.addNodeIndices(builder, nodeIndicesOffset);
   Conversation.addEdgeIndices(builder, edgeIndicesOffset);
   Conversation.addRootNodeIdx(builder, rootNodeIdx);

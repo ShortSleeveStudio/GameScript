@@ -85,7 +85,7 @@ export async function getByParent(conversationId: number): Promise<Localization[
 // ============================================================================
 
 export interface CreateLocalizationParams {
-  parent: number;
+  parent: number | null;
   name: string;
   is_system_created?: boolean;
 }

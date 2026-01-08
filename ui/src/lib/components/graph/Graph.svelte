@@ -49,6 +49,7 @@
     // Components
     import NodeRoot from './nodes/NodeRoot.svelte';
     import NodeDialogue from './nodes/NodeDialogue.svelte';
+    import NodeLogic from './nodes/NodeLogic.svelte';
     import EdgeDefault from './edges/EdgeDefault.svelte';
     import EdgeHidden from './edges/EdgeHidden.svelte';
 
@@ -108,7 +109,12 @@
     import { toastError } from '$lib/stores/notifications.js';
 
     // Layout preferences
-    import { graphMinimapVisible } from '$lib/stores/layout-defaults.js';
+    import {
+        graphMinimapVisible,
+        graphLayoutAutoLayoutDefault,
+        graphLayoutVerticalDefault,
+    } from '$lib/stores/layout-defaults.js';
+    import { focusPropertyTemplate, focusedPropertyTemplate } from '$lib/stores/focus.js';
 
     // Constants
     import {
@@ -126,10 +132,13 @@
     import { findDockable } from '$lib/components/app/Dockable.svelte';
 
     // Common components
-    import { Button, Dropdown, ActionMenu, type ActionMenuItem } from '$lib/components/common';
+    import { Button, Dropdown, ActionMenu, type ActionMenuItem, ToggleButton, PropertySettingsPanel, SettingsSection, Checkbox } from '$lib/components/common';
+
+    // Tables
+    import { propertyTemplatesTable } from '$lib/tables';
+    import { propertyTemplates as propertyTemplatesCrud } from '$lib/crud';
 
     // Graph-specific components
-    import GraphSettingsModal from './GraphSettingsModal.svelte';
     import GraphStatusBar from './GraphStatusBar.svelte';
 
     // Icons
@@ -190,6 +199,7 @@
     const nodeTypes = {
         [NODE_TYPES.ROOT]: NodeRoot,
         [NODE_TYPES.DIALOGUE]: NodeDialogue,
+        [NODE_TYPES.LOGIC]: NodeLogic,
     } as any;
 
     const edgeTypes = {
@@ -214,7 +224,7 @@
     let isLoading = $state<boolean>(false);
     let isConversationInitialized = $state<boolean>(false);
     let graphContainerEl: HTMLDivElement | undefined = $state();
-    let showSettingsModal = $state<boolean>(false);
+    let showSettingsPanel = $state<boolean>(false);
 
     // Focus state
     let unsubscriberFocus: ActionUnsubscriber;
@@ -325,6 +335,13 @@
             : null
     );
 
+    // Node type signal - triggers layout when node types change (dimensions differ by type)
+    let nodeTypeSignal = $derived(
+        nodeViews && isConversationInitialized
+            ? nodeViews.rows.map(r => `${r.id}:${r.data.type}`).join('|')
+            : null
+    );
+
     // Edge topology signal - triggers edge reconciliation
     // Includes: id, source, target, type (affects graph connectivity)
     let edgeTopologySignal = $derived(
@@ -370,6 +387,12 @@
     $effect(() => {
         if (edgeTopologySignal === null) return;
         untrack(() => runReconciliation(false));
+    });
+
+    // React to node type changes - trigger layout (node dimensions differ by type)
+    $effect(() => {
+        if (nodeTypeSignal === null) return;
+        untrack(() => scheduleLayout());
     });
 
     // ============================================================================
@@ -1512,16 +1535,53 @@
                 >
                     Graph
                 </ActionMenu>
-                <Button
-                    variant="ghost"
-                    iconOnly
-                    onclick={() => showSettingsModal = true}
-                    title="Graph Settings"
+                <ToggleButton
+                    active={showSettingsPanel}
+                    onclick={() => showSettingsPanel = !showSettingsPanel}
+                    title="Node Property Settings"
                 >
                     <IconSettings size={16} />
-                </Button>
+                </ToggleButton>
             </div>
         </div>
+
+        <!-- Settings Panel (expandable) -->
+        {#if showSettingsPanel}
+            <div class="settings-panel-container">
+                <SettingsSection
+                    title="Layout Defaults"
+                    description="Default layout settings for new conversations created locally."
+                >
+                    <div class="setting-row">
+                        <span class="setting-label">Default Graph Orientation</span>
+                        <Dropdown
+                            options={[
+                                { value: 'horizontal', label: 'Horizontal' },
+                                { value: 'vertical', label: 'Vertical' }
+                            ]}
+                            value={$graphLayoutVerticalDefault ? 'vertical' : 'horizontal'}
+                            fullWidth={false}
+                            onchange={(value) => $graphLayoutVerticalDefault = value === 'vertical'}
+                        />
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Default Auto-Layout</span>
+                        <Checkbox
+                            checked={$graphLayoutAutoLayoutDefault}
+                            label="Enabled"
+                            onchange={(checked) => $graphLayoutAutoLayoutDefault = checked}
+                        />
+                    </div>
+                </SettingsSection>
+                <PropertySettingsPanel
+                    description="Define properties that can be added to nodes. Click a property to manage its predefined values in the Inspector."
+                    entityTable={TABLE_NODES}
+                    entityName="nodes"
+                    focusTemplate={focusPropertyTemplate}
+                    focusedTemplateId={$focusedPropertyTemplate}
+                />
+            </div>
+        {/if}
 
         <!-- Graph -->
         <div class="graph-content">
@@ -1571,9 +1631,6 @@
     {/if}
 </div>
 
-<!-- Settings Modal -->
-<GraphSettingsModal bind:open={showSettingsModal} />
-
 <style>
     .graph-container {
         display: flex;
@@ -1615,6 +1672,27 @@
         border: 1px solid var(--gs-input-border);
         color: var(--gs-input-fg);
         border-radius: 2px;
+    }
+
+    .settings-panel-container {
+        padding: 12px;
+        background: var(--gs-bg-secondary);
+        border-bottom: 1px solid var(--gs-border-primary);
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+
+    .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--gs-border-primary);
+    }
+
+    .setting-label {
+        font-size: 12px;
+        color: var(--gs-fg-primary);
     }
 
     .graph-content {
