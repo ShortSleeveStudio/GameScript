@@ -108,6 +108,10 @@ namespace GameScript
                     NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
                     Node node = Snapshot.Nodes[_nodeIndex];
 
+                    // Root nodes skip directly to edge evaluation
+                    if (node.Type == NodeType.Root)
+                        goto EvaluateEdges;
+
                     // 2. Node Enter
                     _listener.OnNodeEnter(nodeRef, new ReadyNotifier(_readySource));
                     await _readySource.Awaitable;
@@ -124,11 +128,12 @@ namespace GameScript
                     }
                     else
                     {
-                        // Dialogue/Root nodes: action and speech run concurrently
+                        // Dialogue nodes: action and speech run concurrently
                         await RunActionAndSpeechConcurrently(node, nodeRef);
                     }
 
                     // 4. Evaluate outgoing edges and find valid targets
+                    EvaluateEdges:
                     _choices.Clear();
                     int highestPriority = int.MinValue;
                     int highestPriorityNodeIndex = -1;
@@ -207,16 +212,17 @@ namespace GameScript
                         _nodeIndex = highestPriorityNodeIndex;
                     }
 
-                    // 6. Node Exit (ALWAYS called)
-                    _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
-                    await _readySource.Awaitable;
-                    _readySource.Reset();
+                    // 6. Node Exit (skip for root nodes)
+                    if (node.Type != NodeType.Root)
+                    {
+                        _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
+                        await _readySource.Awaitable;
+                        _readySource.Reset();
+                    }
 
                     // No valid edges - conversation ends
                     if (_choices.Count == 0)
-                    {
                         break;
-                    }
                 }
 
                 // 7. Conversation Exit
