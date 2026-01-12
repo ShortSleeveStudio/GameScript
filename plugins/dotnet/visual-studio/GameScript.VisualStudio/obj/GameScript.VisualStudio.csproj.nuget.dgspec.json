@@ -1,0 +1,107 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/eric/Work/GameScript/plugins/dotnet/visual-studio/GameScript.VisualStudio/GameScript.VisualStudio.csproj": {}
+  },
+  "projects": {
+    "/Users/eric/Work/GameScript/plugins/dotnet/visual-studio/GameScript.VisualStudio/GameScript.VisualStudio.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/eric/Work/GameScript/plugins/dotnet/visual-studio/GameScript.VisualStudio/GameScript.VisualStudio.csproj",
+        "projectName": "GameScript.VisualStudio",
+        "projectPath": "/Users/eric/Work/GameScript/plugins/dotnet/visual-studio/GameScript.VisualStudio/GameScript.VisualStudio.csproj",
+        "packagesPath": "/Users/eric/.nuget/packages/",
+        "outputPath": "/Users/eric/Work/GameScript/plugins/dotnet/visual-studio/GameScript.VisualStudio/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/eric/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0-windows"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0-windows7.0": {
+            "targetAlias": "net8.0-windows",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net8.0-windows7.0": {
+          "targetAlias": "net8.0-windows",
+          "dependencies": {
+            "GDShrapt": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "Microsoft.CodeAnalysis.CSharp": {
+              "target": "Package",
+              "version": "[5.0.0, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
+            "Microsoft.VisualStudio.Extensibility": {
+              "target": "Package",
+              "version": "[1.2.0, )"
+            },
+            "Microsoft.VisualStudio.Extensibility.Build": {
+              "target": "Package",
+              "version": "[1.2.0, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[10.0.1, )"
+            },
+            "TreeSitter.DotNet": {
+              "target": "Package",
+              "version": "[1.1.0, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.20, 8.0.20]"
+            }
+          ],
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

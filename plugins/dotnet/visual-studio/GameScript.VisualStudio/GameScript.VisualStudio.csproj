@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Extension metadata -->
+    <RootNamespace>GameScript.VisualStudio</RootNamespace>
+    <AssemblyName>GameScript.VisualStudio</AssemblyName>
+  </PropertyGroup>
+
+  <!-- VisualStudio.Extensibility packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility" Version="1.2.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="1.2.0" />
+  </ItemGroup>
+
+  <!-- Database packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.1" />
+    <PackageReference Include="Npgsql" Version="10.0.1" />
+  </ItemGroup>
+
+  <!-- Code analysis packages -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="TreeSitter.DotNet" Version="1.1.0" />
+    <PackageReference Include="GDShrapt" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- Bundle wwwroot files into VSIX -->
+  <ItemGroup>
+    <Content Include="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Update="wwwroot\**" Watch="true" />
+  </ItemGroup>
+
+</Project>

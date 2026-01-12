@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)treesitter.dotnet/1.1.0/build/TreeSitter.DotNet.targets" Condition="Exists('$(NuGetPackageRoot)treesitter.dotnet/1.1.0/build/TreeSitter.DotNet.targets')" />
+    <Import Project="$(NuGetPackageRoot)system.text.json/8.0.0/buildTransitive/net6.0/System.Text.Json.targets" Condition="Exists('$(NuGetPackageRoot)system.text.json/8.0.0/buildTransitive/net6.0/System.Text.Json.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.visualstudio.threading.analyzers/17.9.28/build/Microsoft.VisualStudio.Threading.Analyzers.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.visualstudio.threading.analyzers/17.9.28/build/Microsoft.VisualStudio.Threading.Analyzers.targets')" />
+    <Import Project="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3/2.1.11/buildTransitive/net8.0/SQLitePCLRaw.lib.e_sqlite3.targets" Condition="Exists('$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3/2.1.11/buildTransitive/net8.0/SQLitePCLRaw.lib.e_sqlite3.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.extensions.logging.abstractions/8.0.0/buildTransitive/net6.0/Microsoft.Extensions.Logging.Abstractions.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.extensions.logging.abstractions/8.0.0/buildTransitive/net6.0/Microsoft.Extensions.Logging.Abstractions.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.vssdk.compatibilityanalyzer/17.9.3168/build/Microsoft.VsSDK.CompatibilityAnalyzer.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.vssdk.compatibilityanalyzer/17.9.3168/build/Microsoft.VsSDK.CompatibilityAnalyzer.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.codeanalysis.bannedapianalyzers/3.3.2/build/Microsoft.CodeAnalysis.BannedApiAnalyzers.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.codeanalysis.bannedapianalyzers/3.3.2/build/Microsoft.CodeAnalysis.BannedApiAnalyzers.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.visualstudio.sdk.analyzers/16.10.10/build/Microsoft.VisualStudio.SDK.Analyzers.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.visualstudio.sdk.analyzers/16.10.10/build/Microsoft.VisualStudio.SDK.Analyzers.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.vssdk.buildtools/17.9.3168/build/Microsoft.VSSDK.BuildTools.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.vssdk.buildtools/17.9.3168/build/Microsoft.VSSDK.BuildTools.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.visualstudio.extensibility.build/17.9.2092/build/Microsoft.VisualStudio.Extensibility.Build.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.visualstudio.extensibility.build/17.9.2092/build/Microsoft.VisualStudio.Extensibility.Build.targets')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.codeanalysis.analyzers/3.11.0/buildTransitive/Microsoft.CodeAnalysis.Analyzers.targets" Condition="Exists('$(NuGetPackageRoot)microsoft.codeanalysis.analyzers/3.11.0/buildTransitive/Microsoft.CodeAnalysis.Analyzers.targets')" />
+  </ImportGroup>
+</Project>
