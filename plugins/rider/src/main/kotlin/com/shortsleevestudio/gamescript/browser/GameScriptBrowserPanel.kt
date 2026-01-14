@@ -18,7 +18,11 @@ import org.cef.handler.CefResourceRequestHandler
 import org.cef.handler.CefResourceRequestHandlerAdapter
 import org.cef.misc.BoolRef
 import org.cef.network.CefRequest
+import java.awt.Component
+import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
+import java.beans.PropertyChangeListener
+import javax.swing.SwingUtilities
 import com.shortsleevestudio.gamescript.database.DatabaseManager
 import com.shortsleevestudio.gamescript.handlers.CodeHandlers
 import com.shortsleevestudio.gamescript.handlers.DbHandlers
@@ -61,11 +65,15 @@ class GameScriptBrowserPanel(
     private lateinit var codeFileWatcher: CodeFileWatcher
     private lateinit var snapshotCommandWatcher: SnapshotCommandWatcher
 
-    // Explicit focus tracking for reliable keyboard interception
-    // Using a flag is more reliable than SwingUtilities.isDescendingFrom() with JCEF
-    // because the actual focus owner may be a native peer or hidden component
+    // Explicit focus tracking for reliable keyboard interception.
+    // We track focus at two levels:
+    // 1. CefFocusHandler - tracks CEF/Chromium-level focus (when clicking inside the webview)
+    // 2. KeyboardFocusManager - tracks Swing-level focus (detects when focus leaves our component)
+    // Both are needed because CEF's onTakeFocus doesn't fire reliably when clicking outside
+    // the JCEF component (e.g., clicking on another editor tab).
     @Volatile
     private var webviewHasFocus = false
+    private lateinit var focusChangeListener: PropertyChangeListener
 
     val component: JComponent
         get() = panel
@@ -88,9 +96,7 @@ class GameScriptBrowserPanel(
         // Add request handler to intercept and serve resources from JAR
         browser.jbCefClient.addRequestHandler(GameScriptRequestHandler(), browser.cefBrowser)
 
-        // Set up explicit focus tracking for reliable keyboard interception.
-        // JCEF focus bypasses Swing's focus system - the native Chromium layer receives focus directly.
-        // We use CefFocusHandler to track when the browser gains/loses focus at the CEF level.
+        // CEF-level focus tracking: detects focus changes within the browser.
         browser.jbCefClient.addFocusHandler(object : org.cef.handler.CefFocusHandler {
             override fun onTakeFocus(cefBrowser: CefBrowser?, next: Boolean) {
                 webviewHasFocus = false
@@ -105,6 +111,17 @@ class GameScriptBrowserPanel(
                 webviewHasFocus = true
             }
         }, browser.cefBrowser)
+
+        // Swing-level focus tracking: detects when focus leaves our component hierarchy.
+        // CEF's onTakeFocus doesn't fire reliably when clicking outside JCEF (e.g., another editor tab).
+        focusChangeListener = PropertyChangeListener { evt ->
+            val newOwner = evt.newValue as? Component
+            if (newOwner != null && !SwingUtilities.isDescendingFrom(newOwner, panel)) {
+                webviewHasFocus = false
+            }
+        }
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+            .addPropertyChangeListener("permanentFocusOwner", focusChangeListener)
 
         // Initialize message bridge (handles JS injection on load)
         messageBridge = MessageBridge(project, browser, mediator)
@@ -349,6 +366,9 @@ class GameScriptBrowserPanel(
     }
 
     override fun dispose() {
+        // Remove the focus change listener to prevent memory leaks
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+            .removePropertyChangeListener("permanentFocusOwner", focusChangeListener)
         browser.dispose()
     }
 

@@ -123,7 +123,7 @@ At runtime startup, the engine builds jump tables via reflection:
 
 **Supported IDEs**:
 - VS Code (primary): `vscode.window.createWebviewPanel()`
-- Rider (future): JCEF tool window
+- Rider: JCEF browser panel
 - Visual Studio (future): WebView2 tool window
 
 ### 6. Reactivity System

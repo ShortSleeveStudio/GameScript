@@ -396,32 +396,48 @@ bool Matches(Conversation conv, int[] selectedPerCategory)
 Packages/studio.shortsleeve.gamescript/
   Runtime/
     GameScriptLoader.cs       # Static entry point
+    Attributes.cs             # NodeCondition, NodeAction attributes
+    Command.cs                # IPC command structure for engine-to-editor communication
+    Manifest.cs               # JSON manifest deserialization
+    Ids.cs                    # ConversationId, ActorId, NodeId, etc.
+    Refs.cs                   # NodeRef, ConversationRef, ActorRef, etc.
+    IDialogueContext.cs       # Interface for conditions/actions
+    JumpTableBuilder.cs       # Reflection-based function binding
     Execution/
       GameScriptManifest.cs   # Manifest handle, creates databases/runners
       GameScriptDatabase.cs   # Snapshot data access
       GameScriptRunner.cs     # Pure C# dialogue execution
       GameScriptBehaviour.cs  # MonoBehaviour wrapper (optional)
       RunnerContext.cs        # Dialogue state machine
-      JumpTableBuilder.cs     # Reflection-based function binding
+      RunnerListener.cs       # Listener interface and base class
+      ActiveConversation.cs   # Handle struct
       Settings.cs             # ScriptableObject settings
-    Ids.cs                    # ConversationId, ActorId, NodeId, etc.
-    Refs.cs                   # NodeRef, ConversationRef, ActorRef, etc.
-    IDialogueContext.cs       # Interface for conditions/actions
-    IGameScriptListener.cs    # Callback interface
-    Notifiers.cs              # ReadyNotifier, DecisionNotifier
-    ActiveConversation.cs     # Handle struct
-    Attributes.cs             # NodeCondition, NodeAction
+      WhenAllAwaiter.cs       # Utility for awaiting multiple tasks
+    Generated/
+      FlatSharp.generated.cs  # Auto-generated FlatBuffers serialization
   Editor/
+    GameScriptCommand.cs      # Editor-side command handling
+    Build/
+      GameScriptBuildProcessor.cs
+    Menu/
+      Menus.cs
+      GameScriptSettingsProvider.cs
     PropertyDrawers/
+      BaseIdDrawer.cs
       ConversationIdDrawer.cs
       LocalizationIdDrawer.cs
       ActorIdDrawer.cs
+      LocaleIdDrawer.cs
     Pickers/
+      BasePickerWindow.cs
+      BaseTwoLinePickerWindow.cs
+      BaseTaggedPickerWindow.cs
       ConversationPickerWindow.cs
       LocalizationPickerWindow.cs
+      ActorPickerWindow.cs
+      LocalePickerWindow.cs
     Styles/
       gamescript-picker.uss
-    GameScriptSettingsProvider.cs
 ```
 
 ---
