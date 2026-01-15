@@ -129,6 +129,13 @@
 
     // Global error handler
     function handleError(event: ErrorEvent): void {
+        // Suppress cross-origin errors (e.g., from JCEF internals during zoom)
+        // These have no actionable information due to browser security restrictions
+        if (event.message === 'Script error.' && event.lineno === 0 && event.colno === 0) {
+            event.preventDefault();
+            return;
+        }
+
         event.preventDefault();
         const error = event.error;
         const message = extractErrorMessage(error);
