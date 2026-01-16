@@ -37,8 +37,9 @@ namespace GameScript
         AwaitableCompletionSource<int> _decisionSource;
         WhenAllAwaiter _whenAllAwaiter;
 
-        // Reusable list for collecting choices without allocation
+        // Reusable lists for collecting choices without allocation
         readonly List<NodeRef> _choices;
+        readonly List<NodeRef> _highestPriorityChoices;
         #endregion
 
         #region Constructor
@@ -51,6 +52,7 @@ namespace GameScript
             _decisionSource = new AwaitableCompletionSource<int>();
             _whenAllAwaiter = new WhenAllAwaiter();
             _choices = new List<NodeRef>(DefaultChoiceCapacity);
+            _highestPriorityChoices = new List<NodeRef>(DefaultChoiceCapacity);
         }
         #endregion
 
@@ -135,8 +137,8 @@ namespace GameScript
                     // 4. Evaluate outgoing edges and find valid targets
                     EvaluateEdges:
                     _choices.Clear();
+                    _highestPriorityChoices.Clear();
                     int highestPriority = int.MinValue;
-                    int highestPriorityNodeIndex = -1;
                     bool allSameActor = true;
                     int firstActorIdx = -1;
 
@@ -189,11 +191,16 @@ namespace GameScript
                                 allSameActor = false;
                             }
 
-                            // Track highest priority
+                            // Track highest priority choices
                             if (edge.Priority > highestPriority)
                             {
                                 highestPriority = edge.Priority;
-                                highestPriorityNodeIndex = targetNodeIdx;
+                                _highestPriorityChoices.Clear();
+                                _highestPriorityChoices.Add(targetRef);
+                            }
+                            else if (edge.Priority == highestPriority)
+                            {
+                                _highestPriorityChoices.Add(targetRef);
                             }
                         }
                     }
@@ -208,8 +215,9 @@ namespace GameScript
                     }
                     else if (_choices.Count > 0)
                     {
-                        // Auto-advance to highest priority node
-                        _nodeIndex = highestPriorityNodeIndex;
+                        // Auto-advance via listener (allows custom selection logic)
+                        NodeRef selected = _listener.OnAutoDecision(_highestPriorityChoices);
+                        _nodeIndex = selected.Index;
                     }
 
                     // 6. Node Exit (skip for root nodes)

@@ -19,7 +19,6 @@
   <Project Path="UnityEngine.TestRunner.csproj" />
   <Project Path="Unity.VisualScripting.Core.csproj" />
   <Project Path="Unity.VisualScripting.Flow.Editor.csproj" />
-  <Project Path="GameScript.csproj" />
   <Project Path="Unity.2D.Tilemap.Editor.csproj" />
   <Project Path="Unity.Burst.csproj" />
   <Project Path="PsdPlugin.csproj" />
@@ -46,6 +45,7 @@
   <Project Path="Unity.2D.Aseprite.Common.csproj" />
   <Project Path="Unity.2D.Common.Editor.csproj" />
   <Project Path="Unity.2D.Sprite.AIIntegration.Editor.csproj" />
+  <Project Path="GameScript.csproj" />
   <Project Path="Unity.2D.Tilemap.Extras.csproj" />
   <Project Path="Unity.2D.PixelPerfect.csproj" />
   <Project Path="Unity.2D.Sprite.Editor.csproj" />
