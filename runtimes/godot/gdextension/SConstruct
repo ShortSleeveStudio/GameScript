@@ -1,0 +1,139 @@
+#!/usr/bin/env python
+"""
+GameScript GDExtension Build Script
+
+This SConstruct file builds the GameScript GDExtension for Godot 4.x.
+Dependencies (godot-cpp, flatbuffers) are auto-fetched on first build.
+
+Usage:
+    scons                    # Build for current platform (debug)
+    scons target=template_release  # Build release
+    scons platform=windows   # Cross-compile for Windows
+    scons -c                 # Clean build artifacts
+"""
+
+import os
+import subprocess
+import sys
+
+# ============================================================================
+# Dependency Management
+# ============================================================================
+
+GODOT_CPP_VERSION = "4.3"
+GODOT_CPP_URL = f"https://github.com/godotengine/godot-cpp.git"
+FLATBUFFERS_URL = "https://github.com/google/flatbuffers.git"
+
+
+def ensure_godot_cpp():
+    """Clone godot-cpp if it doesn't exist."""
+    if not os.path.exists("godot-cpp"):
+        print("Fetching godot-cpp (this may take a moment)...")
+        result = subprocess.run(
+            ["git", "clone", "--branch", GODOT_CPP_VERSION, "--depth", "1", GODOT_CPP_URL],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"Error cloning godot-cpp: {result.stderr}")
+            sys.exit(1)
+        print("godot-cpp fetched successfully.")
+    else:
+        print("godot-cpp already present.")
+
+
+def ensure_flatbuffers():
+    """Clone flatbuffers headers if they don't exist."""
+    if not os.path.exists("flatbuffers"):
+        print("Fetching flatbuffers headers...")
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", FLATBUFFERS_URL],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            print(f"Error cloning flatbuffers: {result.stderr}")
+            sys.exit(1)
+        print("flatbuffers fetched successfully.")
+    else:
+        print("flatbuffers already present.")
+
+
+# Fetch dependencies before SCons processes the rest
+ensure_godot_cpp()
+ensure_flatbuffers()
+
+# ============================================================================
+# Build Configuration
+# ============================================================================
+
+# Load godot-cpp's SConstruct for environment setup
+env = SConscript("godot-cpp/SConstruct")
+
+# Add our source paths
+env.Append(CPPPATH=["src/", "src/refs/", "src/generated/", "flatbuffers/include/"])
+
+# Gather source files
+sources = Glob("src/*.cpp") + Glob("src/refs/*.cpp")
+
+# ============================================================================
+# Output Configuration
+# ============================================================================
+
+# Library name
+lib_name = "libgamescript"
+
+# Output path - place binaries in the Godot project's addon folder
+output_path = "../project/addons/gamescript/bin/"
+
+# Ensure output directory exists
+if not os.path.exists(output_path):
+    os.makedirs(output_path)
+
+# Platform-specific library extension
+if env["platform"] == "macos":
+    lib_suffix = ".dylib"
+    # Universal binary for macOS
+    lib_filename = f"{lib_name}.macos.{env['target']}.framework/{lib_name}.macos.{env['target']}"
+elif env["platform"] == "windows":
+    lib_suffix = ".dll"
+    lib_filename = f"{lib_name}.windows.{env['target']}.{env['arch']}{lib_suffix}"
+elif env["platform"] == "linux":
+    lib_suffix = ".so"
+    lib_filename = f"{lib_name}.linux.{env['target']}.{env['arch']}{lib_suffix}"
+elif env["platform"] == "web":
+    lib_suffix = ".wasm"
+    lib_filename = f"{lib_name}.web.{env['target']}.wasm32{lib_suffix}"
+else:
+    lib_suffix = ".so"
+    lib_filename = f"{lib_name}.{env['platform']}.{env['target']}.{env['arch']}{lib_suffix}"
+
+# Build the shared library
+library = env.SharedLibrary(target=output_path + lib_filename, source=sources)
+
+Default(library)
+
+# ============================================================================
+# Help Text
+# ============================================================================
+
+Help(
+    """
+GameScript GDExtension Build System
+
+Targets:
+    scons                         Build debug library for current platform
+    scons target=template_release Build release library
+    scons platform=<platform>     Build for specific platform
+    scons -c                      Clean build artifacts
+
+Platforms:
+    macos, windows, linux, web
+
+Dependencies are auto-fetched on first build:
+    - godot-cpp (Godot C++ bindings)
+    - flatbuffers (header-only library)
+
+Output goes to: ../project/addons/gamescript/bin/
+"""
+)

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[node name="ChoiceButton" type="Button"]
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+text = "Choice Text"

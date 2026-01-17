@@ -206,8 +206,10 @@ export interface CodeGetMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string; // e.g., "Node_123_Condition"
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**
@@ -224,8 +226,10 @@ export interface CodeCreateMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 	/** Generated method stub code */
 	methodStub: string;
 	/** Generated file content (used when creating a new file) */
@@ -241,8 +245,10 @@ export interface CodeDeleteMethodMessage {
 	id: string;
 	conversationId: number;
 	methodName: string;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**
@@ -255,8 +261,10 @@ export interface CodeDeleteMethodsSilentMessage {
 	id: string;
 	conversationId: number;
 	methodNames: string[];
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**
@@ -270,8 +278,10 @@ export interface CodeRestoreMethodMessage {
 	methodName: string;
 	/** The method code to restore (includes attribute and body) */
 	code: string;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 	/** Generated file content (used when recreating a deleted file) */
 	fileContent: string;
 }
@@ -284,8 +294,10 @@ export interface CodeDeleteFileMessage {
 	type: 'code:deleteFile';
 	id: string;
 	conversationId: number;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**
@@ -297,8 +309,10 @@ export interface CodeRestoreFileMessage {
 	id: string;
 	conversationId: number;
 	content: string;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**
@@ -308,8 +322,10 @@ export interface CodeOpenMethodMessage {
 	type: 'code:openMethod';
 	conversationId: number;
 	methodName: string;
-	/** File extension including the dot (e.g., '.cs', '.cpp') */
+	/** File extension including the dot (e.g., '.cs', '.cpp', '.gd') */
 	fileExtension: string;
+	/** Code template type for language-specific behavior */
+	template: CodeTemplateType;
 }
 
 /**

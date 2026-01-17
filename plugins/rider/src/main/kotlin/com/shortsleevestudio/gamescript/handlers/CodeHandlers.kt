@@ -42,16 +42,25 @@ class CodeHandlers(
     // Language-specific helpers
     private val csharpHelper: LanguageCodeHelper = CSharpCodeHelper(context.project)
     private val cppHelper: LanguageCodeHelper by lazy { CppCodeHelper(context.project) }
+    private val gdscriptHelper: LanguageCodeHelper by lazy { GDScriptCodeHelper(context.project) }
 
     /**
      * Get the appropriate language helper based on file language.
      * Note: Cidr uses various language IDs for C/C++ depending on version.
+     * Falls back to extension-based detection if language ID is unknown (e.g., plain text files).
      */
     private fun getHelperForFile(psiFile: PsiFile): LanguageCodeHelper {
         return when (psiFile.language.id) {
             "C#", "CSharp" -> csharpHelper
             "ObjectiveC", "CPP", "C++" -> cppHelper  // Cidr uses different IDs across versions
-            else -> csharpHelper  // Default to C#
+            "GDScript" -> gdscriptHelper  // Godot Support plugin
+            else -> {
+                // Fallback to extension-based detection when language ID is unknown
+                // This handles cases where the Godot plugin isn't installed or the file
+                // is being treated as plain text
+                val extension = psiFile.virtualFile?.extension?.let { ".$it" } ?: ""
+                getHelperForExtension(extension)
+            }
         }
     }
 
@@ -62,8 +71,19 @@ class CodeHandlers(
         return when (extension.lowercase()) {
             ".cs" -> csharpHelper
             ".cpp", ".h", ".hpp", ".cc", ".inl" -> cppHelper  // Includes Unreal .inl files
+            ".gd" -> gdscriptHelper  // GDScript
             else -> csharpHelper  // Default to C#
         }
+    }
+
+    /**
+     * Check if a template uses indentation-based syntax (no braces).
+     * GDScript uses indentation instead of braces for code blocks.
+     *
+     * IMPORTANT: Keep in sync with shared/src/templates/index.ts isIndentationBased()
+     */
+    private fun isIndentationBased(template: String): Boolean {
+        return template == "godot"
     }
 
     /**
@@ -132,6 +152,7 @@ class CodeHandlers(
         val methodStub = message.get("methodStub")?.asString ?: return
         val fileContent = message.get("fileContent")?.asString ?: ""
         val extension = message.get("fileExtension")?.asString ?: fileExtension
+        val template = message.get("template")?.asString ?: "unity"
 
         try {
             val filePath = getConversationFilePath(conversationId, extension)
@@ -164,13 +185,23 @@ class CodeHandlers(
                     // Use withSuppressedUndo to make change invisible to Rider's undo stack
                     withSuppressedUndo(document) {
                         if (existing.isNotEmpty()) {
-                            val lastBrace = existing.lastIndexOf('}')
-                            if (lastBrace != -1) {
-                                // Insert method before closing brace (matches VSCode behavior)
-                                val codeToInsert = "\n" + methodStub + "\n"
-                                document.insertString(lastBrace, codeToInsert)
+                            // Language-specific insertion strategy:
+                            // - Indentation-based (GDScript): Append to end of file (no class wrapper)
+                            // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
+                            if (isIndentationBased(template)) {
+                                // Indentation-based: append to end with proper newline separation
+                                val trimmed = existing.trimEnd()
+                                val codeToInsert = "\n\n" + methodStub + "\n"
+                                document.replaceString(0, document.textLength, trimmed + codeToInsert)
                             } else {
-                                document.insertString(document.textLength, "\n" + methodStub)
+                                val lastBrace = existing.lastIndexOf('}')
+                                if (lastBrace != -1) {
+                                    // Insert method before closing brace (matches VSCode behavior)
+                                    val codeToInsert = "\n" + methodStub + "\n"
+                                    document.insertString(lastBrace, codeToInsert)
+                                } else {
+                                    document.insertString(document.textLength, "\n" + methodStub)
+                                }
                             }
                         } else {
                             document.setText(fileContent)
@@ -192,13 +223,19 @@ class CodeHandlers(
                         WriteAction.run<Exception> {
                             val existing = VfsUtil.loadText(vFile)
                             val newContent = if (existing.isNotEmpty()) {
-                                val lastBrace = existing.lastIndexOf('}')
-                                if (lastBrace != -1) {
-                                    existing.substring(0, lastBrace) +
-                                            "\n" + methodStub + "\n" +
-                                            existing.substring(lastBrace)
+                                // Language-specific insertion strategy
+                                if (isIndentationBased(template)) {
+                                    // Indentation-based: append to end
+                                    existing.trimEnd() + "\n\n" + methodStub + "\n"
                                 } else {
-                                    existing + "\n" + methodStub
+                                    val lastBrace = existing.lastIndexOf('}')
+                                    if (lastBrace != -1) {
+                                        existing.substring(0, lastBrace) +
+                                                "\n" + methodStub + "\n" +
+                                                existing.substring(lastBrace)
+                                    } else {
+                                        existing + "\n" + methodStub
+                                    }
                                 }
                             } else {
                                 fileContent
@@ -396,6 +433,7 @@ class CodeHandlers(
         val methodName = message.get("methodName")?.asString ?: return
         val code = message.get("code")?.asString
         val extension = message.get("fileExtension")?.asString ?: fileExtension
+        val template = message.get("template")?.asString ?: "unity"
         val fileContent = message.get("fileContent")?.asString
 
         // Nothing to restore
@@ -419,26 +457,40 @@ class CodeHandlers(
                     }
 
                     val text = document.text
-                    val lastBrace = text.lastIndexOf('}')
-                    if (lastBrace == -1) {
-                        context.postResponse(id, "code:restoreMethodResult", false, error = "Could not find class closing brace")
-                        return@invokeAndWait
-                    }
 
-                    // Ensure proper newline separation (matches VSCode behavior)
-                    val lineNumber = document.getLineNumber(lastBrace)
-                    val lineBeforeBrace = if (lineNumber > 0) {
-                        document.getText(TextRange(
-                            document.getLineStartOffset(lineNumber - 1),
-                            document.getLineEndOffset(lineNumber - 1)
-                        ))
-                    } else ""
-                    val needsLeadingNewline = lineBeforeBrace.trim().isNotEmpty()
-                    val codeToInsert = (if (needsLeadingNewline) "\n" else "") + code.trim() + "\n"
+                    // Language-specific insertion strategy:
+                    // - Indentation-based (GDScript): Append to end of file (no class wrapper)
+                    // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
+                    if (isIndentationBased(template)) {
+                        // Indentation-based: append to end of file with proper newline separation
+                        val trimmed = text.trimEnd()
+                        val codeToInsert = "\n\n" + code.trim() + "\n"
+                        // Need to replace entire content to handle trimming
+                        withSuppressedUndo(document) {
+                            document.replaceString(0, document.textLength, trimmed + codeToInsert)
+                        }
+                    } else {
+                        val lastBrace = text.lastIndexOf('}')
+                        if (lastBrace == -1) {
+                            context.postResponse(id, "code:restoreMethodResult", false, error = "Could not find class closing brace")
+                            return@invokeAndWait
+                        }
 
-                    // Use withSuppressedUndo to make change invisible to Rider's undo stack
-                    withSuppressedUndo(document) {
-                        document.insertString(lastBrace, codeToInsert)
+                        // Ensure proper newline separation (matches VSCode behavior)
+                        val lineNumber = document.getLineNumber(lastBrace)
+                        val lineBeforeBrace = if (lineNumber > 0) {
+                            document.getText(TextRange(
+                                document.getLineStartOffset(lineNumber - 1),
+                                document.getLineEndOffset(lineNumber - 1)
+                            ))
+                        } else ""
+                        val needsLeadingNewline = lineBeforeBrace.trim().isNotEmpty()
+                        val codeToInsert = (if (needsLeadingNewline) "\n" else "") + code.trim() + "\n"
+
+                        // Use withSuppressedUndo to make change invisible to Rider's undo stack
+                        withSuppressedUndo(document) {
+                            document.insertString(lastBrace, codeToInsert)
+                        }
                     }
 
                     // Save the document

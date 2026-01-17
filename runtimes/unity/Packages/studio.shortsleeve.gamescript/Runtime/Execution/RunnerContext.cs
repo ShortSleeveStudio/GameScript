@@ -217,6 +217,12 @@ namespace GameScript
                     {
                         // Auto-advance via listener (allows custom selection logic)
                         NodeRef selected = _listener.OnAutoDecision(_highestPriorityChoices);
+                        if (selected.Index < 0 || selected.Index >= Snapshot.Nodes.Count)
+                        {
+                            throw new InvalidOperationException(
+                                $"OnAutoDecision returned invalid node (index {selected.Index}). " +
+                                "Ensure your listener returns one of the provided choices.");
+                        }
                         _nodeIndex = selected.Index;
                     }
 
@@ -315,6 +321,7 @@ namespace GameScript
             _conversationIndex = -1;
             _nodeIndex = -1;
             _choices.Clear();
+            _highestPriorityChoices.Clear();
         }
         #endregion
     }

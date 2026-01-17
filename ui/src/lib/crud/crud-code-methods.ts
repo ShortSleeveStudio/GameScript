@@ -8,14 +8,10 @@
 import { db } from '$lib/db';
 import { bridge } from '$lib/api/bridge';
 import { registerUndoable, Undoable } from '$lib/undo';
-import type { Node, CodeTemplateType, TableRef } from '@gamescript/shared';
-import { TABLE_NODES } from '@gamescript/shared';
+import type { Node, CodeTemplateType } from '@gamescript/shared';
+import { TABLE_NODES, type MethodType, METHOD_TYPE_CONDITION } from '@gamescript/shared';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export type MethodType = 'condition' | 'action';
+export type { MethodType };
 
 export interface EnableMethodParams {
     /** The node to update */
@@ -60,7 +56,7 @@ export interface DisableMethodParams {
  */
 export async function enableMethod(params: EnableMethodParams): Promise<void> {
     const { node, conversationId, methodName, methodType, codeTemplate, undoDescription } = params;
-    const columnName = methodType === 'condition' ? 'has_condition' : 'has_action';
+    const columnName = methodType === METHOD_TYPE_CONDITION ? 'has_condition' : 'has_action';
 
     // Capture state for undo/redo
     const oldNode = { ...node };
@@ -103,7 +99,7 @@ export async function enableMethod(params: EnableMethodParams): Promise<void> {
  */
 export async function disableMethod(params: DisableMethodParams): Promise<void> {
     const { node, conversationId, methodName, methodType, codeTemplate, capturedCode, undoDescription } = params;
-    const columnName = methodType === 'condition' ? 'has_condition' : 'has_action';
+    const columnName = methodType === METHOD_TYPE_CONDITION ? 'has_condition' : 'has_action';
 
     // Capture state for undo/redo
     const oldNode = { ...node };

@@ -20,7 +20,7 @@
     /** Code template options for the dropdown */
     const CODE_TEMPLATE_OPTIONS = [
         { value: 'unity', label: 'Unity (C# Awaitable)' },
-        { value: 'godot', label: 'Godot (C# Callback)' },
+        { value: 'godot', label: 'Godot (GDScript)' },
         { value: 'unreal', label: 'Unreal (C++ Delegate)' },
     ];
 

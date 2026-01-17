@@ -63,8 +63,10 @@ gamescript/
 │   ├── unity/                  # Unity package
 │   │   └── Packages/studio.shortsleeve.gamescript/
 │   ├── csharp/                 # Shared C# runtime code
-│   ├── unreal/                 # Unreal plugin (planned)
-│   └── godot/                  # Godot addon (planned)
+│   ├── godot/                  # Godot 4.x addon
+│   │   ├── gdextension/        # C++ GDExtension source
+│   │   └── project/addons/     # GDScript runtime
+│   └── unreal/                 # Unreal plugin (planned)
 │
 └── tools/                      # CLI tools (planned)
 ```
@@ -112,6 +114,39 @@ Unity package providing:
 - Dialogue state machine
 - Attribute-based function binding
 - Editor tooling
+
+### Godot Runtime (`runtimes/godot/`)
+
+Godot 4.x addon providing:
+- C++ GDExtension for FlatBuffer parsing
+- GDScript dialogue execution engine
+- Custom Inspector plugins for ID types
+- Export validation
+
+## Runtime Installation
+
+### Unity
+
+Install via the Unity Package Manager using a Git URL:
+
+1. Open **Window > Package Manager**
+2. Click the **+** button and select **Add package from git URL...**
+3. Enter:
+   ```
+   https://github.com/ShortSleeveStudio/GameScript.git?path=/runtimes/unity/Packages/studio.shortsleeve.gamescript#vX.Y.Z
+   ```
+   Replace `vX.Y.Z` with the desired version tag (e.g., `v2.0.10`).
+
+### Godot
+
+Godot does not have a built-in package manager with Git URL support. Install manually:
+
+1. Download the release ZIP from the [Releases page](https://github.com/ShortSleeveStudio/GameScript/releases)
+2. Extract the `addons/gamescript/` folder
+3. Copy it to your project's `res://addons/` directory
+4. Enable the plugin in **Project > Project Settings > Plugins**
+
+Alternatively, clone the repository and copy `runtimes/godot/project/addons/gamescript/` to your project.
 
 ## Prerequisites
 

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="GameScriptSettings" load_steps=2 format=3 uid="uid://dvesvuvgycf1r"]
+
+[ext_resource type="Script" uid="uid://734l1px3bt47" path="res://addons/gamescript/scripts/settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+ide_executable_path = "/Applications/Visual Studio Code.app"

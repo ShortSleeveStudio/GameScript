@@ -15,3 +15,22 @@ export_credentials.cfg
 .mono/
 data_*/
 mono_crash.*.json
+
+# Build-time dependencies (auto-fetched by SConstruct)
+gdextension/godot-cpp/
+gdextension/flatbuffers/
+
+# Compiled GDExtension binaries
+project/addons/gamescript/bin/*.dylib
+project/addons/gamescript/bin/*.dll
+project/addons/gamescript/bin/*.so
+project/addons/gamescript/bin/*.wasm
+
+# Build artifacts
+gdextension/*.os
+gdextension/*.o
+gdextension/.sconsign.dblite
+gdextension/.scons_cache/
+
+# OS files
+.DS_Store

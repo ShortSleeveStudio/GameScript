@@ -27,6 +27,9 @@ import {
   TABLE_EDGES,
   TABLE_LOCALIZATIONS,
   TABLE_NODE_PROPERTIES,
+  getMethodNameForTemplate,
+  METHOD_TYPE_CONDITION,
+  METHOD_TYPE_ACTION,
 } from '@gamescript/shared';
 
 /**
@@ -83,10 +86,10 @@ export async function deleteGraphSelection(
     const methodNames: string[] = [];
     for (const node of convNodes) {
       if (node.has_condition) {
-        methodNames.push(`Node_${node.id}_Condition`);
+        methodNames.push(getMethodNameForTemplate(node.id, METHOD_TYPE_CONDITION, codeTemplate));
       }
       if (node.has_action) {
-        methodNames.push(`Node_${node.id}_Action`);
+        methodNames.push(getMethodNameForTemplate(node.id, METHOD_TYPE_ACTION, codeTemplate));
       }
     }
 
@@ -94,8 +97,8 @@ export async function deleteGraphSelection(
 
     // Map results back to individual nodes
     for (const node of convNodes) {
-      const conditionCode = result.deletedMethods[`Node_${node.id}_Condition`] ?? '';
-      const actionCode = result.deletedMethods[`Node_${node.id}_Action`] ?? '';
+      const conditionCode = result.deletedMethods[getMethodNameForTemplate(node.id, METHOD_TYPE_CONDITION, codeTemplate)] ?? '';
+      const actionCode = result.deletedMethods[getMethodNameForTemplate(node.id, METHOD_TYPE_ACTION, codeTemplate)] ?? '';
       if (conditionCode || actionCode) {
         capturedCodeMap.set(node.id, {
           conversationId,
@@ -192,10 +195,10 @@ export async function deleteGraphSelection(
         // Restore code methods first
         for (const [nodeId, codeData] of capturedCodeMap) {
           if (codeData.conditionCode) {
-            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Condition`, codeData.conditionCode, codeTemplate);
+            await bridge.restoreMethod(codeData.conversationId, getMethodNameForTemplate(nodeId, METHOD_TYPE_CONDITION, codeTemplate), codeData.conditionCode, codeTemplate);
           }
           if (codeData.actionCode) {
-            await bridge.restoreMethod(codeData.conversationId, `Node_${nodeId}_Action`, codeData.actionCode, codeTemplate);
+            await bridge.restoreMethod(codeData.conversationId, getMethodNameForTemplate(nodeId, METHOD_TYPE_ACTION, codeTemplate), codeData.actionCode, codeTemplate);
           }
         }
 
@@ -222,10 +225,10 @@ export async function deleteGraphSelection(
         for (const [nodeId, codeData] of capturedCodeMap) {
           const methods = methodsByConversation.get(codeData.conversationId) ?? [];
           if (codeData.conditionCode) {
-            methods.push(`Node_${nodeId}_Condition`);
+            methods.push(getMethodNameForTemplate(nodeId, METHOD_TYPE_CONDITION, codeTemplate));
           }
           if (codeData.actionCode) {
-            methods.push(`Node_${nodeId}_Action`);
+            methods.push(getMethodNameForTemplate(nodeId, METHOD_TYPE_ACTION, codeTemplate));
           }
           if (methods.length > 0) {
             methodsByConversation.set(codeData.conversationId, methods);

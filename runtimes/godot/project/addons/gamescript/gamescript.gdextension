@@ -1,0 +1,14 @@
+[configuration]
+entry_symbol = "gamescript_library_init"
+compatibility_minimum = "4.3"
+reloadable = true
+
+[libraries]
+macos.debug = "res://addons/gamescript/bin/libgamescript.macos.template_debug.framework/libgamescript.macos.template_debug"
+macos.release = "res://addons/gamescript/bin/libgamescript.macos.template_release.framework/libgamescript.macos.template_release"
+windows.debug.x86_64 = "res://addons/gamescript/bin/libgamescript.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/gamescript/bin/libgamescript.windows.template_release.x86_64.dll"
+linux.debug.x86_64 = "res://addons/gamescript/bin/libgamescript.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://addons/gamescript/bin/libgamescript.linux.template_release.x86_64.so"
+web.debug.wasm32 = "res://addons/gamescript/bin/libgamescript.web.template_debug.wasm32.wasm"
+web.release.wasm32 = "res://addons/gamescript/bin/libgamescript.web.template_release.wasm32.wasm"

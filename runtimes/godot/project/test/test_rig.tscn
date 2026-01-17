@@ -1,0 +1,77 @@
+[gd_scene load_steps=3 format=3 uid="uid://ie1vxeo01607"]
+
+[ext_resource type="Script" uid="uid://d08seefjuubm" path="res://test/test_rig.gd" id="1"]
+[ext_resource type="Resource" uid="uid://dvesvuvgycf1r" path="res://addons/gamescript/settings.tres" id="2_awdm2"]
+
+[node name="TestRig" type="Control" node_paths=PackedStringArray("conversation_dropdown", "locale_dropdown", "conversation_container")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+settings = ExtResource("2_awdm2")
+conversation_dropdown = NodePath("HSplitContainer/ControlPanel/ConversationDropdown")
+locale_dropdown = NodePath("HSplitContainer/ControlPanel/LocaleDropdown")
+conversation_container = NodePath("HSplitContainer/ConversationsPanel/ConversationContainer")
+
+[node name="HSplitContainer" type="HSplitContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ControlPanel" type="VBoxContainer" parent="HSplitContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "GameScript Test Rig"
+
+[node name="Separator1" type="HSeparator" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+
+[node name="ConversationLabel" type="Label" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+text = "Conversation:"
+
+[node name="ConversationDropdown" type="OptionButton" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="HSplitContainer/ControlPanel"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Start Conversation"
+
+[node name="Separator2" type="HSeparator" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+
+[node name="LocaleLabel" type="Label" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+text = "Locale:"
+
+[node name="LocaleDropdown" type="OptionButton" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="HSplitContainer/ControlPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConversationsPanel" type="ScrollContainer" parent="HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="ConversationContainer" type="HBoxContainer" parent="HSplitContainer/ConversationsPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[connection signal="pressed" from="HSplitContainer/ControlPanel/StartButton" to="." method="_on_start_pressed"]
+[connection signal="item_selected" from="HSplitContainer/ControlPanel/LocaleDropdown" to="." method="_on_locale_selected"]

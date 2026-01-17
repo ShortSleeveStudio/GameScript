@@ -11,16 +11,17 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import type {
-  CodeGetMethodMessage,
-  CodeCreateMethodMessage,
-  CodeDeleteMethodMessage,
-  CodeDeleteMethodsSilentMessage,
-  CodeRestoreMethodMessage,
-  CodeDeleteFileMessage,
-  CodeRestoreFileMessage,
-  CodeOpenMethodMessage,
-  CodeWatchFolderMessage,
+import {
+  isIndentationBased,
+  type CodeGetMethodMessage,
+  type CodeCreateMethodMessage,
+  type CodeDeleteMethodMessage,
+  type CodeDeleteMethodsSilentMessage,
+  type CodeRestoreMethodMessage,
+  type CodeDeleteFileMessage,
+  type CodeRestoreFileMessage,
+  type CodeOpenMethodMessage,
+  type CodeWatchFolderMessage,
 } from '@gamescript/shared';
 import type { HandlerRecord, PostMessageFn } from '../types.js';
 import { getConversationFilePath } from './workspace-security.js';
@@ -181,7 +182,7 @@ export class CodeHandlers {
    * The UI generates the code; this handler just writes it.
    */
   private async _handleCodeCreateMethod(message: CodeCreateMethodMessage): Promise<void> {
-    const { id, conversationId, methodName, fileExtension, methodStub, fileContent } = message;
+    const { id, conversationId, fileExtension, template, methodStub, fileContent } = message;
 
     try {
       const filePath = getConversationFilePath(conversationId, fileExtension, this._codeOutputFolder ?? undefined);
@@ -201,20 +202,29 @@ export class CodeHandlers {
 
       let newContent: string;
       if (fileExists) {
-        // Insert method before the closing brace of the class/struct.
-        // ASSUMPTION: Conversation files contain exactly one static class/struct.
-        // The file structure is: comments/usings/includes, namespace (optional), single class/struct.
-        // We insert before the last '}' which should be the class/struct closing brace.
-        const classEndMatch = existingContent.lastIndexOf('}');
-        if (classEndMatch !== -1) {
-          newContent =
-            existingContent.slice(0, classEndMatch) +
-            '\n' +
-            methodStub +
-            '\n' +
-            existingContent.slice(classEndMatch);
+        // Language-specific insertion strategy:
+        // - Indentation-based (GDScript): Append to end of file (no class wrapper)
+        // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
+        if (isIndentationBased(template)) {
+          // Indentation-based: simply append with proper newline separation
+          const trimmed = existingContent.trimEnd();
+          newContent = trimmed + '\n\n' + methodStub + '\n';
         } else {
-          newContent = existingContent + '\n' + methodStub;
+          // Brace-based languages: Insert method before the closing brace of the class/struct.
+          // ASSUMPTION: Conversation files contain exactly one static class/struct.
+          // The file structure is: comments/usings/includes, namespace (optional), single class/struct.
+          // We insert before the last '}' which should be the class/struct closing brace.
+          const classEndMatch = existingContent.lastIndexOf('}');
+          if (classEndMatch !== -1) {
+            newContent =
+              existingContent.slice(0, classEndMatch) +
+              '\n' +
+              methodStub +
+              '\n' +
+              existingContent.slice(classEndMatch);
+          } else {
+            newContent = existingContent + '\n' + methodStub;
+          }
         }
       } else {
         // Use the pre-generated file content
@@ -234,8 +244,8 @@ export class CodeHandlers {
       const document = await vscode.workspace.openTextDocument(uri);
       const editor = await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
 
-      // Find the method position
-      const methodIndex = newContent.indexOf(methodName);
+      // Find the method position - search for the stub content since method names differ by language
+      const methodIndex = newContent.indexOf(methodStub);
       if (methodIndex !== -1) {
         const position = document.positionAt(methodIndex);
         editor.selection = new vscode.Selection(position, position);
@@ -486,7 +496,7 @@ export class CodeHandlers {
    * Uses WorkspaceEdit for atomic insertion that integrates with VSCode's undo/redo.
    */
   private async _handleCodeRestoreMethod(message: CodeRestoreMethodMessage): Promise<void> {
-    const { id, conversationId, code, fileExtension, fileContent } = message;
+    const { id, conversationId, code, fileExtension, template, fileContent } = message;
 
     try {
       if (!code) {
@@ -516,29 +526,42 @@ export class CodeHandlers {
         const document = await vscode.workspace.openTextDocument(uri);
         const text = document.getText();
 
-        // Find the closing brace of the class/struct
-        const classEndIndex = text.lastIndexOf('}');
-        if (classEndIndex === -1) {
-          this._postMessage({
-            type: 'code:restoreMethodResult',
-            id,
-            success: false,
-            error: 'Could not find class closing brace',
-          });
-          return;
+        // Language-specific insertion strategy:
+        // - Indentation-based (GDScript): Append to end of file (no class wrapper)
+        // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
+        let insertPosition: vscode.Position;
+        let codeToInsert: string;
+
+        if (isIndentationBased(template)) {
+          // Indentation-based: append to end of file with proper newline separation
+          const trimmed = text.trimEnd();
+          insertPosition = document.positionAt(trimmed.length);
+          codeToInsert = '\n\n' + code + '\n';
+        } else {
+          // Brace-based languages: Find the closing brace of the class/struct
+          const classEndIndex = text.lastIndexOf('}');
+          if (classEndIndex === -1) {
+            this._postMessage({
+              type: 'code:restoreMethodResult',
+              id,
+              success: false,
+              error: 'Could not find class closing brace',
+            });
+            return;
+          }
+
+          // Calculate insertion position (before the closing brace)
+          insertPosition = document.positionAt(classEndIndex);
+
+          // Ensure proper newline separation:
+          // - Add newline before code if the line before } isn't empty
+          // - Add newline after code to separate from }
+          const lineBeforeBrace = insertPosition.line > 0
+            ? document.lineAt(insertPosition.line - 1).text
+            : '';
+          const needsLeadingNewline = lineBeforeBrace.trim() !== '';
+          codeToInsert = (needsLeadingNewline ? '\n' : '') + code + '\n';
         }
-
-        // Calculate insertion position (before the closing brace)
-        const insertPosition = document.positionAt(classEndIndex);
-
-        // Ensure proper newline separation:
-        // - Add newline before code if the line before } isn't empty
-        // - Add newline after code to separate from }
-        const lineBeforeBrace = insertPosition.line > 0
-          ? document.lineAt(insertPosition.line - 1).text
-          : '';
-        const needsLeadingNewline = lineBeforeBrace.trim() !== '';
-        const codeToInsert = (needsLeadingNewline ? '\n' : '') + code + '\n';
 
         // Use WorkspaceEdit for atomic insertion (integrates with undo/redo)
         const edit = new vscode.WorkspaceEdit();

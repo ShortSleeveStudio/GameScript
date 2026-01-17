@@ -3,7 +3,7 @@
  *
  * Generates method stubs and file wrappers for:
  * - Unity (C# with Awaitable)
- * - Godot (C# with callback)
+ * - Godot (GDScript with await)
  * - Unreal (C++ with delegate)
  */
 
@@ -11,14 +11,39 @@ import type { CodeTemplateType } from '../types/messages.js';
 
 export { CodeTemplateType };
 
+/** Method type constants */
+export const METHOD_TYPE_CONDITION = 'condition' as const;
+export const METHOD_TYPE_ACTION = 'action' as const;
+
+export type MethodType = typeof METHOD_TYPE_CONDITION | typeof METHOD_TYPE_ACTION;
+
+/**
+ * Get the method name for a given node ID and method type, formatted for the template.
+ *
+ * Unity/Unreal use C# style: `Node_123_Condition` / `Node_123_Action`
+ * Godot uses GDScript convention: `cond_123` / `act_123`
+ */
+export function getMethodNameForTemplate(
+    nodeId: number,
+    methodType: MethodType,
+    template: CodeTemplateType
+): string {
+    if (template === 'godot') {
+        return methodType === METHOD_TYPE_CONDITION ? `cond_${nodeId}` : `act_${nodeId}`;
+    }
+    // Unity/Unreal use C# style
+    return `Node_${nodeId}_${methodType === METHOD_TYPE_CONDITION ? 'Condition' : 'Action'}`;
+}
+
 /**
  * Get the file extension for a template type.
  */
 export function getFileExtension(template: CodeTemplateType): string {
     switch (template) {
         case 'unity':
-        case 'godot':
             return '.cs';
+        case 'godot':
+            return '.gd';
         case 'unreal':
             return '.cpp';
         default:
@@ -27,25 +52,34 @@ export function getFileExtension(template: CodeTemplateType): string {
 }
 
 /**
+ * Check if a template uses indentation-based syntax (no braces).
+ * GDScript uses indentation instead of braces for code blocks.
+ */
+export function isIndentationBased(template: CodeTemplateType): boolean {
+    return template === 'godot';
+}
+
+/**
  * Generate a method stub for a condition or action.
  */
 export function generateMethodStub(
     methodName: string,
-    methodType: 'condition' | 'action',
+    methodType: MethodType,
     template: CodeTemplateType
 ): string {
-    const nodeId = methodName.replace(/^Node_(\d+)_(Condition|Action)$/, '$1');
-    const attributeName = methodType === 'condition' ? 'NodeCondition' : 'NodeAction';
-
     switch (template) {
-        case 'unity':
-            return generateUnityStub(methodName, methodType, nodeId, attributeName);
         case 'godot':
-            return generateGodotStub(methodName, methodType, nodeId, attributeName);
+            return generateGodotStub(methodName, methodType);
+        case 'unity':
         case 'unreal':
-            return generateUnrealStub(methodName, methodType, nodeId);
-        default:
-            return generateUnityStub(methodName, methodType, nodeId, attributeName);
+        default: {
+            // Unity/Unreal use Node_123_Condition format, extract nodeId for attributes
+            const nodeId = methodName.replace(/^Node_(\d+)_(Condition|Action)$/, '$1');
+            const attributeName = methodType === METHOD_TYPE_CONDITION ? 'NodeCondition' : 'NodeAction';
+            return template === 'unreal'
+                ? generateUnrealStub(methodName, methodType, nodeId)
+                : generateUnityStub(methodName, methodType, nodeId, attributeName);
+        }
     }
 }
 
@@ -75,11 +109,11 @@ export function generateConversationFile(
 
 function generateUnityStub(
     methodName: string,
-    methodType: 'condition' | 'action',
+    methodType: MethodType,
     nodeId: string,
     attributeName: string
 ): string {
-    if (methodType === 'condition') {
+    if (methodType === METHOD_TYPE_CONDITION) {
         return `    [${attributeName}(${nodeId})]
     public static bool ${methodName}(IDialogueContext ctx)
     {
@@ -110,44 +144,30 @@ ${initialMethod}
 }
 
 // =============================================================================
-// Godot Templates (C# with callback)
+// Godot Templates (GDScript with await)
 // =============================================================================
 
-function generateGodotStub(
-    methodName: string,
-    methodType: 'condition' | 'action',
-    nodeId: string,
-    attributeName: string
-): string {
-    if (methodType === 'condition') {
-        return `    [${attributeName}(${nodeId})]
-    public static bool ${methodName}(IDialogueContext ctx)
-    {
-        // TODO: Implement condition
-        return true;
-    }`;
+function generateGodotStub(methodName: string, methodType: MethodType): string {
+    // GDScript uses naming convention: cond_{nodeId} / act_{nodeId}
+    // methodName is already in the correct format (e.g., "cond_8" or "act_8")
+    if (methodType === METHOD_TYPE_CONDITION) {
+        return `func ${methodName}(ctx: RunnerContext) -> bool:
+\t# TODO: Implement condition
+\treturn true`;
     } else {
-        return `    [${attributeName}(${nodeId})]
-    public static void ${methodName}(IDialogueContext ctx, Action onComplete)
-    {
-        // TODO: Implement action
-        // Call onComplete() when done
-        onComplete();
-    }`;
+        return `func ${methodName}(ctx: RunnerContext) -> void:
+\t# TODO: Implement action
+\tpass`;
     }
 }
 
 function generateGodotFile(conversationId: number, initialMethod: string): string {
-    return `// Auto-generated by GameScript
-// Conversation ID: ${conversationId}
+    return `# Auto-generated by GameScript
+# Conversation ID: ${conversationId}
+extends RefCounted
 
-using System;
-using GameScript;
 
-public static class Conversation_${conversationId}
-{
 ${initialMethod}
-}
 `;
 }
 
@@ -157,10 +177,10 @@ ${initialMethod}
 
 function generateUnrealStub(
     methodName: string,
-    methodType: 'condition' | 'action',
+    methodType: MethodType,
     _nodeId: string
 ): string {
-    if (methodType === 'condition') {
+    if (methodType === METHOD_TYPE_CONDITION) {
         return `    UFUNCTION()
     static bool ${methodName}(const FDialogueContext& Ctx)
     {

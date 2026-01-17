@@ -297,6 +297,20 @@ namespace GameScript
         }
 
         /// <summary>
+        /// The number of incoming edges to this node.
+        /// </summary>
+        public int IncomingEdgeCount => _snapshot.Nodes[_index].IncomingEdgeIndices?.Count ?? 0;
+
+        /// <summary>
+        /// Gets an incoming edge by index.
+        /// </summary>
+        public EdgeRef GetIncomingEdge(int i)
+        {
+            int edgeIdx = _snapshot.Nodes[_index].IncomingEdgeIndices[i];
+            return new EdgeRef(_snapshot, edgeIdx);
+        }
+
+        /// <summary>
         /// The number of properties on this node.
         /// </summary>
         public int PropertyCount => _snapshot.Nodes[_index].Properties?.Count ?? 0;

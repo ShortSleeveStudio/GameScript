@@ -13,7 +13,7 @@
      * The parent component (InspectorNode) handles folder configuration.
      */
     import { type IDbRowView } from '$lib/db';
-    import type { Node, CodeTemplateType } from '@gamescript/shared';
+    import { type Node, type CodeTemplateType, getMethodNameForTemplate } from '@gamescript/shared';
     import { bridge } from '$lib/api/bridge';
     import { toastError } from '$lib/stores/notifications.js';
     import { codeTemplateTableView, getCodeTemplate } from '$lib/tables';
@@ -46,9 +46,9 @@
     // Track pending state for toggle button
     let isPending = $state(false);
 
-    // Computed method name based on node ID
+    // Computed method name based on node ID and template type
     let methodName = $derived(
-        `Node_${rowView.id}_${methodType === 'condition' ? 'Condition' : 'Action'}`
+        getMethodNameForTemplate(rowView.id, methodType, codeTemplate)
     );
 
     // Track enabled state from row data (source of truth)

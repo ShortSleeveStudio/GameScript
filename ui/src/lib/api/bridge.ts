@@ -1347,6 +1347,7 @@ class ExtensionBridge {
       conversationId,
       methodName,
       fileExtension,
+      template,
     };
 
     this.postMessage(message);
@@ -1380,6 +1381,7 @@ class ExtensionBridge {
       conversationId,
       methodName,
       fileExtension,
+      template,
       methodStub,
       fileContent,
     };
@@ -1410,6 +1412,7 @@ class ExtensionBridge {
       conversationId,
       methodName,
       fileExtension,
+      template,
     };
 
     this.postMessage(message);
@@ -1439,6 +1442,7 @@ class ExtensionBridge {
       conversationId,
       methodNames,
       fileExtension,
+      template,
     };
 
     this.postMessage(message);
@@ -1472,6 +1476,7 @@ class ExtensionBridge {
       methodName,
       code,
       fileExtension,
+      template,
       fileContent,
     };
 
@@ -1499,6 +1504,7 @@ class ExtensionBridge {
       id,
       conversationId,
       fileExtension,
+      template,
     };
 
     this.postMessage(message);
@@ -1526,6 +1532,7 @@ class ExtensionBridge {
       conversationId,
       content,
       fileExtension,
+      template,
     };
 
     this.postMessage(message);
@@ -1546,6 +1553,7 @@ class ExtensionBridge {
       conversationId,
       methodName,
       fileExtension,
+      template,
     });
   }
 

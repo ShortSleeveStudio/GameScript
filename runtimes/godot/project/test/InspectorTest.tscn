@@ -1,0 +1,34 @@
+[gd_scene load_steps=10 format=3 uid="uid://dtoky5alixprq"]
+
+[ext_resource type="Script" uid="uid://b30wx4e472bvl" path="res://test/inspector_test.gd" id="1_ftos2"]
+[ext_resource type="Script" uid="uid://pkr57wlgcag2" path="res://addons/gamescript/resources/conversation_id.gd" id="2_hf6ix"]
+[ext_resource type="Script" uid="uid://cq1pwfguhoy15" path="res://addons/gamescript/resources/actor_id.gd" id="3_chfmk"]
+[ext_resource type="Script" uid="uid://b4wu7qkm8uu0w" path="res://addons/gamescript/resources/locale_id.gd" id="4_ublin"]
+[ext_resource type="Script" uid="uid://cq4da2x7qgw22" path="res://addons/gamescript/resources/localization_id.gd" id="5_4au51"]
+
+[sub_resource type="Resource" id="Resource_xc7k7"]
+script = ExtResource("2_hf6ix")
+value = 3
+metadata/_custom_type_script = "uid://pkr57wlgcag2"
+
+[sub_resource type="Resource" id="Resource_pu717"]
+script = ExtResource("3_chfmk")
+value = 2
+metadata/_custom_type_script = "uid://cq1pwfguhoy15"
+
+[sub_resource type="Resource" id="Resource_t8cps"]
+script = ExtResource("4_ublin")
+value = 1
+metadata/_custom_type_script = "uid://b4wu7qkm8uu0w"
+
+[sub_resource type="Resource" id="Resource_wxvrm"]
+script = ExtResource("5_4au51")
+value = 188
+metadata/_custom_type_script = "uid://cq4da2x7qgw22"
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_ftos2")
+conversation = SubResource("Resource_xc7k7")
+actor = SubResource("Resource_pu717")
+locale = SubResource("Resource_t8cps")
+localization = SubResource("Resource_wxvrm")
