@@ -21,6 +21,15 @@ var sequence_number: int
 #endregion
 
 
+#region Cancellation
+## Cancellation token for cooperative cancellation.
+## Actions can check this token and connect to its cancelled signal to exit early.
+## A new token is created when the context is reused, ensuring old connections
+## are automatically cleaned up (RefCounted magic).
+var cancellation_token: CancellationToken
+#endregion
+
+
 #region Dependencies (set during initialize)
 var _database: GameScriptDatabase
 # Jump table references from GameScriptRunner (untyped - see runner comment)
@@ -45,6 +54,7 @@ var _highest_priority_choices: Array[NodeRef] = []
 
 #region Concurrency tracking
 var _pending_count: int = 0
+var _concurrent_sequence: int = 0  # Incremented each concurrent operation to prevent ghost completions
 signal _concurrent_complete
 #endregion
 
@@ -66,6 +76,7 @@ func _init(settings: GameScriptSettings) -> void:
 	context_id = _next_context_id
 	_next_context_id += 1
 	_settings = settings
+	cancellation_token = CancellationToken.new()
 
 	# Create pooled notifiers once, reuse across conversations
 	_ready_notifier = _GameScriptNotifiers.ReadyNotifier.new()
@@ -87,6 +98,17 @@ func initialize(database: GameScriptDatabase, conditions: Array,
 
 	sequence_number = _next_sequence_number
 	_next_sequence_number += 1
+
+	# Bind notifiers to this context for sequence validation
+	_ready_notifier.bind(self)
+	_speech_notifier.bind(self)
+	_decision_notifier.bind(self)
+
+
+## Cancel this conversation, unblocking any pending awaits.
+## Called by GameScriptRunner.stop_conversation().
+func cancel() -> void:
+	cancellation_token.cancel()
 
 
 #region IDialogueContext Implementation
@@ -130,18 +152,20 @@ func get_property(index: int) -> NodePropertyRef:
 ## Run the conversation state machine. Called by GameScriptRunner.
 func run() -> void:
 	var conversation_ref := _database.get_conversation(_conversation_index)
+	var token := cancellation_token
 
-	# Wrap entire state machine in error handling
-	# GDScript doesn't have try/catch, so we track errors and handle at end
+	# Track state for cleanup
 	var error_message: String = ""
+	var was_cancelled := false
 
 	# 1. Conversation Enter
 	_listener.on_conversation_enter(conversation_ref, _ready_notifier)
-	await _ready_notifier.wait()
+	if not await _ready_notifier.wait_with_cancellation(token):
+		was_cancelled = true
 	_ready_notifier.reset()
 
 	# Main loop
-	while error_message == "":
+	while not was_cancelled and error_message == "":
 		var node_ref := _database.get_node(_node_index)
 		if not node_ref or not node_ref.is_valid():
 			error_message = "Invalid node at index %d" % _node_index
@@ -153,7 +177,9 @@ func run() -> void:
 		if node_type != NODE_TYPE_ROOT:
 			# 2. Node Enter
 			_listener.on_node_enter(node_ref, _ready_notifier)
-			await _ready_notifier.wait()
+			if not await _ready_notifier.wait_with_cancellation(token):
+				was_cancelled = true
+				break
 			_ready_notifier.reset()
 
 			# 3. Action + Speech (type-dependent)
@@ -161,9 +187,15 @@ func run() -> void:
 				# Logic nodes: action only, no speech
 				if node_ref.get_has_action():
 					await _execute_action()
+					if token.is_cancelled:
+						was_cancelled = true
+						break
 			else:
 				# Dialogue nodes: action and speech run concurrently
-				await _run_action_and_speech_concurrently(node_ref)
+				await _run_action_and_speech_concurrently(node_ref, token)
+				if token.is_cancelled:
+					was_cancelled = true
+					break
 
 		# 4. Evaluate outgoing edges and find valid targets
 		_choices.clear()
@@ -219,8 +251,12 @@ func run() -> void:
 		var is_decision := _choices.size() > 0 and _should_show_decision(node_ref, all_same_actor)
 		if is_decision:
 			_listener.on_decision(_choices, _decision_notifier)
-			_node_index = await _decision_notifier.wait()
+			var selected_index := await _decision_notifier.wait_with_cancellation(token)
 			_decision_notifier.reset()
+			if selected_index < 0:
+				was_cancelled = true
+				break
+			_node_index = selected_index
 		elif _choices.size() > 0:
 			# Auto-advance via listener (allows custom selection logic)
 			var selected := _listener.on_auto_decision(_highest_priority_choices)
@@ -232,12 +268,20 @@ func run() -> void:
 		# 6. Node Exit (skip for root nodes)
 		if node_type != NODE_TYPE_ROOT:
 			_listener.on_node_exit(node_ref, _ready_notifier)
-			await _ready_notifier.wait()
+			if not await _ready_notifier.wait_with_cancellation(token):
+				was_cancelled = true
+				break
 			_ready_notifier.reset()
 
 		# No valid edges - conversation ends
 		if _choices.size() == 0:
 			break
+
+	# Handle cancellation
+	if was_cancelled:
+		_listener.on_conversation_cancelled(conversation_ref)
+		_reset()
+		return
 
 	# Handle errors
 	if error_message != "":
@@ -247,7 +291,10 @@ func run() -> void:
 
 	# 7. Conversation Exit
 	_listener.on_conversation_exit(conversation_ref, _ready_notifier)
-	await _ready_notifier.wait()
+	if not await _ready_notifier.wait_with_cancellation(token):
+		_listener.on_conversation_cancelled(conversation_ref)
+		_reset()
+		return
 	_ready_notifier.reset()
 
 	# 8. Final cleanup signal (synchronous)
@@ -261,43 +308,56 @@ func run() -> void:
 func _execute_action() -> void:
 	var action = _actions[_node_index]  # Untyped - may be null or Callable
 	if action is Callable and action.is_valid():
-		await action.call(self)
+		await action.call(self, cancellation_token)
 	else:
 		var node := _database.get_node(_node_index)
 		push_error("[GameScript] Node %d has has_action=true but no action method was found." % node.get_id())
 
 
-func _run_action_and_speech_concurrently(node_ref: NodeRef) -> void:
+func _run_action_and_speech_concurrently(node_ref: NodeRef, token: CancellationToken) -> void:
 	if node_ref.get_has_action():
 		# Both action and speech run concurrently
+		# Use signal race to wait for both OR cancellation
+		_concurrent_sequence += 1
+		var my_sequence := _concurrent_sequence
 		_pending_count = 2
 
-		# Start action
-		_run_action_then_signal()
+		# Start action (pass sequence for ghost completion prevention)
+		_run_action_then_signal(my_sequence)
 
 		# Start speech (use _speech_notifier for concurrent case)
-		_speech_notifier.ready.connect(_on_concurrent_task_complete)
+		# Wrap callback to include sequence check
+		var on_speech_complete := func(): _on_concurrent_task_complete(my_sequence)
+		_speech_notifier.ready.connect(on_speech_complete)
 		_listener.on_speech(node_ref, _speech_notifier)
 
-		# Wait for both to complete
-		await _concurrent_complete
+		# Wait for both to complete OR cancellation
+		await SignalRace.wait([_concurrent_complete, token.cancelled] as Array[Signal])
 
-		# Clean up
-		_speech_notifier.ready.disconnect(_on_concurrent_task_complete)
+		# Clean up - detach to prevent ghost completions
+		if _speech_notifier.ready.is_connected(on_speech_complete):
+			_speech_notifier.ready.disconnect(on_speech_complete)
 		_speech_notifier.reset()
+		_pending_count = 0  # Reset in case we were cancelled mid-operation
+
+		# If cancelled, token.is_cancelled will be true and caller will handle it
 	else:
 		# Speech only (use _speech_notifier)
 		_listener.on_speech(node_ref, _speech_notifier)
-		await _speech_notifier.wait()
+		await _speech_notifier.wait_with_cancellation(token)
 		_speech_notifier.reset()
 
 
-func _run_action_then_signal() -> void:
+func _run_action_then_signal(expected_sequence: int) -> void:
 	await _execute_action()
-	_on_concurrent_task_complete()
+	# Always signal completion, even if action had errors (errors are logged in _execute_action)
+	_on_concurrent_task_complete(expected_sequence)
 
 
-func _on_concurrent_task_complete() -> void:
+func _on_concurrent_task_complete(expected_sequence: int) -> void:
+	# Ignore completions from previous/cancelled concurrent operations
+	if expected_sequence != _concurrent_sequence:
+		return
 	_pending_count -= 1
 	if _pending_count == 0:
 		_concurrent_complete.emit()
@@ -321,6 +381,10 @@ func _should_show_decision(current_node: NodeRef, all_same_actor: bool) -> bool:
 
 
 func _reset() -> void:
+	# Create fresh token - old one (and its connections) will be GC'd
+	if cancellation_token.is_cancelled:
+		cancellation_token = CancellationToken.new()
+
 	_database = null
 	_conditions = []
 	_actions = []
@@ -329,4 +393,5 @@ func _reset() -> void:
 	_node_index = -1
 	_choices.clear()
 	_highest_priority_choices.clear()
+	_pending_count = 0
 #endregion

@@ -126,3 +126,9 @@ class _ConversationListener extends GameScriptListener:
 
 	func on_error(conversation: ConversationRef, error: String) -> void:
 		push_error("[ConversationUI] Error: %s" % error)
+
+	func on_conversation_cancelled(conversation: ConversationRef) -> void:
+		print("[ConversationUI] Cancelled: %s" % conversation.get_name())
+		# Clean up UI when conversation is forcibly stopped
+		_ui._clear_history()
+		_ui._clear_choices()

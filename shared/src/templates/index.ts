@@ -156,7 +156,7 @@ function generateGodotStub(methodName: string, methodType: MethodType): string {
 \t# TODO: Implement condition
 \treturn true`;
     } else {
-        return `func ${methodName}(ctx: RunnerContext) -> void:
+        return `func ${methodName}(ctx: RunnerContext, token: CancellationToken) -> void:
 \t# TODO: Implement action
 \tpass`;
     }

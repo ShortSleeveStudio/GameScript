@@ -105,10 +105,10 @@ public static class TavernConversation
         => GameState.PlayerGold >= 10;
 
     [NodeAction(456)]
-    public static async Awaitable PayGold(IDialogueContext ctx)
+    public static async Awaitable PayGold(IDialogueContext ctx, CancellationToken token)
     {
         GameState.PlayerGold -= 10;
-        await AnimationManager.Play("hand_over_gold");
+        await AnimationManager.Play("hand_over_gold", token);
 
         // Can access node data if needed
         ActorRef actor = ctx.Actor;  // Who's speaking
@@ -117,7 +117,7 @@ public static class TavernConversation
 ```
 
 **Conditions**: Synchronous, return `bool`. Called during edge traversal.
-**Actions**: Async via `Awaitable`. Called when entering a node.
+**Actions**: Async via `Awaitable`, with `CancellationToken` for cooperative cancellation. Called when entering a node. Actions should check the token and exit early when cancelled.
 
 Game-specific logic (inventory, animations, etc.) is accessed through your own systems. The `IDialogueContext` provides read-only access to the current node's data.
 
@@ -153,6 +153,9 @@ Read-only access to the current node's data:
 ```csharp
 public interface IDialogueContext
 {
+    // Cancellation token for cooperative cancellation
+    CancellationToken CancellationToken { get; }
+
     // Current node data (from FlatBuffers snapshot)
     int NodeId { get; }
     int ConversationId { get; }
@@ -164,7 +167,7 @@ public interface IDialogueContext
 }
 ```
 
-The context provides node data - game-specific logic lives in your own code.
+The context provides node data and cancellation support - game-specific logic lives in your own code.
 
 ---
 
@@ -174,26 +177,23 @@ The RunnerContext implements a state machine for conversation flow:
 
 ```
 ConversationEnter
-    ↓ (OnConversationEnter callback)
-ConversationEnterWait
-    ↓ (wait for ReadyNotifier)
+    ↓ (await OnConversationEnter)
 NodeEnter
-    ↓ (OnNodeEnter callback)
-NodeEnterWait
-    ↓ (wait for ReadyNotifier)
-NodeExecute
-    ↓ (execute action via jump table, await completion)
-NodeExit
-    ↓ (evaluate conditions on outgoing edges)
+    ↓ (await OnNodeEnter)
+ActionAndSpeech
+    ↓ (Logic nodes: action only)
+    ↓ (Dialogue nodes: action + OnSpeech concurrent)
+    ↓ (await both complete)
+EvaluateEdges
+    ↓ (check conditions on outgoing edges)
     ├→ No valid edges? → ConversationExit
-    ├→ Multiple choices? → NodeDecisionWait
-    └→ Single valid edge? → NodeEnter (next node)
-NodeDecisionWait
-    ↓ (OnNodeExit with choices, wait for DecisionNotifier)
+    ├→ Decision required? → await OnDecision
+    └→ Auto-advance? → OnAutoDecision (sync)
+NodeExit
+    ↓ (await OnNodeExit)
+    → Loop back to NodeEnter
 ConversationExit
-    ↓ (OnConversationExit callback)
-ConversationExitWait
-    ↓ (wait for ReadyNotifier)
+    ↓ (await OnConversationExit)
 Cleanup
     ↓ (OnCleanup callback - synchronous)
 Idle (context returned to pool)
@@ -253,31 +253,89 @@ if (behaviour.IsInitialized)
 ```
 
 ### IGameScriptListener
-Implement to handle dialogue events:
+Implement to handle dialogue events. Async methods receive a `CancellationToken` for cooperative cancellation:
 
 ```csharp
 public interface IGameScriptListener
 {
-    void OnConversationEnter(ConversationRef conv, ReadyNotifier notifier);
-    void OnNodeEnter(NodeRef node, ReadyNotifier notifier);
-    void OnNodeExit(List<NodeRef> choices, DecisionNotifier notifier);  // Player choice
-    void OnNodeExit(NodeRef node, ReadyNotifier notifier);              // Auto-advance
-    void OnConversationExit(ConversationRef conv, ReadyNotifier notifier);
-    void OnCleanup(ConversationRef conv);                               // Final cleanup
+    // Async lifecycle methods - return when ready to proceed
+    Awaitable OnConversationEnter(ConversationRef conv, CancellationToken token);
+    Awaitable OnNodeEnter(NodeRef node, CancellationToken token);
+    Awaitable OnSpeech(NodeRef node, CancellationToken token);                     // Present dialogue
+    Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token); // Player choice
+    Awaitable OnNodeExit(NodeRef node, CancellationToken token);
+    Awaitable OnConversationExit(ConversationRef conv, CancellationToken token);
+
+    // Sync methods - immediate notification, no waiting
+    void OnCleanup(ConversationRef conv);                                    // Final cleanup
     void OnError(ConversationRef conv, Exception e);
+    void OnConversationCancelled(ConversationRef conv);                      // Forcibly stopped
+    NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices);                  // Auto-advance selection
 }
 ```
 
-### Notifiers
-Async coordination between runtime and game:
-
+### Example Implementation
 ```csharp
-// Signal ready to proceed
-notifier.OnReady();
+public class MyDialogueUI : MonoBehaviour, IGameScriptListener
+{
+    // Pooled completion source to avoid allocation per decision
+    AwaitableCompletionSource<NodeRef> _decisionSource = new();
 
-// Signal player's choice
-decisionNotifier.OnDecisionMade(selectedNodeIndex);
+    public async Awaitable OnSpeech(NodeRef node, CancellationToken token)
+    {
+        dialogueText.text = node.VoiceText;
+        await Awaitable.WaitForSecondsAsync(2f, token);
+    }
+
+    public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+    {
+        // Early exit if already cancelled
+        if (token.IsCancellationRequested)
+            throw new OperationCanceledException(token);
+
+        foreach (NodeRef choice in choices)
+        {
+            CreateButton(choice, () => _decisionSource.TrySetResult(choice));
+        }
+
+        try
+        {
+            // OnConversationCancelled will call TrySetCanceled() if cancelled
+            return await _decisionSource.Awaitable;
+        }
+        finally
+        {
+            // Always reset, whether completed normally or cancelled
+            _decisionSource.Reset();
+        }
+    }
+
+    public void OnConversationCancelled(ConversationRef conv)
+    {
+        // Unblock pending decision when cancelled
+        _decisionSource.TrySetCanceled();
+        HideUI();
+    }
+
+    // For methods that don't need to wait, return AwaitableUtility.Completed()
+    public Awaitable OnNodeEnter(NodeRef node, CancellationToken token)
+        => AwaitableUtility.Completed();
+}
 ```
+
+### Cancellation Patterns
+
+**For simple async operations** (timers, animations), pass the token directly:
+```csharp
+await Awaitable.WaitForSecondsAsync(2f, token);  // Automatically cancelled
+```
+
+**For completion source waits** (decisions, custom UI), use the side-channel pattern:
+1. Check `token.IsCancellationRequested` before starting work
+2. `OnConversationCancelled` calls `TrySetCanceled()` on your completion source
+3. Use `try/finally` to ensure `Reset()` is always called
+
+**Why not `token.Register()`?** The side-channel approach avoids allocation from registration objects while keeping the code simple.
 
 ---
 
@@ -409,10 +467,11 @@ Packages/studio.shortsleeve.gamescript/
       GameScriptRunner.cs     # Pure C# dialogue execution
       GameScriptBehaviour.cs  # MonoBehaviour wrapper (optional)
       RunnerContext.cs        # Dialogue state machine
-      RunnerListener.cs       # Listener interface and base class
+      RunnerListener.cs       # Listener interface
       ActiveConversation.cs   # Handle struct
       Settings.cs             # ScriptableObject settings
-      WhenAllAwaiter.cs       # Utility for awaiting multiple tasks
+      AwaitableUtility.cs     # Completed awaitable helper
+      WhenAllAwaiter.cs       # Zero-alloc concurrent task awaiter
     Generated/
       FlatSharp.generated.cs  # Auto-generated FlatBuffers serialization
   Editor/
@@ -450,3 +509,5 @@ Packages/studio.shortsleeve.gamescript/
 - **Lazy editor reload**: Only check hash on data access, not every frame
 - **Main thread enforcement**: All API calls validated for thread safety
 - **No partial states**: Factory pattern ensures objects are fully initialized
+- **Zero-alloc async**: `WhenAllAwaiter` uses cached delegates and reference comparison instead of closures
+- **Completed awaitable**: `AwaitableUtility.Completed()` returns a fresh pooled Awaitable (minimal allocation via Unity's internal pool)

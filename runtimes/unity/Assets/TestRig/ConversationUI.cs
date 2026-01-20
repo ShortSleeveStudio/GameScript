@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using GameScript;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,30 +8,31 @@ using UnityEngine.UI;
 public class ConversationUI : MonoBehaviour, IGameScriptListener
 {
     #region Constants
-    private const int k_ReadTimeMillis = 1000;
+    const float ReadTimeSeconds = 1f;
     #endregion
 
     #region Inspector Variables
     [SerializeField]
-    private GameObject m_HistoryContent;
+    GameObject m_HistoryContent;
 
     [SerializeField]
-    private GameObject m_HistoryItemPrefab;
+    GameObject m_HistoryItemPrefab;
 
     [SerializeField]
-    private GameObject m_ChoiceContent;
+    GameObject m_ChoiceContent;
 
     [SerializeField]
-    private GameObject m_ChoiceItemPrefab;
+    GameObject m_ChoiceItemPrefab;
 
     [SerializeField]
-    private ScrollRect m_HistoryScrollRect;
+    ScrollRect m_HistoryScrollRect;
     #endregion
 
     #region State
-    private Action<ConversationUI> m_OnComplete;
-    private ActiveConversation m_ActiveConversation;
-    private GameScriptRunner m_GameScriptRunner;
+    Action<ConversationUI> m_OnComplete;
+    ActiveConversation m_ActiveConversation;
+    GameScriptRunner m_GameScriptRunner;
+    AwaitableCompletionSource<NodeRef> m_DecisionSource = new();
     #endregion
 
     #region Initialization
@@ -55,30 +57,28 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     #endregion
 
     #region Runner Listener
-    public void OnConversationEnter(ConversationRef conversation, ReadyNotifier readyNotifier)
+    public Awaitable OnConversationEnter(ConversationRef conversation, CancellationToken token)
     {
-        readyNotifier.OnReady();
+        return AwaitableUtility.Completed();
     }
 
-    public void OnConversationExit(ConversationRef conversation, ReadyNotifier readyNotifier)
+    public Awaitable OnConversationExit(ConversationRef conversation, CancellationToken token)
     {
         for (int i = m_HistoryContent.transform.childCount - 1; i >= 0; i--)
         {
             Destroy(m_HistoryContent.transform.GetChild(i).gameObject);
         }
-        readyNotifier.OnReady();
         m_OnComplete(this);
+        return AwaitableUtility.Completed();
     }
 
-    public void OnNodeEnter(NodeRef node, ReadyNotifier readyNotifier)
+    public Awaitable OnNodeEnter(NodeRef node, CancellationToken token)
     {
-        // Node enter is now just a setup phase - speech is handled in OnSpeech
-        readyNotifier.OnReady();
+        return AwaitableUtility.Completed();
     }
 
-    public void OnSpeech(NodeRef node, ReadyNotifier readyNotifier)
+    public async Awaitable OnSpeech(NodeRef node, CancellationToken token)
     {
-        // Present speech text to the player
         string voiceText = node.VoiceText;
         if (!string.IsNullOrEmpty(voiceText))
         {
@@ -89,16 +89,16 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
             historyItem.SetVoiceText(voiceText);
             historyItem.SetActorName(actorName);
             historyItemGO.transform.SetParent(m_HistoryContent.transform);
-            Delay(k_ReadTimeMillis, readyNotifier);
-        }
-        else
-        {
-            readyNotifier.OnReady();
+            await Awaitable.WaitForSecondsAsync(ReadTimeSeconds, token);
         }
     }
 
-    public void OnDecision(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier)
+    public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
     {
+        // Check if already cancelled before doing any work
+        if (token.IsCancellationRequested)
+            throw new OperationCanceledException(token);
+
         // Present choices to the player
         for (int i = 0; i < choices.Count; i++)
         {
@@ -109,25 +109,39 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
             choiceUI.SetButtonText(buttonText);
             choiceUI.RegisterButtonHandler(() =>
             {
-                decisionNotifier.OnDecisionMade(node);
+                m_DecisionSource.TrySetResult(node);
             });
             choiceGO.transform.SetParent(m_ChoiceContent.transform);
         }
+
+        try
+        {
+            // Await player choice. OnConversationCancelled will call TrySetCanceled() if cancelled.
+            return await m_DecisionSource.Awaitable;
+        }
+        finally
+        {
+            // Always reset, whether completed normally or cancelled
+            m_DecisionSource.Reset();
+        }
     }
 
-    public void OnNodeExit(NodeRef currentNode, ReadyNotifier readyNotifier)
+    public Awaitable OnNodeExit(NodeRef currentNode, CancellationToken token)
     {
         for (int i = m_ChoiceContent.transform.childCount - 1; i >= 0; i--)
         {
             Destroy(m_ChoiceContent.transform.GetChild(i).gameObject);
         }
-        readyNotifier.OnReady();
+        return AwaitableUtility.Completed();
     }
 
     public void OnError(ConversationRef conversation, Exception e) => Debug.LogException(e);
 
     public void OnConversationCancelled(ConversationRef conversation)
     {
+        // Unblock any pending decision
+        m_DecisionSource.TrySetCanceled();
+
         // Clean up UI when conversation is forcibly stopped
         for (int i = m_HistoryContent.transform.childCount - 1; i >= 0; i--)
         {
@@ -142,14 +156,6 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     public void OnCleanup(ConversationRef conversation)
     {
         // No cleanup needed for this simple UI
-    }
-    #endregion
-
-    #region Helpers
-    private async void Delay(int millis, ReadyNotifier readyNotifier)
-    {
-        await Awaitable.WaitForSecondsAsync(millis / 1000f);
-        readyNotifier.OnReady();
     }
     #endregion
 }

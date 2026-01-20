@@ -123,15 +123,16 @@ func is_active(handle: ActiveConversation) -> bool:
 ## @param handle The ActiveConversation handle to stop.
 func stop_conversation(handle: ActiveConversation) -> void:
 	var ctx := _find_context_active(handle)
-	if ctx:
-		_context_release(ctx)
+	if ctx == null:
+		return  # Already ended, idempotent
+
+	ctx.cancel()
 
 
 ## Stop all active conversations.
 func stop_all_conversations() -> void:
-	# Duplicate the array since we're modifying it during iteration
-	for ctx in _contexts_active.duplicate():
-		_context_release(ctx)
+	for ctx in _contexts_active:
+		ctx.cancel()
 #endregion
 
 

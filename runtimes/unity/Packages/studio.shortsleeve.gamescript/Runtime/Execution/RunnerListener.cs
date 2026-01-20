@@ -1,97 +1,58 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace GameScript
 {
     /// <summary>
-    /// Call OnReady to signal that the conversation runner can proceed.
-    /// </summary>
-    public readonly struct ReadyNotifier
-    {
-        readonly AwaitableCompletionSource _source;
-
-        internal ReadyNotifier(AwaitableCompletionSource source)
-        {
-            _source = source;
-        }
-
-        /// <summary>
-        /// Signals that the game is ready to proceed.
-        /// </summary>
-        public void OnReady()
-        {
-            _source.SetResult();
-        }
-    }
-
-    /// <summary>
-    /// Call OnDecisionMade to signal the player's choice and allow the conversation to proceed.
-    /// </summary>
-    public readonly struct DecisionNotifier
-    {
-        readonly AwaitableCompletionSource<int> _source;
-
-        internal DecisionNotifier(AwaitableCompletionSource<int> source)
-        {
-            _source = source;
-        }
-
-        /// <summary>
-        /// Signals which node the player chose.
-        /// </summary>
-        public void OnDecisionMade(NodeRef node)
-        {
-            _source.SetResult(node.Index);
-        }
-    }
-
-    /// <summary>
     /// GameScript listeners react to changes in conversation runner state.
+    /// All async methods should respect the CancellationToken for cooperative cancellation.
     /// </summary>
     public interface IGameScriptListener
     {
         /// <summary>
         /// Called before the conversation starts.
-        /// Call readyNotifier.OnReady() when ready to proceed.
+        /// Return when ready to proceed.
         /// </summary>
-        void OnConversationEnter(ConversationRef conversation, ReadyNotifier readyNotifier);
+        Awaitable OnConversationEnter(ConversationRef conversation, CancellationToken token);
 
         /// <summary>
         /// Called when entering a node, before any action or speech.
-        /// Call readyNotifier.OnReady() when ready to proceed.
+        /// Return when ready to proceed.
         /// </summary>
-        void OnNodeEnter(NodeRef node, ReadyNotifier readyNotifier);
+        Awaitable OnNodeEnter(NodeRef node, CancellationToken token);
 
         /// <summary>
         /// Called when a dialogue node has speech to present.
         /// This runs concurrently with the node's action (if any).
-        /// Call readyNotifier.OnReady() when the speech presentation is complete.
+        /// Return when the speech presentation is complete.
         ///
         /// Note: This is NOT called for logic nodes (nodes without speech text).
         /// </summary>
-        void OnSpeech(NodeRef node, ReadyNotifier readyNotifier);
+        Awaitable OnSpeech(NodeRef node, CancellationToken token);
 
         /// <summary>
         /// Called when the player must choose between multiple nodes.
-        /// Call decisionNotifier.OnDecisionMade(chosenNode) with the selected node.
+        /// Return the selected node from the choices list.
         /// </summary>
-        void OnDecision(IReadOnlyList<NodeRef> choices, DecisionNotifier decisionNotifier);
+        Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token);
 
         /// <summary>
         /// Called before leaving the current node.
         /// Use this for cleanup before advancing to the next node.
-        /// Call readyNotifier.OnReady() when ready to proceed.
+        /// Return when ready to proceed.
         /// </summary>
-        void OnNodeExit(NodeRef currentNode, ReadyNotifier readyNotifier);
+        Awaitable OnNodeExit(NodeRef currentNode, CancellationToken token);
 
         /// <summary>
         /// Called when the conversation ends.
-        /// Call readyNotifier.OnReady() when ready to proceed.
+        /// Return when ready to proceed.
         /// </summary>
-        void OnConversationExit(ConversationRef conversation, ReadyNotifier readyNotifier);
+        Awaitable OnConversationExit(ConversationRef conversation, CancellationToken token);
 
         /// <summary>
-        /// Called after OnConversationExit's ReadyNotifier.OnReady() is processed,
+        /// Called after OnConversationExit returns,
         /// right before the RunnerContext is released back to the pool.
         /// Use this for final cleanup: notifying managers, releasing resources, etc.
         /// </summary>
@@ -100,12 +61,12 @@ namespace GameScript
         /// <summary>
         /// Called when an error occurs during conversation execution.
         /// </summary>
-        void OnError(ConversationRef conversation, System.Exception e);
+        void OnError(ConversationRef conversation, Exception e);
 
         /// <summary>
         /// Called when a conversation is forcibly stopped via StopConversation().
         /// Use this for immediate cleanup: hiding dialogue UI, cancelling animations, etc.
-        /// This is synchronous (no notifier) since we're not waiting for anything.
+        /// This is synchronous (no token) since we're not waiting for anything.
         /// </summary>
         void OnConversationCancelled(ConversationRef conversation);
 
@@ -120,6 +81,6 @@ namespace GameScript
         /// <param name="choices">Highest-priority target nodes (all passed their conditions and share the same priority)</param>
         /// <returns>The node to advance to</returns>
         NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices)
-            => choices[Random.Range(0, choices.Count)];
+            => choices[UnityEngine.Random.Range(0, choices.Count)];
     }
 }

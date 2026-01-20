@@ -33,9 +33,8 @@ namespace GameScript
         // Access snapshot through database to support live locale switching
         Snapshot Snapshot => _database.Snapshot;
 
-        AwaitableCompletionSource _readySource;
+        // For concurrent action+speech via WhenAllAwaiter
         AwaitableCompletionSource _speechSource;
-        AwaitableCompletionSource<int> _decisionSource;
         WhenAllAwaiter _whenAllAwaiter;
 
         // Reusable lists for collecting choices without allocation
@@ -53,10 +52,8 @@ namespace GameScript
         {
             _cts.Cancel();
 
-            // Unblock any pending awaits
-            _readySource.TrySetCanceled();
+            // Unblock concurrent speech (needed for WhenAllAwaiter)
             _speechSource.TrySetCanceled();
-            _decisionSource.TrySetCanceled();
         }
         #endregion
 
@@ -66,9 +63,7 @@ namespace GameScript
             ContextId = s_NextContextId++;
             _settings = settings;
             _cts = new CancellationTokenSource();
-            _readySource = new AwaitableCompletionSource();
             _speechSource = new AwaitableCompletionSource();
-            _decisionSource = new AwaitableCompletionSource<int>();
             _whenAllAwaiter = new WhenAllAwaiter();
             _choices = new List<NodeRef>(DefaultChoiceCapacity);
             _highestPriorityChoices = new List<NodeRef>(DefaultChoiceCapacity);
@@ -119,9 +114,7 @@ namespace GameScript
             try
             {
                 // 1. Conversation Enter
-                _listener.OnConversationEnter(conversationRef, new ReadyNotifier(_readySource));
-                await _readySource.Awaitable;
-                _readySource.Reset();
+                await _listener.OnConversationEnter(conversationRef, _cts.Token);
 
                 // Main loop
                 while (true)
@@ -134,9 +127,7 @@ namespace GameScript
                         goto EvaluateEdges;
 
                     // 2. Node Enter
-                    _listener.OnNodeEnter(nodeRef, new ReadyNotifier(_readySource));
-                    await _readySource.Awaitable;
-                    _readySource.Reset();
+                    await _listener.OnNodeEnter(nodeRef, _cts.Token);
 
                     // 3. Action + Speech (type-dependent)
                     if (node.Type == NodeType.Logic)
@@ -228,9 +219,8 @@ namespace GameScript
                     bool isDecision = _choices.Count > 0 && ShouldShowDecision(node, allSameActor);
                     if (isDecision)
                     {
-                        _listener.OnDecision(_choices, new DecisionNotifier(_decisionSource));
-                        _nodeIndex = await _decisionSource.Awaitable;
-                        _decisionSource.Reset();
+                        NodeRef selected = await _listener.OnDecision(_choices, _cts.Token);
+                        _nodeIndex = selected.Index;
                     }
                     else if (_choices.Count > 0)
                     {
@@ -248,9 +238,7 @@ namespace GameScript
                     // 6. Node Exit (skip for root nodes)
                     if (node.Type != NodeType.Root)
                     {
-                        _listener.OnNodeExit(nodeRef, new ReadyNotifier(_readySource));
-                        await _readySource.Awaitable;
-                        _readySource.Reset();
+                        await _listener.OnNodeExit(nodeRef, _cts.Token);
                     }
 
                     // No valid edges - conversation ends
@@ -259,9 +247,7 @@ namespace GameScript
                 }
 
                 // 7. Conversation Exit
-                _listener.OnConversationExit(conversationRef, new ReadyNotifier(_readySource));
-                await _readySource.Awaitable;
-                _readySource.Reset();
+                await _listener.OnConversationExit(conversationRef, _cts.Token);
 
                 // 8. Final cleanup signal
                 _listener.OnCleanup(conversationRef);
@@ -298,22 +284,27 @@ namespace GameScript
             if (node.HasAction)
             {
                 // Both action and speech run concurrently
-                _whenAllAwaiter.WhenAll(ExecuteAction(node), AwaitSpeech(nodeRef), _readySource);
+                _whenAllAwaiter.WhenAll(
+                    ExecuteAction(node),
+                    _listener.OnSpeech(nodeRef, _cts.Token),
+                    _speechSource
+                );
+                try
+                {
+                    await _speechSource.Awaitable;
+                }
+                finally
+                {
+                    // Detach awaiter first to prevent ghost completions, then reset source
+                    _whenAllAwaiter.Cancel();
+                    _speechSource.Reset();
+                }
             }
             else
             {
                 // Speech only
-                _listener.OnSpeech(nodeRef, new ReadyNotifier(_readySource));
+                await _listener.OnSpeech(nodeRef, _cts.Token);
             }
-            await _readySource.Awaitable;
-            _readySource.Reset();
-        }
-
-        async Awaitable AwaitSpeech(NodeRef nodeRef)
-        {
-            _listener.OnSpeech(nodeRef, new ReadyNotifier(_speechSource));
-            await _speechSource.Awaitable;
-            _speechSource.Reset();
         }
 
         bool ShouldShowDecision(Node currentNode, bool allSameActor)

@@ -111,9 +111,13 @@ extends RefCounted
 func cond_456(ctx: RunnerContext) -> bool:
     return GameState.player_gold >= 10
 
-# Action: act_{node_id} - can be async with await
-func act_456(ctx: RunnerContext) -> void:
+# Action: act_{node_id} - can be async with await, receives CancellationToken
+func act_456(ctx: RunnerContext, token: CancellationToken) -> void:
     GameState.player_gold -= 10
+
+    # Connect to cancellation for cleanup
+    var tween := create_tween()
+    token.cancelled.connect(tween.kill)
     await AnimationManager.play("hand_over_gold")
 
     # Can access node data if needed
@@ -121,7 +125,7 @@ func act_456(ctx: RunnerContext) -> void:
 ```
 
 **Conditions**: Synchronous, return `bool`. Called during edge traversal.
-**Actions**: Can use `await`. Called when entering a node.
+**Actions**: Can use `await`, receive `CancellationToken` for cooperative cancellation. Called when entering a node. Actions should connect to `token.cancelled` or check `token.is_cancelled` to handle early termination.
 
 Game-specific logic (inventory, animations, etc.) is accessed through your own systems. The RunnerContext provides read-only access to the current node's data.
 
@@ -144,7 +148,7 @@ On runner creation, folder scanning discovers methods and builds jump tables:
 if node_ref.get_has_condition():
     var result: bool = _conditions[node_index].call(self)
 if node_ref.get_has_action():
-    await _actions[node_index].call(self)
+    await _actions[node_index].call(self, cancellation_token)
 ```
 
 **Why arrays, not dictionaries:**
@@ -157,6 +161,8 @@ Read-only access to the current node's data:
 
 ```gdscript
 # In RunnerContext - available to conditions/actions
+var cancellation_token: CancellationToken  # For cooperative cancellation
+
 func get_node_id() -> int
 func get_conversation_id() -> int
 func get_actor() -> ActorRef
@@ -166,7 +172,7 @@ func get_property_count() -> int
 func get_property(index: int) -> NodePropertyRef
 ```
 
-The context provides node data - game-specific logic lives in your own code.
+The context provides node data and cancellation support - game-specific logic lives in your own code.
 
 ---
 
@@ -295,6 +301,11 @@ func on_cleanup(conversation: ConversationRef) -> void:
 
 func on_error(conversation: ConversationRef, error: String) -> void:
     push_error("Dialogue error: " + error)
+
+func on_conversation_cancelled(conversation: ConversationRef) -> void:
+    # Called when stop_conversation() forcibly stops the conversation
+    # Use for immediate cleanup (hiding UI, cancelling animations)
+    pass
 ```
 
 ### Notifiers
@@ -446,7 +457,9 @@ runtimes/godot/
 │   │       │   ├── runner_listener.gd
 │   │       │   ├── settings.gd
 │   │       │   ├── active_conversation.gd
-│   │       │   └── notifiers.gd
+│   │       │   ├── notifiers.gd
+│   │       │   ├── cancellation_token.gd  # Cooperative cancellation
+│   │       │   └── signal_race.gd         # Await multiple signals
 │   │       ├── resources/           # ID wrapper resources
 │   │       │   ├── conversation_id.gd
 │   │       │   ├── actor_id.gd

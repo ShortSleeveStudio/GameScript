@@ -77,6 +77,13 @@ func on_error(conversation: ConversationRef, error: String) -> void:
 	push_error("GameScript error in conversation %d: %s" % [conversation.get_id(), error])
 
 
+## Called when a conversation is forcibly stopped via stop_conversation().
+## Use this for immediate cleanup: hiding dialogue UI, cancelling animations, etc.
+## This is synchronous (no notifier) since we're not waiting for anything.
+func on_conversation_cancelled(conversation: ConversationRef) -> void:
+	pass
+
+
 ## Called when the conversation auto-advances without player input
 ## (e.g., when is_prevent_response is true or no UI response text).
 ## Return the node to advance to from the list of highest-priority choices.

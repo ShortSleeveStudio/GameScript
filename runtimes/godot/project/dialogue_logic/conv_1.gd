@@ -3,5 +3,5 @@
 extends RefCounted
 
 
-func act_3(ctx: RunnerContext) -> void:
+func act_3(ctx: RunnerContext, token: CancellationToken) -> void:
 	print("[GameScript] Node 3 action executed!")
