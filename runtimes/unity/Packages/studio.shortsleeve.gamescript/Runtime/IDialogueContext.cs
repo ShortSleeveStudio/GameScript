@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace GameScript
 {
     /// <summary>
@@ -6,6 +8,12 @@ namespace GameScript
     /// </summary>
     public interface IDialogueContext
     {
+        /// <summary>
+        /// Cancellation token for cooperative cancellation.
+        /// Actions should check this token and exit early when cancelled.
+        /// </summary>
+        CancellationToken CancellationToken { get; }
+
         /// <summary>
         /// The current node's database ID.
         /// </summary>

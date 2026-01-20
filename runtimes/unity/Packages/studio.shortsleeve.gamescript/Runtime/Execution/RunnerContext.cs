@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace GameScript
@@ -40,6 +41,23 @@ namespace GameScript
         // Reusable lists for collecting choices without allocation
         readonly List<NodeRef> _choices;
         readonly List<NodeRef> _highestPriorityChoices;
+
+        // Cancellation support
+        CancellationTokenSource _cts;
+        #endregion
+
+        #region Cancellation
+        public CancellationToken CancellationToken => _cts.Token;
+
+        internal void Cancel()
+        {
+            _cts.Cancel();
+
+            // Unblock any pending awaits
+            _readySource.TrySetCanceled();
+            _speechSource.TrySetCanceled();
+            _decisionSource.TrySetCanceled();
+        }
         #endregion
 
         #region Constructor
@@ -47,6 +65,7 @@ namespace GameScript
         {
             ContextId = s_NextContextId++;
             _settings = settings;
+            _cts = new CancellationTokenSource();
             _readySource = new AwaitableCompletionSource();
             _speechSource = new AwaitableCompletionSource();
             _decisionSource = new AwaitableCompletionSource<int>();
@@ -247,6 +266,10 @@ namespace GameScript
                 // 8. Final cleanup signal
                 _listener.OnCleanup(conversationRef);
             }
+            catch (OperationCanceledException)
+            {
+                _listener.OnConversationCancelled(conversationRef);
+            }
             catch (Exception e)
             {
                 _listener.OnError(conversationRef, e);
@@ -262,7 +285,7 @@ namespace GameScript
             ActionDelegate action = _jumpTable.Actions[_nodeIndex];
             if (action != null)
             {
-                await action(this);
+                await action(this, _cts.Token);
             }
             else
             {
@@ -315,6 +338,13 @@ namespace GameScript
 
         void Reset()
         {
+            // Only recreate if canceled (disposed CTS can't be reused)
+            if (_cts.IsCancellationRequested)
+            {
+                _cts.Dispose();
+                _cts = new CancellationTokenSource();
+            }
+
             _database = null;
             _jumpTable = null;
             _listener = null;

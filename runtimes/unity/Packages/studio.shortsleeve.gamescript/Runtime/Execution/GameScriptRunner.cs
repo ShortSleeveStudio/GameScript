@@ -102,7 +102,7 @@ namespace GameScript
             if (ctx == null)
                 return; // Already ended, idempotent
 
-            ContextRelease(ctx);
+            ctx.Cancel();
         }
 
         /// <summary>
@@ -114,9 +114,8 @@ namespace GameScript
             LinkedListNode<RunnerContext> node = _contextsActive.First;
             while (node != null)
             {
-                LinkedListNode<RunnerContext> next = node.Next;
-                ContextRelease(node);
-                node = next;
+                node.Value.Cancel();
+                node = node.Next;
             }
         }
         #endregion

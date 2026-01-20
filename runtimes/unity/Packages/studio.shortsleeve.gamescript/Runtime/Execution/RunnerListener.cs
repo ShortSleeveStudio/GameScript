@@ -103,6 +103,13 @@ namespace GameScript
         void OnError(ConversationRef conversation, System.Exception e);
 
         /// <summary>
+        /// Called when a conversation is forcibly stopped via StopConversation().
+        /// Use this for immediate cleanup: hiding dialogue UI, cancelling animations, etc.
+        /// This is synchronous (no notifier) since we're not waiting for anything.
+        /// </summary>
+        void OnConversationCancelled(ConversationRef conversation);
+
+        /// <summary>
         /// Called when the conversation auto-advances without player input
         /// (e.g., when IsPreventResponse is true or no UI response text).
         /// Return the node to advance to from the list of highest-priority choices.
@@ -113,6 +120,6 @@ namespace GameScript
         /// <param name="choices">Highest-priority target nodes (all passed their conditions and share the same priority)</param>
         /// <returns>The node to advance to</returns>
         NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices)
-            => choices[UnityEngine.Random.Range(0, choices.Count)];
+            => choices[Random.Range(0, choices.Count)];
     }
 }

@@ -126,6 +126,19 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
 
     public void OnError(ConversationRef conversation, Exception e) => Debug.LogException(e);
 
+    public void OnConversationCancelled(ConversationRef conversation)
+    {
+        // Clean up UI when conversation is forcibly stopped
+        for (int i = m_HistoryContent.transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(m_HistoryContent.transform.GetChild(i).gameObject);
+        }
+        for (int i = m_ChoiceContent.transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(m_ChoiceContent.transform.GetChild(i).gameObject);
+        }
+    }
+
     public void OnCleanup(ConversationRef conversation)
     {
         // No cleanup needed for this simple UI

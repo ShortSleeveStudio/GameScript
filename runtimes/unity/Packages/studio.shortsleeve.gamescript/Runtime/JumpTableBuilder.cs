@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using UnityEngine;
 
 namespace GameScript
@@ -13,7 +14,7 @@ namespace GameScript
     /// <summary>
     /// Delegate for async action methods.
     /// </summary>
-    public delegate Awaitable ActionDelegate(IDialogueContext ctx);
+    public delegate Awaitable ActionDelegate(IDialogueContext ctx, CancellationToken token);
 
     /// <summary>
     /// Builds jump tables for condition and action dispatch by scanning
@@ -197,7 +198,7 @@ namespace GameScript
                         {
                             Debug.LogWarning(
                                 $"[GameScript] Invalid action signature for {type.FullName}.{method.Name}. " +
-                                $"Expected: static async Awaitable Method(IDialogueContext ctx)");
+                                $"Expected: static async Awaitable Method(IDialogueContext ctx, CancellationToken token)");
                         }
                     }
                 }
@@ -219,13 +220,14 @@ namespace GameScript
 
         static bool ValidateActionSignature(MethodInfo method)
         {
-            // Must be static, return Awaitable, take single IDialogueContext parameter
+            // Must be static, return Awaitable, take IDialogueContext and CancellationToken parameters
             if (!method.IsStatic) return false;
             if (method.ReturnType != typeof(Awaitable)) return false;
 
             ParameterInfo[] parameters = method.GetParameters();
-            if (parameters.Length != 1) return false;
+            if (parameters.Length != 2) return false;
             if (!typeof(IDialogueContext).IsAssignableFrom(parameters[0].ParameterType)) return false;
+            if (parameters[1].ParameterType != typeof(CancellationToken)) return false;
 
             return true;
         }
