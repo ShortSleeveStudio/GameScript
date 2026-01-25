@@ -54,23 +54,23 @@ struct SnapshotBuilder;
 struct StringArray;
 struct StringArrayBuilder;
 
-enum class PropertyValue : uint8_t {
-  NONE = 0,
-  string_val = 1,
-  int_val = 2,
-  decimal_val = 3,
-  bool_val = 4,
-  MIN = NONE,
-  MAX = bool_val
+enum PropertyValue : uint8_t {
+  PropertyValue_NONE = 0,
+  PropertyValue_string_val = 1,
+  PropertyValue_int_val = 2,
+  PropertyValue_decimal_val = 3,
+  PropertyValue_bool_val = 4,
+  PropertyValue_MIN = PropertyValue_NONE,
+  PropertyValue_MAX = PropertyValue_bool_val
 };
 
 inline const PropertyValue (&EnumValuesPropertyValue())[5] {
   static const PropertyValue values[] = {
-    PropertyValue::NONE,
-    PropertyValue::string_val,
-    PropertyValue::int_val,
-    PropertyValue::decimal_val,
-    PropertyValue::bool_val
+    PropertyValue_NONE,
+    PropertyValue_string_val,
+    PropertyValue_int_val,
+    PropertyValue_decimal_val,
+    PropertyValue_bool_val
   };
   return values;
 }
@@ -88,51 +88,51 @@ inline const char * const *EnumNamesPropertyValue() {
 }
 
 inline const char *EnumNamePropertyValue(PropertyValue e) {
-  if (::flatbuffers::IsOutRange(e, PropertyValue::NONE, PropertyValue::bool_val)) return "";
+  if (::flatbuffers::IsOutRange(e, PropertyValue_NONE, PropertyValue_bool_val)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPropertyValue()[index];
 }
 
 template<typename T> struct PropertyValueTraits {
-  static const PropertyValue enum_value = PropertyValue::NONE;
+  static const PropertyValue enum_value = PropertyValue_NONE;
 };
 
 template<> struct PropertyValueTraits<::flatbuffers::String> {
-  static const PropertyValue enum_value = PropertyValue::string_val;
+  static const PropertyValue enum_value = PropertyValue_string_val;
 };
 
 template<> struct PropertyValueTraits<GameScript::Int32Value> {
-  static const PropertyValue enum_value = PropertyValue::int_val;
+  static const PropertyValue enum_value = PropertyValue_int_val;
 };
 
 template<> struct PropertyValueTraits<GameScript::FloatValue> {
-  static const PropertyValue enum_value = PropertyValue::decimal_val;
+  static const PropertyValue enum_value = PropertyValue_decimal_val;
 };
 
 template<> struct PropertyValueTraits<GameScript::BoolValue> {
-  static const PropertyValue enum_value = PropertyValue::bool_val;
+  static const PropertyValue enum_value = PropertyValue_bool_val;
 };
 
 template <bool B = false>
 bool VerifyPropertyValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, PropertyValue type);
 template <bool B = false>
-bool VerifyPropertyValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<PropertyValue> *types);
+bool VerifyPropertyValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types);
 
-enum class PropertyType : int8_t {
-  String = 0,
-  Integer = 1,
-  Decimal = 2,
-  Boolean = 3,
-  MIN = String,
-  MAX = Boolean
+enum PropertyType : int8_t {
+  PropertyType_String = 0,
+  PropertyType_Integer = 1,
+  PropertyType_Decimal = 2,
+  PropertyType_Boolean = 3,
+  PropertyType_MIN = PropertyType_String,
+  PropertyType_MAX = PropertyType_Boolean
 };
 
 inline const PropertyType (&EnumValuesPropertyType())[4] {
   static const PropertyType values[] = {
-    PropertyType::String,
-    PropertyType::Integer,
-    PropertyType::Decimal,
-    PropertyType::Boolean
+    PropertyType_String,
+    PropertyType_Integer,
+    PropertyType_Decimal,
+    PropertyType_Boolean
   };
   return values;
 }
@@ -149,24 +149,24 @@ inline const char * const *EnumNamesPropertyType() {
 }
 
 inline const char *EnumNamePropertyType(PropertyType e) {
-  if (::flatbuffers::IsOutRange(e, PropertyType::String, PropertyType::Boolean)) return "";
+  if (::flatbuffers::IsOutRange(e, PropertyType_String, PropertyType_Boolean)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPropertyType()[index];
 }
 
-enum class NodeType : int8_t {
-  Root = 0,
-  Dialogue = 1,
-  Logic = 2,
-  MIN = Root,
-  MAX = Logic
+enum NodeType : int8_t {
+  NodeType_Root = 0,
+  NodeType_Dialogue = 1,
+  NodeType_Logic = 2,
+  NodeType_MIN = NodeType_Root,
+  NodeType_MAX = NodeType_Logic
 };
 
 inline const NodeType (&EnumValuesNodeType())[3] {
   static const NodeType values[] = {
-    NodeType::Root,
-    NodeType::Dialogue,
-    NodeType::Logic
+    NodeType_Root,
+    NodeType_Dialogue,
+    NodeType_Logic
   };
   return values;
 }
@@ -182,22 +182,22 @@ inline const char * const *EnumNamesNodeType() {
 }
 
 inline const char *EnumNameNodeType(NodeType e) {
-  if (::flatbuffers::IsOutRange(e, NodeType::Root, NodeType::Logic)) return "";
+  if (::flatbuffers::IsOutRange(e, NodeType_Root, NodeType_Logic)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesNodeType()[index];
 }
 
-enum class EdgeType : int8_t {
-  Default = 0,
-  Hidden = 1,
-  MIN = Default,
-  MAX = Hidden
+enum EdgeType : int8_t {
+  EdgeType_Default = 0,
+  EdgeType_Hidden = 1,
+  EdgeType_MIN = EdgeType_Default,
+  EdgeType_MAX = EdgeType_Hidden
 };
 
 inline const EdgeType (&EnumValuesEdgeType())[2] {
   static const EdgeType values[] = {
-    EdgeType::Default,
-    EdgeType::Hidden
+    EdgeType_Default,
+    EdgeType_Hidden
   };
   return values;
 }
@@ -212,7 +212,7 @@ inline const char * const *EnumNamesEdgeType() {
 }
 
 inline const char *EnumNameEdgeType(EdgeType e) {
-  if (::flatbuffers::IsOutRange(e, EdgeType::Default, EdgeType::Hidden)) return "";
+  if (::flatbuffers::IsOutRange(e, EdgeType_Default, EdgeType_Hidden)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesEdgeType()[index];
 }
@@ -398,7 +398,7 @@ inline ::flatbuffers::Offset<PropertyTemplate> CreatePropertyTemplate(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    GameScript::PropertyType type = GameScript::PropertyType::String) {
+    GameScript::PropertyType type = GameScript::PropertyType_String) {
   PropertyTemplateBuilder builder_(_fbb);
   builder_.add_name(name);
   builder_.add_id(id);
@@ -410,7 +410,7 @@ inline ::flatbuffers::Offset<PropertyTemplate> CreatePropertyTemplateDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     const char *name = nullptr,
-    GameScript::PropertyType type = GameScript::PropertyType::String) {
+    GameScript::PropertyType type = GameScript::PropertyType_String) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
   return GameScript::CreatePropertyTemplate(
       _fbb,
@@ -437,16 +437,16 @@ struct NodeProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   }
   template<typename T> const T *value_as() const;
   const ::flatbuffers::String *value_as_string_val() const {
-    return value_type() == GameScript::PropertyValue::string_val ? static_cast<const ::flatbuffers::String *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_string_val ? static_cast<const ::flatbuffers::String *>(value()) : nullptr;
   }
   const GameScript::Int32Value *value_as_int_val() const {
-    return value_type() == GameScript::PropertyValue::int_val ? static_cast<const GameScript::Int32Value *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_int_val ? static_cast<const GameScript::Int32Value *>(value()) : nullptr;
   }
   const GameScript::FloatValue *value_as_decimal_val() const {
-    return value_type() == GameScript::PropertyValue::decimal_val ? static_cast<const GameScript::FloatValue *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_decimal_val ? static_cast<const GameScript::FloatValue *>(value()) : nullptr;
   }
   const GameScript::BoolValue *value_as_bool_val() const {
-    return value_type() == GameScript::PropertyValue::bool_val ? static_cast<const GameScript::BoolValue *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_bool_val ? static_cast<const GameScript::BoolValue *>(value()) : nullptr;
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -502,7 +502,7 @@ struct NodePropertyBuilder {
 inline ::flatbuffers::Offset<NodeProperty> CreateNodeProperty(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t template_idx = 0,
-    GameScript::PropertyValue value_type = GameScript::PropertyValue::NONE,
+    GameScript::PropertyValue value_type = GameScript::PropertyValue_NONE,
     ::flatbuffers::Offset<void> value = 0) {
   NodePropertyBuilder builder_(_fbb);
   builder_.add_value(value);
@@ -529,16 +529,16 @@ struct ConversationProperty FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   }
   template<typename T> const T *value_as() const;
   const ::flatbuffers::String *value_as_string_val() const {
-    return value_type() == GameScript::PropertyValue::string_val ? static_cast<const ::flatbuffers::String *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_string_val ? static_cast<const ::flatbuffers::String *>(value()) : nullptr;
   }
   const GameScript::Int32Value *value_as_int_val() const {
-    return value_type() == GameScript::PropertyValue::int_val ? static_cast<const GameScript::Int32Value *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_int_val ? static_cast<const GameScript::Int32Value *>(value()) : nullptr;
   }
   const GameScript::FloatValue *value_as_decimal_val() const {
-    return value_type() == GameScript::PropertyValue::decimal_val ? static_cast<const GameScript::FloatValue *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_decimal_val ? static_cast<const GameScript::FloatValue *>(value()) : nullptr;
   }
   const GameScript::BoolValue *value_as_bool_val() const {
-    return value_type() == GameScript::PropertyValue::bool_val ? static_cast<const GameScript::BoolValue *>(value()) : nullptr;
+    return value_type() == GameScript::PropertyValue_bool_val ? static_cast<const GameScript::BoolValue *>(value()) : nullptr;
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -594,7 +594,7 @@ struct ConversationPropertyBuilder {
 inline ::flatbuffers::Offset<ConversationProperty> CreateConversationProperty(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t template_idx = 0,
-    GameScript::PropertyValue value_type = GameScript::PropertyValue::NONE,
+    GameScript::PropertyValue value_type = GameScript::PropertyValue_NONE,
     ::flatbuffers::Offset<void> value = 0) {
   ConversationPropertyBuilder builder_(_fbb);
   builder_.add_value(value);
@@ -760,7 +760,7 @@ inline ::flatbuffers::Offset<Node> CreateNode(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     int32_t conversation_idx = 0,
-    GameScript::NodeType type = GameScript::NodeType::Root,
+    GameScript::NodeType type = GameScript::NodeType_Root,
     int32_t actor_idx = 0,
     ::flatbuffers::Offset<::flatbuffers::String> voice_text = 0,
     ::flatbuffers::Offset<::flatbuffers::String> ui_response_text = 0,
@@ -796,7 +796,7 @@ inline ::flatbuffers::Offset<Node> CreateNodeDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     int32_t conversation_idx = 0,
-    GameScript::NodeType type = GameScript::NodeType::Root,
+    GameScript::NodeType type = GameScript::NodeType_Root,
     int32_t actor_idx = 0,
     const char *voice_text = nullptr,
     const char *ui_response_text = nullptr,
@@ -915,7 +915,7 @@ inline ::flatbuffers::Offset<Edge> CreateEdge(
     int32_t source_idx = 0,
     int32_t target_idx = 0,
     int32_t priority = 0,
-    GameScript::EdgeType type = GameScript::EdgeType::Default) {
+    GameScript::EdgeType type = GameScript::EdgeType_Default) {
   EdgeBuilder builder_(_fbb);
   builder_.add_priority(priority);
   builder_.add_target_idx(target_idx);
@@ -1551,22 +1551,22 @@ inline ::flatbuffers::Offset<StringArray> CreateStringArrayDirect(
 template <bool B>
 inline bool VerifyPropertyValue(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, PropertyValue type) {
   switch (type) {
-    case PropertyValue::NONE: {
+    case PropertyValue_NONE: {
       return true;
     }
-    case PropertyValue::string_val: {
+    case PropertyValue_string_val: {
       auto ptr = reinterpret_cast<const ::flatbuffers::String *>(obj);
       return verifier.VerifyString(ptr);
     }
-    case PropertyValue::int_val: {
+    case PropertyValue_int_val: {
       auto ptr = reinterpret_cast<const GameScript::Int32Value *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case PropertyValue::decimal_val: {
+    case PropertyValue_decimal_val: {
       auto ptr = reinterpret_cast<const GameScript::FloatValue *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case PropertyValue::bool_val: {
+    case PropertyValue_bool_val: {
       auto ptr = reinterpret_cast<const GameScript::BoolValue *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -1575,7 +1575,7 @@ inline bool VerifyPropertyValue(::flatbuffers::VerifierTemplate<B> &verifier, co
 }
 
 template <bool B>
-inline bool VerifyPropertyValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<PropertyValue> *types) {
+inline bool VerifyPropertyValueVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<uint8_t> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
