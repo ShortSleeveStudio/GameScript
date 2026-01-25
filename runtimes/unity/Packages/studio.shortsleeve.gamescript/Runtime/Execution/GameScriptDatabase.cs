@@ -13,6 +13,14 @@ namespace GameScript
         readonly GameScriptManifest _gsManifest;
         Snapshot _snapshot;
         int _currentLocaleIndex = -1;
+
+        // ID-to-index maps for O(1) lookups (built on snapshot load)
+        Dictionary<int, int> _conversationIdToIndex;
+        Dictionary<int, int> _actorIdToIndex;
+        Dictionary<int, int> _localizationIdToIndex;
+        Dictionary<int, int> _nodeIdToIndex;
+        Dictionary<int, int> _edgeIdToIndex;
+
 #if UNITY_EDITOR
         string _loadedHash;
 #endif
@@ -88,15 +96,13 @@ namespace GameScript
         public ConversationRef FindConversation(ConversationId id) => FindConversation((int)id);
 
         /// <summary>
-        /// Finds a conversation by ID.
+        /// Finds a conversation by ID. O(1) lookup using ID-to-index map.
         /// </summary>
         public ConversationRef FindConversation(int id)
         {
-            int count = ConversationCount;
-            for (int i = 0; i < count; i++)
+            if (_conversationIdToIndex != null && _conversationIdToIndex.TryGetValue(id, out int index))
             {
-                if (_snapshot.Conversations[i].Id == id)
-                    return GetConversation(i);
+                return GetConversation(index);
             }
             throw new KeyNotFoundException($"Conversation with ID {id} not found");
         }
@@ -122,15 +128,13 @@ namespace GameScript
         public ActorRef FindActor(ActorId id) => FindActor((int)id);
 
         /// <summary>
-        /// Finds an actor by ID.
+        /// Finds an actor by ID. O(1) lookup using ID-to-index map.
         /// </summary>
         public ActorRef FindActor(int id)
         {
-            int count = ActorCount;
-            for (int i = 0; i < count; i++)
+            if (_actorIdToIndex != null && _actorIdToIndex.TryGetValue(id, out int index))
             {
-                if (_snapshot.Actors[i].Id == id)
-                    return GetActor(i);
+                return GetActor(index);
             }
             throw new KeyNotFoundException($"Actor with ID {id} not found");
         }
@@ -156,15 +160,13 @@ namespace GameScript
         public LocalizationRef FindLocalization(LocalizationId id) => FindLocalization((int)id);
 
         /// <summary>
-        /// Finds a localization by ID.
+        /// Finds a localization by ID. O(1) lookup using ID-to-index map.
         /// </summary>
         public LocalizationRef FindLocalization(int id)
         {
-            int count = LocalizationCount;
-            for (int i = 0; i < count; i++)
+            if (_localizationIdToIndex != null && _localizationIdToIndex.TryGetValue(id, out int index))
             {
-                if (_snapshot.Localizations[i].Id == id)
-                    return GetLocalization(i);
+                return GetLocalization(index);
             }
             throw new KeyNotFoundException($"Localization with ID {id} not found");
         }
@@ -190,15 +192,13 @@ namespace GameScript
         public NodeRef FindNode(NodeId id) => FindNode((int)id);
 
         /// <summary>
-        /// Finds a node by ID.
+        /// Finds a node by ID. O(1) lookup using ID-to-index map.
         /// </summary>
         public NodeRef FindNode(int id)
         {
-            int count = NodeCount;
-            for (int i = 0; i < count; i++)
+            if (_nodeIdToIndex != null && _nodeIdToIndex.TryGetValue(id, out int index))
             {
-                if (_snapshot.Nodes[i].Id == id)
-                    return GetNode(i);
+                return GetNode(index);
             }
             throw new KeyNotFoundException($"Node with ID {id} not found");
         }
@@ -224,15 +224,13 @@ namespace GameScript
         public EdgeRef FindEdge(EdgeId id) => FindEdge((int)id);
 
         /// <summary>
-        /// Finds an edge by ID.
+        /// Finds an edge by ID. O(1) lookup using ID-to-index map.
         /// </summary>
         public EdgeRef FindEdge(int id)
         {
-            int count = EdgeCount;
-            for (int i = 0; i < count; i++)
+            if (_edgeIdToIndex != null && _edgeIdToIndex.TryGetValue(id, out int index))
             {
-                if (_snapshot.Edges[i].Id == id)
-                    return GetEdge(i);
+                return GetEdge(index);
             }
             throw new KeyNotFoundException($"Edge with ID {id} not found");
         }
@@ -279,9 +277,53 @@ namespace GameScript
         {
             _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
             _currentLocaleIndex = localeIndex;
+            BuildIdMaps();
 #if UNITY_EDITOR
             _loadedHash = _gsManifest.Manifest.Locales[localeIndex].Hash;
 #endif
+        }
+
+        void BuildIdMaps()
+        {
+            // Build conversation ID map
+            int convCount = _snapshot?.Conversations?.Count ?? 0;
+            _conversationIdToIndex = new Dictionary<int, int>(convCount);
+            for (int i = 0; i < convCount; i++)
+            {
+                _conversationIdToIndex[_snapshot.Conversations[i].Id] = i;
+            }
+
+            // Build actor ID map
+            int actorCount = _snapshot?.Actors?.Count ?? 0;
+            _actorIdToIndex = new Dictionary<int, int>(actorCount);
+            for (int i = 0; i < actorCount; i++)
+            {
+                _actorIdToIndex[_snapshot.Actors[i].Id] = i;
+            }
+
+            // Build localization ID map
+            int locCount = _snapshot?.Localizations?.Count ?? 0;
+            _localizationIdToIndex = new Dictionary<int, int>(locCount);
+            for (int i = 0; i < locCount; i++)
+            {
+                _localizationIdToIndex[_snapshot.Localizations[i].Id] = i;
+            }
+
+            // Build node ID map
+            int nodeCount = _snapshot?.Nodes?.Count ?? 0;
+            _nodeIdToIndex = new Dictionary<int, int>(nodeCount);
+            for (int i = 0; i < nodeCount; i++)
+            {
+                _nodeIdToIndex[_snapshot.Nodes[i].Id] = i;
+            }
+
+            // Build edge ID map
+            int edgeCount = _snapshot?.Edges?.Count ?? 0;
+            _edgeIdToIndex = new Dictionary<int, int>(edgeCount);
+            for (int i = 0; i < edgeCount; i++)
+            {
+                _edgeIdToIndex[_snapshot.Edges[i].Id] = i;
+            }
         }
         #endregion
 
@@ -498,6 +540,7 @@ namespace GameScript
         {
             _snapshot = Snapshot.Serializer.Parse(new ArrayInputBuffer(buffer));
             _currentLocaleIndex = localeIndex;
+            BuildIdMaps();
             _loadedHash = _editorManifest.Locales[localeIndex].Hash;
         }
 

@@ -12,7 +12,7 @@ namespace GameScript
     public sealed class GameScriptRunner
     {
         #region State
-        readonly LinkedList<RunnerContext> _contextsActive;
+        readonly Dictionary<uint, RunnerContext> _contextsActive;
         readonly LinkedList<RunnerContext> _contextsInactive;
         readonly Thread _mainThread;
         readonly GameScriptDatabase _database;
@@ -29,7 +29,7 @@ namespace GameScript
             _database = database ?? throw new ArgumentNullException(nameof(database));
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _mainThread = Thread.CurrentThread;
-            _contextsActive = new LinkedList<RunnerContext>();
+            _contextsActive = new Dictionary<uint, RunnerContext>();
             _contextsInactive = new LinkedList<RunnerContext>();
 
             // Build jump table from snapshot
@@ -111,11 +111,20 @@ namespace GameScript
         public void StopAllConversations()
         {
             EnsureMainThread();
-            LinkedListNode<RunnerContext> node = _contextsActive.First;
-            while (node != null)
+
+            // Collect context IDs first to avoid modifying dictionary during iteration
+            // Cancel modifies _contextsActive via ContextRelease, so we snapshot keys first
+            if (_contextsActive.Count == 0) return;
+
+            uint[] contextIds = new uint[_contextsActive.Count];
+            _contextsActive.Keys.CopyTo(contextIds, 0);
+
+            foreach (uint contextId in contextIds)
             {
-                node.Value.Cancel();
-                node = node.Next;
+                if (_contextsActive.TryGetValue(contextId, out RunnerContext ctx))
+                {
+                    ctx.Cancel();
+                }
             }
         }
         #endregion
@@ -144,45 +153,39 @@ namespace GameScript
             if (_contextsInactive.Count == 0)
             {
                 context = new RunnerContext(_settings);
-                _contextsActive.AddLast(context);
             }
             else
             {
                 LinkedListNode<RunnerContext> node = _contextsInactive.Last;
                 _contextsInactive.RemoveLast();
-                _contextsActive.AddLast(node);
                 context = node.Value;
             }
+
+            // Add to active dictionary using ContextId as key (O(1) insert and lookup)
+            _contextsActive.Add(context.ContextId, context);
             return context;
         }
 
         void ContextRelease(RunnerContext context)
         {
-            LinkedListNode<RunnerContext> node = _contextsActive.Find(context);
-            if (node != null)
-                ContextRelease(node);
-        }
+            // O(1) removal from active dictionary
+            _contextsActive.Remove(context.ContextId);
 
-        void ContextRelease(LinkedListNode<RunnerContext> node)
-        {
-            _contextsActive.Remove(node);
-            _contextsInactive.AddLast(node);
+            // Return to inactive pool
+            _contextsInactive.AddLast(context);
         }
 
         RunnerContext FindContextActive(ActiveConversation active)
         {
-            LinkedListNode<RunnerContext> node = _contextsActive.First;
-            while (node != null)
-            {
-                if (node.Value.ContextId == active.ContextId)
-                {
-                    if (node.Value.SequenceNumber != active.SequenceNumber)
-                        return null;
-                    return node.Value;
-                }
-                node = node.Next;
-            }
-            return null;
+            // O(1) lookup by ContextId
+            if (!_contextsActive.TryGetValue(active.ContextId, out RunnerContext context))
+                return null;
+
+            // Validate sequence to detect stale handles after context reuse
+            if (context.SequenceNumber != active.SequenceNumber)
+                return null;
+
+            return context;
         }
 
         void EnsureMainThread()

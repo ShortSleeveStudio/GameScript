@@ -33,6 +33,7 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     ActiveConversation m_ActiveConversation;
     GameScriptRunner m_GameScriptRunner;
     AwaitableCompletionSource<NodeRef> m_DecisionSource = new();
+    List<NodeRef> m_CurrentChoices = new();
     #endregion
 
     #region Initialization
@@ -99,6 +100,13 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         if (token.IsCancellationRequested)
             throw new OperationCanceledException(token);
 
+        // Store choices so button handlers can reference by index (no closure allocation)
+        m_CurrentChoices.Clear();
+        for (int i = 0; i < choices.Count; i++)
+        {
+            m_CurrentChoices.Add(choices[i]);
+        }
+
         // Present choices to the player
         for (int i = 0; i < choices.Count; i++)
         {
@@ -107,10 +115,7 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
             ChoiceUI choiceUI = choiceGO.GetComponent<ChoiceUI>();
             string buttonText = node.UIResponseText ?? "";
             choiceUI.SetButtonText(buttonText);
-            choiceUI.RegisterButtonHandler(() =>
-            {
-                m_DecisionSource.TrySetResult(node);
-            });
+            choiceUI.RegisterButtonHandler(OnChoiceSelected, i);
             choiceGO.transform.SetParent(m_ChoiceContent.transform);
         }
 
@@ -123,6 +128,15 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         {
             // Always reset, whether completed normally or cancelled
             m_DecisionSource.Reset();
+            m_CurrentChoices.Clear();
+        }
+    }
+
+    void OnChoiceSelected(int choiceIndex)
+    {
+        if (choiceIndex >= 0 && choiceIndex < m_CurrentChoices.Count)
+        {
+            m_DecisionSource.TrySetResult(m_CurrentChoices[choiceIndex]);
         }
     }
 

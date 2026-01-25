@@ -1,0 +1,7 @@
+<idea-plugin>
+    <!--
+        GDScript PSI support configuration for GameScript.
+        This file is loaded only when com.intellij.gdscript is available (Rider 2025.3+).
+        Provides native PSI-based function discovery for GDScript files.
+    -->
+</idea-plugin>

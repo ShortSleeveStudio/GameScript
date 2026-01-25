@@ -32,3 +32,8 @@ ui/src/lib/export/generated/
 
 # Test
 coverage/
+
+# Auto-fetched dependencies (downloaded on first build)
+runtimes/godot/gdextension/godot-cpp/
+runtimes/godot/gdextension/flatbuffers/
+runtimes/unreal/ThirdParty/flatbuffers/

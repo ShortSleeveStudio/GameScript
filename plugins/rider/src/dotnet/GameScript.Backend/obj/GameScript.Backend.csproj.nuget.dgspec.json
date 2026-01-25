@@ -1,0 +1,66 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/eric/Work/GameScript/plugins/rider/src/dotnet/GameScript.Backend/GameScript.Backend.csproj": {}
+  },
+  "projects": {
+    "/Users/eric/Work/GameScript/plugins/rider/src/dotnet/GameScript.Backend/GameScript.Backend.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/eric/Work/GameScript/plugins/rider/src/dotnet/GameScript.Backend/GameScript.Backend.csproj",
+        "projectName": "GameScript.Backend",
+        "projectPath": "/Users/eric/Work/GameScript/plugins/rider/src/dotnet/GameScript.Backend/GameScript.Backend.csproj",
+        "packagesPath": "/Users/eric/.nuget/packages/",
+        "outputPath": "/Users/eric/Work/GameScript/plugins/rider/src/dotnet/GameScript.Backend/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/eric/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "targetAlias": "net472",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "noWarn": [
+            "NU1701"
+          ],
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.300"
+      },
+      "frameworks": {
+        "net472": {
+          "targetAlias": "net472",
+          "dependencies": {
+            "JetBrains.ReSharper.SDK": {
+              "target": "Package",
+              "version": "[2025.1.0, )"
+            },
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.305/RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

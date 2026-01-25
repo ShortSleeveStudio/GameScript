@@ -1,0 +1,7 @@
+<idea-plugin>
+    <!--
+        Godot Engine support configuration for GameScript.
+        This file is loaded only when com.intellij.rider.godot is available.
+        Provides integration with the Godot Editor and C# glue.
+    -->
+</idea-plugin>

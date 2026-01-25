@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Rider backend components target .NET Framework 4.7.2 -->
+    <TargetFramework>net472</TargetFramework>
+    <RootNamespace>GameScript.Backend</RootNamespace>
+    <AssemblyName>GameScript.Backend</AssemblyName>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <!-- Required for ReSharper SDK assembly binding -->
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+
+    <!-- Suppress warnings:
+         NU1701: .NET Framework compatibility
+         RS0016: Public API analyzer (not needed for plugins)
+         CS0618: Obsolete member usage (SDK sometimes has obsolete APIs) -->
+    <NoWarn>$(NoWarn);NU1701;RS0016;CS0618</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ReSharper SDK - includes Rd framework as transitive dependency -->
+    <!-- IMPORTANT: Version must match the targeted Rider version exactly -->
+    <PackageReference Include="JetBrains.ReSharper.SDK" Version="2025.1.0" />
+  </ItemGroup>
+
+  <!-- Generated protocol files are auto-included by SDK-style project
+       since they're inside the project folder (Generated/) -->
+
+</Project>

@@ -280,12 +280,14 @@ func run() -> void:
 	# Handle cancellation
 	if was_cancelled:
 		_listener.on_conversation_cancelled(conversation_ref)
+		_listener.on_cleanup(conversation_ref)
 		_reset()
 		return
 
 	# Handle errors
 	if error_message != "":
 		_listener.on_error(conversation_ref, error_message)
+		_listener.on_cleanup(conversation_ref)
 		_reset()
 		return
 
@@ -293,6 +295,7 @@ func run() -> void:
 	_listener.on_conversation_exit(conversation_ref, _ready_notifier)
 	if not await _ready_notifier.wait_with_cancellation(token):
 		_listener.on_conversation_cancelled(conversation_ref)
+		_listener.on_cleanup(conversation_ref)
 		_reset()
 		return
 	_ready_notifier.reset()

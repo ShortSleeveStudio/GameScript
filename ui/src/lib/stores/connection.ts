@@ -7,7 +7,7 @@
 
 import { writable, derived, type Writable, type Readable } from 'svelte/store';
 import type { DatabaseType } from '@gamescript/shared';
-import { bridge } from '$lib/api';
+import { bridge } from '$lib/api/bridge.js';
 // Note: db import removed to avoid circular dependency
 // Dialect is set via onConnected callback passed to initConnectionStores()
 import {

@@ -29,6 +29,12 @@
     <!-- C/C++ support (CLion) - optional, enables C++ code helpers -->
     <depends optional="true" config-file="cpp-support.xml">com.intellij.modules.cidr.lang</depends>
 
+    <!-- GDScript PSI support (Rider 2025.3+) - enables native PSI-based function discovery -->
+    <depends optional="true" config-file="gdscript-support.xml">com.intellij.rider.godot.gdscript</depends>
+
+    <!-- Godot Engine support (C# glue, run configurations, .tscn files) -->
+    <depends optional="true" config-file="godot-integration.xml">com.intellij.rider.godot</depends>
+
     <extensions defaultExtensionNs="com.intellij">
         <!-- File Editor Provider - opens GameScript as editor tab -->
         <fileEditorProvider
@@ -43,7 +49,7 @@
 
         <!-- Project-level Services -->
         <projectService
-            serviceImplementation="com.shortsleevestudio.gamescript.services.GameScriptService"/>
+            serviceImplementation="com.shortsleevestudio.gamescript.services.GameScriptBackendHost"/>
         <projectService
             serviceImplementation="com.shortsleevestudio.gamescript.settings.GameScriptSettings"/>
 

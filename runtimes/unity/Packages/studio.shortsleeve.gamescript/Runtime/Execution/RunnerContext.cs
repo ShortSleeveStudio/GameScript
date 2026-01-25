@@ -226,12 +226,25 @@ namespace GameScript
                     {
                         // Auto-advance via listener (allows custom selection logic)
                         NodeRef selected = _listener.OnAutoDecision(_highestPriorityChoices);
-                        if (selected.Index < 0 || selected.Index >= Snapshot.Nodes.Count)
+
+                        // Validate selection is one of the valid choices
+                        bool foundInChoices = false;
+                        for (int i = 0; i < _choices.Count; i++)
+                        {
+                            if (_choices[i].Index == selected.Index)
+                            {
+                                foundInChoices = true;
+                                break;
+                            }
+                        }
+
+                        if (!foundInChoices)
                         {
                             throw new InvalidOperationException(
-                                $"OnAutoDecision returned invalid node (index {selected.Index}). " +
+                                $"OnAutoDecision returned node (index {selected.Index}) that is not in the valid choices list. " +
                                 "Ensure your listener returns one of the provided choices.");
                         }
+
                         _nodeIndex = selected.Index;
                     }
 
@@ -255,10 +268,12 @@ namespace GameScript
             catch (OperationCanceledException)
             {
                 _listener.OnConversationCancelled(conversationRef);
+                _listener.OnCleanup(conversationRef);
             }
             catch (Exception e)
             {
                 _listener.OnError(conversationRef, e);
+                _listener.OnCleanup(conversationRef);
             }
             finally
             {

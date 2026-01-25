@@ -33,19 +33,16 @@
     }: Props = $props();
 
     let container: HTMLElement | undefined = $state();
-    let rightWidth = $state(initialRightWidth);
+    let rightWidth = $state((() => initialRightWidth)());
     let isDragging = $state(false);
 
-    // Load saved width from localStorage, updating if different from default
+    // Load saved width from localStorage if available
     onMount(() => {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
             const parsed = parseInt(saved, 10);
             if (!isNaN(parsed) && parsed >= minRightWidth) {
-                const newWidth = maxRightWidth > 0 ? Math.min(parsed, maxRightWidth) : parsed;
-                if (newWidth !== rightWidth) {
-                    rightWidth = newWidth;
-                }
+                rightWidth = maxRightWidth > 0 ? Math.min(parsed, maxRightWidth) : parsed;
             }
         }
     });

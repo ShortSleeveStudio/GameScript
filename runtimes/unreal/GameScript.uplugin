@@ -1,0 +1,29 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "2.0.12",
+  "FriendlyName": "GameScript",
+  "Description": "Cross-platform dialogue runtime for Unreal Engine",
+  "Category": "Narrative",
+  "CreatedBy": "Short Sleeve Studio",
+  "CreatedByURL": "https://github.com/ShortSleeveStudio/GameScript",
+  "DocsURL": "",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "GameScript",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault"
+    },
+    {
+      "Name": "GameScriptEditor",
+      "Type": "Editor",
+      "LoadingPhase": "PostEngineInit"
+    }
+  ]
+}

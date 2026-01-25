@@ -22,6 +22,7 @@ import java.awt.Component
 import java.awt.KeyboardFocusManager
 import java.awt.event.KeyEvent
 import java.beans.PropertyChangeListener
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.SwingUtilities
 import com.shortsleevestudio.gamescript.database.DatabaseManager
 import com.shortsleevestudio.gamescript.handlers.CodeHandlers
@@ -32,6 +33,7 @@ import com.shortsleevestudio.gamescript.handlers.FileHandlers
 import com.shortsleevestudio.gamescript.handlers.HandlerContext
 import com.shortsleevestudio.gamescript.handlers.MessageMediator
 import com.shortsleevestudio.gamescript.handlers.NotificationHandlers
+import com.shortsleevestudio.gamescript.services.GameScriptBackendHost
 import com.shortsleevestudio.gamescript.settings.GameScriptSettings
 import com.shortsleevestudio.gamescript.theme.ThemeMapper
 import com.shortsleevestudio.gamescript.watchers.CodeFileWatcher
@@ -71,8 +73,8 @@ class GameScriptBrowserPanel(
     // 2. KeyboardFocusManager - tracks Swing-level focus (detects when focus leaves our component)
     // Both are needed because CEF's onTakeFocus doesn't fire reliably when clicking outside
     // the JCEF component (e.g., clicking on another editor tab).
-    @Volatile
-    private var webviewHasFocus = false
+    // Uses AtomicBoolean for thread-safe access from CEF, EDT, and Swing threads.
+    private val webviewHasFocus = AtomicBoolean(false)
     private lateinit var focusChangeListener: PropertyChangeListener
 
     val component: JComponent
@@ -99,16 +101,16 @@ class GameScriptBrowserPanel(
         // CEF-level focus tracking: detects focus changes within the browser.
         browser.jbCefClient.addFocusHandler(object : org.cef.handler.CefFocusHandler {
             override fun onTakeFocus(cefBrowser: CefBrowser?, next: Boolean) {
-                webviewHasFocus = false
+                webviewHasFocus.set(false)
             }
 
             override fun onSetFocus(cefBrowser: CefBrowser?, source: org.cef.handler.CefFocusHandler.FocusSource?): Boolean {
-                webviewHasFocus = true
+                webviewHasFocus.set(true)
                 return false // Allow focus to be set
             }
 
             override fun onGotFocus(cefBrowser: CefBrowser?) {
-                webviewHasFocus = true
+                webviewHasFocus.set(true)
             }
         }, browser.cefBrowser)
 
@@ -117,7 +119,7 @@ class GameScriptBrowserPanel(
         focusChangeListener = PropertyChangeListener { evt ->
             val newOwner = evt.newValue as? Component
             if (newOwner != null && !SwingUtilities.isDescendingFrom(newOwner, panel)) {
-                webviewHasFocus = false
+                webviewHasFocus.set(false)
             }
         }
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
@@ -137,7 +139,7 @@ class GameScriptBrowserPanel(
 
             // Use explicit focus flag instead of Swing ancestry check
             // This is reliable with JCEF where the focused component may be a native peer
-            if (!webviewHasFocus) {
+            if (!webviewHasFocus.get()) {
                 return@EventDispatcher false
             }
 
@@ -249,8 +251,11 @@ class GameScriptBrowserPanel(
         val dialogHandlers = DialogHandlers(handlerContext)
         mediator.registerAll(dialogHandlers.getHandlers())
 
-        // Code handlers
-        val codeHandlers = CodeHandlers(handlerContext, codeFileWatcher)
+        // Code handlers (with backend host for C#/C++ semantic lookup)
+        // Pass the host instance so the model can be resolved lazily, allowing
+        // it to become available after the panel is created (e.g., solution still loading)
+        val codeHandlers = CodeHandlers(handlerContext, codeFileWatcher,
+            GameScriptBackendHost.getInstance(project))
         mediator.registerAll(codeHandlers.getHandlers())
 
         // Editor handlers

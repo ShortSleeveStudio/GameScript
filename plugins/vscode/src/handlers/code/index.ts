@@ -12,7 +12,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {
-  isIndentationBased,
+  usesClassWrapper,
   type CodeGetMethodMessage,
   type CodeCreateMethodMessage,
   type CodeDeleteMethodMessage,
@@ -150,9 +150,13 @@ export class CodeHandlers {
         return;
       }
 
-      // symbol.range includes attributes (per C# language server behavior)
-      // body and fullText are the same since range already includes attributes
-      const methodText = document.getText(method.range);
+      // For C++ with macros (Unreal), the symbol range may only cover the macro line.
+      // Extend the range to include the full function body using LSP selection range
+      // or brace matching. For C#/GDScript, symbol.range already includes the full method.
+      const fullRange = fileExtension === '.cpp'
+        ? await this._getFullFunctionRange(document, method)
+        : method.range;
+      const methodText = document.getText(fullRange);
 
       this._postMessage({
         type: 'code:methodResult',
@@ -161,7 +165,7 @@ export class CodeHandlers {
         body: methodText,
         fullText: methodText,
         filePath,
-        lineNumber: method.range.start.line + 1,
+        lineNumber: fullRange.start.line + 1,
       });
     } catch (error) {
       this._postMessage({
@@ -203,17 +207,13 @@ export class CodeHandlers {
       let newContent: string;
       if (fileExists) {
         // Language-specific insertion strategy:
-        // - Indentation-based (GDScript): Append to end of file (no class wrapper)
-        // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
-        if (isIndentationBased(template)) {
-          // Indentation-based: simply append with proper newline separation
-          const trimmed = existingContent.trimEnd();
-          newContent = trimmed + '\n\n' + methodStub + '\n';
-        } else {
-          // Brace-based languages: Insert method before the closing brace of the class/struct.
-          // ASSUMPTION: Conversation files contain exactly one static class/struct.
-          // The file structure is: comments/usings/includes, namespace (optional), single class/struct.
-          // We insert before the last '}' which should be the class/struct closing brace.
+        // - Class wrapper (Unity): Insert before the last '}' (class closing brace)
+        // - No class wrapper (Godot, Unreal): Append to end of file
+        if (usesClassWrapper(template)) {
+          // Unity: Insert method before the closing brace of the class.
+          // ASSUMPTION: Conversation files contain exactly one static class.
+          // The file structure is: comments/usings, namespace (optional), single class.
+          // We insert before the last '}' which should be the class closing brace.
           const classEndMatch = existingContent.lastIndexOf('}');
           if (classEndMatch !== -1) {
             newContent =
@@ -225,6 +225,10 @@ export class CodeHandlers {
           } else {
             newContent = existingContent + '\n' + methodStub;
           }
+        } else {
+          // Godot/Unreal: simply append with proper newline separation
+          const trimmed = existingContent.trimEnd();
+          newContent = trimmed + '\n\n' + methodStub + '\n';
         }
       } else {
         // Use the pre-generated file content
@@ -321,8 +325,11 @@ export class CodeHandlers {
         return;
       }
 
-      // symbol.range includes attributes (per C# language server behavior)
-      const deletedText = document.getText(method.range);
+      // For C++ with macros, extend the symbol range to include the full function body
+      const fullRange = fileExtension === '.cpp'
+        ? await this._getFullFunctionRange(document, method)
+        : method.range;
+      const deletedText = document.getText(fullRange);
 
       // Show confirmation dialog
       const confirmed = await vscode.window.showWarningMessage(
@@ -333,8 +340,8 @@ export class CodeHandlers {
 
       if (confirmed === 'Delete') {
         // Create range to delete (from start of first line to start of line after method)
-        const startLine = method.range.start.line;
-        const endLine = method.range.end.line;
+        const startLine = fullRange.start.line;
+        const endLine = fullRange.end.line;
         const lastLine = document.lineCount - 1;
 
         const rangeToDelete = endLine < lastLine
@@ -432,13 +439,22 @@ export class CodeHandlers {
       }
 
       // Map names to symbols and filter nulls
-      const targets = methodNames
+      const symbolTargets = methodNames
         .map(name => ({ name, symbol: this._findSymbolByName(symbols, name) }))
         .filter((item): item is { name: string; symbol: vscode.DocumentSymbol } => item.symbol !== null);
 
+      // For C++ files, extend symbol ranges to include full function bodies
+      const targets: Array<{ name: string; range: vscode.Range }> = [];
+      for (const { name, symbol } of symbolTargets) {
+        const fullRange = fileExtension === '.cpp'
+          ? await this._getFullFunctionRange(document, symbol)
+          : symbol.range;
+        targets.push({ name, range: fullRange });
+      }
+
       // Sort DESCENDING by start line (bottom to top)
       // This keeps line numbers valid as we build the edit
-      targets.sort((a, b) => b.symbol.range.start.line - a.symbol.range.start.line);
+      targets.sort((a, b) => b.range.start.line - a.range.start.line);
 
       const deletedMethods: Record<string, string> = {};
       const edit = new vscode.WorkspaceEdit();
@@ -451,13 +467,12 @@ export class CodeHandlers {
       }
 
       // Build atomic edit for all deletions
-      for (const { name, symbol } of targets) {
-        // symbol.range includes attributes (per C# language server behavior)
-        deletedMethods[name] = document.getText(symbol.range);
+      for (const { name, range } of targets) {
+        deletedMethods[name] = document.getText(range);
 
         // Calculate deletion range: from start of first line to start of next line (if exists)
-        const startLine = symbol.range.start.line;
-        const endLine = symbol.range.end.line;
+        const startLine = range.start.line;
+        const endLine = range.end.line;
         const lastLine = document.lineCount - 1;
 
         const deleteRange = endLine < lastLine
@@ -527,18 +542,13 @@ export class CodeHandlers {
         const text = document.getText();
 
         // Language-specific insertion strategy:
-        // - Indentation-based (GDScript): Append to end of file (no class wrapper)
-        // - Brace-based (C#, C++): Insert before the last '}' (class closing brace)
+        // - Class wrapper (Unity): Insert before the last '}' (class closing brace)
+        // - No class wrapper (Godot, Unreal): Append to end of file
         let insertPosition: vscode.Position;
         let codeToInsert: string;
 
-        if (isIndentationBased(template)) {
-          // Indentation-based: append to end of file with proper newline separation
-          const trimmed = text.trimEnd();
-          insertPosition = document.positionAt(trimmed.length);
-          codeToInsert = '\n\n' + code + '\n';
-        } else {
-          // Brace-based languages: Find the closing brace of the class/struct
+        if (usesClassWrapper(template)) {
+          // Unity: Find the closing brace of the class
           const classEndIndex = text.lastIndexOf('}');
           if (classEndIndex === -1) {
             this._postMessage({
@@ -561,6 +571,11 @@ export class CodeHandlers {
             : '';
           const needsLeadingNewline = lineBeforeBrace.trim() !== '';
           codeToInsert = (needsLeadingNewline ? '\n' : '') + code + '\n';
+        } else {
+          // Godot/Unreal: append to end of file with proper newline separation
+          const trimmed = text.trimEnd();
+          insertPosition = document.positionAt(trimmed.length);
+          codeToInsert = '\n\n' + code + '\n';
         }
 
         // Use WorkspaceEdit for atomic insertion (integrates with undo/redo)
@@ -758,6 +773,93 @@ export class CodeHandlers {
       }
     }
     return null;
+  }
+
+  /**
+   * Extend a symbol's range to include the full function body.
+   *
+   * For C++ with macros (like Unreal's NODE_CONDITION/NODE_ACTION), clangd's
+   * document symbol provider returns a range that only covers the macro expansion,
+   * not the following brace-delimited function body.
+   *
+   * Uses brace matching to find the complete function range.
+   */
+  private async _getFullFunctionRange(
+    document: vscode.TextDocument,
+    symbol: vscode.DocumentSymbol
+  ): Promise<vscode.Range> {
+    // Check if symbol range already includes a complete function body
+    const symbolText = document.getText(symbol.range);
+    if (symbolText.includes('{') && symbolText.trimEnd().endsWith('}')) {
+      return symbol.range;
+    }
+
+    // Use brace matching to find the full function body
+    return this._getFullFunctionRangeByBraceMatching(document, symbol);
+  }
+
+  /**
+   * Fallback: find function body using brace matching.
+   *
+   * Safety guards:
+   * - Caps search at 5000 chars to avoid scanning entire file
+   * - Aborts if semicolon found before opening brace (declaration, not definition)
+   */
+  private _getFullFunctionRangeByBraceMatching(
+    document: vscode.TextDocument,
+    symbol: vscode.DocumentSymbol
+  ): vscode.Range {
+    const text = document.getText();
+    const startOffset = document.offsetAt(symbol.range.start);
+
+    // Safety: don't scan more than 5000 chars past the symbol
+    const maxSearchOffset = Math.min(startOffset + 5000, text.length);
+
+    let braceCount = 0;
+    let started = false;
+
+    for (let i = startOffset; i < maxSearchOffset; i++) {
+      const char = text[i];
+
+      // Skip comments
+      if (char === '/' && i + 1 < text.length) {
+        if (text[i + 1] === '/') {
+          const lineEnd = text.indexOf('\n', i);
+          i = lineEnd === -1 ? text.length : lineEnd;
+          continue;
+        } else if (text[i + 1] === '*') {
+          const blockEnd = text.indexOf('*/', i + 2);
+          i = blockEnd === -1 ? text.length : blockEnd + 1;
+          continue;
+        }
+      }
+
+      // Skip string/char literals
+      if (char === '"' || char === '\'') {
+        const quote = char;
+        i++;
+        while (i < text.length && !(text[i] === quote && text[i - 1] !== '\\')) {
+          i++;
+        }
+        continue;
+      }
+
+      if (char === '{') {
+        braceCount++;
+        started = true;
+      } else if (char === '}') {
+        braceCount--;
+      } else if (char === ';' && !started) {
+        // Semicolon before any braces = declaration, not definition
+        return symbol.range;
+      }
+
+      if (started && braceCount === 0) {
+        return new vscode.Range(symbol.range.start, document.positionAt(i + 1));
+      }
+    }
+
+    return symbol.range;
   }
 
 }

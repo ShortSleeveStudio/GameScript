@@ -2,6 +2,10 @@
 # Conversation ID: 1
 extends RefCounted
 
+func act_2(ctx: RunnerContext, token: CancellationToken) -> void:
+	# TODO: Implement action
+	pass
 
-func act_3(ctx: RunnerContext, token: CancellationToken) -> void:
-	print("[GameScript] Node 3 action executed!")
+func cond_2(ctx: RunnerContext) -> bool:
+	# TODO: Implement condition
+	return true

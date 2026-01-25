@@ -6,7 +6,7 @@
  */
 
 import { writable, derived, get, type Writable, type Readable } from 'svelte/store';
-import { bridge } from '$lib/api';
+import { bridge } from '$lib/api/bridge.js';
 import type { ScannedAction, ScannedCondition } from '@gamescript/shared';
 
 // ============================================================================

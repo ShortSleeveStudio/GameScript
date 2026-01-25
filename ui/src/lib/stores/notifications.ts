@@ -9,7 +9,7 @@
  * integration for a more consistent user experience.
  */
 
-import { bridge } from '$lib/api';
+import { bridge } from '$lib/api/bridge.js';
 
 // ============================================================================
 // Notification Types

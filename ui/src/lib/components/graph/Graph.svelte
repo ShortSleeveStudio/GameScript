@@ -521,7 +521,15 @@
         let flowNodes: GraphNode[] = [...nodes];
         if (flowNodes.length === 0) return;
 
-        let flowEdges: GraphEdge[] = [...edges];
+        // Build set of valid node IDs for edge validation
+        const validNodeIds = new Set(flowNodes.map(n => n.id));
+
+        // Filter edges to only include those with valid source and target nodes.
+        // This prevents ELK errors when edges are reconciled before their nodes
+        // (e.g., during undo operations).
+        let flowEdges: GraphEdge[] = [...edges].filter(edge =>
+            validNodeIds.has(edge.source) && validNodeIds.has(edge.target)
+        );
         let shadowNodes: FlowNode[] = [];
         let allNodes: FlowNode[] = [...flowNodes];
 

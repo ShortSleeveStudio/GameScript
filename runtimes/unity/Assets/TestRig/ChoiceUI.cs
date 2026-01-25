@@ -1,6 +1,6 @@
+using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class ChoiceUI : MonoBehaviour
@@ -13,10 +13,23 @@ public class ChoiceUI : MonoBehaviour
     private TextMeshProUGUI m_ButtonText;
     #endregion
 
+    #region State
+    Action<int> m_Handler;
+    int m_Index;
+    #endregion
+
     #region API
     public void SetButtonText(string text) => m_ButtonText.text = text;
 
-    public void RegisterButtonHandler(UnityAction onButtonPress) =>
-        m_Button.onClick.AddListener(onButtonPress);
+    public void RegisterButtonHandler(Action<int> handler, int index)
+    {
+        m_Handler = handler;
+        m_Index = index;
+        m_Button.onClick.AddListener(InvokeHandler);
+    }
+    #endregion
+
+    #region Handlers
+    void InvokeHandler() => m_Handler?.Invoke(m_Index);
     #endregion
 }

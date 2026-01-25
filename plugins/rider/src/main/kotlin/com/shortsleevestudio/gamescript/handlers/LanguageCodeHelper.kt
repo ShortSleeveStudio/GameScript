@@ -1,12 +1,14 @@
 package com.shortsleevestudio.gamescript.handlers
 
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
 /**
  * Interface for language-specific code operations.
- * Implementations handle finding methods, determining insertion points,
- * and formatting for their respective languages (C#, C++, etc.).
+ *
+ * Note: C#/C++ operations now go through the ReSharper backend (SymbolLookupHost.cs).
+ * This interface is only implemented by GDScriptCodeHelper for text-based operations.
  */
 interface LanguageCodeHelper {
     /**
@@ -21,13 +23,19 @@ interface LanguageCodeHelper {
     fun findMethodElement(psiFile: PsiFile, methodName: String): PsiElement?
 
     /**
-     * Get the insertion point for new methods (usually before the closing brace of the class).
+     * Get the insertion point for new methods.
      * Returns the offset in the document where new methods should be inserted.
      */
-    fun getInsertionOffset(psiFile: PsiFile): Int?
+    fun getInsertionOffset(psiFile: PsiFile): Int
 
     /**
      * Get the line number of a method element.
+     * Default implementation uses the document API to convert offset to line number.
      */
-    fun getMethodLineNumber(element: PsiElement): Int
+    fun getMethodLineNumber(element: PsiElement): Int {
+        val file = element.containingFile ?: return 0
+        val virtualFile = file.virtualFile ?: return 0
+        val document = FileDocumentManager.getInstance().getDocument(virtualFile) ?: return 0
+        return document.getLineNumber(element.textRange.startOffset)
+    }
 }

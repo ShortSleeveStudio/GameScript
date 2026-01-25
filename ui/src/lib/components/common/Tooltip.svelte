@@ -25,7 +25,7 @@
 
     let isVisible = $state(false);
     let triggerElement: HTMLElement | undefined = $state();
-    let actualDirection: 'top' | 'bottom' = $state(direction);
+    let actualDirection: 'top' | 'bottom' = $state((() => direction)());
 
     // Minimum space needed above/below for tooltip (approximate tooltip height + gap)
     const MIN_SPACE = 100;

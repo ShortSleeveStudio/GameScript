@@ -296,14 +296,14 @@ func on_conversation_exit(conversation: ConversationRef, notifier: ReadyNotifier
     notifier.on_ready()
 
 func on_cleanup(conversation: ConversationRef) -> void:
-    # Final cleanup (synchronous)
+    # Always called (normal exit, cancel, or error) - use for final cleanup
     pass
 
 func on_error(conversation: ConversationRef, error: String) -> void:
     push_error("Dialogue error: " + error)
 
 func on_conversation_cancelled(conversation: ConversationRef) -> void:
-    # Called when stop_conversation() forcibly stops the conversation
+    # Called before on_cleanup when stop_conversation() forcibly stops
     # Use for immediate cleanup (hiding UI, cancelling animations)
     pass
 ```

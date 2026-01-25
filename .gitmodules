@@ -1,4 +1,0 @@
-[submodule "runtimes/godot/gdextension/godot-cpp"]
-	path = runtimes/godot/gdextension/godot-cpp
-	url = https://github.com/godotengine/godot-cpp.git
-	branch = 4.3

@@ -13,3 +13,4 @@ All version numbers should be kept in sync across the project.
 | `/ui/package.json` | `version` |
 | `/runtimes/unity/Packages/studio.shortsleeve.gamescript/package.json` | `version` |
 | `/runtimes/godot/project/addons/gamescript/plugin.cfg` | `version` |
+| `/runtimes/unreal/GameScript.uplugin` | `VersionName` |

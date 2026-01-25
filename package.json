@@ -1,15 +1,16 @@
 {
   "name": "gamescript",
-  "version": "2.0.11",
+  "version": "2.0.12",
   "description": "Cross-platform dialogue authoring system",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "pnpm -r build",
-    "build:flatbuffers": "flatc --ts -o core/generated/ts/src core/schema/snapshot.fbs && ./runtimes/unity/generate-flatsharp.sh && flatc --cpp -o runtimes/godot/gdextension/src/generated core/schema/snapshot.fbs",
+    "build:flatbuffers": "flatc --ts -o core/generated/ts/src core/schema/snapshot.fbs && ./runtimes/unity/generate-flatsharp.sh && flatc --cpp -o runtimes/godot/gdextension/src/generated core/schema/snapshot.fbs && flatc --cpp -o runtimes/unreal/Source/GameScript/Private/Generated core/schema/snapshot.fbs",
     "build:vscode": "pnpm --filter @gamescript/shared build && pnpm --filter @gamescript/ui build && pnpm --filter ./plugins/vscode build",
     "build:rider": "pnpm --filter @gamescript/shared build && pnpm --filter @gamescript/ui build && cd plugins/rider && ./gradlew buildPlugin",
     "build:godot": "flatc --cpp -o runtimes/godot/gdextension/src/generated core/schema/snapshot.fbs && cd runtimes/godot/gdextension && scons target=template_debug && scons target=template_release",
+    "build:unreal": "flatc --cpp -o runtimes/unreal/Source/GameScript/Private/Generated core/schema/snapshot.fbs && cd runtimes/unreal && ./build.sh",
     "dev": "pnpm -r --parallel dev",
     "dev:rider": "pnpm --filter @gamescript/ui build && cd plugins/rider && ./gradlew runIde",
     "lint": "pnpm -r lint",

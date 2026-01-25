@@ -12,7 +12,7 @@
      * Only one accordion can be open at a time.
      */
     import { onMount } from 'svelte';
-    import { bridge } from '$lib/api';
+    import { bridge } from '$lib/api/bridge.js';
     import {
         dbConnected,
         dbType,

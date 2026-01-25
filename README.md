@@ -66,7 +66,9 @@ gamescript/
 │   ├── godot/                  # Godot 4.x addon
 │   │   ├── gdextension/        # C++ GDExtension source
 │   │   └── project/addons/     # GDScript runtime
-│   └── unreal/                 # Unreal plugin (planned)
+│   └── unreal/                 # Unreal Engine plugin
+│       ├── Source/             # C++ runtime and editor modules
+│       └── ThirdParty/         # FlatBuffers library
 │
 └── tools/                      # CLI tools (planned)
 ```
@@ -123,6 +125,16 @@ Godot 4.x addon providing:
 - Custom Inspector plugins for ID types
 - Export validation
 
+### Unreal Runtime (`runtimes/unreal/`)
+
+Unreal Engine plugin providing:
+- FlatBuffer snapshot loading
+- Dialogue state machine with UGameplayTask support
+- Macro-based function binding (NODE_CONDITION/NODE_ACTION)
+- Custom property drawers and picker windows
+- Pre-PIE build validation
+- IPC integration with GameScript IDE
+
 ## Runtime Installation
 
 ### Unity
@@ -147,6 +159,27 @@ Godot does not have a built-in package manager with Git URL support. Install man
 4. Enable the plugin in **Project > Project Settings > Plugins**
 
 Alternatively, clone the repository and copy `runtimes/godot/project/addons/gamescript/` to your project.
+
+### Unreal Engine
+
+Unreal does not support Git URL installation for plugins. Install manually:
+
+1. Download the release ZIP from the [Releases page](https://github.com/ShortSleeveStudio/GameScript/releases)
+2. Extract the plugin folder
+3. Copy it to your project's `Plugins/GameScript/` directory (create `Plugins/` if it doesn't exist)
+4. Regenerate project files (right-click `.uproject` → **Generate Visual Studio project files**)
+5. Enable the plugin in **Edit → Plugins**, search for "GameScript"
+6. Restart the editor when prompted
+
+Alternatively, build from source:
+```bash
+cd runtimes/unreal
+./setup_flatbuffers.sh  # Fetch FlatBuffers dependency
+./build.sh              # Build plugin to Build/ directory
+# Then copy Build/ to your project's Plugins/GameScript/
+```
+
+See [runtimes/unreal/INSTALLATION.md](runtimes/unreal/INSTALLATION.md) for detailed installation and usage instructions, including **VSCode IntelliSense setup** for the code preview feature.
 
 ## Prerequisites
 
@@ -293,10 +326,26 @@ public static bool HasEnoughGold(IDialogueContext ctx)
 }
 
 [NodeAction(456)]
-public static async Awaitable HandOverGold(IDialogueContext ctx)
+public static async Awaitable HandOverGold(IDialogueContext ctx, CancellationToken token)
 {
     GameState.PlayerGold -= 10;
-    await AnimationManager.Play("hand_over_gold");
+    await AnimationManager.Play("hand_over_gold", token);
+}
+```
+
+```cpp
+// Unreal C++ example
+NODE_CONDITION(456)
+bool HasEnoughGold(const IDialogueContext* Context)
+{
+    return GameState->PlayerGold >= 10;
+}
+
+NODE_ACTION(456)
+UGameplayTask* HandOverGold(const IDialogueContext* Context)
+{
+    GameState->PlayerGold -= 10;
+    return UDialogueAction_PlayAnim::CreateTask(Context, HandOverGoldAnim);
 }
 ```
 
@@ -335,7 +384,10 @@ See [VERSIONING.md](VERSIONING.md) for the list of files that need version bumps
 
 ## Architecture Details
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for in-depth technical documentation.
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Overall system architecture
+- [ARCHITECTURE_UNITY.md](ARCHITECTURE_UNITY.md) - Unity runtime details
+- [ARCHITECTURE_GODOT.md](ARCHITECTURE_GODOT.md) - Godot runtime details
+- [ARCHITECTURE_UNREAL.md](ARCHITECTURE_UNREAL.md) - Unreal runtime details
 
 ## License
 

@@ -267,9 +267,9 @@ public interface IGameScriptListener
     Awaitable OnConversationExit(ConversationRef conv, CancellationToken token);
 
     // Sync methods - immediate notification, no waiting
-    void OnCleanup(ConversationRef conv);                                    // Final cleanup
+    void OnCleanup(ConversationRef conv);                                    // Always called (normal exit, cancel, or error)
     void OnError(ConversationRef conv, Exception e);
-    void OnConversationCancelled(ConversationRef conv);                      // Forcibly stopped
+    void OnConversationCancelled(ConversationRef conv);                      // Called before OnCleanup when cancelled
     NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices);                  // Auto-advance selection
 }
 ```
