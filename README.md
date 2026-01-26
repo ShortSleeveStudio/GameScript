@@ -147,6 +147,8 @@ The Inspector panel (right side) shows context-sensitive properties for whatever
 - **Code Template** – Target engine (Unity, Godot, Unreal)
 - **Export Now** – Manually trigger snapshot export
 
+> **Important:** Before using GameScript, you must configure both the **Snapshot Output Path** and **Code Output Folder** in Settings. The snapshot path should point to a folder in your game project where the runtime can load `.gsb` files (e.g., `Assets/StreamingAssets/GameScript` in Unity). The code output folder should point to where you want generated condition/action code stubs to live.
+
 ### Localization Editor
 
 The Localization Editor lets you edit all translatable text across your project.
@@ -165,6 +167,16 @@ The Localization Editor lets you edit all translatable text across your project.
 - **Search & Replace** – Find and replace text across selected locales
 - **CSV Export** – Download all translations for external editing
 - **CSV Import** – Upload translations with validation and progress tracking
+
+#### Exporting to Google Sheets or Excel
+
+Use the **table options menu** (hamburger icon in the grid toolbar) to export and import localizations as CSV. This enables workflows with external translation tools:
+
+1. **Export CSV** – Download all localizations to a `.csv` file
+2. **Open in Google Sheets or Excel** – Edit translations, send to translators, or use formulas
+3. **Import CSV** – Upload the modified file back into GameScript
+
+The import process validates headers, reports mismatches, and lets you choose between "Update only" (existing rows) or "Upsert" (create missing rows) modes.
 
 #### Localization Tag Categories
 
