@@ -13,6 +13,168 @@ GameScript is a complete dialogue middleware solution that lets game developers:
 
 Unlike traditional dialogue tools that use embedded scripting languages, GameScript keeps all game logic in native code files. Actions and conditions are regular functions that get full IDE support: autocomplete, debugging, refactoring, and type checking.
 
+## Using the IDE Plugin
+
+GameScript's interface is a web-based editor embedded in your IDE (VS Code or Rider). The UI uses a dockable panel system where you can arrange panels to suit your workflow.
+
+![GameScript Overview](docs/screenshots/overview.png)
+
+### Opening GameScript
+
+Click the **GameScript icon** in the IDE sidebar (Activity Bar in VS Code, Tool Window in Rider) to open the editor panel.
+
+![Sidebar Button](docs/screenshots/sidebar-button.png)
+
+### Conversation Finder
+
+The Conversation Finder is your central hub for managing dialogue conversations.
+
+![Conversation Finder](docs/screenshots/conversation-finder.png)
+
+**Features:**
+- **Search & Filter** – Filter conversations by name, ID, tags, or any column
+- **Inline Editing** – Double-click cells to edit names directly in the grid
+- **Multi-select** – Select multiple conversations for bulk delete/restore
+- **Soft Delete** – Deleted conversations can be restored; toggle visibility with the "Show Deleted" button
+- **Dynamic Tag Columns** – Custom tag categories appear as filterable columns
+
+#### Tag Categories
+
+Tag categories let you organize conversations with custom metadata. For example, create a "Status" category with values like "Draft", "In Review", and "Approved".
+
+![Tag Categories](docs/screenshots/tag-categories.png)
+
+**To create a tag category:**
+1. Click the **gear icon** in the Conversation Finder toolbar to open Tag Category Settings
+2. Click **Add Category** and enter a name
+3. Select the category in the Inspector to add values
+4. A new column appears in the grid—assign values by editing cells
+
+#### Property Templates
+
+Property templates define custom data fields attached to conversations or nodes. Unlike tags (which are for organization), properties store game-relevant data that gets exported to your runtime.
+
+![Property Templates](docs/screenshots/property-templates.png)
+
+**Property types:**
+- **String** – Text values
+- **Integer** – Whole numbers
+- **Decimal** – Floating-point numbers
+- **Boolean** – True/false checkboxes
+
+**To create a property template:**
+1. Click the **properties icon** in the toolbar to open Property Template Settings
+2. Click **Add Template** and choose a name and type
+3. Optionally add **predefined values** (dropdown options) for non-boolean types
+4. Properties appear in the Inspector when editing conversations or nodes
+
+### Conversation Editor (Graph)
+
+The Graph Editor is where you design dialogue flows using a visual node-and-edge interface.
+
+![Graph Editor](docs/screenshots/graph-editor.png)
+
+**Node types:**
+- **Root Node** – The conversation entry point (auto-created, cannot be deleted)
+- **Dialogue Node** – A line of dialogue spoken by an actor
+- **Logic Node** – Runs conditions/actions without displaying text
+
+**Working with nodes:**
+- **Create** – Use the toolbar or right-click menu to add nodes
+- **Connect** – Drag from an output port to an input port to create edges
+- **Select** – Click nodes/edges or drag a selection box
+- **Delete** – Press Delete or use the Graph menu
+- **Copy/Paste** – Cmd/Ctrl+C and Cmd/Ctrl+V within the same conversation
+
+**Layout options:**
+- **Auto Layout** – Toggle automatic hierarchical arrangement (uses ELK layout engine)
+- **Vertical/Horizontal** – Switch layout orientation via the Graph menu
+- **Manual Mode** – Disable auto-layout to position nodes freely
+
+**Edge properties:**
+- **Priority** – Higher priority edges are evaluated first when multiple paths exist
+- **Type** – "Default" (visible) or "Hidden" (internal flow, not shown to players)
+
+### Actor Manager
+
+Actors are the characters who speak dialogue lines.
+
+![Actor Manager](docs/screenshots/actor-manager.png)
+
+**Features:**
+- **Create actors** with auto-assigned colors
+- **Edit** name, color, and notes inline or via Inspector
+- **Delete** actors (nodes revert to the default actor)
+- **Localized names** for multilingual character display names
+
+A default "System" actor exists for narration or system messages and cannot be deleted.
+
+### Locale Manager
+
+Locales represent the languages your game supports.
+
+![Locale Manager](docs/screenshots/locale-manager.png)
+
+**Features:**
+- **Create locales** – Add new languages (e.g., "English", "French", "Japanese")
+- **Set primary locale** – The primary language used as the source for translations
+- **Delete locales** – Removes all translations for that language (cannot delete primary)
+
+### Inspector & Settings Panel
+
+The Inspector panel (right side) shows context-sensitive properties for whatever you've selected.
+
+![Inspector Panel](docs/screenshots/inspector-panel.png)
+
+**Top bar buttons:**
+- **Connection** – Database connection status and configuration
+- **Settings** – Project-wide settings (snapshot path, code output folder, auto-export)
+
+**Inspector content changes based on selection:**
+- **Conversation** – Name, notes, tags, custom properties, localizations link
+- **Node** – Type, actor, voice text, UI response text, condition/action code toggles, custom properties
+- **Actor** – Name, color, notes, localized name
+- **Locale** – Name
+- **Tag Category** – Name, list of values (add/edit/delete)
+- **Property Template** – Name, type, predefined values
+
+**Settings panel:**
+
+![Settings Panel](docs/screenshots/settings-panel.png)
+
+- **Snapshot Output Path** – Where to export `.gsb` binary files
+- **Code Output Folder** – Where to generate condition/action code stubs
+- **Code Template** – Target engine (Unity, Godot, Unreal)
+- **Export Now** – Manually trigger snapshot export
+
+### Localization Editor
+
+The Localization Editor lets you edit all translatable text across your project.
+
+![Localization Editor](docs/screenshots/localization-editor.png)
+
+**Grid columns:**
+- **ID** – Localization row identifier
+- **Conversation** – Which conversation owns this text
+- **Name** – Optional label for the localization
+- **Locale columns** – One column per language containing the translated text
+- **Tag columns** – Custom tag categories for organizing translations
+
+**Features:**
+- **Inline editing** – Click any cell to edit translations directly
+- **Search & Replace** – Find and replace text across selected locales
+- **CSV Export** – Download all translations for external editing
+- **CSV Import** – Upload translations with validation and progress tracking
+
+#### Localization Tag Categories
+
+Similar to conversation tags, localization tags help organize your translations. Access tag settings via the gear icon in the Localization Editor toolbar.
+
+**Example use cases:**
+- "Voice Status" – Track which lines have been recorded
+- "Review Status" – Mark translations as needing review
+- "Context" – Categorize by in-game context (UI, cutscene, NPC dialogue)
+
 ## Features
 
 - **Visual Graph Editor** - Node-based dialogue authoring with drag-and-drop
