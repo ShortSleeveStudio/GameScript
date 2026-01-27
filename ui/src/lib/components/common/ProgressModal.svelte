@@ -6,12 +6,13 @@
    * Used for CSV import/export operations that may process
    * hundreds of thousands of rows.
    */
+  import type { OperationPhase } from '@gamescript/shared';
   import Button from './Button.svelte';
 
   interface Props {
     open?: boolean;
     title: string;
-    phase?: 'preparing' | 'validating' | 'processing' | 'complete' | 'failed' | 'cancelled';
+    phase?: OperationPhase;
     current?: number;
     total?: number;
     stats?: {
@@ -46,6 +47,8 @@
     preparing: 'Preparing...',
     validating: 'Validating...',
     processing: 'Processing...',
+    uploading: 'Uploading...',
+    downloading: 'Downloading...',
     complete: 'Complete',
     failed: 'Failed',
     cancelled: 'Cancelled',

@@ -61,12 +61,12 @@ export function getWorkspaceFolder(operation?: string): vscode.WorkspaceFolder {
 }
 
 /**
- * Validate that a dialogue output path is valid (relative, not absolute).
+ * Validate that a code output path is valid (relative, not absolute).
  *
  * @param outputPath The path to validate
  * @throws Error if the path is absolute
  */
-export function validateDialogueOutputPath(outputPath: string): void {
+export function validateCodeOutputPath(outputPath: string): void {
   if (path.isAbsolute(outputPath)) {
     throw new Error(
       `Invalid code output folder: "${outputPath}" is an absolute path. ` +
@@ -95,7 +95,7 @@ export function getConversationFilePath(
     throw new Error('Code output folder not configured. Please set it in the Inspector panel.');
   }
 
-  validateDialogueOutputPath(codeOutputFolder);
+  validateCodeOutputPath(codeOutputFolder);
 
   const workspaceFolder = getWorkspaceFolder('get conversation file path');
   const workspaceRoot = workspaceFolder.uri.fsPath;

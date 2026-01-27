@@ -15,6 +15,7 @@ import { createDialogHandlers } from './handlers/dialog.js';
 import { createFileHandlers } from './handlers/file.js';
 import { createNotificationHandlers } from './handlers/notification.js';
 import { createEditorHandlers } from './handlers/editor.js';
+import { createGoogleSheetsHandlers } from './handlers/google-sheets.js';
 import { WebviewHtmlBuilder } from './webview/html-builder.js';
 import type { PostMessageFn } from './handlers/types.js';
 
@@ -93,7 +94,7 @@ export class GameScriptPanel {
    * Create or show the main GameScript editor panel.
    */
   public static createOrShow(
-    extensionUri: vscode.Uri,
+    context: vscode.ExtensionContext,
     databaseManager: DatabaseManager
   ) {
     const column = vscode.window.activeTextEditor
@@ -114,13 +115,13 @@ export class GameScriptPanel {
       {
         enableScripts: true,
         retainContextWhenHidden: true,
-        localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'dist', 'ui')],
+        localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'dist', 'ui')],
       }
     );
 
     GameScriptPanel._instance = new GameScriptPanel(
       panel,
-      extensionUri,
+      context,
       databaseManager
     );
   }
@@ -136,12 +137,12 @@ export class GameScriptPanel {
 
   private constructor(
     panel: vscode.WebviewPanel,
-    extensionUri: vscode.Uri,
+    context: vscode.ExtensionContext,
     databaseManager: DatabaseManager
   ) {
     this._panel = panel;
     this._databaseManager = databaseManager;
-    this._htmlBuilder = new WebviewHtmlBuilder(extensionUri);
+    this._htmlBuilder = new WebviewHtmlBuilder(context.extensionUri);
     this._mediator = new MessageMediator();
 
     // Create postMessage helper
@@ -166,6 +167,7 @@ export class GameScriptPanel {
     this._mediator.registerMany(createFileHandlers(postMessage));
     this._mediator.registerMany(createNotificationHandlers());
     this._mediator.registerMany(createEditorHandlers());
+    this._mediator.registerMany(createGoogleSheetsHandlers(context.secrets, postMessage));
 
     // Register snapshot watcher handler
     this._mediator.register('snapshot:watchFolder', (msg) => {

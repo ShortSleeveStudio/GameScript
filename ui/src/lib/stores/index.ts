@@ -148,6 +148,25 @@ export {
   localeManagerIsVisible,
 } from './layout.js';
 
+// Google Sheets Integration
+export {
+  googleSheetsHasCredentials,
+  googleSheetsAuthenticated,
+  googleSheetsEmail,
+  googleSheetsSpreadsheet,
+  googleSheetsReady,
+  googleSheetsAuthLoading,
+  googleSheetsSelectLoading,
+  initGoogleSheetsStore,
+  cleanupGoogleSheetsStore,
+  setGoogleSheetsCredentials,
+  signInGoogleSheets,
+  signOutGoogleSheets,
+  selectGoogleSheetsSpreadsheet,
+  clearGoogleSheetsSpreadsheet,
+  type GoogleSheetsSpreadsheetInfo,
+} from './google-sheets.js';
+
 // ============================================================================
 // Initialization
 // ============================================================================
@@ -157,6 +176,7 @@ import { dbConnected, initConnectionStores, tryAutoReconnect } from './connectio
 import { initThemeStore } from './theme.js';
 import { initRegistryStore } from './registry.js';
 import { initFocusStore } from './focus.js';
+import { initGoogleSheetsStore } from './google-sheets.js';
 
 /**
  * Initialize all stores and set up bridge listeners.
@@ -178,6 +198,7 @@ export function initStores(): void {
   initThemeStore();
   initRegistryStore();
   initFocusStore();
+  void initGoogleSheetsStore();
 
   // Wire up db with connection store (breaks circular import)
   db.setConnectionStore(dbConnected);

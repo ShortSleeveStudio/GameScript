@@ -23,7 +23,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Register main editor command - opens the single GameScript panel with Golden Layout
   context.subscriptions.push(
     vscode.commands.registerCommand('gamescript.openEditor', () => {
-      GameScriptPanel.createOrShow(context.extensionUri, databaseManager!);
+      GameScriptPanel.createOrShow(context, databaseManager!);
     })
   );
 

@@ -187,6 +187,60 @@ Similar to conversation tags, localization tags help organize your translations.
 - "Review Status" – Mark translations as needing review
 - "Context" – Categorize by in-game context (UI, cutscene, NPC dialogue)
 
+#### Google Sheets Integration
+
+GameScript can push and pull localizations directly to/from Google Sheets, enabling real-time collaboration with translators. Access these features via the **Google Sheets** dropdown menu in the Localization Editor toolbar.
+
+**Setup Steps:**
+
+1. **Create a Google Cloud Project**
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project (or use an existing one)
+
+2. **Enable Required APIs**
+   - Go to **APIs & Services → Library**
+   - Search for and enable:
+     - **Google Sheets API**
+     - **Google Drive API**
+     - **Google Picker API**
+
+3. **Configure OAuth Consent Screen**
+   - Go to **APIs & Services → OAuth consent screen**
+   - Choose "External" user type (or "Internal" for Workspace accounts)
+   - Fill in the required fields (app name, support email)
+   - Add scopes:
+     - `https://www.googleapis.com/auth/spreadsheets`
+     - `https://www.googleapis.com/auth/drive.readonly`
+     - `https://www.googleapis.com/auth/userinfo.email`
+   - Add your email as a test user (required for External apps in testing mode)
+
+4. **Create OAuth Client ID**
+   - Go to **APIs & Services → Credentials**
+   - Click **Create Credentials → OAuth client ID**
+   - Choose "Desktop app" as the application type
+   - Note the **Client ID** and **Client Secret**
+
+5. **Configure GameScript**
+   - Open GameScript Settings (gear icon in Inspector)
+   - In the **Google Sheets** section, click **Configure**
+   - Enter your **Client ID** and **Client Secret**
+   - Click **Save Credentials**
+
+6. **Sign In and Select Spreadsheet**
+   - Click **Sign In** to authenticate with Google
+   - Click **Select** to choose a spreadsheet using Google Picker
+   - The selected spreadsheet will be used for Push/Pull operations
+
+**Using the Google Sheets Menu:**
+
+Once configured, the **Google Sheets** dropdown menu in the Localization Editor toolbar provides:
+
+- **Open in Browser** – View the selected spreadsheet in your web browser
+- **Export to Sheets** – Export all localizations to the spreadsheet (overwrites existing data)
+- **Import from Sheets** – Import localizations from the spreadsheet (shows import confirmation dialog)
+
+The spreadsheet will have columns matching your locales (ID, Name, English, French, etc.).
+
 ## Features
 
 - **Visual Graph Editor** - Node-based dialogue authoring with drag-and-drop

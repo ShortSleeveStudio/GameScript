@@ -2,7 +2,7 @@
   "name": "gamescript",
   "displayName": "GameScript",
   "description": "Visual dialogue authoring for games",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "publisher": "ShortSleeveStudio",
   "repository": {
     "type": "git",
@@ -103,16 +103,6 @@
           "group": "navigation"
         }
       ]
-    },
-    "configuration": {
-      "title": "GameScript",
-      "properties": {
-        "gamescript.dialogueOutputPath": {
-          "type": "string",
-          "default": "Assets/Scripts/Dialogue",
-          "description": "Path (relative to workspace) where dialogue code files will be generated"
-        }
-      }
     }
   },
   "scripts": {

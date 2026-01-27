@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "locales": [
+    {
+      "id": 1,
+      "name": "en_US",
+      "localizedName": "English",
+      "hash": "b2279f1d8a21d8d52dc891facc183cdec97d5ba26095c69a5fb4c73ef774320a"
+    },
+    {
+      "id": 2,
+      "name": "jp_JP",
+      "localizedName": "Japanese",
+      "hash": "391f91bca61a3d2c144c6027e0507494811436f49ea9e7b9a40df21a47d82cc1"
+    }
+  ],
+  "primaryLocale": 0,
+  "exportedAt": "2026-01-26T22:55:53.551Z"
+}

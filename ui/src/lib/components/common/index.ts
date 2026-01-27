@@ -74,3 +74,4 @@ export { default as RowColumnConversationProperties } from './RowColumnConversat
 // Grid components
 export { default as GridToolbar } from './GridToolbar.svelte';
 export { default as TableOptionsMenu } from './TableOptionsMenu.svelte';
+export { default as GoogleSheetsMenu } from './GoogleSheetsMenu.svelte';

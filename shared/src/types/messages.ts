@@ -352,7 +352,109 @@ export interface SnapshotWatchFolderMessage {
 	folderPath: string | null;
 }
 
+// ============================================================================
+// Google Sheets Messages (UI → Extension)
+// ============================================================================
+
+/**
+ * Store Google API credentials in SecretStorage.
+ */
+export interface GoogleSheetsSetCredentialsMessage {
+	type: 'googleSheets:setCredentials';
+	id: string;
+	clientId: string;
+	clientSecret: string;
+	apiKey: string;
+}
+
+/**
+ * Check if Google API credentials are stored.
+ * Returns hasCredentials (boolean), not the actual values.
+ */
+export interface GoogleSheetsGetCredentialsMessage {
+	type: 'googleSheets:getCredentials';
+	id: string;
+}
+
+/**
+ * Initiate Google OAuth sign-in flow.
+ * Opens browser for authentication.
+ */
+export interface GoogleSheetsSignInMessage {
+	type: 'googleSheets:signIn';
+	id: string;
+}
+
+/**
+ * Sign out from Google Sheets.
+ * Clears stored OAuth tokens.
+ */
+export interface GoogleSheetsSignOutMessage {
+	type: 'googleSheets:signOut';
+	id: string;
+}
+
+/**
+ * Get current Google Sheets authentication status.
+ */
+export interface GoogleSheetsGetStatusMessage {
+	type: 'googleSheets:getStatus';
+	id: string;
+}
+
+/**
+ * Open browser with Google Picker to select a spreadsheet.
+ */
+export interface GoogleSheetsSelectSpreadsheetMessage {
+	type: 'googleSheets:selectSpreadsheet';
+	id: string;
+}
+
+/**
+ * Clear the currently selected spreadsheet.
+ */
+export interface GoogleSheetsClearSpreadsheetMessage {
+	type: 'googleSheets:clearSpreadsheet';
+	id: string;
+}
+
+/**
+ * Push localization data to the configured Google Sheets spreadsheet.
+ */
+export interface GoogleSheetsPushMessage {
+	type: 'googleSheets:push';
+	id: string;
+	/** The spreadsheet ID to push to */
+	spreadsheetId: string;
+	/** CSV-formatted data to push */
+	data: string;
+}
+
+/**
+ * Pull localization data from the configured Google Sheets spreadsheet.
+ */
+export interface GoogleSheetsPullMessage {
+	type: 'googleSheets:pull';
+	id: string;
+	/** The spreadsheet ID to pull from */
+	spreadsheetId: string;
+}
+
 export type NotificationLevel = 'info' | 'warning' | 'error';
+
+/**
+ * Operation phases for long-running operations like CSV import/export
+ * and Google Sheets push/pull.
+ */
+export type OperationPhase =
+	| 'preparing'
+	| 'validating'
+	| 'processing'
+	| 'uploading'
+	| 'downloading'
+	| 'complete'
+	| 'failed'
+	| 'cancelled';
 
 export interface NotifyMessage {
 	type: 'notify';
@@ -365,6 +467,14 @@ export interface StatusMessage {
 	type: 'status';
 	message: string;
 	timeoutMs?: number;
+}
+
+/**
+ * Request to open an external URL in the system browser.
+ */
+export interface OpenExternalMessage {
+	type: 'openExternal';
+	url: string;
 }
 
 /**
@@ -456,7 +566,17 @@ export type OutgoingMessage =
 	| CodeRestoreFileMessage
 	| CodeOpenMethodMessage
 	| CodeWatchFolderMessage
-	| SnapshotWatchFolderMessage;
+	| SnapshotWatchFolderMessage
+	| GoogleSheetsSetCredentialsMessage
+	| GoogleSheetsGetCredentialsMessage
+	| GoogleSheetsSignInMessage
+	| GoogleSheetsSignOutMessage
+	| GoogleSheetsGetStatusMessage
+	| GoogleSheetsSelectSpreadsheetMessage
+	| GoogleSheetsClearSpreadsheetMessage
+	| GoogleSheetsPushMessage
+	| GoogleSheetsPullMessage
+	| OpenExternalMessage;
 
 // ============================================================================
 // Messages FROM Extension TO UI
@@ -972,6 +1092,133 @@ export interface EditSaveMessage {
 	type: 'edit:save';
 }
 
+// ============================================================================
+// Google Sheets Messages (Extension → UI)
+// ============================================================================
+
+/**
+ * Spreadsheet info returned from selection or status.
+ */
+export interface GoogleSheetsSpreadsheetInfo {
+	id: string;
+	name: string;
+	url: string;
+}
+
+export interface GoogleSheetsSetCredentialsResultMessage {
+	type: 'googleSheets:setCredentialsResult';
+	id: string;
+	success: boolean;
+}
+
+export interface GoogleSheetsGetCredentialsResultMessage {
+	type: 'googleSheets:getCredentialsResult';
+	id: string;
+	hasCredentials: boolean;
+}
+
+export interface GoogleSheetsSignInResultMessage {
+	type: 'googleSheets:signInResult';
+	id: string;
+	success: true;
+	email: string;
+}
+
+export interface GoogleSheetsSignInErrorMessage {
+	type: 'googleSheets:signInResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface GoogleSheetsSignOutResultMessage {
+	type: 'googleSheets:signOutResult';
+	id: string;
+	success: true;
+}
+
+export interface GoogleSheetsSignOutErrorMessage {
+	type: 'googleSheets:signOutResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface GoogleSheetsStatusResultMessage {
+	type: 'googleSheets:statusResult';
+	id: string;
+	authenticated: boolean;
+	email?: string;
+}
+
+export interface GoogleSheetsSelectSpreadsheetResultMessage {
+	type: 'googleSheets:selectSpreadsheetResult';
+	id: string;
+	success: true;
+	spreadsheet: GoogleSheetsSpreadsheetInfo;
+}
+
+export interface GoogleSheetsSelectSpreadsheetErrorMessage {
+	type: 'googleSheets:selectSpreadsheetResult';
+	id: string;
+	success: false;
+	/** Error message, or 'cancelled' if user closed picker without selecting */
+	error: string;
+}
+
+export interface GoogleSheetsClearSpreadsheetResultMessage {
+	type: 'googleSheets:clearSpreadsheetResult';
+	id: string;
+	success: true;
+}
+
+export interface GoogleSheetsPushResultMessage {
+	type: 'googleSheets:pushResult';
+	id: string;
+	success: true;
+}
+
+export interface GoogleSheetsPushErrorMessage {
+	type: 'googleSheets:pushResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+export interface GoogleSheetsPullResultMessage {
+	type: 'googleSheets:pullResult';
+	id: string;
+	success: true;
+	/** CSV-formatted data from the spreadsheet */
+	data: string;
+}
+
+export interface GoogleSheetsPullErrorMessage {
+	type: 'googleSheets:pullResult';
+	id: string;
+	success: false;
+	error: string;
+}
+
+/**
+ * Broadcast when Google Sheets authentication state changes.
+ * Sent when user signs in or out.
+ */
+export interface GoogleSheetsAuthChangedMessage {
+	type: 'googleSheets:authChanged';
+	authenticated: boolean;
+	email?: string;
+}
+
+/**
+ * Broadcast when the selected spreadsheet changes.
+ * Sent when user selects or clears a spreadsheet.
+ */
+export interface GoogleSheetsSpreadsheetChangedMessage {
+	type: 'googleSheets:spreadsheetChanged';
+	spreadsheet: GoogleSheetsSpreadsheetInfo | null;
+}
+
 /**
  * Union type of all messages sent FROM Extension TO UI
  */
@@ -1045,7 +1292,23 @@ export type IncomingMessage =
 	| ThemeChangedMessage
 	| EditUndoMessage
 	| EditRedoMessage
-	| EditSaveMessage;
+	| EditSaveMessage
+	| GoogleSheetsSetCredentialsResultMessage
+	| GoogleSheetsGetCredentialsResultMessage
+	| GoogleSheetsSignInResultMessage
+	| GoogleSheetsSignInErrorMessage
+	| GoogleSheetsSignOutResultMessage
+	| GoogleSheetsSignOutErrorMessage
+	| GoogleSheetsStatusResultMessage
+	| GoogleSheetsSelectSpreadsheetResultMessage
+	| GoogleSheetsSelectSpreadsheetErrorMessage
+	| GoogleSheetsClearSpreadsheetResultMessage
+	| GoogleSheetsPushResultMessage
+	| GoogleSheetsPushErrorMessage
+	| GoogleSheetsPullResultMessage
+	| GoogleSheetsPullErrorMessage
+	| GoogleSheetsAuthChangedMessage
+	| GoogleSheetsSpreadsheetChangedMessage;
 
 // ============================================================================
 // Bridge Event Types
@@ -1081,6 +1344,10 @@ export interface BridgeEvents {
 	editUndo: () => void;
 	editRedo: () => void;
 	editSave: () => void;
+	/** Google Sheets authentication state changed */
+	googleSheetsAuthChanged: (authenticated: boolean, email?: string) => void;
+	/** Google Sheets selected spreadsheet changed */
+	googleSheetsSpreadsheetChanged: (spreadsheet: GoogleSheetsSpreadsheetInfo | null) => void;
 }
 
 export type BridgeEventName = keyof BridgeEvents;

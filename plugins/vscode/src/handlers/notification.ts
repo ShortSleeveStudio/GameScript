@@ -1,11 +1,11 @@
 /**
  * Notification handlers for showing messages to the user.
  *
- * Handles 'notify' and 'status' messages from the webview.
+ * Handles 'notify', 'status', and 'openExternal' messages from the webview.
  */
 
 import * as vscode from 'vscode';
-import type { NotifyMessage, StatusMessage } from '@gamescript/shared';
+import type { NotifyMessage, StatusMessage, OpenExternalMessage } from '@gamescript/shared';
 import type { HandlerRecord } from './types.js';
 
 const DEFAULT_STATUS_TIMEOUT_MS = 3000;
@@ -36,6 +36,11 @@ export function createNotificationHandlers(): HandlerRecord {
     'status': (message) => {
       const { message: msg, timeoutMs } = message as StatusMessage;
       vscode.window.setStatusBarMessage(msg, timeoutMs ?? DEFAULT_STATUS_TIMEOUT_MS);
+    },
+
+    'openExternal': (message) => {
+      const { url } = message as OpenExternalMessage;
+      vscode.env.openExternal(vscode.Uri.parse(url));
     },
   };
 }

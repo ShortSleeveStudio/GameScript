@@ -33,6 +33,7 @@ import com.shortsleevestudio.gamescript.handlers.FileHandlers
 import com.shortsleevestudio.gamescript.handlers.HandlerContext
 import com.shortsleevestudio.gamescript.handlers.MessageMediator
 import com.shortsleevestudio.gamescript.handlers.NotificationHandlers
+import com.shortsleevestudio.gamescript.handlers.GoogleSheetsHandlers
 import com.shortsleevestudio.gamescript.services.GameScriptBackendHost
 import com.shortsleevestudio.gamescript.settings.GameScriptSettings
 import com.shortsleevestudio.gamescript.theme.ThemeMapper
@@ -266,6 +267,10 @@ class GameScriptBrowserPanel(
         val notificationHandlers = NotificationHandlers(handlerContext)
         mediator.registerAll(notificationHandlers.getHandlers())
         Disposer.register(this) { notificationHandlers.dispose() }
+
+        // Google Sheets handlers
+        val googleSheetsHandlers = GoogleSheetsHandlers(handlerContext)
+        mediator.registerAll(googleSheetsHandlers.getHandlers())
 
         // Snapshot command watcher handler
         mediator.register("snapshot:watchFolder") { message ->

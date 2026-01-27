@@ -10,6 +10,8 @@ interface ActionMenuItemBase {
   label: string;
   /** Whether the item is disabled */
   disabled?: boolean;
+  /** Warning message shown as tooltip on a warning icon */
+  warning?: string;
 }
 
 /** Button-style menu item - triggers an action when clicked */

@@ -231,3 +231,51 @@ export function validateCsvHeaders(
     extra,
   };
 }
+
+// ============================================================================
+// Simple 2D Array Utilities (for Google Sheets API integration)
+// ============================================================================
+
+/**
+ * Parse CSV content into a 2D array of strings.
+ * Uses papaparse for consistent handling of edge cases.
+ *
+ * @param content - Raw CSV string content
+ * @param options - Import options (delimiter)
+ * @returns 2D array where each inner array is a row of string values
+ */
+export function csvTo2DArray(content: string, options?: CsvImportOptions): string[][] {
+  const opts = { ...DEFAULT_IMPORT_OPTIONS, ...options };
+
+  const result = Papa.parse<string[]>(content, {
+    delimiter: opts.delimiter,
+    header: false,
+    skipEmptyLines: true,
+  });
+
+  return result.data;
+}
+
+/**
+ * Convert a 2D array of values to CSV string.
+ * Uses papaparse for consistent escaping of edge cases.
+ *
+ * @param rows - 2D array where each inner array is a row of values
+ * @param options - Export options (delimiter, newline)
+ * @returns CSV string with proper escaping
+ */
+export function array2DToCsv(rows: unknown[][], options?: CsvExportOptions): string {
+  if (rows.length === 0) return '';
+
+  const opts = { ...DEFAULT_EXPORT_OPTIONS, ...options };
+
+  // Convert all values to strings, handling null/undefined
+  const stringRows = rows.map((row) =>
+    row.map((v) => (v === null || v === undefined ? '' : String(v)))
+  );
+
+  return Papa.unparse(stringRows, {
+    delimiter: opts.delimiter,
+    newline: opts.newline,
+  });
+}

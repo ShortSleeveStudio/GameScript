@@ -54,6 +54,4 @@ export interface HandlerContext {
   extensionUri: vscode.Uri;
   /** Get the first workspace folder (if any) */
   getWorkspaceFolder: () => vscode.WorkspaceFolder | undefined;
-  /** Get dialogue output path from settings */
-  getDialogueOutputPath: () => string;
 }

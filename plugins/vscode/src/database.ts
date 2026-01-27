@@ -10,7 +10,7 @@
  * - One active transaction max: Nested transactions throw immediately
  * - All operations during a transaction MUST use the connectionId
  * - Operations without connectionId while a transaction is active will THROW
- * - WAL mode is enabled by default for better concurrency
+ * - DELETE journal mode for immediate .db file updates (git-friendly)
  *
  * PostgreSQL:
  * - Connection pool with per-transaction client isolation
@@ -313,8 +313,9 @@ export class DatabaseManager {
         this._type = 'sqlite';
         this._connected = true;
 
-        // Enable WAL mode for better concurrency
-        await this._sqliteDb.exec('PRAGMA journal_mode = WAL');
+        // Use DELETE journal mode so changes are written directly to the .db file
+        // (makes the file visible to git immediately after commits)
+        await this._sqliteDb.exec('PRAGMA journal_mode = DELETE');
 
       } else if (config.type === 'postgres') {
         if (!config.host || !config.database || !config.user) {
@@ -362,7 +363,7 @@ export class DatabaseManager {
   /**
    * Execute a SELECT query and return rows.
    *
-   * For SQLite: Reads are safe with or without a transaction context (WAL mode).
+   * For SQLite: Reads are safe with or without a transaction context.
    * If connectionId is provided, the read participates in that transaction.
    * If not provided during an active transaction, the read queues and executes
    * after the transaction completes.
@@ -374,7 +375,7 @@ export class DatabaseManager {
 
     if (this._type === 'sqlite') {
       // Note: We intentionally skip _validateSqliteTransactionScope for reads.
-      // With WAL mode, concurrent readers are safe. A SELECT without connectionId
+      // Concurrent readers are safe in SQLite. A SELECT without connectionId
       // during an active transaction will queue behind it via _enqueueSqliteOperation
       // and execute after the transaction completes. This is correct behavior -
       // it allows table view reloads and other read operations to proceed without
@@ -392,9 +393,9 @@ export class DatabaseManager {
       }
 
       // Outside transaction, execute directly.
-      // NOTE: With WAL mode enabled, readers safely see the last committed state
-      // while a single writer is serialized via the operation queue. This is
-      // intentionally NOT enqueued - concurrent reads are safe and performant.
+      // Readers safely see the last committed state while a single writer
+      // is serialized via the operation queue. This is intentionally NOT
+      // enqueued - concurrent reads are safe and performant.
       return this._sqliteDb.all<T>(sql, params);
     } else if (this._type === 'postgres') {
       const connection = this._getPostgresConnection(connectionId);

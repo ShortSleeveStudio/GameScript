@@ -156,6 +156,9 @@
                             </span>
                         {/if}
                         <span class="action-menu-label">{item.label}</span>
+                        {#if item.warning}
+                            <span class="action-menu-warning" title={item.warning}>⚠</span>
+                        {/if}
                     </button>
                 {/if}
             {/each}
@@ -265,5 +268,11 @@
         height: 1px;
         background: var(--gs-border-primary);
         margin: 4px 8px;
+    }
+
+    .action-menu-warning {
+        color: var(--gs-fg-warning, #f0ad4e);
+        font-size: 12px;
+        cursor: help;
     }
 </style>

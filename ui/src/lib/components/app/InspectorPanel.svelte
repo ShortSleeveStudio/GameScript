@@ -4,7 +4,7 @@
      *
      * This component is always visible on the right side of the app.
      * It contains:
-     * - Top bar with connection button (left) and settings button (right)
+     * - Top bar with connection button (left), export button, and settings button (right)
      * - Connection accordion (expands below top bar when connection button clicked)
      * - Settings accordion (expands below top bar when settings button clicked)
      * - Inspector content below (shows selected item properties)
@@ -21,12 +21,14 @@
         disconnect as disconnectStore,
         connect as connectStore,
     } from '$lib/stores/connection.js';
+    import { snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
+    import { exportController } from '$lib/export';
     import Inspector from '$lib/components/inspector/Inspector.svelte';
     import SettingsPanel from './SettingsPanel.svelte';
     import { Button, TabGroup, Input } from '$lib/components/common';
 
     // Notifications
-    import { toastError } from '$lib/stores/notifications.js';
+    import { toastError, toastSuccess } from '$lib/stores/notifications.js';
 
     // Panel state - only one can be open at a time, bindable for parent backdrop
     export type ActivePanel = 'none' | 'connection' | 'settings';
@@ -59,6 +61,39 @@
     let connected = $derived($dbConnected);
     let currentDbType = $derived($dbType);
     let status = $derived($connectionStatus);
+
+    // Export state
+    let snapshotOutputPathView = $derived(getSnapshotOutputPath(snapshotOutputPathTableView.rows));
+    let snapshotOutputPathValue = $derived(snapshotOutputPathView?.data.value ?? null);
+    let isSnapshotPathConfigured = $derived(
+        snapshotOutputPathValue !== null && snapshotOutputPathValue.trim() !== ''
+    );
+    const exportProgress = exportController.progress;
+
+    let isExporting = $derived.by(() => {
+        const progress = $exportProgress;
+        return (
+            progress.phase !== 'complete' &&
+            progress.phase !== 'error' &&
+            progress.phase !== 'cancelled'
+        );
+    });
+
+    let showExportSuccess = $state(false);
+
+    let exportButtonText = $derived.by(() => {
+        const progress = $exportProgress;
+        if (!isExporting) return 'Export';
+        if (progress.totalLocales === 0) return 'Export...';
+        const percent = Math.round((progress.completedLocales / progress.totalLocales) * 100);
+        return `${percent}%`;
+    });
+
+    let exportButtonTitle = $derived.by(() => {
+        if (!isSnapshotPathConfigured) return 'Configure snapshot output path in Settings first';
+        if (isExporting) return 'Click to cancel export';
+        return 'Export snapshots';
+    });
 
     function toggleConnectionPanel() {
         if (connected) {
@@ -133,6 +168,42 @@
             toastError('Failed to disconnect', error);
         }
     }
+
+    async function handleExportClick() {
+        if (isExporting) {
+            // Cancel the current export
+            exportController.cancel();
+            return;
+        }
+
+        if (!isSnapshotPathConfigured || !snapshotOutputPathValue) {
+            toastError('Please configure a snapshot output path first');
+            return;
+        }
+
+        try {
+            const result = await exportController.exportAll(snapshotOutputPathValue);
+
+            if (result.success) {
+                // Show success checkmark for 1.5 seconds
+                showExportSuccess = true;
+                setTimeout(() => {
+                    showExportSuccess = false;
+                }, 1500);
+
+                if (result.localesExported === 0 && result.localesSkipped > 0) {
+                    toastSuccess(`No changes to export (${result.localesSkipped} locales unchanged)`);
+                } else {
+                    const skippedMsg = result.localesSkipped > 0 ? `, ${result.localesSkipped} unchanged` : '';
+                    toastSuccess(`Exported ${result.localesExported} locale(s)${skippedMsg} in ${result.durationMs}ms`);
+                }
+            } else if (result.error !== 'Export cancelled') {
+                toastError('Export failed', result.error);
+            }
+        } catch (error) {
+            toastError('Failed to export snapshots', error);
+        }
+    }
 </script>
 
 <div class="inspector-panel">
@@ -165,16 +236,30 @@
             {/if}
         </button>
 
-        <button
-            class="top-bar-button"
-            class:active={activePanel === 'settings'}
-            onclick={toggleSettingsPanel}
-            title="Project settings"
-            disabled={!connected}
-        >
-            <span class="button-text">Settings</span>
-            <span class="chevron" class:expanded={activePanel === 'settings'}>▾</span>
-        </button>
+        <div class="top-bar-right">
+            <button
+                class="top-bar-button export-button"
+                class:exporting={isExporting}
+                class:success={showExportSuccess}
+                onclick={handleExportClick}
+                title={exportButtonTitle}
+                disabled={!connected || (!isSnapshotPathConfigured && !isExporting)}
+            >
+                <span class="button-text">{exportButtonText}</span>
+                <span class="export-check" class:visible={showExportSuccess}>✓</span>
+            </button>
+
+            <button
+                class="top-bar-button"
+                class:active={activePanel === 'settings'}
+                onclick={toggleSettingsPanel}
+                title="Project settings"
+                disabled={!connected}
+            >
+                <span class="button-text">Settings</span>
+                <span class="chevron" class:expanded={activePanel === 'settings'}>▾</span>
+            </button>
+        </div>
     </div>
 
     <!-- Connection Panel (accordion) -->
@@ -358,6 +443,53 @@
 
     .chevron.expanded {
         transform: rotate(180deg);
+    }
+
+    .top-bar-right {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .top-bar-button.export-button {
+        min-width: 60px;
+        justify-content: center;
+        background: var(--gs-button-bg);
+        border-color: var(--gs-button-bg);
+        color: var(--gs-button-fg);
+    }
+
+    .top-bar-button.export-button:hover:not(:disabled) {
+        background: var(--gs-button-hover-bg);
+        border-color: var(--gs-button-hover-bg);
+    }
+
+    .top-bar-button.export-button:disabled {
+        opacity: 0.5;
+    }
+
+    .top-bar-button.export-button.exporting {
+        background: var(--gs-button-bg);
+        border-color: var(--gs-button-bg);
+    }
+
+    .top-bar-button.export-button.success,
+    .top-bar-button.export-button.success:hover:not(:disabled) {
+        background: var(--gs-status-success);
+        border-color: var(--gs-status-success);
+    }
+
+    .export-check {
+        font-size: 10px;
+        font-weight: bold;
+        margin-left: 2px;
+        line-height: 1;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+
+    .export-check.visible {
+        opacity: 1;
     }
 
     /* Accordion Panel */

@@ -29,7 +29,7 @@
     type RowClickedEvent,
     type EditableCallbackParams,
   } from '@ag-grid-community/core';
-  import type { Localization, Locale, CsvColumnDescriptor, ImportBatchResult } from '@gamescript/shared';
+  import type { Localization, Locale, CsvColumnDescriptor, ImportBatchResult, OperationPhase } from '@gamescript/shared';
   import { localeIdToColumn, toCsvHeader, toCsvBatch, parseCsv, validateCsvHeaders, buildLocalizationColumns, csvRowToLocalizationUpdate } from '@gamescript/shared';
   import { TABLE_LOCALIZATIONS, TABLE_LOCALES, type IDbRowView } from '$lib/db';
   import {
@@ -74,10 +74,11 @@
   } from '$lib/constants/events.js';
   import { localizations, localizationTagCategories } from '$lib/crud';
   import { toastError, toastSuccess } from '$lib/stores/notifications.js';
-  import { Button, ToggleButton, Checkbox, Input, Modal, TableOptionsMenu, ProgressModal, TagCategorySettingsPanel, GridToolbar } from '$lib/components/common';
+  import { Button, ToggleButton, Checkbox, Input, Modal, TableOptionsMenu, ProgressModal, TagCategorySettingsPanel, GridToolbar, GoogleSheetsMenu } from '$lib/components/common';
   import { bridge } from '$lib/api/bridge.js';
   import { focusLocalizationTagCategory, focusedLocalizationTagCategory } from '$lib/stores/focus.js';
   import IconSettings from '$lib/components/icons/IconSettings.svelte';
+  import { googleSheetsReady, googleSheetsSpreadsheet } from '$lib/stores';
 
   // Constants
   const ID_COLUMN = 'id';
@@ -161,9 +162,10 @@
   let pendingCsvContent: string | null = null;
 
   // Progress state for import/export operations
+  type OperationType = 'import' | 'export' | 'push' | 'pull';
   interface OperationProgress {
-    type: 'import' | 'export';
-    phase: 'preparing' | 'validating' | 'processing' | 'complete' | 'failed' | 'cancelled';
+    type: OperationType;
+    phase: OperationPhase;
     current: number;
     total: number;
     stats: {
@@ -175,6 +177,9 @@
     };
     errorMessages: string[];
   }
+
+  /** Maximum number of error messages to display */
+  const MAX_ERROR_MESSAGES = 10;
   let operationProgress: OperationProgress | null = $state(null);
   let operationAbortController: AbortController | null = null;
 
@@ -409,8 +414,87 @@
   }
 
   /**
-   * Export all localizations to CSV with streaming writes.
+   * Build CSV content from all localizations.
    * Processes rows in batches to avoid memory issues with large datasets.
+   *
+   * @param operationType - The type of operation (for progress display)
+   * @param onBatchWrite - Optional callback to write each batch (for streaming to file)
+   * @returns The full CSV content, or null if cancelled/no data
+   */
+  async function buildCsvContent(
+    operationType: OperationType,
+    onBatchWrite?: (header: string, isHeader: true) => Promise<void>,
+    onBatchWriteData?: (batch: string) => Promise<void>
+  ): Promise<string | null> {
+    // Initialize progress
+    operationAbortController = new AbortController();
+    operationProgress = {
+      type: operationType,
+      phase: 'preparing',
+      current: 0,
+      total: 0,
+      stats: { exported: 0 },
+      errorMessages: [],
+    };
+
+    // Get total count
+    const totalCount = await localizations.getCount();
+    if (totalCount === 0) {
+      operationProgress = null;
+      return null;
+    }
+
+    operationProgress = { ...operationProgress, total: totalCount, phase: 'processing' };
+
+    // Build columns
+    const columns = buildCsvColumns();
+
+    // Build header
+    const header = toCsvHeader(columns);
+    let csvContent = header;
+
+    // Write header if streaming
+    if (onBatchWrite) {
+      await onBatchWrite(header, true);
+    }
+
+    // Export in batches
+    let offset = 0;
+    while (offset < totalCount) {
+      if (operationAbortController.signal.aborted) {
+        operationProgress = { ...operationProgress, phase: 'cancelled' };
+        return null;
+      }
+
+      // Fetch batch
+      const batch = await localizations.getBatch(offset, EXPORT_BATCH_SIZE);
+      if (batch.length === 0) break;
+
+      // Generate CSV for batch
+      const csvBatch = toCsvBatch(batch, columns);
+
+      // Write batch if streaming, otherwise accumulate
+      if (onBatchWriteData) {
+        await onBatchWriteData(csvBatch);
+      } else {
+        csvContent += csvBatch;
+      }
+
+      // Update progress
+      offset += batch.length;
+      operationProgress = {
+        ...operationProgress,
+        current: offset,
+        stats: { exported: offset },
+      };
+    }
+
+    return csvContent;
+  }
+
+  /**
+   * Export all localizations to CSV file.
+   * Uses streaming writes to handle large datasets efficiently.
    */
   async function handleExportCsv(): Promise<void> {
     try {
@@ -420,62 +504,25 @@
 
       const filePath = result.filePath;
 
-      // Initialize progress
-      operationAbortController = new AbortController();
-      operationProgress = {
-        type: 'export',
-        phase: 'preparing',
-        current: 0,
-        total: 0,
-        stats: { exported: 0 },
-        errorMessages: [],
-      };
+      // Build CSV with streaming writes to file
+      const csvContent = await buildCsvContent(
+        'export',
+        async (header) => await bridge.writeFile(filePath, header),
+        async (batch) => await bridge.appendFile(filePath, batch)
+      );
 
-      // Get total count
-      const totalCount = await localizations.getCount();
-      if (totalCount === 0) {
-        toastError('No localizations to export');
-        operationProgress = null;
+      if (csvContent === null) {
+        if (operationProgress?.phase === 'cancelled') {
+          // Already handled
+        } else {
+          toastError('No localizations to export');
+        }
         return;
       }
 
-      operationProgress = { ...operationProgress, total: totalCount, phase: 'processing' };
-
-      // Build columns
-      const columns = buildCsvColumns();
-
-      // Write header (truncates file if it exists)
-      const header = toCsvHeader(columns);
-      await bridge.writeFile(filePath, header);
-
-      // Export in batches
-      let offset = 0;
-      while (offset < totalCount) {
-        if (operationAbortController.signal.aborted) {
-          operationProgress = { ...operationProgress, phase: 'cancelled' };
-          break;
-        }
-
-        // Fetch batch
-        const batch = await localizations.getBatch(offset, EXPORT_BATCH_SIZE);
-        if (batch.length === 0) break;
-
-        // Generate and write CSV for batch
-        const csvBatch = toCsvBatch(batch, columns);
-        await bridge.appendFile(filePath, csvBatch);
-
-        // Update progress
-        offset += batch.length;
-        operationProgress = {
-          ...operationProgress,
-          current: offset,
-          stats: { exported: offset },
-        };
-      }
-
       // Done
-      if (operationProgress.phase !== 'cancelled') {
-        operationProgress = { ...operationProgress, phase: 'complete' };
+      if (operationProgress?.phase !== 'cancelled') {
+        operationProgress = { ...operationProgress!, phase: 'complete' };
         toastSuccess(`Exported ${operationProgress.stats.exported?.toLocaleString()} localization(s) to CSV`);
       }
     } catch (err) {
@@ -701,7 +748,7 @@
         } catch (err) {
           operationProgress.stats.errors = (operationProgress.stats.errors ?? 0) + 1;
           const errMsg = err instanceof Error ? err.message : String(err);
-          if (operationProgress.errorMessages.length < 100) {
+          if (operationProgress.errorMessages.length < MAX_ERROR_MESSAGES) {
             operationProgress.errorMessages.push(
               `Batch ${Math.floor(i / IMPORT_BATCH_SIZE) + 1}: ${errMsg}`
             );
@@ -756,6 +803,138 @@
     pendingImport = null;
     pendingCsvContent = null;
     pendingParsedRows = null;
+  }
+
+  // ============================================================================
+  // Google Sheets Push/Pull
+  // ============================================================================
+
+  /**
+   * Push localizations to Google Sheets.
+   * Builds CSV content in memory and uploads it to the configured spreadsheet.
+   */
+  async function handlePushToSheets(): Promise<void> {
+    if (!$googleSheetsReady || !$googleSheetsSpreadsheet) return;
+
+    try {
+      // Build CSV content (accumulates in memory for upload)
+      const csvContent = await buildCsvContent('push');
+
+      if (csvContent === null) {
+        if (operationProgress?.phase === 'cancelled') {
+          // Already handled
+        } else {
+          toastError('No localizations to push');
+        }
+        return;
+      }
+
+      // Update phase to uploading before API call
+      operationProgress = { ...operationProgress!, phase: 'uploading' };
+
+      // Push to Google Sheets
+      const result = await bridge.googleSheetsPush($googleSheetsSpreadsheet.id, csvContent);
+
+      if (result.success) {
+        operationProgress = { ...operationProgress!, phase: 'complete' };
+        toastSuccess(`Pushed ${operationProgress.stats.exported?.toLocaleString()} localization(s) to "${$googleSheetsSpreadsheet.name}"`);
+      } else {
+        operationProgress = {
+          ...operationProgress!,
+          phase: 'failed',
+          errorMessages: [result.error ?? 'Push failed'],
+        };
+      }
+    } catch (err) {
+      if (operationProgress) {
+        operationProgress = {
+          ...operationProgress,
+          phase: 'failed',
+          errorMessages: [`Push failed: ${err}`],
+        };
+      }
+      toastError('Push to Google Sheets failed', err);
+    }
+  }
+
+  /**
+   * Pull localizations from Google Sheets.
+   * Downloads CSV data from the configured spreadsheet and shows the import confirmation modal.
+   */
+  async function handlePullFromSheets(): Promise<void> {
+    if (!$googleSheetsReady || !$googleSheetsSpreadsheet) return;
+
+    try {
+      // Initialize progress
+      operationAbortController = new AbortController();
+      operationProgress = {
+        type: 'pull',
+        phase: 'downloading',
+        current: 0,
+        total: 0,
+        stats: {},
+        errorMessages: [],
+      };
+
+      // Pull CSV data from Google Sheets
+      const result = await bridge.googleSheetsPull($googleSheetsSpreadsheet.id);
+
+      if (operationAbortController.signal.aborted) {
+        operationProgress = { ...operationProgress, phase: 'cancelled' };
+        return;
+      }
+
+      if (!result.success || !result.data) {
+        operationProgress = {
+          ...operationProgress,
+          phase: 'failed',
+          errorMessages: [result.error ?? 'Pull failed'],
+        };
+        return;
+      }
+
+      // Update progress to validating
+      operationProgress = { ...operationProgress, phase: 'validating' };
+
+      // Store the CSV content and validate it
+      pendingCsvContent = result.data;
+      const validation = validateAndParseCsv(pendingCsvContent);
+
+      if (!validation.valid) {
+        operationProgress = {
+          ...operationProgress,
+          phase: 'failed',
+          errorMessages: validation.errors.slice(0, MAX_ERROR_MESSAGES),
+        };
+        pendingCsvContent = null;
+        pendingParsedRows = null;
+        return;
+      }
+
+      // Close progress modal before showing import modal
+      operationProgress = null;
+      operationAbortController = null;
+
+      // Cache parsed rows for import phase
+      pendingParsedRows = validation.parsedRows;
+
+      // Show confirmation modal (reusing CSV import modal)
+      pendingImport = {
+        mode: 'update',
+        warnings: validation.warnings,
+      };
+    } catch (err) {
+      if (operationProgress) {
+        operationProgress = {
+          ...operationProgress,
+          phase: 'failed',
+          errorMessages: [`Pull failed: ${err}`],
+        };
+      }
+      toastError('Pull from Google Sheets failed', err);
+      pendingCsvContent = null;
+      pendingParsedRows = null;
+    }
   }
 
   // ============================================================================
@@ -1008,6 +1187,12 @@
       <ToggleButton active={searchReplaceVisible} onclick={toggleSearchReplace}>
         Search & Replace
       </ToggleButton>
+      <GoogleSheetsMenu
+        pushLoading={operationProgress?.type === 'push'}
+        pullLoading={operationProgress?.type === 'pull'}
+        onPush={handlePushToSheets}
+        onPull={handlePullFromSheets}
+      />
       <TableOptionsMenu {api} hasTagColumns={true} onExportCsv={handleExportCsv} onImportCsv={handleImportCsv} />
       <ToggleButton
         active={settingsExpanded}
@@ -1195,13 +1380,18 @@
 {#if operationProgress}
   <ProgressModal
     open={true}
-    title={operationProgress.type === 'import' ? 'Importing Localizations' : 'Exporting Localizations'}
+    title={{
+      import: 'Importing Localizations',
+      export: 'Exporting Localizations',
+      push: 'Pushing to Google Sheets',
+      pull: 'Pulling from Google Sheets',
+    }[operationProgress.type]}
     phase={operationProgress.phase}
     current={operationProgress.current}
     total={operationProgress.total}
     stats={operationProgress.stats}
     errorMessages={operationProgress.errorMessages}
-    canCancel={operationProgress.phase === 'processing' || operationProgress.phase === 'validating'}
+    canCancel={operationProgress.phase === 'processing' || operationProgress.phase === 'validating' || operationProgress.phase === 'uploading' || operationProgress.phase === 'downloading'}
     oncancel={handleCancelOperation}
     onclose={handleCloseProgress}
   />

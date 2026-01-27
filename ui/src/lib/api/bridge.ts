@@ -57,6 +57,7 @@ import type {
   CodeFileChangeEvent,
   BridgeEvents,
   BridgeEventName,
+  GoogleSheetsSpreadsheetInfo,
 } from '@gamescript/shared';
 
 import {
@@ -587,6 +588,78 @@ class ExtensionBridge {
 
       case 'edit:save':
         this.emit('editSave');
+        break;
+
+      // Google Sheets result messages
+      case 'googleSheets:setCredentialsResult':
+        this.resolveRequest(message.id, { success: message.success });
+        break;
+
+      case 'googleSheets:getCredentialsResult':
+        this.resolveRequest(message.id, { hasCredentials: message.hasCredentials });
+        break;
+
+      case 'googleSheets:signInResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true, email: message.email });
+          // Emit auth changed event to update stores (consolidates with signInResult)
+          this.emit('googleSheetsAuthChanged', true, message.email);
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'googleSheets:signOutResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true });
+          // Emit auth changed event to update stores (consolidates with signOutResult)
+          this.emit('googleSheetsAuthChanged', false, undefined);
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'googleSheets:statusResult':
+        this.resolveRequest(message.id, {
+          authenticated: message.authenticated,
+          email: message.email,
+        });
+        break;
+
+      case 'googleSheets:selectSpreadsheetResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true, spreadsheet: message.spreadsheet });
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'googleSheets:clearSpreadsheetResult':
+        this.resolveRequest(message.id, { success: true });
+        break;
+
+      case 'googleSheets:pushResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true });
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'googleSheets:pullResult':
+        if (message.success) {
+          this.resolveRequest(message.id, { success: true, data: message.data });
+        } else {
+          this.resolveRequest(message.id, { success: false, error: message.error });
+        }
+        break;
+
+      case 'googleSheets:authChanged':
+        this.emit('googleSheetsAuthChanged', message.authenticated, message.email);
+        break;
+
+      case 'googleSheets:spreadsheetChanged':
+        this.emit('googleSheetsSpreadsheetChanged', message.spreadsheet);
         break;
     }
   }
@@ -1296,6 +1369,13 @@ class ExtensionBridge {
     this.postMessage({ type: 'status', message, timeoutMs });
   }
 
+  /**
+   * Open a URL in the system's default browser.
+   */
+  openExternal(url: string): void {
+    this.postMessage({ type: 'openExternal', url });
+  }
+
   // ==========================================================================
   // Focus Operations (cross-panel selection sync)
   // ==========================================================================
@@ -1581,6 +1661,144 @@ class ExtensionBridge {
       type: 'snapshot:watchFolder',
       folderPath,
     });
+  }
+
+  // ==========================================================================
+  // Google Sheets Operations
+  // ==========================================================================
+
+  /**
+   * Store Google API credentials in SecretStorage.
+   * @param clientId - Google OAuth client ID
+   * @param clientSecret - Google OAuth client secret
+   * @param apiKey - Google API key (optional, for Picker)
+   */
+  async googleSheetsSetCredentials(clientId: string, clientSecret: string, apiKey: string): Promise<{ success: boolean }> {
+    if (!this.isIde) {
+      return { success: false };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean }>();
+    this.postMessage({ type: 'googleSheets:setCredentials', id, clientId, clientSecret, apiKey });
+    return promise;
+  }
+
+  /**
+   * Check if Google API credentials are stored.
+   * Returns hasCredentials (boolean), not the actual values.
+   */
+  async googleSheetsGetCredentials(): Promise<{ hasCredentials: boolean }> {
+    if (!this.isIde) {
+      return { hasCredentials: false };
+    }
+
+    const { id, promise } = this.createRequest<{ hasCredentials: boolean }>();
+    this.postMessage({ type: 'googleSheets:getCredentials', id });
+    return promise;
+  }
+
+  /**
+   * Sign in to Google Sheets via OAuth.
+   * Opens browser for authentication.
+   */
+  async googleSheetsSignIn(): Promise<{ success: boolean; email?: string; error?: string }> {
+    if (!this.isIde) {
+      return { success: false, error: 'Not available in standalone mode' };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean; email?: string; error?: string }>(null);
+    this.postMessage({ type: 'googleSheets:signIn', id });
+    return promise;
+  }
+
+  /**
+   * Sign out from Google Sheets.
+   * Clears stored OAuth tokens.
+   */
+  async googleSheetsSignOut(): Promise<{ success: boolean; error?: string }> {
+    if (!this.isIde) {
+      return { success: false, error: 'Not available in standalone mode' };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean; error?: string }>();
+    this.postMessage({ type: 'googleSheets:signOut', id });
+    return promise;
+  }
+
+  /**
+   * Get current Google Sheets authentication status.
+   */
+  async googleSheetsGetStatus(): Promise<{ authenticated: boolean; email?: string }> {
+    if (!this.isIde) {
+      return { authenticated: false };
+    }
+
+    const { id, promise } = this.createRequest<{ authenticated: boolean; email?: string }>();
+    this.postMessage({ type: 'googleSheets:getStatus', id });
+    return promise;
+  }
+
+  /**
+   * Open browser with Google Picker to select a spreadsheet.
+   */
+  async googleSheetsSelectSpreadsheet(): Promise<{
+    success: boolean;
+    spreadsheet?: GoogleSheetsSpreadsheetInfo;
+    error?: string;
+  }> {
+    if (!this.isIde) {
+      return { success: false, error: 'Not available in standalone mode' };
+    }
+
+    const { id, promise } = this.createRequest<{
+      success: boolean;
+      spreadsheet?: GoogleSheetsSpreadsheetInfo;
+      error?: string;
+    }>(null); // No timeout - user interaction
+    this.postMessage({ type: 'googleSheets:selectSpreadsheet', id });
+    return promise;
+  }
+
+  /**
+   * Clear the currently selected spreadsheet.
+   */
+  async googleSheetsClearSpreadsheet(): Promise<{ success: boolean }> {
+    if (!this.isIde) {
+      return { success: false };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean }>();
+    this.postMessage({ type: 'googleSheets:clearSpreadsheet', id });
+    return promise;
+  }
+
+  /**
+   * Push localization data to the configured Google Sheets spreadsheet.
+   * @param spreadsheetId - The spreadsheet ID to push to
+   * @param data - CSV-formatted data to push
+   */
+  async googleSheetsPush(spreadsheetId: string, data: string): Promise<{ success: boolean; error?: string }> {
+    if (!this.isIde) {
+      return { success: false, error: 'Not available in standalone mode' };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean; error?: string }>(120000); // 2 minute timeout for large data
+    this.postMessage({ type: 'googleSheets:push', id, spreadsheetId, data });
+    return promise;
+  }
+
+  /**
+   * Pull localization data from the configured Google Sheets spreadsheet.
+   * @param spreadsheetId - The spreadsheet ID to pull from
+   */
+  async googleSheetsPull(spreadsheetId: string): Promise<{ success: boolean; data?: string; error?: string }> {
+    if (!this.isIde) {
+      return { success: false, error: 'Not available in standalone mode' };
+    }
+
+    const { id, promise } = this.createRequest<{ success: boolean; data?: string; error?: string }>(60000); // 1 minute timeout
+    this.postMessage({ type: 'googleSheets:pull', id, spreadsheetId });
+    return promise;
   }
 }
 
