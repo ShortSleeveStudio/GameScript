@@ -65,10 +65,11 @@ class DialogHandlers(private val context: HandlerContext) {
 
         ApplicationManager.getApplication().invokeLater {
             try {
+                val extensions = arrayOf("db", "sqlite", "sqlite3")
                 val descriptor = FileSaverDescriptor(
                     "Save SQLite Database",
                     "Choose where to save the database",
-                    "db", "sqlite", "sqlite3"
+                    *extensions
                 )
 
                 val dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, context.project)
@@ -131,10 +132,11 @@ class DialogHandlers(private val context: HandlerContext) {
 
         ApplicationManager.getApplication().invokeLater {
             try {
+                val csvExtensions = arrayOf("csv")
                 val descriptor = FileSaverDescriptor(
                     "Save CSV File",
                     "Choose where to save the CSV file",
-                    "csv"
+                    *csvExtensions
                 )
 
                 val dialog = FileChooserFactory.getInstance().createSaveFileDialog(descriptor, context.project)

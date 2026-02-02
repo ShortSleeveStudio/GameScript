@@ -81,6 +81,28 @@
 
     let showExportSuccess = $state(false);
 
+    // Track export completion to show success feedback regardless of trigger source
+    // (button click, keyboard shortcut, or auto-export on blur)
+    // Using plain variable (not $state) since this is just for tracking state between
+    // effect runs - we don't want it to trigger re-renders or effect re-runs.
+    let wasExporting = false;
+    $effect(() => {
+        const phase = $exportProgress.phase;
+        if (isExporting) {
+            wasExporting = true;
+        } else if (wasExporting && phase === 'complete') {
+            // Export just finished successfully - show checkmark
+            wasExporting = false;
+            showExportSuccess = true;
+            setTimeout(() => {
+                showExportSuccess = false;
+            }, 1500);
+        } else if (wasExporting) {
+            // Export finished with error or was cancelled - reset without showing success
+            wasExporting = false;
+        }
+    });
+
     let exportButtonText = $derived.by(() => {
         const progress = $exportProgress;
         if (!isExporting) return 'Export';
@@ -184,13 +206,8 @@
         try {
             const result = await exportController.exportAll(snapshotOutputPathValue);
 
+            // Visual feedback (checkmark + green) is handled by the $effect watching exportProgress
             if (result.success) {
-                // Show success checkmark for 1.5 seconds
-                showExportSuccess = true;
-                setTimeout(() => {
-                    showExportSuccess = false;
-                }, 1500);
-
                 if (result.localesExported === 0 && result.localesSkipped > 0) {
                     toastSuccess(`No changes to export (${result.localesSkipped} locales unchanged)`);
                 } else {

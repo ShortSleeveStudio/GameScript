@@ -117,7 +117,8 @@ intellijPlatform {
         }
 
         ideaVersion {
-            sinceBuild = "243"
+            // Minimum 2025.1 required for Kotlin 2.x coroutines bytecode compatibility (SpillingKt)
+            sinceBuild = "251"
             untilBuild = provider { null }
         }
     }
@@ -126,6 +127,7 @@ intellijPlatform {
         token = providers.environmentVariable("JETBRAINS_MARKETPLACE_TOKEN")
         channels = listOf("stable")
     }
+
 }
 
 tasks {

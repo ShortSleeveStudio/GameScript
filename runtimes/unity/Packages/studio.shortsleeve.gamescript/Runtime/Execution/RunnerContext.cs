@@ -351,6 +351,9 @@ namespace GameScript
                 _cts = new CancellationTokenSource();
             }
 
+            // Reset speech source in case Cancel() was called outside RunActionAndSpeechConcurrently
+            _speechSource.Reset();
+
             _database = null;
             _jumpTable = null;
             _listener = null;
