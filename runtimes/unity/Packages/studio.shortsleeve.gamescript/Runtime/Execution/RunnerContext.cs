@@ -43,6 +43,7 @@ namespace GameScript
 
         // Cancellation support
         CancellationTokenSource _cts;
+        bool _cancelHandlerCalled;
         #endregion
 
         #region Cancellation
@@ -54,6 +55,28 @@ namespace GameScript
 
             // Unblock concurrent speech (needed for WhenAllAwaiter)
             _speechSource.TrySetCanceled();
+
+            // Immediately call OnConversationCancelled to unblock completion sources
+            // This ensures implementations can cancel their awaitable sources without allocating
+            // token.Register() callbacks or waiting for an exception to propagate
+            if (!_cancelHandlerCalled)
+            {
+                _cancelHandlerCalled = true;
+                _ = CallCancelHandlerAsync();
+            }
+        }
+
+        async Awaitable CallCancelHandlerAsync()
+        {
+            ConversationRef conversationRef = new ConversationRef(Snapshot, _conversationIndex);
+            try
+            {
+                await _listener.OnConversationCancelled(conversationRef);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[GameScript] Error in OnConversationCancelled: {ex}");
+            }
         }
         #endregion
 
@@ -264,14 +287,8 @@ namespace GameScript
             }
             catch (OperationCanceledException)
             {
-                try
-                {
-                    await _listener.OnConversationCancelled(conversationRef);
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"[GameScript] Error in OnConversationCancelled: {ex}");
-                }
+                // OnConversationCancelled already called in Cancel()
+                // Just proceed to cleanup
             }
             catch (Exception e)
             {
@@ -372,6 +389,9 @@ namespace GameScript
 
             // Reset speech source in case Cancel() was called outside RunActionAndSpeechConcurrently
             _speechSource.Reset();
+
+            // Reset cancellation handler flag for next conversation
+            _cancelHandlerCalled = false;
 
             _database = null;
             _jumpTable = null;

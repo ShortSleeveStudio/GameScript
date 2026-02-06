@@ -323,6 +323,24 @@ notifier.on_ready()
 decision_notifier.on_decision_made(selected_node)
 ```
 
+### Cancellation Pattern
+
+**For custom signals** (decisions, custom UI), use the side-channel pattern:
+```gdscript
+func on_decision(choices: Array[NodeRef], notifier: DecisionNotifier) -> void:
+    # Setup UI...
+    # Just await your custom signal - no token checking needed
+    await _choice_selected
+
+func on_conversation_cancelled(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+    # Called immediately when stop_conversation() is requested
+    # Emit your custom signal to unblock awaits
+    _choice_selected.emit()
+    notifier.on_ready()
+```
+
+**Why this works:** `on_conversation_cancelled` is called immediately when `stop_conversation()` is called, not when the main loop detects cancellation. This guarantees your awaiting code is unblocked.
+
 ---
 
 ## 6. Editor Integration

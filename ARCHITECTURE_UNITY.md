@@ -347,11 +347,29 @@ await Awaitable.WaitForSecondsAsync(2f, token);  // Automatically cancelled
 ```
 
 **For completion source waits** (decisions, custom UI), use the side-channel pattern:
-1. Check `token.IsCancellationRequested` before starting work
-2. `OnConversationCancelled` calls `TrySetCanceled()` on your completion source
-3. Use `try/finally` to ensure `Reset()` is always called
+1. Just await your completion source - no token checking needed
+2. `OnConversationCancelled` is called **immediately** when `Cancel()` is requested
+3. Your handler can call `TrySetCanceled()` on the completion source to unblock
+4. Use `try/finally` to ensure `Reset()` is always called
 
-**Why not `token.Register()`?** The side-channel approach avoids allocation from registration objects while keeping the code simple.
+```csharp
+public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+{
+    // No need to check token or use token.Register()
+    // Just await the source
+    return await _decisionSource.Awaitable;
+}
+
+public Awaitable OnConversationCancelled(ConversationRef conv)
+{
+    // Called immediately when Cancel() is requested
+    // Unblock the awaiting source
+    _decisionSource.TrySetCanceled();
+    return AwaitableUtility.Completed();
+}
+```
+
+**Why this works:** `OnConversationCancelled` is called immediately when `StopConversation()` is called, not when an exception is caught. This guarantees your completion sources are unblocked without needing `token.Register()` (which allocates).
 
 ---
 

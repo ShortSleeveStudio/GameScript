@@ -27,6 +27,7 @@ var sequence_number: int
 ## A new token is created when the context is reused, ensuring old connections
 ## are automatically cleaned up (RefCounted magic).
 var cancellation_token: CancellationToken
+var _cancel_handler_called: bool = false
 #endregion
 
 
@@ -109,6 +110,20 @@ func initialize(database: GameScriptDatabase, conditions: Array,
 ## Called by GameScriptRunner.stop_conversation().
 func cancel() -> void:
 	cancellation_token.cancel()
+
+	# Immediately call on_conversation_cancelled to unblock signals/notifiers
+	# This ensures implementations can cancel their signals without waiting for
+	# an exception to propagate or the main loop to detect cancellation
+	if not _cancel_handler_called:
+		_cancel_handler_called = true
+		_call_cancel_handler_async()
+
+
+func _call_cancel_handler_async() -> void:
+	var conversation_ref := _database.get_conversation(_conversation_index)
+	_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
+	await _ready_notifier.wait()
+	_ready_notifier.reset()
 
 
 #region IDialogueContext Implementation
@@ -279,9 +294,13 @@ func run() -> void:
 
 	# Handle cancellation
 	if was_cancelled:
-		_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
-		await _ready_notifier.wait()
-		_ready_notifier.reset()
+		# on_conversation_cancelled may have already been called in cancel()
+		# Only call it here if it wasn't already called
+		if not _cancel_handler_called:
+			_cancel_handler_called = true
+			_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
+			await _ready_notifier.wait()
+			_ready_notifier.reset()
 
 		_listener.on_cleanup(conversation_ref, _ready_notifier)
 		await _ready_notifier.wait()
@@ -307,9 +326,12 @@ func run() -> void:
 	_listener.on_conversation_exit(conversation_ref, _ready_notifier)
 	if not await _ready_notifier.wait_with_cancellation(token):
 		# Cancelled during exit - run cancellation cleanup
-		_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
-		await _ready_notifier.wait()
-		_ready_notifier.reset()
+		# on_conversation_cancelled may have already been called in cancel()
+		if not _cancel_handler_called:
+			_cancel_handler_called = true
+			_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
+			await _ready_notifier.wait()
+			_ready_notifier.reset()
 
 		_listener.on_cleanup(conversation_ref, _ready_notifier)
 		await _ready_notifier.wait()
@@ -408,6 +430,9 @@ func _reset() -> void:
 	# Create fresh token - old one (and its connections) will be GC'd
 	if cancellation_token.is_cancelled:
 		cancellation_token = CancellationToken.new()
+
+	# Reset cancellation handler flag for next conversation
+	_cancel_handler_called = false
 
 	_database = null
 	_conditions = []
