@@ -109,7 +109,9 @@ private:
 		EvaluateEdges,
 		NodeExit,
 		ConversationExit,
-		Cleanup
+		CancellationCleanup,  // Waiting for OnConversationCancelled to complete
+		ErrorCleanup,         // Waiting for OnError to complete
+		FinalCleanup          // Waiting for OnCleanup to complete (always called)
 	};
 
 	EState CurrentState = EState::Idle;
@@ -170,6 +172,9 @@ private:
 	// Node being exited (stored before advancing to next node)
 	FNodeRef NodeToExit;
 
+	// Pending error message (for ErrorCleanup state)
+	FString PendingErrorMessage;
+
 	// --- State Machine Methods ---
 
 	void EnterConversationEnter();
@@ -178,7 +183,10 @@ private:
 	void EnterEvaluateEdges();
 	void EnterNodeExit();
 	void EnterConversationExit();
-	void EnterCleanup();
+	void EnterCancellationCleanup();
+	void EnterErrorCleanup();
+	void EnterFinalCleanup();
+	void EnterIdle();
 
 	// --- Transition Methods ---
 

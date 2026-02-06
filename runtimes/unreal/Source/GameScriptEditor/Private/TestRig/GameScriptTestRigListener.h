@@ -46,9 +46,9 @@ public:
 	virtual void OnDecision_Implementation(const TArray<FNodeRef>& Choices, UGSCompletionHandle* Handle) override;
 	virtual void OnNodeExit_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) override;
 	virtual void OnConversationExit_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
-	virtual void OnCleanup_Implementation(FConversationRef Conversation) override;
-	virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage) override;
-	virtual void OnConversationCancelled_Implementation(FConversationRef Conversation) override;
+	virtual void OnConversationCancelled_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
+	virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage, UGSCompletionHandle* Handle) override;
+	virtual void OnCleanup_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
 	virtual FNodeRef OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices) override;
 
 private:

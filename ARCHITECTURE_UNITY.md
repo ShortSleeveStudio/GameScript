@@ -195,7 +195,7 @@ NodeExit
 ConversationExit
     ↓ (await OnConversationExit)
 Cleanup
-    ↓ (OnCleanup callback - synchronous)
+    ↓ (await OnCleanup - always called in finally)
 Idle (context returned to pool)
 ```
 
@@ -266,10 +266,12 @@ public interface IGameScriptListener
     Awaitable OnNodeExit(NodeRef node, CancellationToken token);
     Awaitable OnConversationExit(ConversationRef conv, CancellationToken token);
 
-    // Sync methods - immediate notification, no waiting
-    void OnCleanup(ConversationRef conv);                                    // Always called (normal exit, cancel, or error)
-    void OnError(ConversationRef conv, Exception e);
-    void OnConversationCancelled(ConversationRef conv);                      // Called before OnCleanup when cancelled
+    // Async cleanup methods - no cancellation token (must complete)
+    Awaitable OnConversationCancelled(ConversationRef conv);                 // Called on cancellation (can fade out UI, etc.)
+    Awaitable OnError(ConversationRef conv, Exception e);                    // Called on error (can show error UI, etc.)
+    Awaitable OnCleanup(ConversationRef conv);                               // Always called in finally (normal, cancel, error)
+
+    // Sync auto-advance
     NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices);                  // Auto-advance selection
 }
 ```
@@ -310,11 +312,25 @@ public class MyDialogueUI : MonoBehaviour, IGameScriptListener
         }
     }
 
-    public void OnConversationCancelled(ConversationRef conv)
+    public async Awaitable OnConversationCancelled(ConversationRef conv)
     {
         // Unblock pending decision when cancelled
         _decisionSource.TrySetCanceled();
-        HideUI();
+
+        // Now we can fade out UI with an animation!
+        await FadeOutUIAsync();
+    }
+
+    public Awaitable OnError(ConversationRef conv, Exception e)
+    {
+        Debug.LogException(e);
+        return AwaitableUtility.Completed();
+    }
+
+    public Awaitable OnCleanup(ConversationRef conv)
+    {
+        // Final cleanup - always called
+        return AwaitableUtility.Completed();
     }
 
     // For methods that don't need to wait, return AwaitableUtility.Completed()

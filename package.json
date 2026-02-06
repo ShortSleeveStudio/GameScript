@@ -1,6 +1,6 @@
 {
   "name": "gamescript",
-  "version": "2.0.18",
+  "version": "2.0.19",
   "description": "Cross-platform dialogue authoring system",
   "private": true,
   "type": "module",

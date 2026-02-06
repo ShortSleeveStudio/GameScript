@@ -104,16 +104,8 @@ void URunnerContext::Cancel()
 	// Set cancellation flag (atomic for thread-safe reads from actions)
 	bIsCancelled.store(true, std::memory_order_release);
 
-	// Notify listener (store pointer before use to prevent TOCTOU race)
-	FConversationRef Conv = Database->FindConversation(ConversationId);
-	UObject* ListenerObj = Listener.GetObject();
-	if (ListenerObj)
-	{
-		IGameScriptListener::Execute_OnConversationCancelled(ListenerObj, Conv);
-	}
-
-	// Transition to cleanup
-	TransitionTo(EState::Cleanup);
+	// Transition to cancellation cleanup (async)
+	TransitionTo(EState::CancellationCleanup);
 }
 
 void URunnerContext::OnListenerReady(int32 ContextID)
@@ -189,7 +181,20 @@ void URunnerContext::OnListenerReady(int32 ContextID)
 		break;
 
 	case EState::ConversationExit:
-		TransitionTo(EState::Cleanup);
+		TransitionTo(EState::FinalCleanup);
+		break;
+
+	case EState::CancellationCleanup:
+		TransitionTo(EState::FinalCleanup);
+		break;
+
+	case EState::ErrorCleanup:
+		TransitionTo(EState::FinalCleanup);
+		break;
+
+	case EState::FinalCleanup:
+		// Final cleanup complete - reset and return to pool
+		EnterIdle();
 		break;
 
 	default:
@@ -375,10 +380,9 @@ void URunnerContext::EnterConversationEnter()
 	FConversationRef Conv = Database->FindConversation(ConversationId);
 	if (!Conv.IsValid())
 	{
-		FString ErrorMsg = FString::Printf(TEXT("Conversation %d not found"), ConversationId);
-		UE_LOG(LogGameScript, Error, TEXT("%s"), *ErrorMsg);
-		IGameScriptListener::Execute_OnError(Listener.GetObject(), Conv, ErrorMsg);
-		TransitionTo(EState::Cleanup);
+		PendingErrorMessage = FString::Printf(TEXT("Conversation %d not found"), ConversationId);
+		UE_LOG(LogGameScript, Error, TEXT("%s"), *PendingErrorMessage);
+		TransitionTo(EState::ErrorCleanup);
 		return;
 	}
 
@@ -386,10 +390,9 @@ void URunnerContext::EnterConversationEnter()
 	CurrentNode = Conv.GetRootNode();
 	if (!CurrentNode.IsValid())
 	{
-		FString ErrorMsg = FString::Printf(TEXT("Conversation %d has no root node"), ConversationId);
-		UE_LOG(LogGameScript, Error, TEXT("%s"), *ErrorMsg);
-		IGameScriptListener::Execute_OnError(Listener.GetObject(), Conv, ErrorMsg);
-		TransitionTo(EState::Cleanup);
+		PendingErrorMessage = FString::Printf(TEXT("Conversation %d has no root node"), ConversationId);
+		UE_LOG(LogGameScript, Error, TEXT("%s"), *PendingErrorMessage);
+		TransitionTo(EState::ErrorCleanup);
 		return;
 	}
 
@@ -404,11 +407,9 @@ void URunnerContext::EnterNodeEnter()
 {
 	if (!CurrentNode.IsValid())
 	{
-		FString ErrorMsg = TEXT("No current node - transitioning to ConversationExit");
-		UE_LOG(LogGameScript, Error, TEXT("%s"), *ErrorMsg);
-		FConversationRef Conv = Database->FindConversation(ConversationId);
-		IGameScriptListener::Execute_OnError(Listener.GetObject(), Conv, ErrorMsg);
-		TransitionTo(EState::ConversationExit);
+		PendingErrorMessage = TEXT("No current node");
+		UE_LOG(LogGameScript, Error, TEXT("%s"), *PendingErrorMessage);
+		TransitionTo(EState::ErrorCleanup);
 		return;
 	}
 
@@ -544,13 +545,11 @@ void URunnerContext::EnterEvaluateEdges()
 		if (!bFoundInChoices)
 		{
 			// Error: selection is not in valid choices - matches Unity behavior
-			FString ErrorMsg = FString::Printf(
+			PendingErrorMessage = FString::Printf(
 				TEXT("OnAutoDecision returned node (index %d) that is not in the valid choices list. Ensure your listener returns one of the provided choices."),
 				SelectedNode.IsValid() ? SelectedNode.Index : -1);
-			UE_LOG(LogGameScript, Error, TEXT("%s"), *ErrorMsg);
-			FConversationRef Conv = Database->FindConversation(ConversationId);
-			IGameScriptListener::Execute_OnError(Listener.GetObject(), Conv, ErrorMsg);
-			TransitionTo(EState::Cleanup);
+			UE_LOG(LogGameScript, Error, TEXT("%s"), *PendingErrorMessage);
+			TransitionTo(EState::ErrorCleanup);
 			return;
 		}
 
@@ -597,16 +596,68 @@ void URunnerContext::EnterConversationExit()
 	IGameScriptListener::Execute_OnConversationExit(Listener.GetObject(), Conv, PendingHandle);
 }
 
-void URunnerContext::EnterCleanup()
+void URunnerContext::EnterCancellationCleanup()
 {
 	FConversationRef Conv = Database->FindConversation(ConversationId);
 
-	// Call listener (synchronous)
-	if (Listener.GetObject())
+	// Acquire handle from pool and call listener (async cleanup)
+	int32 ContextID = GenerateContextID();
+	PendingHandle = Runner->AcquireHandle();
+	PendingHandle->Initialize(this, ContextID);
+	UObject* ListenerObj = Listener.GetObject();
+	if (ListenerObj)
 	{
-		IGameScriptListener::Execute_OnCleanup(Listener.GetObject(), Conv);
+		IGameScriptListener::Execute_OnConversationCancelled(ListenerObj, Conv, PendingHandle);
 	}
+	else
+	{
+		// No listener - proceed immediately
+		OnListenerReady(ContextID);
+	}
+}
 
+void URunnerContext::EnterErrorCleanup()
+{
+	FConversationRef Conv = Database->FindConversation(ConversationId);
+
+	// Acquire handle from pool and call listener (async error handling)
+	int32 ContextID = GenerateContextID();
+	PendingHandle = Runner->AcquireHandle();
+	PendingHandle->Initialize(this, ContextID);
+	UObject* ListenerObj = Listener.GetObject();
+	if (ListenerObj)
+	{
+		IGameScriptListener::Execute_OnError(ListenerObj, Conv, PendingErrorMessage, PendingHandle);
+	}
+	else
+	{
+		// No listener - proceed immediately
+		OnListenerReady(ContextID);
+	}
+}
+
+void URunnerContext::EnterFinalCleanup()
+{
+	FConversationRef Conv = Database->FindConversation(ConversationId);
+
+	// Acquire handle from pool and call listener (async final cleanup)
+	int32 ContextID = GenerateContextID();
+	PendingHandle = Runner->AcquireHandle();
+	PendingHandle->Initialize(this, ContextID);
+	UObject* ListenerObj = Listener.GetObject();
+	if (ListenerObj)
+	{
+		IGameScriptListener::Execute_OnCleanup(ListenerObj, Conv, PendingHandle);
+	}
+	else
+	{
+		// No listener - proceed immediately
+		OnListenerReady(ContextID);
+	}
+}
+
+void URunnerContext::EnterIdle()
+{
 	// Release any pending handle back to pool
 	if (PendingHandle)
 	{
@@ -623,6 +674,9 @@ void URunnerContext::EnterCleanup()
 	// Reset choice arrays (Reset keeps capacity for reuse)
 	ValidChoices.Reset();
 	HighestPriorityChoices.Reset();
+
+	// Clear error message
+	PendingErrorMessage = FString();
 
 	// Clear listener reference
 	Listener = nullptr;
@@ -666,8 +720,14 @@ void URunnerContext::TransitionTo(EState NewState)
 	case EState::ConversationExit:
 		EnterConversationExit();
 		break;
-	case EState::Cleanup:
-		EnterCleanup();
+	case EState::CancellationCleanup:
+		EnterCancellationCleanup();
+		break;
+	case EState::ErrorCleanup:
+		EnterErrorCleanup();
+		break;
+	case EState::FinalCleanup:
+		EnterFinalCleanup();
 		break;
 	default:
 		break;

@@ -52,23 +52,29 @@ namespace GameScript
         Awaitable OnConversationExit(ConversationRef conversation, CancellationToken token);
 
         /// <summary>
-        /// Called after OnConversationExit returns,
-        /// right before the RunnerContext is released back to the pool.
-        /// Use this for final cleanup: notifying managers, releasing resources, etc.
+        /// Called when a conversation is forcibly stopped via StopConversation().
+        /// Use this for cleanup: hiding dialogue UI, fading out animations, etc.
+        /// Return when cleanup is complete.
+        /// Note: No CancellationToken - cleanup must complete and cannot be cancelled.
         /// </summary>
-        void OnCleanup(ConversationRef conversation);
+        Awaitable OnConversationCancelled(ConversationRef conversation);
 
         /// <summary>
         /// Called when an error occurs during conversation execution.
+        /// Use this for error handling: showing error UI, logging, etc.
+        /// Return when error handling is complete.
+        /// Note: No CancellationToken - error handling must complete and cannot be cancelled.
         /// </summary>
-        void OnError(ConversationRef conversation, Exception e);
+        Awaitable OnError(ConversationRef conversation, Exception e);
 
         /// <summary>
-        /// Called when a conversation is forcibly stopped via StopConversation().
-        /// Use this for immediate cleanup: hiding dialogue UI, cancelling animations, etc.
-        /// This is synchronous (no token) since we're not waiting for anything.
+        /// Called in all paths (normal exit, cancellation, or error) before the RunnerContext
+        /// is released back to the pool. Use this for final cleanup: notifying managers,
+        /// releasing resources, resetting state, etc.
+        /// Return when cleanup is complete.
+        /// Note: No CancellationToken - cleanup must complete and cannot be cancelled.
         /// </summary>
-        void OnConversationCancelled(ConversationRef conversation);
+        Awaitable OnCleanup(ConversationRef conversation);
 
         /// <summary>
         /// Called when the conversation auto-advances without player input

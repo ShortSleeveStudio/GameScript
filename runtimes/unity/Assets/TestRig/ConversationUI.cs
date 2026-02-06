@@ -149,9 +149,7 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         return AwaitableUtility.Completed();
     }
 
-    public void OnError(ConversationRef conversation, Exception e) => Debug.LogException(e);
-
-    public void OnConversationCancelled(ConversationRef conversation)
+    public Awaitable OnConversationCancelled(ConversationRef conversation)
     {
         // Unblock any pending decision
         m_DecisionSource.TrySetCanceled();
@@ -165,11 +163,27 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         {
             Destroy(m_ChoiceContent.transform.GetChild(i).gameObject);
         }
+
+        // Could add fade-out animation here:
+        // await FadeOutUIAsync();
+
+        return AwaitableUtility.Completed();
     }
 
-    public void OnCleanup(ConversationRef conversation)
+    public Awaitable OnError(ConversationRef conversation, Exception e)
+    {
+        Debug.LogException(e);
+
+        // Could show error UI here:
+        // await ShowErrorMessageAsync(e.Message);
+
+        return AwaitableUtility.Completed();
+    }
+
+    public Awaitable OnCleanup(ConversationRef conversation)
     {
         // No cleanup needed for this simple UI
+        return AwaitableUtility.Completed();
     }
     #endregion
 }

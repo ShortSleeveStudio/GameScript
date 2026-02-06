@@ -204,7 +204,8 @@ ConversationExit
     ↓ (on_conversation_exit callback)
     ↓ (await ReadyNotifier.ready signal)
 Cleanup
-    ↓ (on_cleanup callback - synchronous)
+    ↓ (on_cleanup callback)
+    ↓ (await ReadyNotifier.ready signal)
     → Context returned to pool
 ```
 
@@ -295,17 +296,20 @@ func on_conversation_exit(conversation: ConversationRef, notifier: ReadyNotifier
     # Hide dialogue UI
     notifier.on_ready()
 
-func on_cleanup(conversation: ConversationRef) -> void:
-    # Always called (normal exit, cancel, or error) - use for final cleanup
-    pass
+func on_conversation_cancelled(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+    # Called on cancellation - can fade out UI, etc.
+    # await fade_out_animation()
+    notifier.on_ready()
 
-func on_error(conversation: ConversationRef, error: String) -> void:
+func on_error(conversation: ConversationRef, error: String, notifier: ReadyNotifier) -> void:
     push_error("Dialogue error: " + error)
+    # Can show error UI here
+    # await show_error_modal(error)
+    notifier.on_ready()
 
-func on_conversation_cancelled(conversation: ConversationRef) -> void:
-    # Called before on_cleanup when stop_conversation() forcibly stops
-    # Use for immediate cleanup (hiding UI, cancelling animations)
-    pass
+func on_cleanup(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+    # Always called (normal exit, cancel, or error) - use for final cleanup
+    notifier.on_ready()
 ```
 
 ### Notifiers

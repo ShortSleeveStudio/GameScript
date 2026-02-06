@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
   "Version": 1,
-  "VersionName": "2.0.18",
+  "VersionName": "2.0.19",
   "FriendlyName": "GameScript",
   "Description": "Cross-platform dialogue runtime for Unreal Engine",
   "Category": "Narrative",

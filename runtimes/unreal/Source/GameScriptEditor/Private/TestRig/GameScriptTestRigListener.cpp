@@ -167,27 +167,7 @@ void UGameScriptTestRigListener::OnConversationExit_Implementation(FConversation
 	}
 }
 
-void UGameScriptTestRigListener::OnCleanup_Implementation(FConversationRef Conversation)
-{
-	// Cancel any pending timers
-	CancelPendingTimers();
-
-	if (Context)
-	{
-		Context->SetCurrentHandle(nullptr);
-	}
-}
-
-void UGameScriptTestRigListener::OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage)
-{
-	if (Context)
-	{
-		Context->SetState(ETestRigState::Error, ErrorMessage);
-		Context->AddHistoryItem(TEXT("[Error]"), ErrorMessage);
-	}
-}
-
-void UGameScriptTestRigListener::OnConversationCancelled_Implementation(FConversationRef Conversation)
+void UGameScriptTestRigListener::OnConversationCancelled_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle)
 {
 	// Cancel any pending timers
 	CancelPendingTimers();
@@ -198,6 +178,50 @@ void UGameScriptTestRigListener::OnConversationCancelled_Implementation(FConvers
 		Context->SetCurrentHandle(nullptr);
 		Context->AddHistoryItem(TEXT("[System]"), TEXT("Conversation cancelled."));
 		Context->SetState(ETestRigState::Ready);
+	}
+
+	// Could add fade-out animation here:
+	// await animation, then call Handle->NotifyReady()
+
+	// Immediately ready to proceed
+	if (Handle)
+	{
+		Handle->NotifyReady();
+	}
+}
+
+void UGameScriptTestRigListener::OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage, UGSCompletionHandle* Handle)
+{
+	if (Context)
+	{
+		Context->SetState(ETestRigState::Error, ErrorMessage);
+		Context->AddHistoryItem(TEXT("[Error]"), ErrorMessage);
+	}
+
+	// Could show error UI here:
+	// show modal, wait for user to dismiss, then call Handle->NotifyReady()
+
+	// Immediately ready to proceed
+	if (Handle)
+	{
+		Handle->NotifyReady();
+	}
+}
+
+void UGameScriptTestRigListener::OnCleanup_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle)
+{
+	// Cancel any pending timers
+	CancelPendingTimers();
+
+	if (Context)
+	{
+		Context->SetCurrentHandle(nullptr);
+	}
+
+	// Final cleanup - immediately ready to proceed
+	if (Handle)
+	{
+		Handle->NotifyReady();
 	}
 }
 

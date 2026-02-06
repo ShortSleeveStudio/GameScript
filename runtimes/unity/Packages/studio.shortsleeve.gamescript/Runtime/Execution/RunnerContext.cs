@@ -261,22 +261,41 @@ namespace GameScript
 
                 // 7. Conversation Exit
                 await _listener.OnConversationExit(conversationRef, _cts.Token);
-
-                // 8. Final cleanup signal
-                _listener.OnCleanup(conversationRef);
             }
             catch (OperationCanceledException)
             {
-                _listener.OnConversationCancelled(conversationRef);
-                _listener.OnCleanup(conversationRef);
+                try
+                {
+                    await _listener.OnConversationCancelled(conversationRef);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[GameScript] Error in OnConversationCancelled: {ex}");
+                }
             }
             catch (Exception e)
             {
-                _listener.OnError(conversationRef, e);
-                _listener.OnCleanup(conversationRef);
+                try
+                {
+                    await _listener.OnError(conversationRef, e);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[GameScript] Error in OnError: {ex}");
+                }
             }
             finally
             {
+                // 8. Final cleanup - always called (normal exit, cancellation, or error)
+                try
+                {
+                    await _listener.OnCleanup(conversationRef);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[GameScript] Error in OnCleanup: {e}");
+                }
+
                 Reset();
             }
         }

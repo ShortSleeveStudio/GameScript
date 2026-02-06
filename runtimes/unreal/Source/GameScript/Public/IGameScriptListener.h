@@ -26,15 +26,21 @@ class UGameScriptListener : public UInterface
  * - These are async - the runner waits for Handle->NotifyReady() or Handle->SelectChoice() to proceed
  * - Handle parameter is your "return address" - call methods on it to signal completion
  *
+ * Async Cleanup Methods:
+ * - OnConversationCancelled, OnError, OnCleanup
+ * - These are async but cannot be cancelled - the runner waits for Handle->NotifyReady() to proceed
+ * - Use these for cleanup work that requires async operations (fade out UI, save state, etc.)
+ * - OnCleanup is always called (normal exit, cancellation, or error) before context is returned to pool
+ *
  * Completion Pattern:
- * - Receive UGSCompletionHandle* in lifecycle methods
+ * - Receive UGSCompletionHandle* in all async methods
  * - Do async work (display UI, play animation, etc.)
  * - Call Handle->NotifyReady() when done
  * - For decisions, call Handle->SelectChoice(Choice) or Handle->SelectChoiceByIndex(Index)
  *
  * Synchronous Events:
- * - OnCleanup, OnError, OnConversationCancelled, OnAutoDecision
- * - These are immediate notifications, no handle provided
+ * - OnAutoDecision only
+ * - Returns a value immediately, no handle provided
  *
  * Safety:
  * - Handle is safe to store temporarily (in timers, callbacks, etc.)
@@ -72,19 +78,19 @@ public:
 	void OnConversationExit(FConversationRef Conversation, UGSCompletionHandle* Handle);
 	virtual void OnConversationExit_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) {}
 
-	// --- Synchronous Events (Immediate notification, no handle) ---
+	// --- Async Cleanup Events (require completion signal, no cancellation) ---
 
-	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
-	void OnCleanup(FConversationRef Conversation);
-	virtual void OnCleanup_Implementation(FConversationRef Conversation) {}
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Cleanup")
+	void OnConversationCancelled(FConversationRef Conversation, UGSCompletionHandle* Handle);
+	virtual void OnConversationCancelled_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) {}
 
-	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
-	void OnError(FConversationRef Conversation, const FString& ErrorMessage);
-	virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage) {}
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Cleanup")
+	void OnError(FConversationRef Conversation, const FString& ErrorMessage, UGSCompletionHandle* Handle);
+	virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage, UGSCompletionHandle* Handle) {}
 
-	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
-	void OnConversationCancelled(FConversationRef Conversation);
-	virtual void OnConversationCancelled_Implementation(FConversationRef Conversation) {}
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Cleanup")
+	void OnCleanup(FConversationRef Conversation, UGSCompletionHandle* Handle);
+	virtual void OnCleanup_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) {}
 
 	/**
 	 * Called when the conversation auto-advances without player input

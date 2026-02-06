@@ -63,25 +63,33 @@ func on_conversation_exit(conversation: ConversationRef, notifier: _GameScriptNo
 	notifier.on_ready()
 
 
-## Called after on_conversation_exit's notifier.on_ready() is processed,
-## right before the RunnerContext is released back to the pool.
-## Use this for final cleanup: notifying managers, releasing resources, etc.
+## Called when a conversation is forcibly stopped via stop_conversation().
+## Use this for cleanup: hiding dialogue UI, fading out animations, etc.
+## Call notifier.on_ready() when cleanup is complete.
 ##
-## This is synchronous - do not await in this method.
-func on_cleanup(conversation: ConversationRef) -> void:
-	pass
+## Note: No cancellation - cleanup must complete and cannot be cancelled.
+func on_conversation_cancelled(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
+	notifier.on_ready()
 
 
 ## Called when an error occurs during conversation execution.
-func on_error(conversation: ConversationRef, error: String) -> void:
+## Use this for error handling: showing error UI, logging, etc.
+## Call notifier.on_ready() when error handling is complete.
+##
+## Note: No cancellation - error handling must complete and cannot be cancelled.
+func on_error(conversation: ConversationRef, error: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 	push_error("GameScript error in conversation %d: %s" % [conversation.get_id(), error])
+	notifier.on_ready()
 
 
-## Called when a conversation is forcibly stopped via stop_conversation().
-## Use this for immediate cleanup: hiding dialogue UI, cancelling animations, etc.
-## This is synchronous (no notifier) since we're not waiting for anything.
-func on_conversation_cancelled(conversation: ConversationRef) -> void:
-	pass
+## Called in all paths (normal exit, cancellation, or error) before the RunnerContext
+## is released back to the pool. Use this for final cleanup: notifying managers,
+## releasing resources, resetting state, etc.
+## Call notifier.on_ready() when cleanup is complete.
+##
+## Note: No cancellation - cleanup must complete and cannot be cancelled.
+func on_cleanup(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
+	notifier.on_ready()
 
 
 ## Called when the conversation auto-advances without player input

@@ -279,29 +279,50 @@ func run() -> void:
 
 	# Handle cancellation
 	if was_cancelled:
-		_listener.on_conversation_cancelled(conversation_ref)
-		_listener.on_cleanup(conversation_ref)
+		_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
+		_listener.on_cleanup(conversation_ref, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
 		_reset()
 		return
 
 	# Handle errors
 	if error_message != "":
-		_listener.on_error(conversation_ref, error_message)
-		_listener.on_cleanup(conversation_ref)
+		_listener.on_error(conversation_ref, error_message, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
+		_listener.on_cleanup(conversation_ref, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
 		_reset()
 		return
 
 	# 7. Conversation Exit
 	_listener.on_conversation_exit(conversation_ref, _ready_notifier)
 	if not await _ready_notifier.wait_with_cancellation(token):
-		_listener.on_conversation_cancelled(conversation_ref)
-		_listener.on_cleanup(conversation_ref)
+		# Cancelled during exit - run cancellation cleanup
+		_listener.on_conversation_cancelled(conversation_ref, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
+		_listener.on_cleanup(conversation_ref, _ready_notifier)
+		await _ready_notifier.wait()
+		_ready_notifier.reset()
+
 		_reset()
 		return
 	_ready_notifier.reset()
 
-	# 8. Final cleanup signal (synchronous)
-	_listener.on_cleanup(conversation_ref)
+	# 8. Final cleanup (async - always called)
+	_listener.on_cleanup(conversation_ref, _ready_notifier)
+	await _ready_notifier.wait()
+	_ready_notifier.reset()
 
 	_reset()
 #endregion

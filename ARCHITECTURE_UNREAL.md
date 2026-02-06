@@ -205,7 +205,7 @@ NodeExit
 ConversationExit
     ↓ (await OnConversationExit)
 Cleanup
-    ↓ (OnCleanup callback - synchronous)
+    ↓ (await OnCleanup - always called)
 Idle (context returned to pool)
 ```
 
@@ -283,10 +283,21 @@ class IGameScriptListener
         FConversationRef Conversation,
         UGSCompletionHandle* Handle);
 
-    // Sync methods - immediate notification, no waiting
-    virtual void OnCleanup_Implementation(FConversationRef Conversation);  // Always called (normal exit, cancel, or error)
-    virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage);
-    virtual void OnConversationCancelled_Implementation(FConversationRef Conversation);  // Called before OnCleanup when cancelled
+    // Async cleanup methods - receive handle, no cancellation (must complete)
+    virtual void OnConversationCancelled_Implementation(
+        FConversationRef Conversation,
+        UGSCompletionHandle* Handle);  // Called on cancellation (can fade out UI, etc.)
+
+    virtual void OnError_Implementation(
+        FConversationRef Conversation,
+        const FString& ErrorMessage,
+        UGSCompletionHandle* Handle);  // Called on error (can show error UI, etc.)
+
+    virtual void OnCleanup_Implementation(
+        FConversationRef Conversation,
+        UGSCompletionHandle* Handle);  // Always called (normal, cancel, error)
+
+    // Sync auto-advance
     virtual FNodeRef OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices);
 };
 ```
