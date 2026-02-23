@@ -119,16 +119,19 @@ class _ConversationListener extends GameScriptListener:
 		# Don't clear history - keep it visible so user can review
 		notifier.on_ready()
 
-	func on_cleanup(conversation: ConversationRef) -> void:
+	func on_cleanup(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 		# Show completed state with "Close" button instead of auto-freeing
 		# This lets the user review the conversation history
 		_ui._show_completed_state()
+		notifier.on_ready()
 
-	func on_error(conversation: ConversationRef, error: String) -> void:
+	func on_error(conversation: ConversationRef, error: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 		push_error("[ConversationUI] Error: %s" % error)
+		notifier.on_ready()
 
-	func on_conversation_cancelled(conversation: ConversationRef) -> void:
+	func on_conversation_cancelled(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 		print("[ConversationUI] Cancelled: %s" % conversation.get_name())
 		# Clean up UI when conversation is forcibly stopped
 		_ui._clear_history()
 		_ui._clear_choices()
+		notifier.on_ready()
