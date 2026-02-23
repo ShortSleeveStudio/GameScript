@@ -1,0 +1,86 @@
+name: Build Godot GDExtension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "runtimes/godot/gdextension/src/**"
+      - "core/schema/snapshot.fbs"
+      - ".github/workflows/build-godot-gdextension.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            os: macos-latest
+          - platform: windows
+            os: windows-latest
+          - platform: linux
+            os: ubuntu-latest
+          - platform: web
+            os: ubuntu-latest
+
+    runs-on: ${{ matrix.os }}
+    name: Build (${{ matrix.platform }})
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install SCons
+        run: pip install scons
+
+      - name: Set up Emscripten
+        if: matrix.platform == 'web'
+        uses: mymindstorm/setup-emsdk@v14
+
+      - name: Build debug
+        working-directory: runtimes/godot/gdextension
+        run: scons platform=${{ matrix.platform }} target=template_debug
+
+      - name: Build release
+        working-directory: runtimes/godot/gdextension
+        run: scons platform=${{ matrix.platform }} target=template_release
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdextension-${{ matrix.platform }}
+          path: runtimes/godot/project/addons/gamescript/bin/
+          retention-days: 1
+
+  commit:
+    needs: build
+    runs-on: ubuntu-latest
+    name: Commit binaries
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Remove old binaries
+        run: rm -rf runtimes/godot/project/addons/gamescript/bin/*
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: runtimes/godot/project/addons/gamescript/bin/
+          pattern: gdextension-*
+          merge-multiple: true
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add runtimes/godot/project/addons/gamescript/bin/
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Update GDExtension binaries for all platforms"
+          git push

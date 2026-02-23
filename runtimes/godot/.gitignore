@@ -20,12 +20,6 @@ mono_crash.*.json
 gdextension/godot-cpp/
 gdextension/flatbuffers/
 
-# Compiled GDExtension binaries
-project/addons/gamescript/bin/*.dylib
-project/addons/gamescript/bin/*.dll
-project/addons/gamescript/bin/*.so
-project/addons/gamescript/bin/*.wasm
-
 # Build artifacts
 gdextension/*.os
 gdextension/*.o
