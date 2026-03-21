@@ -30,8 +30,9 @@
     type EditableCallbackParams,
   } from '@ag-grid-community/core';
   import type { Localization, Locale, CsvColumnDescriptor, ImportBatchResult, OperationPhase } from '@gamescript/shared';
-  import { localeIdToColumn, toCsvHeader, toCsvBatch, parseCsv, validateCsvHeaders, buildLocalizationColumns, csvRowToLocalizationUpdate } from '@gamescript/shared';
+  import { localeIdToColumns, getRequiredPluralCategories, GENDER_CATEGORIES, PLURAL_DISPLAY_NAMES, GENDER_DISPLAY_NAMES, toCsvHeader, toCsvBatch, parseCsv, validateCsvHeaders, buildLocalizationColumns, csvRowToLocalizationUpdate } from '@gamescript/shared';
   import { TABLE_LOCALIZATIONS, TABLE_LOCALES, type IDbRowView } from '$lib/db';
+  import { localePrincipalTableView, getLocalePrincipal } from '$lib/tables/locale-principal.js';
   import {
     initializeGrid,
     GridDatasource,
@@ -79,6 +80,8 @@
   import { focusLocalizationTagCategory, focusedLocalizationTagCategory } from '$lib/stores/focus.js';
   import IconSettings from '$lib/components/icons/IconSettings.svelte';
   import { googleSheetsReady, googleSheetsSpreadsheet } from '$lib/stores';
+  import { actorsTable } from '$lib/tables/actors.js';
+  import { getVisibleGenders } from '$lib/utils/localization-helpers.js';
 
   // Constants
   const ID_COLUMN = 'id';
@@ -97,7 +100,7 @@
   // Column ID set (for layout persistence)
   const columnIdSet: Set<string> = new Set();
 
-  // Static column definitions (locale columns added dynamically)
+  // Static column definitions (Source + locale column groups added dynamically)
   const staticColumns: ColDef[] = [
     {
       pinned: 'left',
@@ -142,6 +145,7 @@
   // Search & Replace state
   let searchReplaceVisible = $state(false);
   let localeList: Locale[] = $state([]);
+  let allLocaleList: Locale[] = $state([]);
   let selectedLocaleIds: Set<number> = $state(new Set());
   let searchString = $state('');
   let replaceString = $state('');
@@ -267,6 +271,60 @@
   // Search & Replace
   // ============================================================================
 
+  /**
+   * Validate CLDR coverage for all is_templated localizations.
+   * Checks that every is_templated localization has all required plural × gender forms
+   * filled across all real locales.
+   *
+   * TODO: Full implementation — highlight offending rows and show summary panel.
+   * For now, reports a summary count via toast.
+   */
+  async function handleValidate(): Promise<void> {
+    const realLocales = localeList;
+    if (realLocales.length === 0) {
+      toastError('No real locales to validate against.');
+      return;
+    }
+
+    try {
+      // Fetch all is_templated localizations
+      const all = await localizations.getAll();
+      const templated = all.filter(loc => loc.is_templated);
+
+      if (templated.length === 0) {
+        toastSuccess('Nothing to validate — no localizations marked as Templated.');
+        return;
+      }
+
+      let missingCount = 0;
+      for (const loc of templated) {
+        // Derive visible genders from this localization's subject
+        const visibleGenders = getVisibleGenders(loc, actorsTable.rows);
+        for (const locale of realLocales) {
+          const requiredPlurals = getRequiredPluralCategories(locale.name);
+          const locCols = localeIdToColumns(locale.id);
+          for (const plural of requiredPlurals) {
+            for (const gender of visibleGenders) {
+              const col = locCols.form(plural, gender);
+              const val = loc[col as keyof typeof loc];
+              if (val === null || val === undefined || val === '') {
+                missingCount++;
+              }
+            }
+          }
+        }
+      }
+
+      if (missingCount === 0) {
+        toastSuccess(`Validation passed — ${templated.length} templated localization(s) fully covered.`);
+      } else {
+        toastError(`Validation found ${missingCount} missing form(s) across ${templated.length} templated localization(s).`);
+      }
+    } catch (err) {
+      toastError('Validation failed', err);
+    }
+  }
+
   function toggleSearchReplace(): void {
     searchReplaceVisible = !searchReplaceVisible;
   }
@@ -280,19 +338,37 @@
     selectedLocaleIds = selectedLocaleIds; // Trigger reactivity
   }
 
+  /**
+   * Get all searchable column IDs for a real locale (used by Search & Replace).
+   * Returns all CLDR-relevant plural × gender columns for the locale.
+   */
+  function getGridColumnsForLocale(localeId: number): string[] {
+    const locale = localeList.find(l => l.id === localeId);
+    if (!locale) return [];
+    const requiredPlurals = getRequiredPluralCategories(locale.name);
+    const locCols = localeIdToColumns(localeId);
+    const cols: string[] = [];
+    for (const plural of requiredPlurals) {
+      for (const gender of GENDER_CATEGORIES) {
+        cols.push(locCols.form(plural, gender));
+      }
+    }
+    return cols;
+  }
+
   function handleSearch(): void {
     if (!api || !searchString) return;
 
-    // Build filter model for all selected locale columns
     const filterModel: FilterModel = {};
 
     for (const localeId of selectedLocaleIds) {
-      const columnId = localeIdToColumn(localeId);
-      filterModel[columnId] = {
-        filterType: 'text',
-        type: 'contains',
-        filter: searchString,
-      } as TextFilterModel;
+      for (const colId of getGridColumnsForLocale(localeId)) {
+        filterModel[colId] = {
+          filterType: 'text',
+          type: 'contains',
+          filter: searchString,
+        } as TextFilterModel;
+      }
     }
 
     // Apply filter or clear if no locales selected
@@ -328,11 +404,12 @@
 
     for (const loc of locs) {
       for (const localeId of selectedLocaleIds) {
-        const columnId = localeIdToColumn(localeId);
-        const currentValue = loc[columnId as keyof Localization];
-        if (typeof currentValue === 'string' && currentValue.includes(searchString)) {
-          const newValue = currentValue.split(searchString).join(replaceString);
-          changes.push({ id: loc.id, columnId, oldValue: currentValue, newValue });
+        for (const columnId of getGridColumnsForLocale(localeId)) {
+          const currentValue = loc[columnId as keyof Localization];
+          if (typeof currentValue === 'string' && currentValue.includes(searchString)) {
+            const newValue = currentValue.split(searchString).join(replaceString);
+            changes.push({ id: loc.id, columnId, oldValue: currentValue, newValue });
+          }
         }
       }
     }
@@ -406,11 +483,12 @@
   /**
    * Build column descriptors for CSV export/import based on current locales.
    */
-  function buildCsvColumns(): CsvColumnDescriptor[] {
-    const activeLocales = localeList.filter(l => !l.is_deleted);
+  function buildCsvColumns(options?: { includeAllGenders?: boolean; usedColumns?: ReadonlySet<string> }): CsvColumnDescriptor[] {
+    const activeLocales = allLocaleList;
     const localeIds = activeLocales.map(l => l.id);
     const localeNames = new Map(activeLocales.map(l => [l.id, l.name]));
-    return buildLocalizationColumns(localeIds, localeNames);
+    const localeCodes = new Map(activeLocales.map(l => [l.id, l.name]));
+    return buildLocalizationColumns(localeIds, localeNames, localeCodes, options);
   }
 
   /**
@@ -446,8 +524,8 @@
 
     operationProgress = { ...operationProgress, total: totalCount, phase: 'processing' };
 
-    // Build columns
-    const columns = buildCsvColumns();
+    // Build columns — include all genders to match the grid
+    const columns = buildCsvColumns({ includeAllGenders: true });
 
     // Build header
     const header = toCsvHeader(columns);
@@ -552,7 +630,8 @@
     errors: string[];
     parsedRows: ParsedImportRow[];
   } {
-    const columns = buildCsvColumns();
+    // Both validation and parsing use all genders to match the export format
+    const columns = buildCsvColumns({ includeAllGenders: true });
     const errors: string[] = [];
     const warnings: string[] = [];
     const parsedRows: ParsedImportRow[] = [];
@@ -946,6 +1025,10 @@
     const localeRowViews = localesTable.rows;
     localeRowViews.forEach(r => r.data); // Establish dependency on each row's data
 
+    // Track the primary locale (columns rebuild when it changes)
+    const principalRowView = getLocalePrincipal(localePrincipalTableView.rows);
+    const primaryLocaleId = principalRowView?.data.principal ?? null;
+
     // Track the tag categories table rows and their data
     const tagCategoryRowViews = localizationTagCategoriesTable.rows;
     tagCategoryRowViews.forEach((r: typeof tagCategoryRowViews[number]) => r.data);
@@ -957,8 +1040,18 @@
     // Skip if no locales yet
     if (localeRowViews.length === 0) return;
 
-    // Update locale list for search & replace
-    localeList = localeRowViews.map((rowView) => rowView.data);
+    // Real locales only (not x-source) — used for Search & Replace
+    const realLocaleRowViews = localeRowViews.filter(r => !r.data.is_system_created);
+    const xSourceRowView = localeRowViews.find(r => r.data.is_system_created);
+
+    // Resolve the primary locale row view (could be x-source or a real locale)
+    const primaryLocaleRowView = primaryLocaleId !== null
+      ? localeRowViews.find(r => r.data.id === primaryLocaleId)
+      : null;
+
+    // Update locale lists
+    localeList = realLocaleRowViews.map((rowView) => rowView.data);
+    allLocaleList = localeRowViews.map((rowView) => rowView.data);
 
     // Skip column update if grid not initialized yet
     if (!api) return;
@@ -973,7 +1066,22 @@
       newColumnDefs.push(staticColumn);
     }
 
-    // Build tag columns first (before locale columns)
+    // Add Source column — x-source other/other, always visible, pinned left
+    if (xSourceRowView) {
+      const sourceColId = localeIdToColumns(xSourceRowView.data.id).default;
+      columnIdSet.add(sourceColId);
+      newColumnDefs.push({
+        headerName: 'Source',
+        colId: sourceColId,
+        pinned: 'left',
+        cellEditor: GridCellEditorText,
+        cellRenderer: GridCellRenderer,
+        filter: 'agTextColumnFilter',
+        filterParams: GRID_FILTER_PARAMS_TEXT,
+      } as ColDef);
+    }
+
+    // Build tag columns
     const tagColumns = buildTagColumns({
       categoryRowViews: tagCategoryRowViews,
       valueRowViews: tagValueRowViews,
@@ -981,19 +1089,35 @@
     });
     newColumnDefs.push(...tagColumns);
 
-    // Add dynamic locale columns
-    for (const rowView of localeRowViews) {
-      const row = rowView.data;
-      const colId: string = localeIdToColumn(row.id);
-      columnIdSet.add(colId);
-      newColumnDefs.push({
-        headerName: row.name,
-        colId: colId,
-        cellEditor: GridCellEditorText,
-        cellRenderer: GridCellRenderer,
-        filter: 'agTextColumnFilter',
-        filterParams: GRID_FILTER_PARAMS_TEXT,
-      });
+    // Add gender-grouped columns for the primary locale only.
+    // Skip when primary is x-source — Source column already covers its only form (other/other).
+    if (primaryLocaleRowView && !primaryLocaleRowView.data.is_system_created) {
+      const primaryLocale = primaryLocaleRowView.data;
+      const requiredPlurals = getRequiredPluralCategories(primaryLocale.name);
+      const locCols = localeIdToColumns(primaryLocale.id);
+
+      for (const gender of GENDER_CATEGORIES) {
+        const pluralChildren: ColDef[] = [];
+
+        for (const plural of requiredPlurals) {
+          const colId = locCols.form(plural, gender);
+          columnIdSet.add(colId);
+
+          pluralChildren.push({
+            headerName: PLURAL_DISPLAY_NAMES[plural],
+            colId,
+            cellEditor: GridCellEditorText,
+            cellRenderer: GridCellRenderer,
+            filter: 'agTextColumnFilter',
+            filterParams: GRID_FILTER_PARAMS_TEXT,
+          } as ColDef);
+        }
+
+        newColumnDefs.push({
+          headerName: GENDER_DISPLAY_NAMES[gender],
+          children: pluralChildren,
+        } as ColGroupDef);
+      }
     }
 
     // Update grid
@@ -1184,6 +1308,9 @@
     {/snippet}
 
     {#snippet right()}
+      <Button variant="secondary" onclick={handleValidate} disabled={$isLoading}>
+        Validate
+      </Button>
       <ToggleButton active={searchReplaceVisible} onclick={toggleSearchReplace}>
         Search & Replace
       </ToggleButton>

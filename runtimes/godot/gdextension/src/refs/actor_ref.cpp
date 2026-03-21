@@ -1,4 +1,5 @@
 #include "actor_ref.h"
+#include "localization_ref.h"
 #include "../game_script_database.h"
 
 namespace godot {
@@ -7,15 +8,19 @@ void ActorRef::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_index"), &ActorRef::get_index);
     ClassDB::bind_method(D_METHOD("get_id"), &ActorRef::get_id);
     ClassDB::bind_method(D_METHOD("get_name"), &ActorRef::get_name);
-    ClassDB::bind_method(D_METHOD("get_localized_name"), &ActorRef::get_localized_name);
     ClassDB::bind_method(D_METHOD("get_color"), &ActorRef::get_color);
+    ClassDB::bind_method(D_METHOD("get_localized_name_idx"), &ActorRef::get_localized_name_idx);
+    ClassDB::bind_method(D_METHOD("get_grammatical_gender"), &ActorRef::get_grammatical_gender);
+    ClassDB::bind_method(D_METHOD("get_localized_name"), &ActorRef::get_localized_name);
     ClassDB::bind_method(D_METHOD("is_valid"), &ActorRef::is_valid);
 
     ADD_PROPERTY(PropertyInfo(Variant::INT, "index"), "", "get_index");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "id"), "", "get_id");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "", "get_name");
-    ADD_PROPERTY(PropertyInfo(Variant::STRING, "localized_name"), "", "get_localized_name");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "color"), "", "get_color");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "localized_name_idx"), "", "get_localized_name_idx");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "grammatical_gender"), "", "get_grammatical_gender");
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "localized_name"), "", "get_localized_name");
 }
 
 ActorRef::ActorRef() : _database(nullptr), _index(-1) {
@@ -49,16 +54,35 @@ String ActorRef::get_name() const {
     return String::utf8(actor->name()->c_str());
 }
 
-String ActorRef::get_localized_name() const {
-    const auto* actor = _get_actor();
-    if (!actor || !actor->localized_name()) return String();
-    return String::utf8(actor->localized_name()->c_str());
-}
-
 String ActorRef::get_color() const {
     const auto* actor = _get_actor();
     if (!actor || !actor->color()) return String();
     return String::utf8(actor->color()->c_str());
+}
+
+int ActorRef::get_localized_name_idx() const {
+    const auto* actor = _get_actor();
+    return actor ? actor->localized_name_idx() : -1;
+}
+
+int ActorRef::get_grammatical_gender() const {
+    const auto* actor = _get_actor();
+    return actor ? static_cast<int>(actor->grammatical_gender()) : 0;
+}
+
+String ActorRef::get_localized_name() const {
+    const auto* actor = _get_actor();
+    if (!actor) return String();
+
+    int idx = actor->localized_name_idx();
+    if (idx < 0) return String();
+
+    const auto* snapshot = _database->get_snapshot();
+    const auto* localizations = snapshot->localizations();
+    if (!localizations || idx >= static_cast<int>(localizations->size())) return String();
+
+    const auto* loc = localizations->Get(idx);
+    return LocalizationRef::resolve_text_static(loc, snapshot);
 }
 
 bool ActorRef::is_valid() const {

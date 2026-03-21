@@ -4,6 +4,10 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { GenderCategory } from '../game-script/gender-category.js';
+import { TextVariant } from '../game-script/text-variant.js';
+
+
 export class Localization {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -34,30 +38,48 @@ name(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-text():string|null
-text(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-text(optionalEncoding?:any):string|Uint8Array|null {
+subjectActorIdx():number {
   const offset = this.bb!.__offset(this.bb_pos, 8);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
+}
+
+subjectGender():GenderCategory {
+  const offset = this.bb!.__offset(this.bb_pos, 10);
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : GenderCategory.Other;
+}
+
+isTemplated():boolean {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? !!this.bb!.readInt8(this.bb_pos + offset) : false;
+}
+
+variants(index: number, obj?:TextVariant):TextVariant|null {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? (obj || new TextVariant()).__init(this.bb!.__indirect(this.bb!.__vector(this.bb_pos + offset) + index * 4), this.bb!) : null;
+}
+
+variantsLength():number {
+  const offset = this.bb!.__offset(this.bb_pos, 14);
+  return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 tagIndices(index: number):number|null {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? this.bb!.readInt32(this.bb!.__vector(this.bb_pos + offset) + index * 4) : 0;
 }
 
 tagIndicesLength():number {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? this.bb!.__vector_len(this.bb_pos + offset) : 0;
 }
 
 tagIndicesArray():Int32Array|null {
-  const offset = this.bb!.__offset(this.bb_pos, 10);
+  const offset = this.bb!.__offset(this.bb_pos, 16);
   return offset ? new Int32Array(this.bb!.bytes().buffer, this.bb!.bytes().byteOffset + this.bb!.__vector(this.bb_pos + offset), this.bb!.__vector_len(this.bb_pos + offset)) : null;
 }
 
 static startLocalization(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(7);
 }
 
 static addId(builder:flatbuffers.Builder, id:number) {
@@ -68,12 +90,36 @@ static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
   builder.addFieldOffset(1, nameOffset, 0);
 }
 
-static addText(builder:flatbuffers.Builder, textOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, textOffset, 0);
+static addSubjectActorIdx(builder:flatbuffers.Builder, subjectActorIdx:number) {
+  builder.addFieldInt32(2, subjectActorIdx, 0);
+}
+
+static addSubjectGender(builder:flatbuffers.Builder, subjectGender:GenderCategory) {
+  builder.addFieldInt8(3, subjectGender, GenderCategory.Other);
+}
+
+static addIsTemplated(builder:flatbuffers.Builder, isTemplated:boolean) {
+  builder.addFieldInt8(4, +isTemplated, +false);
+}
+
+static addVariants(builder:flatbuffers.Builder, variantsOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(5, variantsOffset, 0);
+}
+
+static createVariantsVector(builder:flatbuffers.Builder, data:flatbuffers.Offset[]):flatbuffers.Offset {
+  builder.startVector(4, data.length, 4);
+  for (let i = data.length - 1; i >= 0; i--) {
+    builder.addOffset(data[i]!);
+  }
+  return builder.endVector();
+}
+
+static startVariantsVector(builder:flatbuffers.Builder, numElems:number) {
+  builder.startVector(4, numElems, 4);
 }
 
 static addTagIndices(builder:flatbuffers.Builder, tagIndicesOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, tagIndicesOffset, 0);
+  builder.addFieldOffset(6, tagIndicesOffset, 0);
 }
 
 static createTagIndicesVector(builder:flatbuffers.Builder, data:number[]|Int32Array):flatbuffers.Offset;
@@ -98,11 +144,14 @@ static endLocalization(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createLocalization(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, textOffset:flatbuffers.Offset, tagIndicesOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createLocalization(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, subjectActorIdx:number, subjectGender:GenderCategory, isTemplated:boolean, variantsOffset:flatbuffers.Offset, tagIndicesOffset:flatbuffers.Offset):flatbuffers.Offset {
   Localization.startLocalization(builder);
   Localization.addId(builder, id);
   Localization.addName(builder, nameOffset);
-  Localization.addText(builder, textOffset);
+  Localization.addSubjectActorIdx(builder, subjectActorIdx);
+  Localization.addSubjectGender(builder, subjectGender);
+  Localization.addIsTemplated(builder, isTemplated);
+  Localization.addVariants(builder, variantsOffset);
   Localization.addTagIndices(builder, tagIndicesOffset);
   return Localization.endLocalization(builder);
 }

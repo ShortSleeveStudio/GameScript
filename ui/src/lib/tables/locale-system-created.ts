@@ -1,5 +1,5 @@
 /**
- * Shared view of the system-created locale (English).
+ * Shared view of the system-created locale (x-source).
  *
  * This singleton provides reactive access to the default locale,
  * which is created during database initialization and marked as system-created.

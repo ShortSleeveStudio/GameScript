@@ -4,6 +4,8 @@
 #include "Attributes.h"
 #include "ActiveConversation.h"
 #include "IGameScriptListener.h"
+#include "TextResolutionParams.h"
+#include "Internationalization/Culture.h"
 #include "GameScriptRunner.generated.h"
 
 // Forward declarations
@@ -12,6 +14,7 @@ class UGameScriptSettings;
 class URunnerContext;
 class UGSCompletionHandle;
 class AActor;
+namespace GameScript { struct Snapshot; struct Localization; }
 
 /**
  * Dialogue execution engine (UObject for proper lifecycle management).
@@ -186,6 +189,18 @@ public:
 	 */
 	void ReleaseHandle(UGSCompletionHandle* Handle);
 
+	/**
+	 * Resolves the text for a localization entry with the given parameters.
+	 * Performs gender resolution, plural category selection, variant picking,
+	 * and template substitution in a single pass.
+	 *
+	 * @param LocalizationIdx Index into snapshot.Localizations. Returns empty string if < 0.
+	 * @param Node The node context (for future dynamic gender support).
+	 * @param Parms Resolution parameters controlling gender, plural, and substitution args.
+	 * @return The resolved string, or empty if no matching variant has text.
+	 */
+	FString ResolveText(int32 LocalizationIdx, FNodeRef Node, const FTextResolutionParams& Parms);
+
 private:
 	// URunnerContext needs access to ReleaseContext for self-cleanup
 	friend class URunnerContext;
@@ -237,4 +252,31 @@ private:
 	 * Build jump tables from global registrations.
 	 */
 	void BuildJumpTables();
+
+	// Text resolution helpers
+	static EGSGenderCategory ResolveGender(const GameScript::Localization* Loc, const FTextResolutionParams& Parms, const GameScript::Snapshot* Snapshot);
+	FString ApplyTemplate(const FString& Text, const FTextResolutionParams& Parms);
+	void FormatArg(const FGSArg& Arg, FString& OutResult);
+
+	// Shared string builder for template substitution (not re-entrant; game thread only)
+	FString SharedStringBuilder;
+
+	// Cached locale culture info (invalidated on locale change)
+	FString CachedLocaleName;
+	FCulturePtr CachedCulture;
+
+	// Cached CLDR rule indices (avoids per-call locale normalization)
+	uint8 CachedCardinalRuleIdx = 0;
+	uint8 CachedOrdinalRuleIdx = 0;
+	bool bCldrRulesCached = false;
+
+	// Locale caching helpers
+	FCulturePtr GetCulture();
+	void EnsureCldrRulesCached(const GameScript::Snapshot* Snapshot);
+
+	UFUNCTION()
+	void OnLocaleChanged();
+
+	// Power of 10 for decimal formatting
+	static double Pow10(int32 Exponent);
 };

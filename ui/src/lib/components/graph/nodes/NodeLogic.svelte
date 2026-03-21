@@ -17,6 +17,11 @@
     import { Position, type NodeProps } from '@xyflow/svelte';
     import type { Node } from '@gamescript/shared';
     import type { IDbRowView } from '$lib/db';
+    import { RowColumnTextArea } from '$lib/components/common';
+    import {
+        NODE_UNDO_NOTES,
+        NODE_PLACEHOLDER_NOTES,
+    } from '$lib/constants/settings.js';
     import { type NodeData, type GraphNode } from '../utils/types.js';
     import NodeBase from './NodeBase.svelte';
 
@@ -42,4 +47,41 @@
     let isVertical: boolean = $derived(sourcePosition === Position.Bottom);
 </script>
 
-<NodeBase {rowView} {isVertical} {selected} title={'Logic'} {targetPosition} {sourcePosition}></NodeBase>
+<NodeBase {rowView} {isVertical} {selected} title={'Logic'} {targetPosition} {sourcePosition}>
+    {#snippet body()}
+        <div class="nodrag nopan node-notes">
+            <RowColumnTextArea
+                {rowView}
+                columnName="notes"
+                undoText={NODE_UNDO_NOTES}
+                placeholder={NODE_PLACEHOLDER_NOTES}
+                rows={1}
+            />
+        </div>
+    {/snippet}
+</NodeBase>
+
+<style>
+    .node-notes {
+        height: 28px;
+        background: var(--gs-bg-secondary);
+        border-top: 1px dashed var(--gs-border-primary);
+    }
+
+    .node-notes :global(.row-column-textarea-wrapper) {
+        height: 100%;
+    }
+
+    .node-notes :global(textarea) {
+        border: none !important;
+        height: 100% !important;
+        min-height: unset !important;
+        padding: 4px 8px !important;
+        resize: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        font-family: monospace !important;
+        font-size: 11px !important;
+        color: #4ec950 !important;
+    }
+</style>

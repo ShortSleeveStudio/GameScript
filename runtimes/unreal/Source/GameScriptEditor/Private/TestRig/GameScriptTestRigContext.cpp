@@ -211,7 +211,7 @@ void UGameScriptTestRigContext::ClearHistory()
 	NotifyUIUpdate();
 }
 
-void UGameScriptTestRigContext::SetChoices(const TArray<FNodeRef>& InChoices)
+void UGameScriptTestRigContext::SetChoices(const TArray<FChoiceRef>& InChoices)
 {
 	CurrentChoices = InChoices;
 	SetState(ETestRigState::WaitingForChoice);

@@ -46,8 +46,14 @@ public:
     int get_index() const;
     int get_id() const;
     String get_name() const;
-    String get_localized_name() const;
     String get_color() const;
+    int get_localized_name_idx() const;
+    int get_grammatical_gender() const;
+
+    // Static-gender-resolved localized display name (convenience accessor).
+    // Resolves through localization idx with static gender + variant scan.
+    // Returns empty string if this actor has no localized name.
+    String get_localized_name() const;
 
     bool is_valid() const;
 };

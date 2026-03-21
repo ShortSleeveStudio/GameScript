@@ -9,7 +9,12 @@ import { db } from '$lib/db';
 import { bridge } from '$lib/api/bridge';
 import {
   query,
-  isLocaleColumn,
+  isLocaleFormColumn,
+  localeIdToColumns,
+  getRequiredPluralCategories,
+  getLocaleAutonym,
+  isKnownLocale,
+  GENDER_CATEGORIES,
   TABLE_CONVERSATIONS,
   TABLE_NODES,
   TABLE_EDGES,
@@ -38,7 +43,25 @@ import {
   type ConversationTagValue,
   type LocalizationTagCategory,
   type LocalizationTagValue,
+  type PluralCategory,
+  type GenderCategory,
 } from '@gamescript/shared';
+import type { ExportTextVariant } from '$lib/export/types.js';
+
+// ============================================================================
+// Types
+// ============================================================================
+
+/**
+ * Full localization export data for a single row × locale combination.
+ */
+export interface LocalizationExportData {
+  name: string | null;
+  variants: ExportTextVariant[];
+  subjectActorId: number | null;
+  subjectGender: string | null;
+  isTemplated: boolean;
+}
 
 // ============================================================================
 // Locales
@@ -52,22 +75,41 @@ export async function getAllLocales(): Promise<Locale[]> {
 }
 
 /**
- * Get localized names for locales using the specified locale column.
+ * Get localized names for locales.
+ * For CLDR locales: uses the autonym (language's name in its own script).
+ * For custom locales: falls back to the database localization.
  * Returns a map from locale ID to its localized display name.
  */
 export async function getLocaleLocalizedNames(
   locales: Locale[],
-  localeColumn: string
+  localeId: number
 ): Promise<Map<number, string>> {
-  const localizationIds = locales.map((l) => l.localized_name);
-  const textMap = await getLocalizationTextForLocale(localizationIds, localeColumn);
-
   const result = new Map<number, string>();
+
+  // Collect non-CLDR locales that need database lookup
+  const dbLookupLocales: Locale[] = [];
+
   for (const locale of locales) {
-    const text = textMap.get(locale.localized_name);
-    // Fall back to locale name if no localized name
-    result.set(locale.id, text ?? locale.name);
+    const code = locale.name;
+
+    if (isKnownLocale(code)) {
+      result.set(locale.id, getLocaleAutonym(code));
+    } else {
+      dbLookupLocales.push(locale);
+    }
   }
+
+  // Fall back to database for non-CLDR locales
+  if (dbLookupLocales.length > 0) {
+    const localizationIds = dbLookupLocales.map((l) => l.localized_name);
+    const textMap = await getLocalizationDefaultText(localizationIds, localeId);
+
+    for (const locale of dbLookupLocales) {
+      const text = textMap.get(locale.localized_name);
+      result.set(locale.id, text ?? locale.name);
+    }
+  }
+
   return result;
 }
 
@@ -145,27 +187,30 @@ export async function getNonSystemLocalizations(): Promise<Localization[]> {
 }
 
 /**
- * Get localized text for specific localization IDs and a given locale.
- * Returns a map from localization ID to text value.
+ * Get the default text (form_other_other only) for specific localization IDs and a given locale.
+ * Lightweight single-column fetch for display-name use cases.
  *
  * @param localizationIds - Array of localization IDs to fetch
- * @param localeColumn - The locale column name (e.g., "locale_1")
+ * @param localeId - The locale ID
  */
-export async function getLocalizationTextForLocale(
+export async function getLocalizationDefaultText(
   localizationIds: number[],
-  localeColumn: string
+  localeId: number
 ): Promise<Map<number, string | null>> {
   if (localizationIds.length === 0) {
     return new Map();
   }
 
-  // Validate locale column name to prevent SQL injection
-  if (!isLocaleColumn(localeColumn)) {
-    throw new Error(`Invalid locale column name: ${localeColumn}`);
+  const defaultColumn = localeIdToColumns(localeId).default;
+
+  // Column is constructed from localeIdToColumns — deterministic and safe.
+  // Validate as defense-in-depth against SQL injection.
+  if (!isLocaleFormColumn(defaultColumn)) {
+    throw new Error(`Invalid locale column name: ${defaultColumn}`);
   }
 
   const placeholders = localizationIds.map((_, i) => db.placeholder(i + 1)).join(', ');
-  const sql = `SELECT id, "${localeColumn}" as text FROM "localizations" WHERE id IN (${placeholders})`;
+  const sql = `SELECT id, "${defaultColumn}" as text FROM "localizations" WHERE id IN (${placeholders})`;
   const rows = await bridge.query<{ id: number; text: string | null }>(sql, localizationIds);
 
   const textMap = new Map<number, string | null>();
@@ -174,6 +219,74 @@ export async function getLocalizationTextForLocale(
   }
 
   return textMap;
+}
+
+/**
+ * Get all form data and metadata for specific localization IDs and a given locale.
+ * Fetches only CLDR-relevant form columns plus metadata columns.
+ *
+ * @param localizationIds - Array of localization IDs to fetch
+ * @param locale - The locale (needs .id and .name for CLDR lookup)
+ */
+export async function getLocalizationFormsForLocale(
+  localizationIds: number[],
+  locale: Locale,
+): Promise<Map<number, LocalizationExportData>> {
+  if (localizationIds.length === 0) {
+    return new Map();
+  }
+
+  const columns = localeIdToColumns(locale.id);
+  const requiredPlurals = getRequiredPluralCategories(locale.name);
+
+  // Build the set of CLDR-relevant form columns
+  const formColumns: { column: string; plural: PluralCategory; gender: GenderCategory }[] = [];
+  for (const plural of requiredPlurals) {
+    for (const gender of GENDER_CATEGORIES) {
+      const col = columns.form(plural, gender);
+      // Defense-in-depth: validate each column name
+      if (!isLocaleFormColumn(col)) {
+        throw new Error(`Invalid locale column name: ${col}`);
+      }
+      formColumns.push({ column: col, plural, gender });
+    }
+  }
+
+  // Build SELECT with metadata + form columns
+  const columnSelects = [
+    'id',
+    'name',
+    'subject_actor',
+    'subject_gender',
+    'is_templated',
+    ...formColumns.map((fc) => `"${fc.column}"`),
+  ];
+
+  const placeholders = localizationIds.map((_, i) => db.placeholder(i + 1)).join(', ');
+  const sql = `SELECT ${columnSelects.join(', ')} FROM "localizations" WHERE id IN (${placeholders})`;
+  const rows = await bridge.query<Record<string, unknown>>(sql, localizationIds);
+
+  const result = new Map<number, LocalizationExportData>();
+  for (const row of rows) {
+    // Build sparse variants array — only non-null text values
+    const variants: ExportTextVariant[] = [];
+    for (const fc of formColumns) {
+      const text = row[fc.column] as string | null;
+      if (text !== null && text !== undefined) {
+        variants.push({ plural: fc.plural, gender: fc.gender, text });
+      }
+    }
+
+    result.set(row.id as number, {
+      name: (row.name as string | null) ?? null,
+      variants,
+      subjectActorId: (row.subject_actor as number | null) ?? null,
+      subjectGender: (row.subject_gender as string | null) ?? null,
+      isTemplated: Boolean(row.is_templated),
+    });
+  }
+
+  return result;
 }
 
 // ============================================================================

@@ -567,10 +567,10 @@ void SGameScriptTestRig::RebuildChoices()
 
 	ChoicesContainer->ClearChildren();
 
-	const TArray<FNodeRef>& Choices = Context->GetCurrentChoices();
+	const TArray<FChoiceRef>& Choices = Context->GetCurrentChoices();
 	for (int32 i = 0; i < Choices.Num(); i++)
 	{
-		const FNodeRef& Choice = Choices[i];
+		const FChoiceRef& Choice = Choices[i];
 		FString ChoiceText = Choice.GetUIResponseText();
 		if (ChoiceText.IsEmpty())
 		{
@@ -721,7 +721,7 @@ FReply SGameScriptTestRig::OnChoiceClicked(int32 ChoiceIndex)
 	if (Context)
 	{
 		// Validate choice index
-		const TArray<FNodeRef>& Choices = Context->GetCurrentChoices();
+		const TArray<FChoiceRef>& Choices = Context->GetCurrentChoices();
 		if (ChoiceIndex < 0 || ChoiceIndex >= Choices.Num())
 		{
 			return FReply::Handled();

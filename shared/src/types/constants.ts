@@ -194,18 +194,126 @@ export const LOCALIZATION_FORMAT_TYPES: LocalizationFormatType[] = [
   LOCALIZATION_FORMAT_JSON,
 ];
 
-// Locale helper functions
-export function localeIdToColumn(localeId: number): string {
-  return `locale_${localeId}`;
+// Plural and gender categories (defined once, derived everywhere)
+export const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const;
+export type PluralCategory = (typeof PLURAL_CATEGORIES)[number];
+
+export const GENDER_CATEGORIES = ['other', 'masculine', 'feminine', 'neuter'] as const;
+export type GenderCategory = (typeof GENDER_CATEGORIES)[number];
+
+// Actor gender includes 'dynamic' on top of the base gender categories
+export const ACTOR_GENDERS = ['other', 'masculine', 'feminine', 'neuter', 'dynamic'] as const;
+export type ActorGender = (typeof ACTOR_GENDERS)[number];
+
+/** Display labels for plural categories — matches matrix row headers */
+export const PLURAL_DISPLAY_NAMES: Record<PluralCategory, string> = {
+  zero: 'Zero',
+  one: 'One',
+  two: 'Two',
+  few: 'Few',
+  many: 'Many',
+  other: 'Other',
+};
+
+/** Display labels for gender categories — matches matrix column headers */
+export const GENDER_DISPLAY_NAMES: Record<GenderCategory, string> = {
+  other: 'Other',
+  masculine: 'Male',
+  feminine: 'Female',
+  neuter: 'Neuter',
+};
+
+// Total form columns per locale: 6 plural × 4 gender = 24
+export const FORM_COLUMNS_PER_LOCALE = PLURAL_CATEGORIES.length * GENDER_CATEGORIES.length;
+
+// Locale form column helpers
+
+export interface LocaleColumns {
+  /** All 24 column names for this locale */
+  readonly all: readonly string[];
+  /** The catch-all column: locale_N_form_other_other */
+  readonly default: string;
+  /** Get a specific form column name */
+  form(plural: PluralCategory, gender: GenderCategory): string;
 }
 
-export function localeColumnToId(column: string): number | null {
-  const match = column.match(/^locale_(\d+)$/);
-  return match ? parseInt(match[1], 10) : null;
+/** Cache for LocaleColumns objects — locale IDs are stable within a session */
+const localeColumnsCache = new Map<number, LocaleColumns>();
+
+/**
+ * Get the structured column set for a locale.
+ * Cached by locale ID — same object returned for same ID.
+ */
+export function localeIdToColumns(localeId: number): LocaleColumns {
+  const cached = localeColumnsCache.get(localeId);
+  if (cached) return cached;
+
+  // Pre-compute all 24 column names
+  const all: string[] = [];
+  const formMap = new Map<string, string>();
+  for (const plural of PLURAL_CATEGORIES) {
+    for (const gender of GENDER_CATEGORIES) {
+      const col = `locale_${localeId}_form_${plural}_${gender}`;
+      all.push(col);
+      formMap.set(`${plural}_${gender}`, col);
+    }
+  }
+
+  const columns: LocaleColumns = {
+    all: Object.freeze(all),
+    default: formMap.get('other_other')!,
+    form(plural: PluralCategory, gender: GenderCategory): string {
+      return formMap.get(`${plural}_${gender}`)!;
+    },
+  };
+
+  localeColumnsCache.set(localeId, columns);
+  return columns;
 }
 
-export function isLocaleColumn(column: string): boolean {
-  return /^locale_\d+$/.test(column);
+/** Clear the locale columns cache (for testing) */
+export function clearLocaleColumnsCache(): void {
+  localeColumnsCache.clear();
+}
+
+/** Result of parsing a locale form column name */
+export interface ParsedLocaleFormColumn {
+  localeId: number;
+  plural: PluralCategory;
+  gender: GenderCategory;
+}
+
+/** Sets for O(1) validation of parsed values */
+const PLURAL_SET: ReadonlySet<string> = new Set(PLURAL_CATEGORIES);
+const GENDER_SET: ReadonlySet<string> = new Set(GENDER_CATEGORIES);
+
+/**
+ * Parse a locale form column name back into its parts.
+ * Used at boundaries: CSV import, DB column validation.
+ * Returns null if the column name is not a valid locale form column.
+ */
+export function parseLocaleFormColumn(column: string): ParsedLocaleFormColumn | null {
+  // Expected format: locale_{N}_form_{plural}_{gender}
+  // Split into: ['locale', '{N}', 'form', '{plural}', '{gender}']
+  const parts = column.split('_');
+  if (parts.length !== 5 || parts[0] !== 'locale' || parts[2] !== 'form') return null;
+
+  const localeId = parseInt(parts[1], 10);
+  if (isNaN(localeId) || localeId < 1) return null;
+
+  const plural = parts[3];
+  const gender = parts[4];
+  if (!PLURAL_SET.has(plural) || !GENDER_SET.has(gender)) return null;
+
+  return { localeId, plural: plural as PluralCategory, gender: gender as GenderCategory };
+}
+
+/**
+ * Validate whether a string is a valid locale form column name.
+ * Used for SQL injection prevention (replaces isLocaleColumn).
+ */
+export function isLocaleFormColumn(column: string): boolean {
+  return parseLocaleFormColumn(column) !== null;
 }
 
 // Tag category helper functions
@@ -223,5 +331,5 @@ export function isTagCategoryColumn(column: string): boolean {
 }
 
 // Default entity IDs (created during schema initialization)
-export const DB_DEFAULT_LOCALE_ID = 1; // English
+export const DB_DEFAULT_LOCALE_ID = 1; // x-source
 export const DB_DEFAULT_ACTOR_ID = 1; // Narrator

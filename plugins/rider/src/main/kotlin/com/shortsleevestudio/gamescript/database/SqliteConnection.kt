@@ -34,8 +34,9 @@ class SqliteConnection(private val path: String) {
         connection = DriverManager.getConnection("jdbc:sqlite:$path")
         connection?.autoCommit = true
 
-        // Enable WAL mode for better concurrency
-        exec("PRAGMA journal_mode=WAL")
+        // Use DELETE journal mode so changes are written directly to the .db file
+        // (makes the file visible to git immediately after commits)
+        exec("PRAGMA journal_mode=DELETE")
         // Set busy timeout to 30 seconds
         exec("PRAGMA busy_timeout=30000")
     }

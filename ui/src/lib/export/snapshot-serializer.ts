@@ -12,6 +12,7 @@ import {
   Edge,
   Actor,
   Localization,
+  TextVariant,
   PropertyTemplate,
   NodeProperty,
   ConversationProperty,
@@ -23,6 +24,9 @@ import {
   Int32Value,
   FloatValue,
   BoolValue,
+  PluralCategory,
+  GenderCategory,
+  GrammaticalGender,
 } from '@gamescript/flatbuffers';
 import type {
   LocaleSnapshot,
@@ -34,6 +38,7 @@ import type {
   ExportPropertyTemplate,
   ExportNodeProperty,
   ExportConversationProperty,
+  ExportTextVariant,
 } from './types.js';
 
 /**
@@ -56,31 +61,31 @@ export function serializeSnapshot(data: LocaleSnapshot): Uint8Array {
       ? Snapshot.createPropertyTemplatesVector(builder, propertyTemplateOffsets)
       : 0;
 
-  // 2. Actors
-  const actorOffsets = data.actors.map((a) => buildActor(builder, a));
-  const actorsVector =
-    actorOffsets.length > 0 ? Snapshot.createActorsVector(builder, actorOffsets) : 0;
-
-  // 3. Edges
-  const edgeOffsets = data.edges.map((e) => buildEdge(builder, e));
-  const edgesVector = edgeOffsets.length > 0 ? Snapshot.createEdgesVector(builder, edgeOffsets) : 0;
-
-  // 4. Nodes (need edges already built for indices)
-  const nodeOffsets = data.nodes.map((n) => buildNode(builder, n));
-  const nodesVector = nodeOffsets.length > 0 ? Snapshot.createNodesVector(builder, nodeOffsets) : 0;
-
-  // 5. Conversations
-  const conversationOffsets = data.conversations.map((c) => buildConversation(builder, c));
-  const conversationsVector =
-    conversationOffsets.length > 0
-      ? Snapshot.createConversationsVector(builder, conversationOffsets)
-      : 0;
-
-  // 6. Localizations
+  // 2. Localizations (unified array — dialogue text, actor names, raw strings)
   const localizationOffsets = data.localizations.map((l) => buildLocalization(builder, l));
   const localizationsVector =
     localizationOffsets.length > 0
       ? Snapshot.createLocalizationsVector(builder, localizationOffsets)
+      : 0;
+
+  // 3. Actors (reference localizations by index)
+  const actorOffsets = data.actors.map((a) => buildActor(builder, a));
+  const actorsVector =
+    actorOffsets.length > 0 ? Snapshot.createActorsVector(builder, actorOffsets) : 0;
+
+  // 4. Edges
+  const edgeOffsets = data.edges.map((e) => buildEdge(builder, e));
+  const edgesVector = edgeOffsets.length > 0 ? Snapshot.createEdgesVector(builder, edgeOffsets) : 0;
+
+  // 5. Nodes (reference localizations by index)
+  const nodeOffsets = data.nodes.map((n) => buildNode(builder, n));
+  const nodesVector = nodeOffsets.length > 0 ? Snapshot.createNodesVector(builder, nodeOffsets) : 0;
+
+  // 6. Conversations
+  const conversationOffsets = data.conversations.map((c) => buildConversation(builder, c));
+  const conversationsVector =
+    conversationOffsets.length > 0
+      ? Snapshot.createConversationsVector(builder, conversationOffsets)
       : 0;
 
   // 7. Conversation tags
@@ -113,24 +118,23 @@ export function serializeSnapshot(data: LocaleSnapshot): Uint8Array {
       ? Snapshot.createLocalizationTagValuesVector(builder, locTagValueOffsets)
       : 0;
 
-  // Build the root Snapshot table
-  const snapshotOffset = Snapshot.createSnapshot(
-    builder,
-    data.localeId,
-    localeNameOffset,
-    convTagNamesVector,
-    convTagValuesVector,
-    conversationsVector,
-    nodesVector,
-    edgesVector,
-    actorsVector,
-    locTagNamesVector,
-    locTagValuesVector,
-    localizationsVector,
-    propertyTemplatesVector,
-  );
+  // Build the root Snapshot table using start/add/end pattern
+  Snapshot.startSnapshot(builder);
+  Snapshot.addLocaleId(builder, data.localeId);
+  Snapshot.addLocaleName(builder, localeNameOffset);
+  if (convTagNamesVector) Snapshot.addConversationTagNames(builder, convTagNamesVector);
+  if (convTagValuesVector) Snapshot.addConversationTagValues(builder, convTagValuesVector);
+  if (conversationsVector) Snapshot.addConversations(builder, conversationsVector);
+  if (nodesVector) Snapshot.addNodes(builder, nodesVector);
+  if (edgesVector) Snapshot.addEdges(builder, edgesVector);
+  if (actorsVector) Snapshot.addActors(builder, actorsVector);
+  if (locTagNamesVector) Snapshot.addLocalizationTagNames(builder, locTagNamesVector);
+  if (locTagValuesVector) Snapshot.addLocalizationTagValues(builder, locTagValuesVector);
+  if (localizationsVector) Snapshot.addLocalizations(builder, localizationsVector);
+  if (propertyTemplatesVector) Snapshot.addPropertyTemplates(builder, propertyTemplatesVector);
+  const snapshotOffset = Snapshot.endSnapshot(builder);
 
-  // Finish with file identifier "GSPT"
+  // Finish with file identifier "GSP3"
   Snapshot.finishSnapshotBuffer(builder, snapshotOffset);
 
   return builder.asUint8Array();
@@ -155,18 +159,14 @@ function buildPropertyTemplate(
 
 function buildActor(builder: flatbuffers.Builder, actor: ExportActor): flatbuffers.Offset {
   const nameOffset = builder.createString(actor.name);
-  const localizedNameOffset = actor.localizedName
-    ? builder.createString(actor.localizedName)
-    : 0;
   const colorOffset = builder.createString(actor.color);
 
   Actor.startActor(builder);
   Actor.addId(builder, actor.id);
   Actor.addName(builder, nameOffset);
-  if (localizedNameOffset) {
-    Actor.addLocalizedName(builder, localizedNameOffset);
-  }
   Actor.addColor(builder, colorOffset);
+  Actor.addGrammaticalGender(builder, grammaticalGenderToEnum(actor.grammaticalGender));
+  Actor.addLocalizedNameIdx(builder, actor.localizedNameIdx);
   return Actor.endActor(builder);
 }
 
@@ -182,11 +182,6 @@ function buildEdge(builder: flatbuffers.Builder, edge: ExportEdge): flatbuffers.
 }
 
 function buildNode(builder: flatbuffers.Builder, node: ExportNode): flatbuffers.Offset {
-  // Build strings first
-  const voiceTextOffset = node.voiceText ? builder.createString(node.voiceText) : 0;
-  const uiResponseTextOffset = node.uiResponseText
-    ? builder.createString(node.uiResponseText)
-    : 0;
   const notesOffset = node.notes ? builder.createString(node.notes) : 0;
 
   // Build properties
@@ -209,12 +204,9 @@ function buildNode(builder: flatbuffers.Builder, node: ExportNode): flatbuffers.
   Node.addConversationIdx(builder, node.conversationIdx);
   Node.addType(builder, nodeTypeToEnum(node.type));
   Node.addActorIdx(builder, node.actorIdx);
-  if (voiceTextOffset) {
-    Node.addVoiceText(builder, voiceTextOffset);
-  }
-  if (uiResponseTextOffset) {
-    Node.addUiResponseText(builder, uiResponseTextOffset);
-  }
+  // Always write localization indices explicitly — FlatBuffers int32 default is 0, not -1
+  Node.addVoiceTextIdx(builder, node.voiceTextIdx);
+  Node.addUiResponseTextIdx(builder, node.uiResponseTextIdx);
   Node.addHasCondition(builder, node.hasCondition);
   Node.addHasAction(builder, node.hasAction);
   Node.addIsPreventResponse(builder, node.isPreventResponse);
@@ -353,12 +345,30 @@ function buildConversation(
   return Conversation.endConversation(builder);
 }
 
+function buildTextVariant(
+  builder: flatbuffers.Builder,
+  variant: ExportTextVariant,
+): flatbuffers.Offset {
+  const textOffset = builder.createString(variant.text);
+
+  TextVariant.startTextVariant(builder);
+  TextVariant.addPlural(builder, pluralCategoryToEnum(variant.plural));
+  TextVariant.addGender(builder, genderCategoryToEnum(variant.gender));
+  TextVariant.addText(builder, textOffset);
+  return TextVariant.endTextVariant(builder);
+}
+
 function buildLocalization(
   builder: flatbuffers.Builder,
   loc: ExportLocalization,
 ): flatbuffers.Offset {
   const nameOffset = loc.name ? builder.createString(loc.name) : 0;
-  const textOffset = loc.text ? builder.createString(loc.text) : 0;
+
+  // Build variants (already sorted canonically by the fetcher)
+  const variantOffsets = loc.variants.map((v) => buildTextVariant(builder, v));
+  const variantsVector =
+    variantOffsets.length > 0 ? Localization.createVariantsVector(builder, variantOffsets) : 0;
+
   const tagIndicesVector =
     loc.tagIndices.length > 0 ? Localization.createTagIndicesVector(builder, loc.tagIndices) : 0;
 
@@ -367,8 +377,15 @@ function buildLocalization(
   if (nameOffset) {
     Localization.addName(builder, nameOffset);
   }
-  if (textOffset) {
-    Localization.addText(builder, textOffset);
+  // Always write subject_actor_idx explicitly — FlatBuffers int32 defaults to 0, not -1
+  Localization.addSubjectActorIdx(builder, loc.subjectActorIdx);
+  // subject_gender: enum default is 0 = Other, skip the add when null (saves space)
+  if (loc.subjectGender !== null) {
+    Localization.addSubjectGender(builder, genderCategoryToEnum(loc.subjectGender));
+  }
+  Localization.addIsTemplated(builder, loc.isTemplated);
+  if (variantsVector) {
+    Localization.addVariants(builder, variantsVector);
   }
   if (tagIndicesVector) {
     Localization.addTagIndices(builder, tagIndicesVector);
@@ -428,5 +445,56 @@ function propertyTypeToEnum(type: string): PropertyType {
       return PropertyType.Boolean;
     default:
       return PropertyType.String;
+  }
+}
+
+function pluralCategoryToEnum(plural: string): PluralCategory {
+  switch (plural) {
+    case 'zero':
+      return PluralCategory.Zero;
+    case 'one':
+      return PluralCategory.One;
+    case 'two':
+      return PluralCategory.Two;
+    case 'few':
+      return PluralCategory.Few;
+    case 'many':
+      return PluralCategory.Many;
+    case 'other':
+      return PluralCategory.Other;
+    default:
+      return PluralCategory.Other;
+  }
+}
+
+function genderCategoryToEnum(gender: string): GenderCategory {
+  switch (gender) {
+    case 'other':
+      return GenderCategory.Other;
+    case 'masculine':
+      return GenderCategory.Masculine;
+    case 'feminine':
+      return GenderCategory.Feminine;
+    case 'neuter':
+      return GenderCategory.Neuter;
+    default:
+      return GenderCategory.Other;
+  }
+}
+
+function grammaticalGenderToEnum(gender: string): GrammaticalGender {
+  switch (gender) {
+    case 'other':
+      return GrammaticalGender.Other;
+    case 'masculine':
+      return GrammaticalGender.Masculine;
+    case 'feminine':
+      return GrammaticalGender.Feminine;
+    case 'neuter':
+      return GrammaticalGender.Neuter;
+    case 'dynamic':
+      return GrammaticalGender.Dynamic;
+    default:
+      return GrammaticalGender.Other;
   }
 }

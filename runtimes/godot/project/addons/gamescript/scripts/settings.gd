@@ -21,6 +21,10 @@ extends Resource
 ## instead of showing a decision prompt.
 @export var prevent_single_node_choices: bool = false
 
+## Which locale to use for editor pickers and property drawers.
+## -1 = use primary locale from manifest (default).
+@export var editor_locale_index: int = -1
+
 ## Path to the IDE executable for opening GameScript editor.
 ## Examples: "/usr/local/bin/code" (VSCode), "/usr/local/bin/rider" (Rider)
 ## Leave empty to disable the Edit button in Inspector property pickers.

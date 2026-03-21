@@ -33,6 +33,7 @@ var _cancel_handler_called: bool = false
 
 #region Dependencies (set during initialize)
 var _database: GameScriptDatabase
+var _runner: GameScriptRunner
 # Jump table references from GameScriptRunner (untyped - see runner comment)
 var _conditions: Array
 var _actions: Array
@@ -48,8 +49,14 @@ var _node_index: int = -1
 
 
 #region Edge evaluation results (reused to avoid allocation)
-var _choices: Array[NodeRef] = []
-var _highest_priority_choices: Array[NodeRef] = []
+var _choices: Array = []  # Array of Dictionaries: {"node": NodeRef, "ui_response_text": String}
+var _highest_priority_choices: Array = []  # Array of Dictionaries
+#endregion
+
+
+#region Cached resolved texts
+var _cached_voice_text: String = ""
+var _cached_ui_response_text: String = ""
 #endregion
 
 
@@ -85,10 +92,11 @@ func _init(settings: GameScriptSettings) -> void:
 	_decision_notifier = _GameScriptNotifiers.DecisionNotifier.new()
 
 
-func initialize(database: GameScriptDatabase, conditions: Array,
-				actions: Array, conversation_index: int,
+func initialize(database: GameScriptDatabase, runner: GameScriptRunner,
+				conditions: Array, actions: Array, conversation_index: int,
 				listener: GameScriptListener) -> void:
 	_database = database
+	_runner = runner
 	_conditions = conditions
 	_actions = actions
 	_conversation_index = conversation_index
@@ -142,14 +150,14 @@ func get_actor() -> ActorRef:
 	return _database.get_node(_node_index).get_actor()
 
 
-## Returns the current node's voice/dialogue text.
+## Returns the current node's cached voice/dialogue text (resolved with text resolution).
 func get_voice_text() -> String:
-	return _database.get_node(_node_index).get_voice_text()
+	return _cached_voice_text
 
 
-## Returns the current node's UI response text (for choice buttons).
+## Returns the current node's cached UI response text (static-gender resolved).
 func get_ui_response_text() -> String:
-	return _database.get_node(_node_index).get_ui_response_text()
+	return _cached_ui_response_text
 
 
 ## Returns the number of custom properties on the current node.
@@ -190,6 +198,9 @@ func run() -> void:
 
 		# Root nodes skip directly to edge evaluation
 		if node_type != NODE_TYPE_ROOT:
+			# Resolve and cache voice/UI response text before node enter
+			_cache_node_texts(node_ref)
+
 			# 2. Node Enter
 			_listener.on_node_enter(node_ref, _ready_notifier)
 			if not await _ready_notifier.wait_with_cancellation(token):
@@ -242,7 +253,16 @@ func run() -> void:
 					push_error("[GameScript] Node %d has has_condition=true but no condition method was found." % target_node.get_id())
 
 			if condition_passed:
-				_choices.append(target_node)
+				# Resolve UI response text for this choice via the listener
+				var resolved_choice_text := ""
+				var ui_idx: int = target_node.get_ui_response_text_localization_idx()
+				if ui_idx >= 0:
+					var loc_ref := _database.get_localization(ui_idx)
+					var choice_params := _listener.on_decision_params(loc_ref, target_node)
+					resolved_choice_text = _runner._resolve_text(ui_idx, target_node, choice_params)
+
+				var choice_dict := {"node": target_node, "ui_response_text": resolved_choice_text}
+				_choices.append(choice_dict)
 
 				# Track actor consistency
 				var target_actor := target_node.get_actor()
@@ -258,9 +278,9 @@ func run() -> void:
 				if edge_priority > highest_priority:
 					highest_priority = edge_priority
 					_highest_priority_choices.clear()
-					_highest_priority_choices.append(target_node)
+					_highest_priority_choices.append(choice_dict)
 				elif edge_priority == highest_priority:
-					_highest_priority_choices.append(target_node)
+					_highest_priority_choices.append(choice_dict)
 
 		# 5. Decision (optional) - if player must choose
 		var is_decision := _choices.size() > 0 and _should_show_decision(node_ref, all_same_actor)
@@ -274,11 +294,12 @@ func run() -> void:
 			_node_index = selected_index
 		elif _choices.size() > 0:
 			# Auto-advance via listener (allows custom selection logic)
-			var selected := _listener.on_auto_decision(_highest_priority_choices)
-			if not selected or not selected.is_valid():
+			var selected: Dictionary = _listener.on_auto_decision(_highest_priority_choices)
+			var selected_node: NodeRef = selected["node"]
+			if not selected_node or not selected_node.is_valid():
 				error_message = "on_auto_decision returned invalid node"
 				break
-			_node_index = selected.get_index()
+			_node_index = selected_node.get_index()
 
 		# 6. Node Exit (skip for root nodes)
 		if node_type != NODE_TYPE_ROOT:
@@ -351,6 +372,25 @@ func run() -> void:
 
 
 #region Private Helpers
+func _cache_node_texts(node_ref: NodeRef) -> void:
+	# Voice text — resolved via on_speech_params
+	var voice_idx: int = node_ref.get_voice_text_localization_idx()
+	if voice_idx >= 0:
+		var loc_ref := _database.get_localization(voice_idx)
+		var speech_params := _listener.on_speech_params(loc_ref, node_ref)
+		_cached_voice_text = _runner._resolve_text(voice_idx, node_ref, speech_params)
+	else:
+		_cached_voice_text = ""
+
+	# UI response text — static-gender resolution (no on_speech_params call for this)
+	var ui_idx: int = node_ref.get_ui_response_text_localization_idx()
+	if ui_idx >= 0:
+		var loc_ref := _database.get_localization(ui_idx)
+		_cached_ui_response_text = loc_ref.get_text()
+	else:
+		_cached_ui_response_text = ""
+
+
 func _execute_action() -> void:
 	var action = _actions[_node_index]  # Untyped - may be null or Callable
 	if action is Callable and action.is_valid():
@@ -375,7 +415,7 @@ func _run_action_and_speech_concurrently(node_ref: NodeRef, token: CancellationT
 		# Wrap callback to include sequence check
 		var on_speech_complete := func(): _on_concurrent_task_complete(my_sequence)
 		_speech_notifier.ready.connect(on_speech_complete)
-		_listener.on_speech(node_ref, _speech_notifier)
+		_listener.on_speech(node_ref, _cached_voice_text, _speech_notifier)
 
 		# Wait for both to complete OR cancellation
 		await SignalRace.wait([_concurrent_complete, token.cancelled] as Array[Signal])
@@ -389,7 +429,7 @@ func _run_action_and_speech_concurrently(node_ref: NodeRef, token: CancellationT
 		# If cancelled, token.is_cancelled will be true and caller will handle it
 	else:
 		# Speech only (use _speech_notifier)
-		_listener.on_speech(node_ref, _speech_notifier)
+		_listener.on_speech(node_ref, _cached_voice_text, _speech_notifier)
 		await _speech_notifier.wait_with_cancellation(token)
 		_speech_notifier.reset()
 
@@ -419,9 +459,11 @@ func _should_show_decision(current_node: NodeRef, all_same_actor: bool) -> bool:
 		return all_same_actor
 
 	# Single choice with UI text = decision (unless settings prevent it)
+	# Use the index sentinel to check for UI text rather than the resolved string,
+	# so this check never depends on resolution results
 	if _choices.size() == 1 and not _settings.prevent_single_node_choices:
-		var response_text := _choices[0].get_ui_response_text()
-		return response_text != "" and all_same_actor
+		var choice_node: NodeRef = _choices[0]["node"]
+		return choice_node.get_ui_response_text_localization_idx() >= 0 and all_same_actor
 
 	return false
 
@@ -435,11 +477,14 @@ func _reset() -> void:
 	_cancel_handler_called = false
 
 	_database = null
+	_runner = null
 	_conditions = []
 	_actions = []
 	_listener = null
 	_conversation_index = -1
 	_node_index = -1
+	_cached_voice_text = ""
+	_cached_ui_response_text = ""
 	_choices.clear()
 	_highest_priority_choices.clear()
 	_pending_count = 0

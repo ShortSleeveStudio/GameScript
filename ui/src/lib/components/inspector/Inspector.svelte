@@ -139,7 +139,6 @@
                     <InspectorLocalization
                         rowView={rowView as IDbRowView<Localization>}
                         showTitle={true}
-                        showAccordion={false}
                         showConversationButton={true}
                         showLocalizationButton={false}
                     />

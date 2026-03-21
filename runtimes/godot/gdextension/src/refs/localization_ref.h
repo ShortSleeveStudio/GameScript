@@ -6,6 +6,7 @@
 
 namespace GameScript {
 struct Localization;  // Forward declaration for private helper
+struct Snapshot;      // Forward declaration for resolve helpers
 }
 
 namespace godot {
@@ -46,9 +47,27 @@ public:
     int get_index() const;
     int get_id() const;
     String get_name() const;
+    int get_subject_actor_idx() const;
+    int get_subject_gender() const;
+    bool get_is_templated() const;
+    int get_variant_count() const;
+
+    // Per-variant accessors (for GDScript variant resolver)
+    int get_variant_plural(int index) const;
+    int get_variant_gender(int index) const;
+    String get_variant_text(int index) const;
+
+    // Static-gender-resolved text (convenience accessor)
+    // Resolves gender from snapshot only (no template substitution).
+    // Dynamic actors default to GenderCategory::Other.
+    // Plural defaults to PluralCategory::Other.
     String get_text() const;
 
     bool is_valid() const;
+
+    // Shared helpers for variant resolution (used by ActorRef and NodeRef)
+    static int resolve_static_gender(const GameScript::Localization* loc, const GameScript::Snapshot* snapshot);
+    static String resolve_text_static(const GameScript::Localization* loc, const GameScript::Snapshot* snapshot);
 };
 
 } // namespace godot

@@ -1,6 +1,7 @@
 // SQL generation utilities for SQLite and PostgreSQL
 
 import type { TableDefinition, ColumnDefinition } from './tables.js';
+import { localeIdToColumns } from '../types/constants.js';
 
 export type DatabaseDialect = 'sqlite' | 'postgres';
 
@@ -118,19 +119,18 @@ export function generateDropAllTablesSQL(tables: TableDefinition[]): string {
   return [...tables].reverse().map((t) => generateDropTableSQL(t)).join('\n');
 }
 
-// Helper to add a dynamic locale column to localizations table
-export function generateAddLocaleColumnSQL(localeId: number, dialect: DatabaseDialect): string {
-  const columnName = `locale_${localeId}`;
-  return `ALTER TABLE localizations ADD COLUMN ${columnName} TEXT;`;
+// Helper to add all 24 dynamic locale form columns to the localizations table
+export function generateAddLocaleColumnsSQL(localeId: number): string[] {
+  const columns = localeIdToColumns(localeId);
+  return columns.all.map(
+    (col) => `ALTER TABLE localizations ADD COLUMN ${col} TEXT;`
+  );
 }
 
-// Helper to remove a locale column
-export function generateDropLocaleColumnSQL(localeId: number, dialect: DatabaseDialect): string {
-  const columnName = `locale_${localeId}`;
-  if (dialect === 'sqlite') {
-    // SQLite doesn't support DROP COLUMN before version 3.35.0
-    // For older versions, would need to recreate the table
-    return `ALTER TABLE localizations DROP COLUMN ${columnName};`;
-  }
-  return `ALTER TABLE localizations DROP COLUMN ${columnName};`;
+// Helper to remove all 24 locale form columns
+export function generateDropLocaleColumnsSQL(localeId: number): string[] {
+  const columns = localeIdToColumns(localeId);
+  return columns.all.map(
+    (col) => `ALTER TABLE localizations DROP COLUMN ${col};`
+  );
 }

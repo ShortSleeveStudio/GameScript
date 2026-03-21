@@ -40,16 +40,19 @@ public:
 
 	// --- IGameScriptListener Implementation ---
 
+	virtual FTextResolutionParams OnSpeechParams_Implementation(FLocalizationRef Localization, FNodeRef Node) override;
+	virtual FTextResolutionParams OnDecisionParams_Implementation(FLocalizationRef Localization, FNodeRef Node) override;
+
 	virtual void OnConversationEnter_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
 	virtual void OnNodeEnter_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) override;
-	virtual void OnSpeech_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) override;
-	virtual void OnDecision_Implementation(const TArray<FNodeRef>& Choices, UGSCompletionHandle* Handle) override;
+	virtual void OnSpeech_Implementation(FNodeRef Node, const FString& VoiceText, UGSCompletionHandle* Handle) override;
+	virtual void OnDecision_Implementation(const TArray<FChoiceRef>& Choices, UGSCompletionHandle* Handle) override;
 	virtual void OnNodeExit_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) override;
 	virtual void OnConversationExit_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
 	virtual void OnConversationCancelled_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
 	virtual void OnError_Implementation(FConversationRef Conversation, const FString& ErrorMessage, UGSCompletionHandle* Handle) override;
 	virtual void OnCleanup_Implementation(FConversationRef Conversation, UGSCompletionHandle* Handle) override;
-	virtual FNodeRef OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices) override;
+	virtual FChoiceRef OnAutoDecision_Implementation(const TArray<FChoiceRef>& Choices) override;
 
 private:
 	UPROPERTY()

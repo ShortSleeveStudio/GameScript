@@ -79,8 +79,53 @@ class _ConversationListener extends GameScriptListener:
 	func on_node_enter(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 		notifier.on_ready()
 
-	func on_speech(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
-		var voice_text := node.get_voice_text()
+	func on_speech_params(localization: LocalizationRef, node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+		return _build_resolution_params(localization, node)
+
+	func on_decision_params(localization: LocalizationRef, choice_node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+		return _build_resolution_params(localization, choice_node)
+
+	func _build_resolution_params(localization: LocalizationRef, node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+		var params := _GameScriptTextResolutionParams.TextResolutionParams.new()
+		var GenderCategory = _GameScriptTextResolutionParams.GenderCategory
+		var GrammaticalGender = _GameScriptTextResolutionParams.GrammaticalGender
+
+		# Check subject actor for dynamic gender → provide feminine override
+		var subject_idx: int = localization.get_subject_actor_idx()
+		if subject_idx >= 0:
+			var subject_actor = _ui._runner.database.get_actor(subject_idx)
+			if subject_actor and subject_actor.is_valid() and subject_actor.get_grammatical_gender() == GrammaticalGender.DYNAMIC:
+				params.set_gender_override(GenderCategory.FEMININE)
+
+		if not localization.get_is_templated():
+			return params
+
+		# Read template args from node properties
+		var template_name := ""
+		var has_count := false
+		var count := 0
+
+		var prop_count := node.get_property_count()
+		for i in range(prop_count):
+			var prop = node.get_property(i)
+			var prop_name := prop.get_name()
+			if prop_name == "TemplateString":
+				template_name = prop.get_string_value()
+			elif prop_name == "Count":
+				has_count = true
+				count = prop.get_int_value()
+
+		if template_name.is_empty():
+			return params
+
+		if has_count:
+			params.set_plural(_GameScriptTextResolutionParams.PluralArg.cardinal(template_name, count))
+		else:
+			params.args.append(_GameScriptTextResolutionParams.Arg.string_arg(template_name, "TESTING"))
+
+		return params
+
+	func on_speech(node: NodeRef, voice_text: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 		if voice_text != "":
 			var actor := node.get_actor()
 			var actor_name := ""
@@ -89,7 +134,7 @@ class _ConversationListener extends GameScriptListener:
 				if actor_name == "":
 					actor_name = actor.get_name()
 			if actor_name == "":
-				actor_name = "???"
+				actor_name = "<Actor Missing>"
 
 			_ui._add_history_item(actor_name, voice_text)
 			print("[ConversationUI] %s: %s" % [actor_name, voice_text])
@@ -99,16 +144,19 @@ class _ConversationListener extends GameScriptListener:
 
 		notifier.on_ready()
 
-	func on_decision(choices: Array[NodeRef], notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
+	func on_decision(choices: Array, notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
 		_ui._clear_choices()
 
 		for choice in choices:
-			var ui_text := choice.get_ui_response_text()
-			var captured_choice := choice
+			var choice_node: NodeRef = choice["node"]
+			var ui_text: String = choice["ui_response_text"]
+			if ui_text.is_empty():
+				ui_text = "(Continue)"
+			var captured_node := choice_node
 			_ui._add_choice(ui_text, func():
 				print("[ConversationUI] Chose: %s" % ui_text)
 				_ui._clear_choices()
-				notifier.on_decision_made(captured_choice)
+				notifier.on_decision_made(captured_node)
 			)
 
 	func on_node_exit(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:

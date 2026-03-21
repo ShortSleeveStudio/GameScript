@@ -8,7 +8,7 @@
      * Ported from GameScriptElectron.
      */
     import type { Localization, Locale } from '@gamescript/shared';
-    import { localeIdToColumn } from '@gamescript/shared';
+    import { localeIdToColumns } from '@gamescript/shared';
     import type { IDbRowView } from '$lib/db';
     import RowColumnTextArea from './RowColumnTextArea.svelte';
     import {
@@ -28,7 +28,7 @@
     <RowColumnTextArea
         {rowView}
         labelText={locale.data.name}
-        columnName={localeIdToColumn(locale.data.id)}
+        columnName={localeIdToColumns(locale.data.id).default}
         undoText={LOCALIZATION_UNDO_TEXT}
         placeholder={LOCALIZATION_PLACEHOLDER_TEXT}
     />

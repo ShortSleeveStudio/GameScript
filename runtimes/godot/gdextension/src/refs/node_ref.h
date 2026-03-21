@@ -62,14 +62,22 @@ public:
     int get_index() const;
     int get_id() const;
     int get_type() const;  // Returns GameScriptNodeType as int
-    String get_voice_text() const;
-    String get_ui_response_text() const;
     bool get_has_condition() const;
     bool get_has_action() const;
     bool get_is_prevent_response() const;
     float get_position_x() const;
     float get_position_y() const;
     String get_notes() const;
+
+    // Localization indices for voice text and UI response text
+    int get_voice_text_localization_idx() const;
+    int get_ui_response_text_localization_idx() const;
+
+    // Static-gender-resolved text (convenience accessors).
+    // Resolves through localization idx with static gender + variant scan.
+    // Returns empty string if the node has no localization for that field.
+    String get_voice_text() const;
+    String get_ui_response_text() const;
 
     // Related entities
     Ref<ActorRef> get_actor();

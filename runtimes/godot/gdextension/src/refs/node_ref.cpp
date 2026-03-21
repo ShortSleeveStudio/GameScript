@@ -3,6 +3,7 @@
 #include "edge_ref.h"
 #include "conversation_ref.h"
 #include "property_ref.h"
+#include "localization_ref.h"
 #include "../game_script_database.h"
 
 namespace godot {
@@ -13,6 +14,8 @@ void NodeRef::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_type"), &NodeRef::get_type);
     ClassDB::bind_method(D_METHOD("get_voice_text"), &NodeRef::get_voice_text);
     ClassDB::bind_method(D_METHOD("get_ui_response_text"), &NodeRef::get_ui_response_text);
+    ClassDB::bind_method(D_METHOD("get_voice_text_localization_idx"), &NodeRef::get_voice_text_localization_idx);
+    ClassDB::bind_method(D_METHOD("get_ui_response_text_localization_idx"), &NodeRef::get_ui_response_text_localization_idx);
     ClassDB::bind_method(D_METHOD("get_has_condition"), &NodeRef::get_has_condition);
     ClassDB::bind_method(D_METHOD("get_has_action"), &NodeRef::get_has_action);
     ClassDB::bind_method(D_METHOD("get_is_prevent_response"), &NodeRef::get_is_prevent_response);
@@ -34,6 +37,8 @@ void NodeRef::_bind_methods() {
     ADD_PROPERTY(PropertyInfo(Variant::INT, "type"), "", "get_type");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "voice_text"), "", "get_voice_text");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "ui_response_text"), "", "get_ui_response_text");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "voice_text_localization_idx"), "", "get_voice_text_localization_idx");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "ui_response_text_localization_idx"), "", "get_ui_response_text_localization_idx");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "has_condition"), "", "get_has_condition");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "has_action"), "", "get_has_action");
     ADD_PROPERTY(PropertyInfo(Variant::BOOL, "is_prevent_response"), "", "get_is_prevent_response");
@@ -77,16 +82,44 @@ int NodeRef::get_type() const {
     return node ? static_cast<int>(node->type()) : 0;
 }
 
+int NodeRef::get_voice_text_localization_idx() const {
+    const auto* node = _get_node();
+    return node ? node->voice_text_idx() : -1;
+}
+
+int NodeRef::get_ui_response_text_localization_idx() const {
+    const auto* node = _get_node();
+    return node ? node->ui_response_text_idx() : -1;
+}
+
 String NodeRef::get_voice_text() const {
     const auto* node = _get_node();
-    if (!node || !node->voice_text()) return String();
-    return String::utf8(node->voice_text()->c_str());
+    if (!node) return String();
+
+    int idx = node->voice_text_idx();
+    if (idx < 0) return String();
+
+    const auto* snapshot = _database->get_snapshot();
+    const auto* localizations = snapshot->localizations();
+    if (!localizations || idx >= static_cast<int>(localizations->size())) return String();
+
+    const auto* loc = localizations->Get(idx);
+    return LocalizationRef::resolve_text_static(loc, snapshot);
 }
 
 String NodeRef::get_ui_response_text() const {
     const auto* node = _get_node();
-    if (!node || !node->ui_response_text()) return String();
-    return String::utf8(node->ui_response_text()->c_str());
+    if (!node) return String();
+
+    int idx = node->ui_response_text_idx();
+    if (idx < 0) return String();
+
+    const auto* snapshot = _database->get_snapshot();
+    const auto* localizations = snapshot->localizations();
+    if (!localizations || idx >= static_cast<int>(localizations->size())) return String();
+
+    const auto* loc = localizations->Get(idx);
+    return LocalizationRef::resolve_text_static(loc, snapshot);
 }
 
 bool NodeRef::get_has_condition() const {

@@ -67,6 +67,9 @@ import {
   getSchemaCheckSQL,
   getTableCountSQL,
   generateSchemaStatements,
+  CURRENT_SCHEMA_VERSION,
+  generateMigrationSQL_0_0_0_to_0_1_0,
+  generateMigrationSQL_0_1_0_to_0_2_0,
 } from '@gamescript/shared';
 
 import type { DatabaseConfig } from '@gamescript/shared';
@@ -928,7 +931,10 @@ class ExtensionBridge {
       const schemaExists = schemaResult.length > 0;
 
       if (schemaExists && !createNew) {
-        // Schema exists, start notifications and emit connected
+        // Schema exists — check version and run migration if needed
+        await this._migrateIfNeeded(dialect);
+
+        // Start notifications and emit connected
         await this._startNotifications();
         this.emit('connected', config.type);
         return;
@@ -992,6 +998,51 @@ class ExtensionBridge {
 
     for (const stmt of statements) {
       if (stmt.isDDL) {
+        await this.exec(stmt.sql);
+      } else {
+        await this.run(stmt.sql, stmt.params);
+      }
+    }
+  }
+
+  /**
+   * Check database version and run migrations if needed.
+   * @internal
+   */
+  private async _migrateIfNeeded(dialect: 'sqlite' | 'postgres'): Promise<void> {
+    // Read the current schema version
+    const rows = await this.query<{ version: string }>('SELECT version FROM version WHERE id = 1');
+    let currentVersion = rows[0]?.version ?? '0.0.0';
+
+    if (currentVersion === CURRENT_SCHEMA_VERSION) {
+      return; // Already up to date
+    }
+
+    // Migrate from 0.0.0 to 0.1.0
+    if (currentVersion === '0.0.0') {
+      // Discover existing locale IDs for the migration
+      const locales = await this.query<{ id: number }>('SELECT id FROM locales ORDER BY id');
+      const localeIds = locales.map(l => l.id);
+
+      await this._runMigrationStatements(generateMigrationSQL_0_0_0_to_0_1_0(localeIds));
+      currentVersion = '0.1.0';
+    }
+
+    // Migrate from 0.1.0 to 0.2.0
+    if (currentVersion === '0.1.0') {
+      await this._runMigrationStatements(generateMigrationSQL_0_1_0_to_0_2_0());
+    }
+  }
+
+  /**
+   * Execute an array of migration statements, routing DDL and DML appropriately.
+   * @internal
+   */
+  private async _runMigrationStatements(statements: { sql: string; params: unknown[] }[]): Promise<void> {
+    for (const stmt of statements) {
+      const trimmed = stmt.sql.trim().toUpperCase();
+      const isDDL = trimmed.startsWith('ALTER') || trimmed.startsWith('CREATE') || trimmed.startsWith('DROP');
+      if (isDDL) {
         await this.exec(stmt.sql);
       } else {
         await this.run(stmt.sql, stmt.params);

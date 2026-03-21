@@ -3,7 +3,7 @@
 #include "GameScriptManifest.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
-#include "Generated/snapshot.h"
+#include "Generated/snapshot_generated.h"
 
 UGameScriptDatabase::UGameScriptDatabase()
 {
@@ -395,8 +395,8 @@ void UGameScriptDatabase::EnsureEditorInstance()
 		return;
 	}
 
-	// If base path changed, invalidate cache
-	if (EditorInstance && EditorBasePath != BasePath)
+	// If base path or editor locale changed, invalidate cache
+	if (EditorInstance && (EditorBasePath != BasePath || EditorLoadedLocaleId != Settings->EditorLocaleIndex))
 	{
 		// Clean up old manifest
 		if (EditorManifest)
@@ -442,11 +442,19 @@ void UGameScriptDatabase::EnsureEditorInstance()
 		// Keep manifest as GC root
 		EditorManifest->AddToRoot();
 
-		// Load primary locale snapshot
-		FLocaleRef PrimaryLocale = EditorManifest->GetPrimaryLocale();
-		if (PrimaryLocale.IsValid())
+		// Load editor locale snapshot (falls back to primary from manifest)
+		FLocaleRef EditorLocale;
+		if (Settings->EditorLocaleIndex >= 0 && Settings->EditorLocaleIndex < EditorManifest->GetLocaleCount())
 		{
-			UGameScriptDatabase* Database = EditorManifest->LoadDatabase(PrimaryLocale);
+			EditorLocale = EditorManifest->GetLocale(Settings->EditorLocaleIndex);
+		}
+		else
+		{
+			EditorLocale = EditorManifest->GetPrimaryLocale();
+		}
+		if (EditorLocale.IsValid())
+		{
+			UGameScriptDatabase* Database = EditorManifest->LoadDatabase(EditorLocale);
 			if (Database)
 			{
 				// Move the loaded database state to EditorInstance (transfer ownership)
@@ -463,7 +471,7 @@ void UGameScriptDatabase::EnsureEditorInstance()
 				// Store manifest reference in EditorInstance for locale operations
 				EditorInstance->SetManifestAndBasePath(EditorManifest, EditorBasePath);
 
-				EditorLoadedLocaleId = PrimaryLocale.GetId();
+				EditorLoadedLocaleId = Settings->EditorLocaleIndex;
 
 				// Get hash from manifest for hot-reload tracking
 				// Use file modification time as a simple staleness check

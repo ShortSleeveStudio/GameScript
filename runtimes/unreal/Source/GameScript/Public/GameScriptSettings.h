@@ -68,6 +68,13 @@ public:
 	bool bVerboseLogging;
 
 	/**
+	 * Which locale's snapshot to load in the Unreal editor for pickers and property drawers.
+	 * -1 = use primary locale from manifest (default).
+	 */
+	UPROPERTY(Config, EditAnywhere, Category = "Editor", meta=(DisplayName="Editor Locale Index"))
+	int32 EditorLocaleIndex;
+
+	/**
 	 * Path to IDE executable for launching when Edit button is clicked in property drawers.
 	 * Leave empty to use Unreal's configured IDE (may open new windows on Mac).
 	 *

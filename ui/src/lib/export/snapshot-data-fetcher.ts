@@ -4,17 +4,22 @@
  * Fetches all data needed for a locale snapshot from the database.
  * Builds ID-to-index maps for O(1) lookups and resolves all relationships.
  *
+ * All localizations — node-owned (voice_text, ui_response_text), actor-name,
+ * and raw (user-created) — are unified into a single array. Nodes and actors
+ * reference localizations by index.
+ *
  * Uses crud-export.ts for all database access.
  */
 
 import { snapshotExport } from '$lib/crud';
 import {
-  localeIdToColumn,
   tagCategoryIdToColumn,
   PROPERTY_TYPE_STRING,
   PROPERTY_TYPE_INTEGER,
   PROPERTY_TYPE_DECIMAL,
   PROPERTY_TYPE_BOOLEAN,
+  PLURAL_CATEGORIES,
+  GENDER_CATEGORIES,
 } from '@gamescript/shared';
 import type {
   Conversation,
@@ -28,13 +33,12 @@ import type {
   ConversationProperty,
   PropertyValue,
   ConversationTagCategory,
-  ConversationTagValue,
   LocalizationTagCategory,
-  LocalizationTagValue,
   NodeTypeName,
   EdgeTypeName,
   ExportPropertyTypeName,
 } from '@gamescript/shared';
+import type { LocalizationExportData } from '$lib/crud/crud-export.js';
 import type {
   LocaleSnapshot,
   ExportConversation,
@@ -77,7 +81,6 @@ export class SnapshotDataFetcher {
    */
   async fetchForLocale(locale: Locale): Promise<LocaleSnapshot> {
     this._cancelled = false;
-    const localeColumn = localeIdToColumn(locale.id);
 
     // Fetch tag categories and values first (needed for index mapping)
     const [
@@ -109,7 +112,7 @@ export class SnapshotDataFetcher {
       nodes,
       edges,
       actors,
-      localizations,
+      rawLocalizations,
       propertyTemplates,
       nodeProperties,
       conversationProperties,
@@ -127,24 +130,31 @@ export class SnapshotDataFetcher {
     ]);
     this.checkCancelled();
 
-    // Build ID -> index maps
+    // Build raw localization map for O(1) lookup (needed for tag resolution)
+    const rawLocalizationMap = new Map<number, Localization>();
+    for (const loc of rawLocalizations) {
+      rawLocalizationMap.set(loc.id, loc);
+    }
+
+    // Collect ALL localization IDs — nodes + actors + raw — for the unified array
+    const allLocalizationIds = this.collectLocalizationIds(nodes, actors, rawLocalizations);
+
+    // Build ID -> index maps (localizations included now)
     const idMaps = this.buildIdMaps(
       conversations,
       nodes,
       edges,
       actors,
+      allLocalizationIds,
       propertyTemplates,
       conversationTagValueMap,
       localizationTagValueMap,
     );
 
-    // Collect all localization IDs we need text for
-    const localizationIds = this.collectLocalizationIds(nodes, actors, localizations);
-
-    // Fetch all localized text for the specified locale
-    const localizationTextMap = await snapshotExport.getLocalizationTextForLocale(
-      localizationIds,
-      localeColumn,
+    // Fetch form data + metadata for all localizations in one query
+    const localizationFormsMap = await snapshotExport.getLocalizationFormsForLocale(
+      allLocalizationIds,
+      locale,
     );
     this.checkCancelled();
 
@@ -171,15 +181,15 @@ export class SnapshotDataFetcher {
       nodeProperties,
       propertyTemplates,
       propertyValueMap,
-      localizationTextMap,
       idMaps,
     );
     const exportEdges = this.transformEdges(edges, idMaps);
-    const exportActors = this.transformActors(actors, localizationTextMap);
+    const exportActors = this.transformActors(actors, idMaps);
     const exportLocalizations = this.transformLocalizations(
-      localizations,
+      allLocalizationIds,
+      rawLocalizationMap,
+      localizationFormsMap,
       localizationTagCategories,
-      localizationTextMap,
       idMaps,
     );
     const exportPropertyTemplates = this.transformPropertyTemplates(propertyTemplates);
@@ -227,12 +237,13 @@ export class SnapshotDataFetcher {
   }
 
   /**
-   * Collect all localization IDs needed for text lookup.
+   * Collect all localization IDs for the unified array.
+   * Sorted ascending for deterministic output.
    */
   private collectLocalizationIds(
     nodes: Node[],
     actors: Actor[],
-    localizations: Localization[],
+    rawLocalizations: Localization[],
   ): number[] {
     const ids = new Set<number>();
 
@@ -245,11 +256,12 @@ export class SnapshotDataFetcher {
       ids.add(actor.localized_name);
     }
 
-    for (const loc of localizations) {
+    for (const loc of rawLocalizations) {
       ids.add(loc.id);
     }
 
-    return Array.from(ids);
+    // Sort ascending for deterministic array ordering
+    return Array.from(ids).sort((a, b) => a - b);
   }
 
   // ===========================================================================
@@ -287,6 +299,7 @@ export class SnapshotDataFetcher {
     nodes: Node[],
     edges: Edge[],
     actors: Actor[],
+    localizationIds: number[],
     propertyTemplates: PropertyTemplate[],
     conversationTagValueMap: Map<number, [number, number]>,
     localizationTagValueMap: Map<number, [number, number]>,
@@ -295,6 +308,7 @@ export class SnapshotDataFetcher {
     const nodeMap = new Map<number, number>();
     const edgeMap = new Map<number, number>();
     const actorMap = new Map<number, number>();
+    const localizationMap = new Map<number, number>();
     const templateMap = new Map<number, number>();
 
     for (let i = 0; i < conversations.length; i++) {
@@ -309,6 +323,9 @@ export class SnapshotDataFetcher {
     for (let i = 0; i < actors.length; i++) {
       actorMap.set(actors[i].id, i);
     }
+    for (let i = 0; i < localizationIds.length; i++) {
+      localizationMap.set(localizationIds[i], i);
+    }
     for (let i = 0; i < propertyTemplates.length; i++) {
       templateMap.set(propertyTemplates[i].id, i);
     }
@@ -318,6 +335,7 @@ export class SnapshotDataFetcher {
       nodes: nodeMap,
       edges: edgeMap,
       actors: actorMap,
+      localizations: localizationMap,
       propertyTemplates: templateMap,
       conversationTagValues: conversationTagValueMap,
       localizationTagValues: localizationTagValueMap,
@@ -423,7 +441,6 @@ export class SnapshotDataFetcher {
     nodeProperties: NodeProperty[],
     propertyTemplates: PropertyTemplate[],
     propertyValueMap: Map<number, PropertyValue>,
-    localizationTextMap: Map<number, string | null>,
     idMaps: IdToIndexMaps,
   ): ExportNode[] {
     // Build node ID -> properties map
@@ -468,13 +485,21 @@ export class SnapshotDataFetcher {
       // System-created nodes (e.g., root nodes) and logic nodes should have actorIdx = 0
       const actorIdx = node.is_system_created || node.type === 'logic' ? 0 : (idMaps.actors.get(node.actor) ?? 0);
 
+      // Map localization references to unified array indices
+      const voiceTextIdx = node.voice_text !== null
+        ? (idMaps.localizations.get(node.voice_text) ?? -1)
+        : -1;
+      const uiResponseTextIdx = node.ui_response_text !== null
+        ? (idMaps.localizations.get(node.ui_response_text) ?? -1)
+        : -1;
+
       return {
         id: node.id,
         conversationIdx: this.getRequiredIndex(idMaps.conversations, node.parent, 'conversation', node.id),
         type: node.type as NodeTypeName,
         actorIdx,
-        voiceText: node.voice_text !== null ? localizationTextMap.get(node.voice_text) ?? null : null,
-        uiResponseText: node.ui_response_text !== null ? localizationTextMap.get(node.ui_response_text) ?? null : null,
+        voiceTextIdx,
+        uiResponseTextIdx,
         hasCondition: node.has_condition,
         hasAction: node.has_action,
         isPreventResponse: node.is_prevent_response,
@@ -613,29 +638,73 @@ export class SnapshotDataFetcher {
 
   private transformActors(
     actors: Actor[],
-    localizationTextMap: Map<number, string | null>,
+    idMaps: IdToIndexMaps,
   ): ExportActor[] {
     return actors.map((actor) => ({
       id: actor.id,
       name: actor.name,
-      localizedName: localizationTextMap.get(actor.localized_name) ?? null,
       color: actor.color,
+      grammaticalGender: actor.grammatical_gender,
+      localizedNameIdx: this.getRequiredIndex(
+        idMaps.localizations,
+        actor.localized_name,
+        'localization (actor name)',
+        actor.id,
+      ),
     }));
   }
 
   private transformLocalizations(
-    localizations: Localization[],
+    allLocalizationIds: number[],
+    rawLocalizationMap: Map<number, Localization>,
+    localizationFormsMap: Map<number, LocalizationExportData>,
     tagCategories: LocalizationTagCategory[],
-    localizationTextMap: Map<number, string | null>,
     idMaps: IdToIndexMaps,
   ): ExportLocalization[] {
-    return localizations.map((loc) => {
-      const tagIndices = this.resolveLocalizationTagIndices(loc, tagCategories, idMaps);
+    return allLocalizationIds.map((locId) => {
+      const formData = localizationFormsMap.get(locId);
+
+      // Resolve subject_actor ID → array index
+      let subjectActorIdx = -1;
+      if (formData?.subjectActorId !== null && formData?.subjectActorId !== undefined) {
+        const idx = idMaps.actors.get(formData.subjectActorId);
+        if (idx !== undefined) {
+          subjectActorIdx = idx;
+        } else {
+          // Data integrity error: subject_actor references a non-existent actor.
+          // This indicates a CRUD bug (SET NULL not performed on actor deletion).
+          console.error(
+            `Data integrity error: subject_actor not cleared on actor deletion — localization ID ${locId}, actor ID ${formData.subjectActorId}`,
+          );
+          subjectActorIdx = -1;
+        }
+      }
+
+      // Resolve tag indices — only raw (user-created) localizations have tags
+      let tagIndices: number[];
+      const rawLoc = rawLocalizationMap.get(locId);
+      if (rawLoc) {
+        tagIndices = this.resolveLocalizationTagIndices(rawLoc, tagCategories, idMaps);
+      } else {
+        // Node-owned or actor-name localizations have no tag assignments
+        tagIndices = tagCategories.map(() => -1);
+      }
+
+      // Sort variants in canonical order for deterministic hashes
+      const variants = formData?.variants ?? [];
+      variants.sort((a, b) => {
+        const aKey = PLURAL_CATEGORIES.indexOf(a.plural) * GENDER_CATEGORIES.length + GENDER_CATEGORIES.indexOf(a.gender);
+        const bKey = PLURAL_CATEGORIES.indexOf(b.plural) * GENDER_CATEGORIES.length + GENDER_CATEGORIES.indexOf(b.gender);
+        return aKey - bKey;
+      });
 
       return {
-        id: loc.id,
-        name: loc.name,
-        text: localizationTextMap.get(loc.id) ?? null,
+        id: locId,
+        name: formData?.name ?? null,
+        subjectActorIdx,
+        subjectGender: formData?.subjectGender ?? null,
+        isTemplated: formData?.isTemplated ?? false,
+        variants,
         tagIndices,
       };
     });

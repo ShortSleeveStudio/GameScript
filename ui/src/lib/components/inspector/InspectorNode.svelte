@@ -20,6 +20,7 @@
     import {
         RowColumnId,
         RowColumnBoolean,
+        RowColumnTextArea,
         CodeMethod,
         InspectorField,
         CodeFolderSelector,
@@ -34,6 +35,8 @@
         NODE_UNDO_PREVENT_RESPONSE,
         NODE_UNDO_HAS_CONDITION,
         NODE_UNDO_HAS_ACTION,
+        NODE_UNDO_NOTES,
+        NODE_PLACEHOLDER_NOTES,
     } from '$lib/constants/settings';
     import { nodes } from '$lib/crud';
     import { IsLoadingStore } from '$lib/stores/is-loading.js';
@@ -196,6 +199,19 @@
             columnName={'is_prevent_response'}
             undoText={NODE_UNDO_PREVENT_RESPONSE}
             label="Enabled"
+        />
+    </InspectorField>
+
+    <InspectorField
+        label="Notes"
+        tooltip="Freeform notes for this node. Displayed on logic nodes in the graph."
+    >
+        <RowColumnTextArea
+            {rowView}
+            columnName="notes"
+            undoText={NODE_UNDO_NOTES}
+            placeholder={NODE_PLACEHOLDER_NOTES}
+            rows={2}
         />
     </InspectorField>
 

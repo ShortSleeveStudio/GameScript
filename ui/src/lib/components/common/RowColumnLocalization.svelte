@@ -8,6 +8,7 @@
      * Features:
      * - Fetches localization by ID from the column value
      * - Embeds InspectorLocalization for editing
+     * - Shows variant indicator when subject actor or gender override is configured
      * - Automatically cleans up table view subscription
      *
      * Ported from GameScriptElectron.
@@ -25,6 +26,7 @@
         showTitle?: boolean;
         showId?: boolean;
         showNickname?: boolean;
+        showFormMatrix?: boolean;
     }
 
     let {
@@ -33,6 +35,7 @@
         showTitle = false,
         showId = true,
         showNickname = true,
+        showFormMatrix = true,
     }: Props = $props();
 
     let localizationTableView: IDbTableView<Localization> | undefined = $state();
@@ -65,16 +68,29 @@
             common.releaseTable(localizationTableView);
         }
     });
+
+    // Variant indicator: show when this localization has a subject actor or gender override configured
+    let hasVariants = $derived.by(() => {
+        if (!localizationTableView || localizationTableView.rows.length === 0) return false;
+        const loc = localizationTableView.rows[0].data;
+        return loc.subject_actor !== null || loc.subject_gender !== null;
+    });
 </script>
 
 {#if localizationTableView}
     <div class="row-column-localization">
+        {#if hasVariants}
+            <span class="variant-indicator" title="This localization has gender variants configured">
+                variants
+            </span>
+        {/if}
         {#each localizationTableView.rows as localizationRowView (localizationRowView.id)}
             <InspectorLocalization
                 rowView={localizationRowView}
                 {showTitle}
                 {showId}
                 {showNickname}
+                {showFormMatrix}
                 showLocalizationButton={true}
             />
         {/each}
@@ -87,5 +103,18 @@
         background: var(--gs-bg-secondary);
         border: 1px solid var(--gs-border-primary);
         border-radius: 4px;
+        position: relative;
+    }
+
+    .variant-indicator {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.375rem;
+        font-size: 0.5625rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gs-accent-fg, #60a5fa);
+        opacity: 0.8;
     }
 </style>

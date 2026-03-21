@@ -103,6 +103,7 @@ export const actorsTable: TableDefinition = {
     { name: 'name', type: 'TEXT', notNull: true },
     { name: 'localized_name', type: 'INTEGER', notNull: true, references: { table: 'localizations', column: 'id' } },
     { name: 'color', type: 'TEXT', notNull: true, defaultValue: '#808080' },
+    { name: 'grammatical_gender', type: 'TEXT', notNull: true, defaultValue: 'other' },
     { name: 'is_system_created', type: 'BOOLEAN', notNull: true, defaultValue: false },
     { name: 'notes', type: 'TEXT' },
   ],
@@ -141,7 +142,11 @@ export const localizationsTable: TableDefinition = {
     { name: 'parent', type: 'INTEGER', references: { table: 'conversations', column: 'id' } },
     { name: 'name', type: 'TEXT' },
     { name: 'is_system_created', type: 'BOOLEAN', notNull: true, defaultValue: false },
-    // Note: locale_N columns are added dynamically
+    // Gender resolution: at most one of subject_actor / subject_gender is set; both null → Other
+    { name: 'subject_actor', type: 'INTEGER' }, // No FK — circular dependency with actors; CRUD-enforced
+    { name: 'subject_gender', type: 'TEXT' },   // Mutually exclusive with subject_actor
+    { name: 'is_templated', type: 'BOOLEAN', notNull: true, defaultValue: false },
+    // Note: locale_N_form_{plural}_{gender} columns are added dynamically (24 per locale)
   ],
 };
 

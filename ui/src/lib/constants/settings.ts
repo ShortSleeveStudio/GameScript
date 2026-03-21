@@ -22,8 +22,7 @@ export const LOCALIZATION_PLACEHOLDER_TEXT = 'Enter localized text';
 
 /** Locales */
 export const LOCALE_UNDO_PRIMARY = 'primary locale';
-export const LOCALE_UNDO_NAME = 'locale name';
-export const LOCALE_PLACEHOLDER_NAME = 'Enter locale name';
+export const LOCALE_UNDO_CODE = 'locale code';
 
 /** Filters */
 export const FILTER_UNDO_NAME = 'filter name';
@@ -51,6 +50,8 @@ export const NODE_UNDO_ACTOR = 'node actor';
 export const NODE_UNDO_HAS_CONDITION = 'node condition';
 export const NODE_UNDO_HAS_ACTION = 'node action';
 export const NODE_UNDO_TYPE = 'node type';
+export const NODE_UNDO_NOTES = 'node notes';
+export const NODE_PLACEHOLDER_NOTES = 'Describe this node...';
 
 /** Edges */
 export const EDGE_UNDO_PRIORITY = 'priority';

@@ -4,6 +4,9 @@
 
 import * as flatbuffers from 'flatbuffers';
 
+import { GrammaticalGender } from '../game-script/grammatical-gender.js';
+
+
 export class Actor {
   bb: flatbuffers.ByteBuffer|null = null;
   bb_pos = 0;
@@ -34,22 +37,25 @@ name(optionalEncoding?:any):string|Uint8Array|null {
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-localizedName():string|null
-localizedName(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-localizedName(optionalEncoding?:any):string|Uint8Array|null {
+color():string|null
+color(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
+color(optionalEncoding?:any):string|Uint8Array|null {
   const offset = this.bb!.__offset(this.bb_pos, 8);
   return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
 }
 
-color():string|null
-color(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-color(optionalEncoding?:any):string|Uint8Array|null {
+grammaticalGender():GrammaticalGender {
   const offset = this.bb!.__offset(this.bb_pos, 10);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? this.bb!.readInt8(this.bb_pos + offset) : GrammaticalGender.Other;
+}
+
+localizedNameIdx():number {
+  const offset = this.bb!.__offset(this.bb_pos, 12);
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
 static startActor(builder:flatbuffers.Builder) {
-  builder.startObject(4);
+  builder.startObject(5);
 }
 
 static addId(builder:flatbuffers.Builder, id:number) {
@@ -60,12 +66,16 @@ static addName(builder:flatbuffers.Builder, nameOffset:flatbuffers.Offset) {
   builder.addFieldOffset(1, nameOffset, 0);
 }
 
-static addLocalizedName(builder:flatbuffers.Builder, localizedNameOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(2, localizedNameOffset, 0);
+static addColor(builder:flatbuffers.Builder, colorOffset:flatbuffers.Offset) {
+  builder.addFieldOffset(2, colorOffset, 0);
 }
 
-static addColor(builder:flatbuffers.Builder, colorOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(3, colorOffset, 0);
+static addGrammaticalGender(builder:flatbuffers.Builder, grammaticalGender:GrammaticalGender) {
+  builder.addFieldInt8(3, grammaticalGender, GrammaticalGender.Other);
+}
+
+static addLocalizedNameIdx(builder:flatbuffers.Builder, localizedNameIdx:number) {
+  builder.addFieldInt32(4, localizedNameIdx, 0);
 }
 
 static endActor(builder:flatbuffers.Builder):flatbuffers.Offset {
@@ -73,12 +83,13 @@ static endActor(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createActor(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, localizedNameOffset:flatbuffers.Offset, colorOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createActor(builder:flatbuffers.Builder, id:number, nameOffset:flatbuffers.Offset, colorOffset:flatbuffers.Offset, grammaticalGender:GrammaticalGender, localizedNameIdx:number):flatbuffers.Offset {
   Actor.startActor(builder);
   Actor.addId(builder, id);
   Actor.addName(builder, nameOffset);
-  Actor.addLocalizedName(builder, localizedNameOffset);
   Actor.addColor(builder, colorOffset);
+  Actor.addGrammaticalGender(builder, grammaticalGender);
+  Actor.addLocalizedNameIdx(builder, localizedNameIdx);
   return Actor.endActor(builder);
 }
 }

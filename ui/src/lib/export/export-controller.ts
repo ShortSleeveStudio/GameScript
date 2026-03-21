@@ -129,14 +129,13 @@ export class ExportController {
       // Get primary locale for resolving localized names
       const localePrincipal = getLocalePrincipal(localePrincipalTableView.rows);
       const primaryLocaleId = localePrincipal?.data.principal ?? locales[0]?.id ?? 1;
-      const primaryLocaleColumn = `locale_${primaryLocaleId}`;
 
       // Find primary locale index in the locales array
       const primaryLocaleIndex = locales.findIndex((l) => l.id === primaryLocaleId);
       const resolvedPrimaryLocaleIndex = primaryLocaleIndex >= 0 ? primaryLocaleIndex : 0;
 
       // Fetch localized names for all locales using primary locale
-      const localizedNames = await snapshotExport.getLocaleLocalizedNames(locales, primaryLocaleColumn);
+      const localizedNames = await snapshotExport.getLocaleLocalizedNames(locales, primaryLocaleId);
 
       // Ensure output directories exist
       await bridge.makeDirectory(outputPath);
@@ -224,7 +223,7 @@ export class ExportController {
 
       // 3. Write manifest
       const manifest: ExportManifest = {
-        version: '1.0.0',
+        version: '2.0.0',
         locales: manifestLocales,
         primaryLocale: resolvedPrimaryLocaleIndex,
         exportedAt: new Date().toISOString(),

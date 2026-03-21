@@ -37,6 +37,10 @@ void URunnerContext::Initialize(
 	bActionCompleted = false;
 	bSpeechCompleted = false;
 
+	// Reset cached texts
+	CachedVoiceText.Empty();
+	CachedUIResponseText.Empty();
+
 	// Reset node tracking
 	CurrentNode = FNodeRef();
 	NodeToExit = FNodeRef();
@@ -240,7 +244,7 @@ void URunnerContext::OnListenerChoice(FNodeRef Choice, int32 ContextID)
 
 	// Validate choice is in valid choices
 	bool bFound = false;
-	for (const FNodeRef& ValidChoice : ValidChoices)
+	for (const FChoiceRef& ValidChoice : ValidChoices)
 	{
 		if (ValidChoice.IsValid() && Choice.IsValid() &&
 			ValidChoice.GetId() == Choice.GetId())
@@ -309,7 +313,7 @@ void URunnerContext::OnListenerChoiceByIndex(int32 ChoiceIndex, int32 ContextID)
 	}
 
 	// Set current node to selected choice
-	CurrentNode = ValidChoices[ChoiceIndex];
+	CurrentNode = FNodeRef(Database, ValidChoices[ChoiceIndex].Index);
 
 	// Proceed to node exit
 	TransitionTo(EState::NodeExit);
@@ -339,12 +343,22 @@ FActorRef URunnerContext::GetActor() const
 
 FString URunnerContext::GetVoiceText() const
 {
-	return CurrentNode.IsValid() ? CurrentNode.GetVoiceText() : FString();
+	return CachedVoiceText;
 }
 
 FString URunnerContext::GetUIResponseText() const
 {
-	return CurrentNode.IsValid() ? CurrentNode.GetUIResponseText() : FString();
+	return CachedUIResponseText;
+}
+
+int32 URunnerContext::GetVoiceTextLocalizationIdx() const
+{
+	return CurrentNode.IsValid() ? CurrentNode.GetVoiceTextLocalizationIdx() : -1;
+}
+
+int32 URunnerContext::GetUIResponseTextLocalizationIdx() const
+{
+	return CurrentNode.IsValid() ? CurrentNode.GetUIResponseTextLocalizationIdx() : -1;
 }
 
 int32 URunnerContext::GetPropertyCount() const
@@ -413,6 +427,9 @@ void URunnerContext::EnterNodeEnter()
 		return;
 	}
 
+	// Resolve and cache voice/UI response text for this node before listener callback
+	CacheNodeTexts();
+
 	// Acquire handle from pool and call listener
 	int32 ContextID = GenerateContextID();
 	PendingHandle = Runner->AcquireHandle();
@@ -447,7 +464,7 @@ void URunnerContext::EnterActionAndSpeech()
 		int32 ContextID = GenerateContextID();
 		PendingHandle = Runner->AcquireHandle();
 		PendingHandle->Initialize(this, ContextID);
-		IGameScriptListener::Execute_OnSpeech(Listener.GetObject(), CurrentNode, PendingHandle);
+		IGameScriptListener::Execute_OnSpeech(Listener.GetObject(), CurrentNode, CachedVoiceText, PendingHandle);
 	}
 	else if (bHasAction)
 	{
@@ -462,7 +479,7 @@ void URunnerContext::EnterActionAndSpeech()
 		int32 ContextID = GenerateContextID();
 		PendingHandle = Runner->AcquireHandle();
 		PendingHandle->Initialize(this, ContextID);
-		IGameScriptListener::Execute_OnSpeech(Listener.GetObject(), CurrentNode, PendingHandle);
+		IGameScriptListener::Execute_OnSpeech(Listener.GetObject(), CurrentNode, CachedVoiceText, PendingHandle);
 	}
 	else
 	{
@@ -478,8 +495,10 @@ void URunnerContext::EnterEvaluateEdges()
 
 	if (ValidChoices.Num() == 0)
 	{
-		// No valid edges, conversation ends
-		TransitionTo(EState::ConversationExit);
+		// No valid edges — conversation ends after OnNodeExit (matches Unity behavior)
+		NodeToExit = CurrentNode;
+		CurrentNode = FNodeRef();  // No next node
+		TransitionTo(EState::NodeExit);
 		return;
 	}
 
@@ -498,8 +517,11 @@ void URunnerContext::EnterEvaluateEdges()
 		else if (ValidChoices.Num() == 1 && !Runner->GetSettings()->bPreventSingleNodeChoices)
 		{
 			// Single choice with UI text = decision (unless settings prevent it)
-			FString ResponseText = ValidChoices[0].GetUIResponseText();
-			if (!ResponseText.IsEmpty())
+			// Use the index sentinel to check for UI text rather than the resolved string,
+			// so this check never depends on resolution results (matches Unity behavior)
+			FNodeRef FirstChoice = ValidChoices[0].GetNode();
+			int32 UIIdx = FirstChoice.GetUIResponseTextLocalizationIdx();
+			if (UIIdx >= 0)
 			{
 				// Only show if same actor as current node (for continuity)
 				bShouldShowDecision = bAllChoicesSameActor;
@@ -525,16 +547,16 @@ void URunnerContext::EnterEvaluateEdges()
 		NodeToExit = CurrentNode;
 
 		// Auto-advance: Call OnAutoDecision with highest-priority choices (matches Unity)
-		FNodeRef SelectedNode = IGameScriptListener::Execute_OnAutoDecision(
+		FChoiceRef SelectedChoice = IGameScriptListener::Execute_OnAutoDecision(
 			Listener.GetObject(), HighestPriorityChoices);
 
-		// Validate that returned node is in valid choices (not just IsValid)
+		// Validate that returned choice is in valid choices (not just IsValid)
 		bool bFoundInChoices = false;
-		if (SelectedNode.IsValid())
+		if (SelectedChoice.IsValid())
 		{
-			for (const FNodeRef& Choice : ValidChoices)
+			for (const FChoiceRef& Choice : ValidChoices)
 			{
-				if (Choice.IsValid() && Choice.GetId() == SelectedNode.GetId())
+				if (Choice.Index == SelectedChoice.Index)
 				{
 					bFoundInChoices = true;
 					break;
@@ -547,13 +569,13 @@ void URunnerContext::EnterEvaluateEdges()
 			// Error: selection is not in valid choices - matches Unity behavior
 			PendingErrorMessage = FString::Printf(
 				TEXT("OnAutoDecision returned node (index %d) that is not in the valid choices list. Ensure your listener returns one of the provided choices."),
-				SelectedNode.IsValid() ? SelectedNode.Index : -1);
+				SelectedChoice.IsValid() ? SelectedChoice.Index : -1);
 			UE_LOG(LogGameScript, Error, TEXT("%s"), *PendingErrorMessage);
 			TransitionTo(EState::ErrorCleanup);
 			return;
 		}
 
-		CurrentNode = SelectedNode;
+		CurrentNode = FNodeRef(Database, SelectedChoice.Index);
 
 		TransitionTo(EState::NodeExit);
 	}
@@ -670,6 +692,10 @@ void URunnerContext::EnterIdle()
 	// Reset node tracking
 	CurrentNode = FNodeRef();
 	NodeToExit = FNodeRef();
+
+	// Reset cached texts
+	CachedVoiceText.Empty();
+	CachedUIResponseText.Empty();
 
 	// Reset choice arrays (Reset keeps capacity for reuse)
 	ValidChoices.Reset();
@@ -912,8 +938,21 @@ void URunnerContext::FindValidChoices()
 			}
 		}
 
+		// Resolve UI response text for this choice via the listener
+		FString ResolvedChoiceText;
+		int32 UIIdx = Target.GetUIResponseTextLocalizationIdx();
+		if (UIIdx >= 0)
+		{
+			FLocalizationRef LocRef(Database, UIIdx);
+			FTextResolutionParams ChoiceParams = IGameScriptListener::Execute_OnDecisionParams(
+				Listener.GetObject(), LocRef, Target);
+			ResolvedChoiceText = Runner->ResolveText(UIIdx, Target, ChoiceParams);
+		}
+
+		FChoiceRef TargetChoice(Database, Target.Index, ResolvedChoiceText);
+
 		// Valid choice - add to list
-		ValidChoices.Add(Target);
+		ValidChoices.Add(TargetChoice);
 
 		// Track actor consistency (matches Unity behavior)
 		FActorRef TargetActor = Target.GetActor();
@@ -933,12 +972,48 @@ void URunnerContext::FindValidChoices()
 		{
 			HighestPriority = EdgePriority;
 			HighestPriorityChoices.Reset();
-			HighestPriorityChoices.Add(Target);
+			HighestPriorityChoices.Add(TargetChoice);
 		}
 		else if (EdgePriority == HighestPriority)
 		{
-			HighestPriorityChoices.Add(Target);
+			HighestPriorityChoices.Add(TargetChoice);
 		}
+	}
+}
+
+void URunnerContext::CacheNodeTexts()
+{
+	if (!CurrentNode.IsValid())
+	{
+		CachedVoiceText.Empty();
+		CachedUIResponseText.Empty();
+		return;
+	}
+
+	// Voice text — resolved via OnSpeechParams
+	int32 VoiceIdx = CurrentNode.GetVoiceTextLocalizationIdx();
+	if (VoiceIdx >= 0)
+	{
+		FLocalizationRef LocRef(Database, VoiceIdx);
+		FTextResolutionParams SpeechParams = IGameScriptListener::Execute_OnSpeechParams(
+			Listener.GetObject(), LocRef, CurrentNode);
+		CachedVoiceText = Runner->ResolveText(VoiceIdx, CurrentNode, SpeechParams);
+	}
+	else
+	{
+		CachedVoiceText.Empty();
+	}
+
+	// UI response text — static-gender resolution only (no OnSpeechParams)
+	int32 UIIdx = CurrentNode.GetUIResponseTextLocalizationIdx();
+	if (UIIdx >= 0)
+	{
+		FLocalizationRef LocRef(Database, UIIdx);
+		CachedUIResponseText = LocRef.GetText();
+	}
+	else
+	{
+		CachedUIResponseText.Empty();
 	}
 }
 

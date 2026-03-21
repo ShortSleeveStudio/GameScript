@@ -2,7 +2,7 @@ import { db } from '$lib/db';
 import { registerUndoable, Undoable } from '$lib/undo';
 import {
   query,
-  localeIdToColumn,
+  localeIdToColumns,
   type Locale,
   type LocalePrincipal,
   type Localization,
@@ -64,9 +64,11 @@ export async function create(name: string): Promise<CreateLocaleResult> {
       tx
     );
 
-    // 3. Add locale column to localizations table
-    const columnName = localeIdToColumn(locale.id);
-    await db.addColumn(TABLE_LOCALIZATIONS, columnName, 'TEXT', tx);
+    // 3. Add all 24 locale form columns to localizations table
+    const columns = localeIdToColumns(locale.id);
+    for (const col of columns.all) {
+      await db.addColumn(TABLE_LOCALIZATIONS, col, 'TEXT', tx);
+    }
   });
 
   if (!locale || !localization) throw new Error('Failed to create locale');
@@ -85,8 +87,10 @@ export async function create(name: string): Promise<CreateLocaleResult> {
         await db.transaction(async (tx) => {
           await db.insertWithId<Localization>(TABLE_LOCALIZATIONS, capturedLocalization, tx);
           await db.insertWithId<Locale>(TABLE_LOCALES, capturedLocale, tx);
-          const columnName = localeIdToColumn(capturedLocale.id);
-          await db.addColumn(TABLE_LOCALIZATIONS, columnName, 'TEXT', tx);
+          const columns = localeIdToColumns(capturedLocale.id);
+          for (const col of columns.all) {
+            await db.addColumn(TABLE_LOCALIZATIONS, col, 'TEXT', tx);
+          }
         });
       }
     )
@@ -100,6 +104,7 @@ export async function create(name: string): Promise<CreateLocaleResult> {
 // ============================================================================
 
 export async function updateMany(oldLocales: Locale[], newLocales: Locale[]): Promise<Locale[]> {
+  if (oldLocales.some((l) => l.is_system_created)) throw new Error('Cannot update a system locale');
   const results = await db.updateRows<Locale>(TABLE_LOCALES, newLocales);
 
   registerUndoable(
@@ -129,6 +134,7 @@ export async function updateOne(oldLocale: Locale, newLocale: Locale): Promise<L
 export async function remove(localeId: number): Promise<void> {
   const locale = await db.selectById<Locale>(TABLE_LOCALES, localeId);
   if (!locale) throw new Error(`Locale ${localeId} not found`);
+  if (locale.is_system_created) throw new Error('Cannot delete a system locale');
 
   // Capture localization for undo
   const localization = locale.localized_name
@@ -160,9 +166,11 @@ export async function remove(localeId: number): Promise<void> {
           }
           // Restore locale
           await db.insertWithId<Locale>(TABLE_LOCALES, capturedLocale, tx);
-          // Re-add locale column
-          const columnName = localeIdToColumn(capturedLocale.id);
-          await db.addColumn(TABLE_LOCALIZATIONS, columnName, 'TEXT', tx);
+          // Re-add all 24 locale form columns
+          const columns = localeIdToColumns(capturedLocale.id);
+          for (const col of columns.all) {
+            await db.addColumn(TABLE_LOCALIZATIONS, col, 'TEXT', tx);
+          }
           // Restore principal if it was principal before
           if (capturedWasPrincipal) {
             const principals = await db.select<LocalePrincipal>(
@@ -213,9 +221,11 @@ async function deleteInternal(localeId: number): Promise<void> {
       );
     }
 
-    // Drop locale column
-    const columnName = localeIdToColumn(localeId);
-    await db.dropColumn(TABLE_LOCALIZATIONS, columnName, tx);
+    // Drop all 24 locale form columns
+    const columns = localeIdToColumns(localeId);
+    for (const col of columns.all) {
+      await db.dropColumn(TABLE_LOCALIZATIONS, col, tx);
+    }
 
     // Delete locale
     await db.delete(TABLE_LOCALES, localeId, tx);

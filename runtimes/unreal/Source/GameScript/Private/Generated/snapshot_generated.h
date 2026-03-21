@@ -33,6 +33,9 @@ struct NodePropertyBuilder;
 struct ConversationProperty;
 struct ConversationPropertyBuilder;
 
+struct TextVariant;
+struct TextVariantBuilder;
+
 struct Node;
 struct NodeBuilder;
 
@@ -152,6 +155,123 @@ inline const char *EnumNamePropertyType(PropertyType e) {
   if (::flatbuffers::IsOutRange(e, PropertyType_String, PropertyType_Boolean)) return "";
   const size_t index = static_cast<size_t>(e);
   return EnumNamesPropertyType()[index];
+}
+
+enum PluralCategory : int8_t {
+  PluralCategory_Zero = 0,
+  PluralCategory_One = 1,
+  PluralCategory_Two = 2,
+  PluralCategory_Few = 3,
+  PluralCategory_Many = 4,
+  PluralCategory_Other = 5,
+  PluralCategory_MIN = PluralCategory_Zero,
+  PluralCategory_MAX = PluralCategory_Other
+};
+
+inline const PluralCategory (&EnumValuesPluralCategory())[6] {
+  static const PluralCategory values[] = {
+    PluralCategory_Zero,
+    PluralCategory_One,
+    PluralCategory_Two,
+    PluralCategory_Few,
+    PluralCategory_Many,
+    PluralCategory_Other
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesPluralCategory() {
+  static const char * const names[7] = {
+    "Zero",
+    "One",
+    "Two",
+    "Few",
+    "Many",
+    "Other",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNamePluralCategory(PluralCategory e) {
+  if (::flatbuffers::IsOutRange(e, PluralCategory_Zero, PluralCategory_Other)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesPluralCategory()[index];
+}
+
+enum GenderCategory : int8_t {
+  GenderCategory_Other = 0,
+  GenderCategory_Masculine = 1,
+  GenderCategory_Feminine = 2,
+  GenderCategory_Neuter = 3,
+  GenderCategory_MIN = GenderCategory_Other,
+  GenderCategory_MAX = GenderCategory_Neuter
+};
+
+inline const GenderCategory (&EnumValuesGenderCategory())[4] {
+  static const GenderCategory values[] = {
+    GenderCategory_Other,
+    GenderCategory_Masculine,
+    GenderCategory_Feminine,
+    GenderCategory_Neuter
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesGenderCategory() {
+  static const char * const names[5] = {
+    "Other",
+    "Masculine",
+    "Feminine",
+    "Neuter",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameGenderCategory(GenderCategory e) {
+  if (::flatbuffers::IsOutRange(e, GenderCategory_Other, GenderCategory_Neuter)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesGenderCategory()[index];
+}
+
+enum GrammaticalGender : int8_t {
+  GrammaticalGender_Other = 0,
+  GrammaticalGender_Masculine = 1,
+  GrammaticalGender_Feminine = 2,
+  GrammaticalGender_Neuter = 3,
+  GrammaticalGender_Dynamic = 4,
+  GrammaticalGender_MIN = GrammaticalGender_Other,
+  GrammaticalGender_MAX = GrammaticalGender_Dynamic
+};
+
+inline const GrammaticalGender (&EnumValuesGrammaticalGender())[5] {
+  static const GrammaticalGender values[] = {
+    GrammaticalGender_Other,
+    GrammaticalGender_Masculine,
+    GrammaticalGender_Feminine,
+    GrammaticalGender_Neuter,
+    GrammaticalGender_Dynamic
+  };
+  return values;
+}
+
+inline const char * const *EnumNamesGrammaticalGender() {
+  static const char * const names[6] = {
+    "Other",
+    "Masculine",
+    "Feminine",
+    "Neuter",
+    "Dynamic",
+    nullptr
+  };
+  return names;
+}
+
+inline const char *EnumNameGrammaticalGender(GrammaticalGender e) {
+  if (::flatbuffers::IsOutRange(e, GrammaticalGender_Other, GrammaticalGender_Dynamic)) return "";
+  const size_t index = static_cast<size_t>(e);
+  return EnumNamesGrammaticalGender()[index];
 }
 
 enum NodeType : int8_t {
@@ -603,6 +723,82 @@ inline ::flatbuffers::Offset<ConversationProperty> CreateConversationProperty(
   return builder_.Finish();
 }
 
+struct TextVariant FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef TextVariantBuilder Builder;
+  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
+    VT_PLURAL = 4,
+    VT_GENDER = 6,
+    VT_TEXT = 8
+  };
+  GameScript::PluralCategory plural() const {
+    return static_cast<GameScript::PluralCategory>(GetField<int8_t>(VT_PLURAL, 0));
+  }
+  GameScript::GenderCategory gender() const {
+    return static_cast<GameScript::GenderCategory>(GetField<int8_t>(VT_GENDER, 0));
+  }
+  const ::flatbuffers::String *text() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_TEXT);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int8_t>(verifier, VT_PLURAL, 1) &&
+           VerifyField<int8_t>(verifier, VT_GENDER, 1) &&
+           VerifyOffset(verifier, VT_TEXT) &&
+           verifier.VerifyString(text()) &&
+           verifier.EndTable();
+  }
+};
+
+struct TextVariantBuilder {
+  typedef TextVariant Table;
+  ::flatbuffers::FlatBufferBuilder &fbb_;
+  ::flatbuffers::uoffset_t start_;
+  void add_plural(GameScript::PluralCategory plural) {
+    fbb_.AddElement<int8_t>(TextVariant::VT_PLURAL, static_cast<int8_t>(plural), 0);
+  }
+  void add_gender(GameScript::GenderCategory gender) {
+    fbb_.AddElement<int8_t>(TextVariant::VT_GENDER, static_cast<int8_t>(gender), 0);
+  }
+  void add_text(::flatbuffers::Offset<::flatbuffers::String> text) {
+    fbb_.AddOffset(TextVariant::VT_TEXT, text);
+  }
+  explicit TextVariantBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ::flatbuffers::Offset<TextVariant> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = ::flatbuffers::Offset<TextVariant>(end);
+    return o;
+  }
+};
+
+inline ::flatbuffers::Offset<TextVariant> CreateTextVariant(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    GameScript::PluralCategory plural = GameScript::PluralCategory_Zero,
+    GameScript::GenderCategory gender = GameScript::GenderCategory_Other,
+    ::flatbuffers::Offset<::flatbuffers::String> text = 0) {
+  TextVariantBuilder builder_(_fbb);
+  builder_.add_text(text);
+  builder_.add_gender(gender);
+  builder_.add_plural(plural);
+  return builder_.Finish();
+}
+
+inline ::flatbuffers::Offset<TextVariant> CreateTextVariantDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    GameScript::PluralCategory plural = GameScript::PluralCategory_Zero,
+    GameScript::GenderCategory gender = GameScript::GenderCategory_Other,
+    const char *text = nullptr) {
+  auto text__ = text ? _fbb.CreateString(text) : 0;
+  return GameScript::CreateTextVariant(
+      _fbb,
+      plural,
+      gender,
+      text__);
+}
+
 struct Node FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   typedef NodeBuilder Builder;
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
@@ -610,8 +806,8 @@ struct Node FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
     VT_CONVERSATION_IDX = 6,
     VT_TYPE = 8,
     VT_ACTOR_IDX = 10,
-    VT_VOICE_TEXT = 12,
-    VT_UI_RESPONSE_TEXT = 14,
+    VT_VOICE_TEXT_IDX = 12,
+    VT_UI_RESPONSE_TEXT_IDX = 14,
     VT_HAS_CONDITION = 16,
     VT_HAS_ACTION = 18,
     VT_IS_PREVENT_RESPONSE = 20,
@@ -634,11 +830,11 @@ struct Node FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t actor_idx() const {
     return GetField<int32_t>(VT_ACTOR_IDX, 0);
   }
-  const ::flatbuffers::String *voice_text() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_VOICE_TEXT);
+  int32_t voice_text_idx() const {
+    return GetField<int32_t>(VT_VOICE_TEXT_IDX, 0);
   }
-  const ::flatbuffers::String *ui_response_text() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_UI_RESPONSE_TEXT);
+  int32_t ui_response_text_idx() const {
+    return GetField<int32_t>(VT_UI_RESPONSE_TEXT_IDX, 0);
   }
   bool has_condition() const {
     return GetField<uint8_t>(VT_HAS_CONDITION, 0) != 0;
@@ -674,10 +870,8 @@ struct Node FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_CONVERSATION_IDX, 4) &&
            VerifyField<int8_t>(verifier, VT_TYPE, 1) &&
            VerifyField<int32_t>(verifier, VT_ACTOR_IDX, 4) &&
-           VerifyOffset(verifier, VT_VOICE_TEXT) &&
-           verifier.VerifyString(voice_text()) &&
-           VerifyOffset(verifier, VT_UI_RESPONSE_TEXT) &&
-           verifier.VerifyString(ui_response_text()) &&
+           VerifyField<int32_t>(verifier, VT_VOICE_TEXT_IDX, 4) &&
+           VerifyField<int32_t>(verifier, VT_UI_RESPONSE_TEXT_IDX, 4) &&
            VerifyField<uint8_t>(verifier, VT_HAS_CONDITION, 1) &&
            VerifyField<uint8_t>(verifier, VT_HAS_ACTION, 1) &&
            VerifyField<uint8_t>(verifier, VT_IS_PREVENT_RESPONSE, 1) &&
@@ -712,11 +906,11 @@ struct NodeBuilder {
   void add_actor_idx(int32_t actor_idx) {
     fbb_.AddElement<int32_t>(Node::VT_ACTOR_IDX, actor_idx, 0);
   }
-  void add_voice_text(::flatbuffers::Offset<::flatbuffers::String> voice_text) {
-    fbb_.AddOffset(Node::VT_VOICE_TEXT, voice_text);
+  void add_voice_text_idx(int32_t voice_text_idx) {
+    fbb_.AddElement<int32_t>(Node::VT_VOICE_TEXT_IDX, voice_text_idx, 0);
   }
-  void add_ui_response_text(::flatbuffers::Offset<::flatbuffers::String> ui_response_text) {
-    fbb_.AddOffset(Node::VT_UI_RESPONSE_TEXT, ui_response_text);
+  void add_ui_response_text_idx(int32_t ui_response_text_idx) {
+    fbb_.AddElement<int32_t>(Node::VT_UI_RESPONSE_TEXT_IDX, ui_response_text_idx, 0);
   }
   void add_has_condition(bool has_condition) {
     fbb_.AddElement<uint8_t>(Node::VT_HAS_CONDITION, static_cast<uint8_t>(has_condition), 0);
@@ -762,8 +956,8 @@ inline ::flatbuffers::Offset<Node> CreateNode(
     int32_t conversation_idx = 0,
     GameScript::NodeType type = GameScript::NodeType_Root,
     int32_t actor_idx = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> voice_text = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> ui_response_text = 0,
+    int32_t voice_text_idx = 0,
+    int32_t ui_response_text_idx = 0,
     bool has_condition = false,
     bool has_action = false,
     bool is_prevent_response = false,
@@ -780,8 +974,8 @@ inline ::flatbuffers::Offset<Node> CreateNode(
   builder_.add_notes(notes);
   builder_.add_position_y(position_y);
   builder_.add_position_x(position_x);
-  builder_.add_ui_response_text(ui_response_text);
-  builder_.add_voice_text(voice_text);
+  builder_.add_ui_response_text_idx(ui_response_text_idx);
+  builder_.add_voice_text_idx(voice_text_idx);
   builder_.add_actor_idx(actor_idx);
   builder_.add_conversation_idx(conversation_idx);
   builder_.add_id(id);
@@ -798,8 +992,8 @@ inline ::flatbuffers::Offset<Node> CreateNodeDirect(
     int32_t conversation_idx = 0,
     GameScript::NodeType type = GameScript::NodeType_Root,
     int32_t actor_idx = 0,
-    const char *voice_text = nullptr,
-    const char *ui_response_text = nullptr,
+    int32_t voice_text_idx = 0,
+    int32_t ui_response_text_idx = 0,
     bool has_condition = false,
     bool has_action = false,
     bool is_prevent_response = false,
@@ -809,8 +1003,6 @@ inline ::flatbuffers::Offset<Node> CreateNodeDirect(
     const std::vector<::flatbuffers::Offset<GameScript::NodeProperty>> *properties = nullptr,
     const std::vector<int32_t> *outgoing_edge_indices = nullptr,
     const std::vector<int32_t> *incoming_edge_indices = nullptr) {
-  auto voice_text__ = voice_text ? _fbb.CreateString(voice_text) : 0;
-  auto ui_response_text__ = ui_response_text ? _fbb.CreateString(ui_response_text) : 0;
   auto notes__ = notes ? _fbb.CreateString(notes) : 0;
   auto properties__ = properties ? _fbb.CreateVector<::flatbuffers::Offset<GameScript::NodeProperty>>(*properties) : 0;
   auto outgoing_edge_indices__ = outgoing_edge_indices ? _fbb.CreateVector<int32_t>(*outgoing_edge_indices) : 0;
@@ -821,8 +1013,8 @@ inline ::flatbuffers::Offset<Node> CreateNodeDirect(
       conversation_idx,
       type,
       actor_idx,
-      voice_text__,
-      ui_response_text__,
+      voice_text_idx,
+      ui_response_text_idx,
       has_condition,
       has_action,
       is_prevent_response,
@@ -931,8 +1123,9 @@ struct Actor FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_NAME = 6,
-    VT_LOCALIZED_NAME = 8,
-    VT_COLOR = 10
+    VT_COLOR = 8,
+    VT_GRAMMATICAL_GENDER = 10,
+    VT_LOCALIZED_NAME_IDX = 12
   };
   int32_t id() const {
     return GetField<int32_t>(VT_ID, 0);
@@ -940,11 +1133,14 @@ struct Actor FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const ::flatbuffers::String *localized_name() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_LOCALIZED_NAME);
-  }
   const ::flatbuffers::String *color() const {
     return GetPointer<const ::flatbuffers::String *>(VT_COLOR);
+  }
+  GameScript::GrammaticalGender grammatical_gender() const {
+    return static_cast<GameScript::GrammaticalGender>(GetField<int8_t>(VT_GRAMMATICAL_GENDER, 0));
+  }
+  int32_t localized_name_idx() const {
+    return GetField<int32_t>(VT_LOCALIZED_NAME_IDX, 0);
   }
   template <bool B = false>
   bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
@@ -952,10 +1148,10 @@ struct Actor FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_ID, 4) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyOffset(verifier, VT_LOCALIZED_NAME) &&
-           verifier.VerifyString(localized_name()) &&
            VerifyOffset(verifier, VT_COLOR) &&
            verifier.VerifyString(color()) &&
+           VerifyField<int8_t>(verifier, VT_GRAMMATICAL_GENDER, 1) &&
+           VerifyField<int32_t>(verifier, VT_LOCALIZED_NAME_IDX, 4) &&
            verifier.EndTable();
   }
 };
@@ -970,11 +1166,14 @@ struct ActorBuilder {
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(Actor::VT_NAME, name);
   }
-  void add_localized_name(::flatbuffers::Offset<::flatbuffers::String> localized_name) {
-    fbb_.AddOffset(Actor::VT_LOCALIZED_NAME, localized_name);
-  }
   void add_color(::flatbuffers::Offset<::flatbuffers::String> color) {
     fbb_.AddOffset(Actor::VT_COLOR, color);
+  }
+  void add_grammatical_gender(GameScript::GrammaticalGender grammatical_gender) {
+    fbb_.AddElement<int8_t>(Actor::VT_GRAMMATICAL_GENDER, static_cast<int8_t>(grammatical_gender), 0);
+  }
+  void add_localized_name_idx(int32_t localized_name_idx) {
+    fbb_.AddElement<int32_t>(Actor::VT_LOCALIZED_NAME_IDX, localized_name_idx, 0);
   }
   explicit ActorBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -991,13 +1190,15 @@ inline ::flatbuffers::Offset<Actor> CreateActor(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> localized_name = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> color = 0) {
+    ::flatbuffers::Offset<::flatbuffers::String> color = 0,
+    GameScript::GrammaticalGender grammatical_gender = GameScript::GrammaticalGender_Other,
+    int32_t localized_name_idx = 0) {
   ActorBuilder builder_(_fbb);
+  builder_.add_localized_name_idx(localized_name_idx);
   builder_.add_color(color);
-  builder_.add_localized_name(localized_name);
   builder_.add_name(name);
   builder_.add_id(id);
+  builder_.add_grammatical_gender(grammatical_gender);
   return builder_.Finish();
 }
 
@@ -1005,17 +1206,18 @@ inline ::flatbuffers::Offset<Actor> CreateActorDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     const char *name = nullptr,
-    const char *localized_name = nullptr,
-    const char *color = nullptr) {
+    const char *color = nullptr,
+    GameScript::GrammaticalGender grammatical_gender = GameScript::GrammaticalGender_Other,
+    int32_t localized_name_idx = 0) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto localized_name__ = localized_name ? _fbb.CreateString(localized_name) : 0;
   auto color__ = color ? _fbb.CreateString(color) : 0;
   return GameScript::CreateActor(
       _fbb,
       id,
       name__,
-      localized_name__,
-      color__);
+      color__,
+      grammatical_gender,
+      localized_name_idx);
 }
 
 struct Conversation FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -1194,8 +1396,11 @@ struct Localization FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_ID = 4,
     VT_NAME = 6,
-    VT_TEXT = 8,
-    VT_TAG_INDICES = 10
+    VT_SUBJECT_ACTOR_IDX = 8,
+    VT_SUBJECT_GENDER = 10,
+    VT_IS_TEMPLATED = 12,
+    VT_VARIANTS = 14,
+    VT_TAG_INDICES = 16
   };
   int32_t id() const {
     return GetField<int32_t>(VT_ID, 0);
@@ -1203,8 +1408,17 @@ struct Localization FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *name() const {
     return GetPointer<const ::flatbuffers::String *>(VT_NAME);
   }
-  const ::flatbuffers::String *text() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_TEXT);
+  int32_t subject_actor_idx() const {
+    return GetField<int32_t>(VT_SUBJECT_ACTOR_IDX, 0);
+  }
+  GameScript::GenderCategory subject_gender() const {
+    return static_cast<GameScript::GenderCategory>(GetField<int8_t>(VT_SUBJECT_GENDER, 0));
+  }
+  bool is_templated() const {
+    return GetField<uint8_t>(VT_IS_TEMPLATED, 0) != 0;
+  }
+  const ::flatbuffers::Vector<::flatbuffers::Offset<GameScript::TextVariant>> *variants() const {
+    return GetPointer<const ::flatbuffers::Vector<::flatbuffers::Offset<GameScript::TextVariant>> *>(VT_VARIANTS);
   }
   const ::flatbuffers::Vector<int32_t> *tag_indices() const {
     return GetPointer<const ::flatbuffers::Vector<int32_t> *>(VT_TAG_INDICES);
@@ -1215,8 +1429,12 @@ struct Localization FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
            VerifyField<int32_t>(verifier, VT_ID, 4) &&
            VerifyOffset(verifier, VT_NAME) &&
            verifier.VerifyString(name()) &&
-           VerifyOffset(verifier, VT_TEXT) &&
-           verifier.VerifyString(text()) &&
+           VerifyField<int32_t>(verifier, VT_SUBJECT_ACTOR_IDX, 4) &&
+           VerifyField<int8_t>(verifier, VT_SUBJECT_GENDER, 1) &&
+           VerifyField<uint8_t>(verifier, VT_IS_TEMPLATED, 1) &&
+           VerifyOffset(verifier, VT_VARIANTS) &&
+           verifier.VerifyVector(variants()) &&
+           verifier.VerifyVectorOfTables(variants()) &&
            VerifyOffset(verifier, VT_TAG_INDICES) &&
            verifier.VerifyVector(tag_indices()) &&
            verifier.EndTable();
@@ -1233,8 +1451,17 @@ struct LocalizationBuilder {
   void add_name(::flatbuffers::Offset<::flatbuffers::String> name) {
     fbb_.AddOffset(Localization::VT_NAME, name);
   }
-  void add_text(::flatbuffers::Offset<::flatbuffers::String> text) {
-    fbb_.AddOffset(Localization::VT_TEXT, text);
+  void add_subject_actor_idx(int32_t subject_actor_idx) {
+    fbb_.AddElement<int32_t>(Localization::VT_SUBJECT_ACTOR_IDX, subject_actor_idx, 0);
+  }
+  void add_subject_gender(GameScript::GenderCategory subject_gender) {
+    fbb_.AddElement<int8_t>(Localization::VT_SUBJECT_GENDER, static_cast<int8_t>(subject_gender), 0);
+  }
+  void add_is_templated(bool is_templated) {
+    fbb_.AddElement<uint8_t>(Localization::VT_IS_TEMPLATED, static_cast<uint8_t>(is_templated), 0);
+  }
+  void add_variants(::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<GameScript::TextVariant>>> variants) {
+    fbb_.AddOffset(Localization::VT_VARIANTS, variants);
   }
   void add_tag_indices(::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> tag_indices) {
     fbb_.AddOffset(Localization::VT_TAG_INDICES, tag_indices);
@@ -1254,13 +1481,19 @@ inline ::flatbuffers::Offset<Localization> CreateLocalization(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     ::flatbuffers::Offset<::flatbuffers::String> name = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> text = 0,
+    int32_t subject_actor_idx = 0,
+    GameScript::GenderCategory subject_gender = GameScript::GenderCategory_Other,
+    bool is_templated = false,
+    ::flatbuffers::Offset<::flatbuffers::Vector<::flatbuffers::Offset<GameScript::TextVariant>>> variants = 0,
     ::flatbuffers::Offset<::flatbuffers::Vector<int32_t>> tag_indices = 0) {
   LocalizationBuilder builder_(_fbb);
   builder_.add_tag_indices(tag_indices);
-  builder_.add_text(text);
+  builder_.add_variants(variants);
+  builder_.add_subject_actor_idx(subject_actor_idx);
   builder_.add_name(name);
   builder_.add_id(id);
+  builder_.add_is_templated(is_templated);
+  builder_.add_subject_gender(subject_gender);
   return builder_.Finish();
 }
 
@@ -1268,16 +1501,22 @@ inline ::flatbuffers::Offset<Localization> CreateLocalizationDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t id = 0,
     const char *name = nullptr,
-    const char *text = nullptr,
+    int32_t subject_actor_idx = 0,
+    GameScript::GenderCategory subject_gender = GameScript::GenderCategory_Other,
+    bool is_templated = false,
+    const std::vector<::flatbuffers::Offset<GameScript::TextVariant>> *variants = nullptr,
     const std::vector<int32_t> *tag_indices = nullptr) {
   auto name__ = name ? _fbb.CreateString(name) : 0;
-  auto text__ = text ? _fbb.CreateString(text) : 0;
+  auto variants__ = variants ? _fbb.CreateVector<::flatbuffers::Offset<GameScript::TextVariant>>(*variants) : 0;
   auto tag_indices__ = tag_indices ? _fbb.CreateVector<int32_t>(*tag_indices) : 0;
   return GameScript::CreateLocalization(
       _fbb,
       id,
       name__,
-      text__,
+      subject_actor_idx,
+      subject_gender,
+      is_templated,
+      variants__,
       tag_indices__);
 }
 
@@ -1596,7 +1835,7 @@ inline const GameScript::Snapshot *GetSizePrefixedSnapshot(const void *buf) {
 }
 
 inline const char *SnapshotIdentifier() {
-  return "GSPT";
+  return "GSP3";
 }
 
 inline bool SnapshotBufferHasIdentifier(const void *buf) {

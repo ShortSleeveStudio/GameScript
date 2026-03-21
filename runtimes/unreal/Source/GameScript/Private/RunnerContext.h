@@ -94,6 +94,8 @@ public:
 	virtual FActorRef GetActor() const override;
 	virtual FString GetVoiceText() const override;
 	virtual FString GetUIResponseText() const override;
+	virtual int32 GetVoiceTextLocalizationIdx() const override;
+	virtual int32 GetUIResponseTextLocalizationIdx() const override;
 	virtual int32 GetPropertyCount() const override;
 	virtual FNodePropertyRef GetProperty(int32 Index) const override;
 	virtual UGameplayTasksComponent* GetTaskOwner() const override;
@@ -162,9 +164,13 @@ private:
 	bool bActionCompleted = false;
 	bool bSpeechCompleted = false;
 
-	// Valid choices (for decision state)
-	TArray<FNodeRef> ValidChoices;
-	TArray<FNodeRef> HighestPriorityChoices;  // Subset of ValidChoices with highest edge priority
+	// Cached resolved texts for the current node (set before OnNodeEnter)
+	FString CachedVoiceText;
+	FString CachedUIResponseText;
+
+	// Valid choices (for decision state) — carry pre-resolved UI text
+	TArray<FChoiceRef> ValidChoices;
+	TArray<FChoiceRef> HighestPriorityChoices;  // Subset of ValidChoices with highest edge priority
 
 	// Actor consistency tracking (computed during FindValidChoices to avoid extra loop)
 	bool bAllChoicesSameActor = true;
@@ -205,6 +211,7 @@ private:
 	void ExecuteAction(FNodeRef Node);
 	bool EvaluateCondition(FNodeRef Node);
 	void FindValidChoices();
+	void CacheNodeTexts();
 	int32 GenerateContextID();
 
 	/**

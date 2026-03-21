@@ -17,6 +17,7 @@ namespace GameScript
 
         #region Editor Settings
         public string GameDataPath; // Relative to StreamingAssets folder
+        public int EditorLocaleIndex = -1; // -1 = use primary from manifest
         #endregion
 
         #region Path Helpers

@@ -1,7 +1,8 @@
 #include "Refs.h"
 #include "GameScriptDatabase.h"
 #include "GameScriptManifest.h"
-#include "Generated/snapshot.h"
+#include "VariantResolver.h"
+#include "Generated/snapshot_generated.h"
 
 // --- Helper Macros ---
 
@@ -30,28 +31,28 @@ static FString ConvertPropertyValueToString(const TProperty* Property)
 
 	switch (Property->value_type())
 	{
-	case GameScript::PropertyValue::string_val:
+	case GameScript::PropertyValue_string_val:
 		if (const auto* StringVal = Property->value_as_string_val())
 		{
 			return FString(UTF8_TO_TCHAR(StringVal->c_str()));
 		}
 		break;
 
-	case GameScript::PropertyValue::int_val:
+	case GameScript::PropertyValue_int_val:
 		if (const GameScript::Int32Value* IntVal = Property->value_as_int_val())
 		{
 			return FString::FromInt(IntVal->value());
 		}
 		break;
 
-	case GameScript::PropertyValue::decimal_val:
+	case GameScript::PropertyValue_decimal_val:
 		if (const GameScript::FloatValue* FloatVal = Property->value_as_decimal_val())
 		{
 			return FString::SanitizeFloat(FloatVal->value());
 		}
 		break;
 
-	case GameScript::PropertyValue::bool_val:
+	case GameScript::PropertyValue_bool_val:
 		if (const GameScript::BoolValue* BoolVal = Property->value_as_bool_val())
 		{
 			return BoolVal->value() ? TEXT("true") : TEXT("false");
@@ -186,26 +187,18 @@ ENodeType FNodeRef::GetType() const
 	return static_cast<ENodeType>(Node->type());
 }
 
-FString FNodeRef::GetVoiceText() const
+int32 FNodeRef::GetVoiceTextLocalizationIdx() const
 {
-	GAMESCRIPT_REF_CHECK_VALID(FString());
+	GAMESCRIPT_REF_CHECK_VALID(-1);
 	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
-	if (Node->voice_text())
-	{
-		return FString(UTF8_TO_TCHAR(Node->voice_text()->c_str()));
-	}
-	return FString();
+	return Node->voice_text_idx();
 }
 
-FString FNodeRef::GetUIResponseText() const
+int32 FNodeRef::GetUIResponseTextLocalizationIdx() const
 {
-	GAMESCRIPT_REF_CHECK_VALID(FString());
+	GAMESCRIPT_REF_CHECK_VALID(-1);
 	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
-	if (Node->ui_response_text())
-	{
-		return FString(UTF8_TO_TCHAR(Node->ui_response_text()->c_str()));
-	}
-	return FString();
+	return Node->ui_response_text_idx();
 }
 
 FActorRef FNodeRef::GetActor() const
@@ -299,6 +292,36 @@ FNodePropertyRef FNodeRef::GetProperty(int32 PropertyIndex) const
 	return FNodePropertyRef(Database, Index, PropertyIndex);
 }
 
+EGSGenderCategory FNodeRef::ResolveStaticGender(
+	const GameScript::Localization* Loc,
+	const GameScript::Snapshot* Snapshot)
+{
+	if (!Loc || !Snapshot)
+	{
+		return EGSGenderCategory::Other;
+	}
+
+	int32 ActorIdx = Loc->subject_actor_idx();
+	if (ActorIdx >= 0)
+	{
+		GameScript::GrammaticalGender GG = Snapshot->actors()->Get(ActorIdx)->grammatical_gender();
+		switch (GG)
+		{
+		case GameScript::GrammaticalGender_Masculine:
+			return EGSGenderCategory::Masculine;
+		case GameScript::GrammaticalGender_Feminine:
+			return EGSGenderCategory::Feminine;
+		case GameScript::GrammaticalGender_Neuter:
+			return EGSGenderCategory::Neuter;
+		default:
+			return EGSGenderCategory::Other; // Other + Dynamic
+		}
+	}
+
+	// Fall back to direct gender override (GenderCategory::Other when unset)
+	return static_cast<EGSGenderCategory>(Loc->subject_gender());
+}
+
 // --- FEdgeRef ---
 
 int32 FEdgeRef::GetId() const
@@ -356,15 +379,34 @@ FString FActorRef::GetName() const
 	return FString();
 }
 
+int32 FActorRef::GetLocalizedNameIdx() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(-1);
+	GAMESCRIPT_GET_ENTITY(Actor, actors, Actor);
+	return Actor->localized_name_idx();
+}
+
 FString FActorRef::GetLocalizedName() const
 {
 	GAMESCRIPT_REF_CHECK_VALID(FString());
 	GAMESCRIPT_GET_ENTITY(Actor, actors, Actor);
-	if (Actor->localized_name())
+
+	int32 LocIdx = Actor->localized_name_idx();
+	if (LocIdx < 0)
 	{
-		return FString(UTF8_TO_TCHAR(Actor->localized_name()->c_str()));
+		return FString();
 	}
-	return FString();
+
+	const GameScript::Localization* Loc = Snapshot->localizations()->Get(LocIdx);
+	EGSGenderCategory Gender = FNodeRef::ResolveStaticGender(Loc, Snapshot);
+	return FVariantResolver::Resolve(Loc, Gender, EGSPluralCategory::Other);
+}
+
+EGSGrammaticalGender FActorRef::GetGrammaticalGender() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(EGSGrammaticalGender::Other);
+	GAMESCRIPT_GET_ENTITY(Actor, actors, Actor);
+	return static_cast<EGSGrammaticalGender>(Actor->grammatical_gender());
 }
 
 FString FActorRef::GetColor() const
@@ -398,15 +440,112 @@ FString FLocalizationRef::GetKey() const
 	return FString();
 }
 
+int32 FLocalizationRef::GetSubjectActorIdx() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(-1);
+	GAMESCRIPT_GET_ENTITY(Localization, localizations, Loc);
+	return Loc->subject_actor_idx();
+}
+
+EGSGenderCategory FLocalizationRef::GetSubjectGender() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(EGSGenderCategory::Other);
+	GAMESCRIPT_GET_ENTITY(Localization, localizations, Loc);
+	return static_cast<EGSGenderCategory>(Loc->subject_gender());
+}
+
+bool FLocalizationRef::IsTemplated() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(false);
+	GAMESCRIPT_GET_ENTITY(Localization, localizations, Loc);
+	return Loc->is_templated();
+}
+
+int32 FLocalizationRef::GetVariantCount() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(0);
+	GAMESCRIPT_GET_ENTITY(Localization, localizations, Loc);
+	return Loc->variants() ? static_cast<int32>(Loc->variants()->size()) : 0;
+}
+
 FString FLocalizationRef::GetText() const
 {
 	GAMESCRIPT_REF_CHECK_VALID(FString());
 	GAMESCRIPT_GET_ENTITY(Localization, localizations, Loc);
-	if (Loc->text())
+
+	EGSGenderCategory Gender = FNodeRef::ResolveStaticGender(Loc, Snapshot);
+	return FVariantResolver::Resolve(Loc, Gender, EGSPluralCategory::Other);
+}
+
+// --- FChoiceRef ---
+
+int32 FChoiceRef::GetId() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(-1);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return Node->id();
+}
+
+ENodeType FChoiceRef::GetType() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(ENodeType::Logic);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return static_cast<ENodeType>(Node->type());
+}
+
+FActorRef FChoiceRef::GetActor() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(FActorRef());
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	int32 ActorIdx = Node->actor_idx();
+	return (ActorIdx >= 0) ? FActorRef(Database, ActorIdx) : FActorRef();
+}
+
+bool FChoiceRef::HasCondition() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(false);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return Node->has_condition();
+}
+
+bool FChoiceRef::HasAction() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(false);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return Node->has_action();
+}
+
+bool FChoiceRef::IsPreventResponse() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(false);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return Node->is_prevent_response();
+}
+
+int32 FChoiceRef::GetPropertyCount() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(0);
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+	return Node->properties() ? static_cast<int32>(Node->properties()->size()) : 0;
+}
+
+FNodePropertyRef FChoiceRef::GetProperty(int32 PropertyIndex) const
+{
+	GAMESCRIPT_REF_CHECK_VALID(FNodePropertyRef());
+	GAMESCRIPT_GET_ENTITY(Node, nodes, Node);
+
+	if (!Node->properties() || PropertyIndex < 0 || PropertyIndex >= static_cast<int32>(Node->properties()->size()))
 	{
-		return FString(UTF8_TO_TCHAR(Loc->text()->c_str()));
+		return FNodePropertyRef();
 	}
-	return FString();
+
+	return FNodePropertyRef(Database, Index, PropertyIndex);
+}
+
+FNodeRef FChoiceRef::GetNode() const
+{
+	GAMESCRIPT_REF_CHECK_VALID(FNodeRef());
+	return FNodeRef(Database, Index);
 }
 
 // --- FLocaleRef ---
@@ -486,7 +625,7 @@ FString FNodePropertyRef::GetStringValue() const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(FString());
 
-	if (Property->value_type() == GameScript::PropertyValue::string_val)
+	if (Property->value_type() == GameScript::PropertyValue_string_val)
 	{
 		if (const auto* StringVal = Property->value_as_string_val())
 		{
@@ -500,7 +639,7 @@ int32 FNodePropertyRef::GetIntValue() const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(0);
 
-	if (Property->value_type() == GameScript::PropertyValue::int_val)
+	if (Property->value_type() == GameScript::PropertyValue_int_val)
 	{
 		if (const GameScript::Int32Value* IntVal = Property->value_as_int_val())
 		{
@@ -514,7 +653,7 @@ float FNodePropertyRef::GetFloatValue() const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(0.0f);
 
-	if (Property->value_type() == GameScript::PropertyValue::decimal_val)
+	if (Property->value_type() == GameScript::PropertyValue_decimal_val)
 	{
 		if (const GameScript::FloatValue* FloatVal = Property->value_as_decimal_val())
 		{
@@ -528,7 +667,7 @@ bool FNodePropertyRef::GetBoolValue() const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::bool_val)
+	if (Property->value_type() == GameScript::PropertyValue_bool_val)
 	{
 		if (const GameScript::BoolValue* BoolVal = Property->value_as_bool_val())
 		{
@@ -542,7 +681,7 @@ bool FNodePropertyRef::TryGetString(FString& OutValue) const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::string_val)
+	if (Property->value_type() == GameScript::PropertyValue_string_val)
 	{
 		if (const auto* StringVal = Property->value_as_string_val())
 		{
@@ -557,7 +696,7 @@ bool FNodePropertyRef::TryGetInt(int32& OutValue) const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::int_val)
+	if (Property->value_type() == GameScript::PropertyValue_int_val)
 	{
 		if (const GameScript::Int32Value* IntVal = Property->value_as_int_val())
 		{
@@ -572,7 +711,7 @@ bool FNodePropertyRef::TryGetFloat(float& OutValue) const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::decimal_val)
+	if (Property->value_type() == GameScript::PropertyValue_decimal_val)
 	{
 		if (const GameScript::FloatValue* FloatVal = Property->value_as_decimal_val())
 		{
@@ -587,7 +726,7 @@ bool FNodePropertyRef::TryGetBool(bool& OutValue) const
 {
 	GAMESCRIPT_GET_NODE_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::bool_val)
+	if (Property->value_type() == GameScript::PropertyValue_bool_val)
 	{
 		if (const GameScript::BoolValue* BoolVal = Property->value_as_bool_val())
 		{
@@ -629,13 +768,13 @@ FString FPropertyTemplateRef::GetType() const
 	// Map FlatBuffers enum to string
 	switch (Template->type())
 	{
-	case GameScript::PropertyType::String:
+	case GameScript::PropertyType_String:
 		return TEXT("string");
-	case GameScript::PropertyType::Integer:
+	case GameScript::PropertyType_Integer:
 		return TEXT("int");
-	case GameScript::PropertyType::Decimal:
+	case GameScript::PropertyType_Decimal:
 		return TEXT("decimal");
-	case GameScript::PropertyType::Boolean:
+	case GameScript::PropertyType_Boolean:
 		return TEXT("bool");
 	default:
 		return TEXT("unknown");
@@ -692,7 +831,7 @@ FString FConversationPropertyRef::GetStringValue() const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(FString());
 
-	if (Property->value_type() == GameScript::PropertyValue::string_val)
+	if (Property->value_type() == GameScript::PropertyValue_string_val)
 	{
 		if (const auto* StringVal = Property->value_as_string_val())
 		{
@@ -706,7 +845,7 @@ int32 FConversationPropertyRef::GetIntValue() const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(0);
 
-	if (Property->value_type() == GameScript::PropertyValue::int_val)
+	if (Property->value_type() == GameScript::PropertyValue_int_val)
 	{
 		if (const GameScript::Int32Value* IntVal = Property->value_as_int_val())
 		{
@@ -720,7 +859,7 @@ float FConversationPropertyRef::GetFloatValue() const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(0.0f);
 
-	if (Property->value_type() == GameScript::PropertyValue::decimal_val)
+	if (Property->value_type() == GameScript::PropertyValue_decimal_val)
 	{
 		if (const GameScript::FloatValue* FloatVal = Property->value_as_decimal_val())
 		{
@@ -734,7 +873,7 @@ bool FConversationPropertyRef::GetBoolValue() const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::bool_val)
+	if (Property->value_type() == GameScript::PropertyValue_bool_val)
 	{
 		if (const GameScript::BoolValue* BoolVal = Property->value_as_bool_val())
 		{
@@ -748,7 +887,7 @@ bool FConversationPropertyRef::TryGetString(FString& OutValue) const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::string_val)
+	if (Property->value_type() == GameScript::PropertyValue_string_val)
 	{
 		if (const auto* StringVal = Property->value_as_string_val())
 		{
@@ -763,7 +902,7 @@ bool FConversationPropertyRef::TryGetInt(int32& OutValue) const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::int_val)
+	if (Property->value_type() == GameScript::PropertyValue_int_val)
 	{
 		if (const GameScript::Int32Value* IntVal = Property->value_as_int_val())
 		{
@@ -778,7 +917,7 @@ bool FConversationPropertyRef::TryGetFloat(float& OutValue) const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::decimal_val)
+	if (Property->value_type() == GameScript::PropertyValue_decimal_val)
 	{
 		if (const GameScript::FloatValue* FloatVal = Property->value_as_decimal_val())
 		{
@@ -793,7 +932,7 @@ bool FConversationPropertyRef::TryGetBool(bool& OutValue) const
 {
 	GAMESCRIPT_GET_CONV_PROPERTY(false);
 
-	if (Property->value_type() == GameScript::PropertyValue::bool_val)
+	if (Property->value_type() == GameScript::PropertyValue_bool_val)
 	{
 		if (const GameScript::BoolValue* BoolVal = Property->value_as_bool_val())
 		{

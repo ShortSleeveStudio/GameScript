@@ -42,6 +42,7 @@ namespace GameScript
 
             root.Add(CreateHeader("GameScript Settings", 18));
             root.Add(CreateDataPathSection());
+            root.Add(CreateEditorSection());
             root.Add(CreateRuntimeSection());
 
             rootElement.Add(root);
@@ -166,6 +167,55 @@ namespace GameScript
             icon.text = WarningIcon;
             icon.style.color = WarningColor;
             label.text = message;
+        }
+
+        VisualElement CreateEditorSection()
+        {
+            VisualElement section = CreateSection();
+            section.Add(CreateHeader("Editor", 14));
+            section.Add(CreateDescription("Controls which locale is used for editor pickers and property drawers."));
+
+            // Build choices from the manifest
+            Manifest manifest = GameScriptDatabase.EditorGetManifest();
+            var choices = new System.Collections.Generic.List<string> { "Primary (from manifest)" };
+            var indices = new System.Collections.Generic.List<int> { -1 };
+
+            if (manifest?.Locales != null)
+            {
+                for (int i = 0; i < manifest.Locales.Length; i++)
+                {
+                    ManifestLocale locale = manifest.Locales[i];
+                    string label = !string.IsNullOrEmpty(locale.LocalizedName)
+                        ? $"{locale.Name} — {locale.LocalizedName}"
+                        : locale.Name;
+                    choices.Add(label);
+                    indices.Add(i);
+                }
+            }
+
+            SerializedProperty editorLocaleProp = _serializedSettings.FindProperty("EditorLocaleIndex");
+            int currentValue = editorLocaleProp.intValue;
+            int currentChoiceIndex = indices.IndexOf(currentValue);
+            if (currentChoiceIndex < 0) currentChoiceIndex = 0;
+
+            PopupField<string> localeField = new PopupField<string>(
+                "Editor Locale",
+                choices,
+                currentChoiceIndex
+            );
+            localeField.tooltip = "Which locale's snapshot to load in the Unity editor for pickers and property drawers. Default uses the primary locale from the manifest.";
+            localeField.RegisterValueChangedCallback(evt =>
+            {
+                int selectedChoiceIndex = choices.IndexOf(evt.newValue);
+                if (selectedChoiceIndex >= 0)
+                {
+                    editorLocaleProp.intValue = indices[selectedChoiceIndex];
+                    _serializedSettings.ApplyModifiedProperties();
+                }
+            });
+            section.Add(localeField);
+
+            return section;
         }
 
         VisualElement CreateRuntimeSection()

@@ -10,13 +10,14 @@ extends RefCounted
 ## [codeblock]
 ## class_name MyDialogueUI extends GameScriptListener
 ##
-## func on_speech(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
-##     dialogue_label.text = node.get_voice_text()
+## func on_speech(node: NodeRef, voice_text: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
+##     dialogue_label.text = voice_text  # Pre-resolved by the runner
 ##     await get_tree().create_timer(2.0).timeout  # Show for 2 seconds
 ##     notifier.on_ready()
 ##
-## func on_decision(choices: Array[NodeRef], notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
-##     # Display choice buttons, call notifier.on_decision_made(selected_node) when player clicks
+## func on_decision(choices: Array, notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
+##     # Each choice: {"node": NodeRef, "ui_response_text": String}
+##     # Display choice buttons, call notifier.on_decision_made(choice["node"]) when player clicks
 ##     pass
 ## [/codeblock]
 
@@ -33,20 +34,43 @@ func on_node_enter(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) 
 	notifier.on_ready()
 
 
+## Called before on_speech for nodes that have voice text.
+## Return the TextResolutionParams the runner should use when resolving
+## the variant and template for this node's voice text.
+## Called unconditionally — not gated by is_templated.
+##
+## Default implementation: auto-resolve gender from the snapshot; use
+## PluralCategory.OTHER; no template arguments.
+func on_speech_params(localization: LocalizationRef, node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+	return _GameScriptTextResolutionParams.TextResolutionParams.new()
+
+
+## Called once per choice node before on_decision.
+## Return the TextResolutionParams the runner should use when resolving
+## the UI response text for that choice.
+## Called unconditionally — not gated by is_templated.
+func on_decision_params(localization: LocalizationRef, choice_node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+	return _GameScriptTextResolutionParams.TextResolutionParams.new()
+
+
 ## Called when a dialogue node has speech to present.
 ## This runs concurrently with the node's action (if any).
+## The voice_text has already been fully resolved by the runner:
+## gender, plural category, and template substitution have all been applied using
+## the parameters returned from on_speech_params.
 ## Call notifier.on_ready() when the speech presentation is complete.
 ##
 ## Note: This is NOT called for logic nodes (nodes without speech text).
-func on_speech(node: NodeRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
+func on_speech(node: NodeRef, voice_text: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
 	notifier.on_ready()
 
 
 ## Called when the player must choose between multiple nodes.
+## Each choice is a Dictionary with keys: "node" (NodeRef), "ui_response_text" (String).
 ## Call notifier.on_decision_made(chosen_node) with the selected NodeRef.
 ##
 ## This method has no default implementation - you must override it to handle player choices.
-func on_decision(choices: Array[NodeRef], notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
+func on_decision(choices: Array, notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
 	push_error("GameScriptListener.on_decision() must be overridden to handle player choices")
 
 
@@ -94,12 +118,13 @@ func on_cleanup(conversation: ConversationRef, notifier: _GameScriptNotifiers.Re
 
 ## Called when the conversation auto-advances without player input
 ## (e.g., when is_prevent_response is true or no UI response text).
-## Return the node to advance to from the list of highest-priority choices.
+## Return the chosen Dictionary from the list of highest-priority choices.
+## Each choice is a Dictionary with keys: "node" (NodeRef), "ui_response_text" (String).
 ##
 ## Default implementation selects randomly among the choices.
 ## Override to implement weighted selection, round-robin, or game-specific logic.
 ##
-## @param choices Highest-priority target nodes (all passed conditions and share same priority)
-## @return The node to advance to
-func on_auto_decision(choices: Array[NodeRef]) -> NodeRef:
+## @param choices Highest-priority target choices (all passed conditions and share same priority)
+## @return The choice to advance to
+func on_auto_decision(choices: Array) -> Dictionary:
 	return choices[randi() % choices.size()]

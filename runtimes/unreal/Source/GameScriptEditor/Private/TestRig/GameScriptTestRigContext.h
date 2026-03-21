@@ -119,7 +119,7 @@ public:
 	/**
 	 * Set the current choices (called by listener).
 	 */
-	void SetChoices(const TArray<FNodeRef>& InChoices);
+	void SetChoices(const TArray<FChoiceRef>& InChoices);
 
 	/**
 	 * Clear the current choices.
@@ -147,7 +147,7 @@ public:
 	ETestRigState GetState() const { return State; }
 	const FString& GetErrorMessage() const { return ErrorMessage; }
 	const TArray<FTestRigHistoryItem>& GetHistory() const { return History; }
-	const TArray<FNodeRef>& GetCurrentChoices() const { return CurrentChoices; }
+	const TArray<FChoiceRef>& GetCurrentChoices() const { return CurrentChoices; }
 
 	UGameScriptManifest* GetManifest() const { return Manifest; }
 	UGameScriptDatabase* GetDatabase() const { return Database; }
@@ -204,7 +204,7 @@ private:
 	UPROPERTY()
 	TObjectPtr<UGSCompletionHandle> CurrentHandle;
 
-	TArray<FNodeRef> CurrentChoices;
+	TArray<FChoiceRef> CurrentChoices;
 
 	ETestRigState State = ETestRigState::NotInitialized;
 	FString ErrorMessage;

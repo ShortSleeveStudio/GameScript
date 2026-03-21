@@ -761,7 +761,10 @@ export class CodeHandlers {
     name: string
   ): vscode.DocumentSymbol | null {
     for (const symbol of symbols) {
-      if (symbol.name === name) {
+      // Exact match, or prefix match for language servers that include parameter
+      // signatures in the symbol name (e.g., C# Dev Kit reports
+      // "Node_6_Action(IDialogueContext ctx, CancellationToken token)")
+      if (symbol.name === name || symbol.name.startsWith(name + '(')) {
         return symbol;
       }
       // Guard against legacy SymbolInformation format (no 'children' property)

@@ -32,7 +32,7 @@ static getSizePrefixedRootAsSnapshot(bb:flatbuffers.ByteBuffer, obj?:Snapshot):S
 }
 
 static bufferHasIdentifier(bb:flatbuffers.ByteBuffer):boolean {
-  return bb.__has_identifier('GSPT');
+  return bb.__has_identifier('GSP3');
 }
 
 localeId():number {
@@ -329,11 +329,11 @@ static endSnapshot(builder:flatbuffers.Builder):flatbuffers.Offset {
 }
 
 static finishSnapshotBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'GSPT');
+  builder.finish(offset, 'GSP3');
 }
 
 static finishSizePrefixedSnapshotBuffer(builder:flatbuffers.Builder, offset:flatbuffers.Offset) {
-  builder.finish(offset, 'GSPT', true);
+  builder.finish(offset, 'GSP3', true);
 }
 
 static createSnapshot(builder:flatbuffers.Builder, localeId:number, localeNameOffset:flatbuffers.Offset, conversationTagNamesOffset:flatbuffers.Offset, conversationTagValuesOffset:flatbuffers.Offset, conversationsOffset:flatbuffers.Offset, nodesOffset:flatbuffers.Offset, edgesOffset:flatbuffers.Offset, actorsOffset:flatbuffers.Offset, localizationTagNamesOffset:flatbuffers.Offset, localizationTagValuesOffset:flatbuffers.Offset, localizationsOffset:flatbuffers.Offset, propertyTemplatesOffset:flatbuffers.Offset):flatbuffers.Offset {

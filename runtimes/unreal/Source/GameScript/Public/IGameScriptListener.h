@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "Refs.h"
+#include "TextResolutionParams.h"
 #include "IGameScriptListener.generated.h"
 
 // Forward declaration
@@ -62,13 +63,56 @@ public:
 	void OnNodeEnter(FNodeRef Node, UGSCompletionHandle* Handle);
 	virtual void OnNodeEnter_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) {}
 
-	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Lifecycle")
-	void OnSpeech(FNodeRef Node, UGSCompletionHandle* Handle);
-	virtual void OnSpeech_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) {}
+	/**
+	 * Called before OnSpeech for nodes that have voice text.
+	 * Return the TextResolutionParams the runner should use when resolving
+	 * the variant and template for this node's voice text.
+	 * Called unconditionally — not gated by is_templated.
+	 *
+	 * Default implementation: auto-resolve gender from the snapshot; use
+	 * PluralCategory::Other; no template arguments.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
+	FTextResolutionParams OnSpeechParams(FLocalizationRef Localization, FNodeRef Node);
+	virtual FTextResolutionParams OnSpeechParams_Implementation(FLocalizationRef Localization, FNodeRef Node)
+	{
+		return FTextResolutionParams();
+	}
 
+	/**
+	 * Called once per choice node before OnDecision.
+	 * Return the TextResolutionParams the runner should use when resolving
+	 * the UI response text for that choice.
+	 * Called unconditionally — not gated by is_templated.
+	 *
+	 * Default implementation: auto-resolve gender from the snapshot; use
+	 * PluralCategory::Other; no template arguments.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
+	FTextResolutionParams OnDecisionParams(FLocalizationRef Localization, FNodeRef Node);
+	virtual FTextResolutionParams OnDecisionParams_Implementation(FLocalizationRef Localization, FNodeRef Node)
+	{
+		return FTextResolutionParams();
+	}
+
+	/**
+	 * Called when a dialogue node has speech to present.
+	 * This runs concurrently with the node's action (if any).
+	 * The VoiceText has already been fully resolved by the runner:
+	 * gender, plural category, and template substitution have all been applied using
+	 * the parameters returned from OnSpeechParams.
+	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Lifecycle")
-	void OnDecision(const TArray<FNodeRef>& Choices, UGSCompletionHandle* Handle);
-	virtual void OnDecision_Implementation(const TArray<FNodeRef>& Choices, UGSCompletionHandle* Handle) {}
+	void OnSpeech(FNodeRef Node, const FString& VoiceText, UGSCompletionHandle* Handle);
+	virtual void OnSpeech_Implementation(FNodeRef Node, const FString& VoiceText, UGSCompletionHandle* Handle) {}
+
+	/**
+	 * Called when the player must choose between multiple nodes.
+	 * Each choice carries pre-resolved UI response text.
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Lifecycle")
+	void OnDecision(const TArray<FChoiceRef>& Choices, UGSCompletionHandle* Handle);
+	virtual void OnDecision_Implementation(const TArray<FChoiceRef>& Choices, UGSCompletionHandle* Handle) {}
 
 	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Lifecycle")
 	void OnNodeExit(FNodeRef Node, UGSCompletionHandle* Handle);
@@ -95,23 +139,23 @@ public:
 	/**
 	 * Called when the conversation auto-advances without player input
 	 * (e.g., when IsPreventResponse is true or no UI response text).
-	 * Return the node to advance to from the list of highest-priority choices.
+	 * Return the choice to advance to from the list of highest-priority candidates.
 	 *
 	 * Default implementation selects randomly among the choices.
 	 * Override to implement weighted selection, round-robin, or game-specific logic.
 	 *
-	 * @param Choices Highest-priority target nodes (all passed their conditions and share the same priority)
-	 * @return The node to advance to
+	 * @param Choices Highest-priority target choices (all passed their conditions and share the same priority)
+	 * @return The choice to advance to
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "GameScript|Events")
-	FNodeRef OnAutoDecision(const TArray<FNodeRef>& Choices);
-	virtual FNodeRef OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices)
+	FChoiceRef OnAutoDecision(const TArray<FChoiceRef>& Choices);
+	virtual FChoiceRef OnAutoDecision_Implementation(const TArray<FChoiceRef>& Choices)
 	{
 		// Match Unity behavior: return random choice from provided list
 		if (Choices.Num() > 0)
 		{
 			return Choices[FMath::RandRange(0, Choices.Num() - 1)];
 		}
-		return FNodeRef();
+		return FChoiceRef();
 	}
 };

@@ -4,4 +4,6 @@
 
 [resource]
 script = ExtResource("1")
+logic_folder_path = "res://dialogue_logic"
+prevent_single_node_choices = true
 ide_executable_path = "/Applications/Visual Studio Code.app"

@@ -30,14 +30,32 @@ namespace GameScript
         ActorRef Actor { get; }
 
         /// <summary>
-        /// The localized voice/dialogue text for the current node.
+        /// The runner-resolved voice/dialogue text for the current node.
+        /// Gender, plural, and template substitution have already been applied by the runner
+        /// using the parameters returned from
+        /// <see cref="IGameScriptListener.OnSpeechParams(LocalizationRef, NodeRef)"/>.
+        /// Returns <c>null</c> if this node has no voice text.
         /// </summary>
         string VoiceText { get; }
 
         /// <summary>
-        /// The localized UI response text (for choice buttons) for the current node.
+        /// The runner-resolved UI response text (for choice buttons) for the current node.
+        /// Gender, plural, and template substitution have already been applied by the runner.
+        /// Returns <c>null</c> if this node has no UI response text.
         /// </summary>
         string UIResponseText { get; }
+
+        /// <summary>
+        /// Index into <c>snapshot.Localizations</c> for the current node's voice text.
+        /// Returns <c>-1</c> if this node has no voice text localization.
+        /// </summary>
+        int VoiceTextLocalizationIdx { get; }
+
+        /// <summary>
+        /// Index into <c>snapshot.Localizations</c> for the current node's UI response text.
+        /// Returns <c>-1</c> if this node has no UI response text localization.
+        /// </summary>
+        int UIResponseTextLocalizationIdx { get; }
 
         /// <summary>
         /// The number of custom properties attached to the current node.

@@ -20,8 +20,9 @@
     type IRowNode,
     type RowClickedEvent,
   } from '@ag-grid-community/core';
-  import type { Actor, Row } from '@gamescript/shared';
+  import { type Actor, type Row, type CsvColumnDescriptor, toCsv } from '@gamescript/shared';
   import { TABLE_ACTORS, type IDbRowView } from '$lib/db';
+  import { bridge } from '$lib/api/bridge';
   import {
     initializeGrid,
     GridDatasource,
@@ -174,6 +175,37 @@
     api?.deselectAll();
   }
 
+  // ============================================================================
+  // CSV Export
+  // ============================================================================
+
+  const ACTOR_CSV_COLUMNS: CsvColumnDescriptor[] = [
+    { id: 'id', name: 'ID' },
+    { id: 'name', name: 'Name' },
+    { id: 'color', name: 'Color' },
+    { id: 'grammatical_gender', name: 'Grammatical Gender' },
+    { id: 'notes', name: 'Notes' },
+  ];
+
+  async function handleExportCsv(): Promise<void> {
+    try {
+      const result = await bridge.saveCsvDialog('actors.csv');
+      if (result.cancelled || !result.filePath) return;
+
+      const allActors = await isLoading.wrapPromise(actors.getAll());
+      if (allActors.length === 0) {
+        toastError('No actors to export');
+        return;
+      }
+
+      const csv = toCsv(allActors, ACTOR_CSV_COLUMNS);
+      await bridge.writeFile(result.filePath, csv);
+      toastSuccess(`Exported ${allActors.length} actor(s) to CSV`);
+    } catch (err) {
+      toastError('Export failed', err);
+    }
+  }
+
   function getCopyOfSelectedAndDeselect(): Actor[] {
     const selected: Actor[] = [];
     for (const row of selectedRows) {
@@ -298,7 +330,7 @@
     {/snippet}
 
     {#snippet right()}
-      <TableOptionsMenu {api} />
+      <TableOptionsMenu {api} onExportCsv={handleExportCsv} />
     {/snippet}
   </GridToolbar>
 

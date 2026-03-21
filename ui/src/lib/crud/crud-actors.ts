@@ -9,6 +9,7 @@ import {
   TABLE_LOCALIZATIONS,
   TABLE_ACTORS,
   DB_DEFAULT_ACTOR_ID,
+  type ActorGender,
 } from '@gamescript/shared';
 
 // Helper to delete an actor and reassign its nodes to the default actor
@@ -25,6 +26,16 @@ async function deleteInternal(actorId: number): Promise<void> {
     );
     for (const node of nodesUsingActor) {
       await db.updatePartial<Node>(TABLE_NODES, node.id, { actor: DB_DEFAULT_ACTOR_ID }, tx);
+    }
+
+    // SET NULL subject_actor references on localizations (no SQL FK — CRUD-enforced)
+    const localizationsReferencingActor = await db.select<Localization>(
+      TABLE_LOCALIZATIONS,
+      query<Localization>().where('subject_actor').eq(actorId).build(),
+      tx
+    );
+    for (const loc of localizationsReferencingActor) {
+      await db.updatePartial<Localization>(TABLE_LOCALIZATIONS, loc.id, { subject_actor: null }, tx);
     }
 
     // Delete actor
@@ -56,6 +67,7 @@ export async function getById(id: number): Promise<Actor | null> {
 export interface CreateActorParams {
   name: string;
   color?: string;
+  grammatical_gender?: ActorGender;
   notes?: string | null;
 }
 
@@ -92,10 +104,19 @@ export async function create(params: CreateActorParams): Promise<CreateActorResu
       {
         name: params.name,
         color,
+        grammatical_gender: params.grammatical_gender ?? 'other',
         notes: params.notes ?? null,
         localized_name: localization.id,
         is_system_created: false,
       },
+      tx
+    );
+
+    // 3. Point the localization's subject_actor back to the actor for gender resolution
+    await db.updatePartial<Localization>(
+      TABLE_LOCALIZATIONS,
+      localization.id,
+      { subject_actor: actor.id },
       tx
     );
   });

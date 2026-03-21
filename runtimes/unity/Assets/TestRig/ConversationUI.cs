@@ -32,8 +32,8 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     Action<ConversationUI> m_OnComplete;
     ActiveConversation m_ActiveConversation;
     GameScriptRunner m_GameScriptRunner;
-    AwaitableCompletionSource<NodeRef> m_DecisionSource = new();
-    List<NodeRef> m_CurrentChoices = new();
+    AwaitableCompletionSource<ChoiceRef> m_DecisionSource = new();
+    List<ChoiceRef> m_CurrentChoices = new();
     #endregion
 
     #region Initialization
@@ -54,6 +54,82 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
     {
         m_GameScriptRunner.StopConversation(m_ActiveConversation);
         m_OnComplete(this);
+    }
+    #endregion
+
+    #region Resolution Params
+    public TextResolutionParams OnSpeechParams(LocalizationRef localization, NodeRef node)
+    {
+        return BuildResolutionParams(localization, node);
+    }
+
+    public TextResolutionParams OnDecisionParams(LocalizationRef localization, NodeRef choiceNode)
+    {
+        return BuildResolutionParams(localization, choiceNode);
+    }
+
+    TextResolutionParams BuildResolutionParams(LocalizationRef localization, NodeRef node)
+    {
+        // Check the localization's SUBJECT actor (who the text is about), not the
+        // node's speaker actor. Provide feminine override for dynamic subject actors.
+        GenderCategory? genderOverride = null;
+        int subjectIdx = localization.SubjectActorIdx;
+        if (subjectIdx >= 0)
+        {
+            ActorRef subjectActor = m_GameScriptRunner.Database.GetActor(subjectIdx);
+            if (subjectActor.GrammaticalGender == GrammaticalGender.Dynamic)
+                genderOverride = GenderCategory.Feminine;
+        }
+
+        // is_templated now lives on the localization, not as a node property
+        if (!localization.IsTemplated)
+        {
+            if (genderOverride.HasValue)
+                return new TextResolutionParams { GenderOverride = genderOverride };
+            return default;
+        }
+
+        // Read template args from node properties
+        string templateName = null;
+        bool hasCount = false;
+        int count = 0;
+
+        int propCount = node.PropertyCount;
+        for (int i = 0; i < propCount; i++)
+        {
+            NodePropertyRef prop = node.GetProperty(i);
+            if (prop.Name == "TemplateString" && prop.TryGetString(out string name))
+            {
+                templateName = name;
+            }
+            else if (prop.Name == "Count" && prop.TryGetInt(out int val))
+            {
+                hasCount = true;
+                count = val;
+            }
+        }
+
+        if (string.IsNullOrEmpty(templateName))
+        {
+            if (genderOverride.HasValue)
+                return new TextResolutionParams { GenderOverride = genderOverride };
+            return default;
+        }
+
+        if (hasCount)
+        {
+            return new TextResolutionParams
+            {
+                GenderOverride = genderOverride,
+                Plural = new PluralArg(templateName, count),
+            };
+        }
+
+        return new TextResolutionParams
+        {
+            GenderOverride = genderOverride,
+            Args = new[] { Arg.String(templateName, "TESTING") },
+        };
     }
     #endregion
 
@@ -78,9 +154,8 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         return AwaitableUtility.Completed();
     }
 
-    public async Awaitable OnSpeech(NodeRef node, CancellationToken token)
+    public async Awaitable OnSpeech(NodeRef node, string voiceText, CancellationToken token)
     {
-        string voiceText = node.VoiceText;
         if (!string.IsNullOrEmpty(voiceText))
         {
             GameObject historyItemGO = Instantiate(m_HistoryItemPrefab);
@@ -94,7 +169,10 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         }
     }
 
-    public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+    public async Awaitable<ChoiceRef> OnDecision(
+        IReadOnlyList<ChoiceRef> choices,
+        CancellationToken token
+    )
     {
         // Check if already cancelled before doing any work
         if (token.IsCancellationRequested)
@@ -110,10 +188,10 @@ public class ConversationUI : MonoBehaviour, IGameScriptListener
         // Present choices to the player
         for (int i = 0; i < choices.Count; i++)
         {
-            NodeRef node = choices[i];
+            ChoiceRef choice = choices[i];
             GameObject choiceGO = Instantiate(m_ChoiceItemPrefab);
             ChoiceUI choiceUI = choiceGO.GetComponent<ChoiceUI>();
-            string buttonText = node.UIResponseText ?? "";
+            string buttonText = choice.UIResponseText ?? "";
             choiceUI.SetButtonText(buttonText);
             choiceUI.RegisterButtonHandler(OnChoiceSelected, i);
             choiceGO.transform.SetParent(m_ChoiceContent.transform);

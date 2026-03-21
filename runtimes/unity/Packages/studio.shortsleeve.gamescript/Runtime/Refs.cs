@@ -241,7 +241,7 @@ namespace GameScript
         public int Id => _snapshot.Nodes[_index].Id;
 
         /// <summary>
-        /// The type of this node (Root or Dialogue).
+        /// The type of this node (Root, Dialogue, or Logic).
         /// </summary>
         public NodeType Type => _snapshot.Nodes[_index].Type;
 
@@ -258,14 +258,16 @@ namespace GameScript
         }
 
         /// <summary>
-        /// The localized voice/dialogue text for this node.
+        /// Index into <c>snapshot.Localizations</c> for this node's voice text.
+        /// Returns <c>-1</c> if this node has no voice text localization.
         /// </summary>
-        public string VoiceText => _snapshot.Nodes[_index].VoiceText;
+        public int VoiceTextLocalizationIdx => _snapshot.Nodes[_index].VoiceTextIdx;
 
         /// <summary>
-        /// The localized UI response text (for choice buttons) for this node.
+        /// Index into <c>snapshot.Localizations</c> for this node's UI response text.
+        /// Returns <c>-1</c> if this node has no UI response text localization.
         /// </summary>
-        public string UIResponseText => _snapshot.Nodes[_index].UiResponseText;
+        public int UIResponseTextLocalizationIdx => _snapshot.Nodes[_index].UiResponseTextIdx;
 
         /// <summary>
         /// Whether this node has a condition method.
@@ -333,6 +335,27 @@ namespace GameScript
                 int convIdx = _snapshot.Nodes[_index].ConversationIdx;
                 return new ConversationRef(_snapshot, convIdx);
             }
+        }
+
+        // Resolves gender from snapshot without a dynamic-actor provider.
+        // Dynamic grammatical gender falls back to GenderCategory.Other.
+        internal static GenderCategory ResolveStaticGender(Localization loc, Snapshot snapshot)
+        {
+            int actorIdx = loc.SubjectActorIdx;
+            if (actorIdx >= 0)
+            {
+                GrammaticalGender gg = snapshot.Actors[actorIdx].GrammaticalGender;
+                switch (gg)
+                {
+                    case GrammaticalGender.Masculine: return GenderCategory.Masculine;
+                    case GrammaticalGender.Feminine:  return GenderCategory.Feminine;
+                    case GrammaticalGender.Neuter:    return GenderCategory.Neuter;
+                    default:                          return GenderCategory.Other; // Other + Dynamic
+                }
+            }
+
+            // Fall back to direct gender override (GenderCategory.Other when unset)
+            return loc.SubjectGender;
         }
     }
 
@@ -451,9 +474,35 @@ namespace GameScript
         public string Name => _snapshot.Actors[_index].Name;
 
         /// <summary>
-        /// The localized display name of this actor.
+        /// Index into <c>snapshot.Localizations</c> for this actor's display name.
+        /// Pass to <see cref="LocalizationRef"/> and resolve with your preferred
+        /// <see cref="TextResolutionParams"/> for a fully localised display name.
+        /// Returns <c>-1</c> if this actor has no localized name.
         /// </summary>
-        public string LocalizedName => _snapshot.Actors[_index].LocalizedName;
+        public int LocalizedNameIdx => _snapshot.Actors[_index].LocalizedNameIdx;
+
+        /// <summary>
+        /// The static-gender-resolved localized display name for this actor.
+        /// Gender is resolved from the snapshot only (no template substitution).
+        /// Returns <c>null</c> if this actor has no localized name.
+        /// </summary>
+        public string LocalizedName
+        {
+            get
+            {
+                int idx = _snapshot.Actors[_index].LocalizedNameIdx;
+                if (idx < 0)
+                    return null;
+                return new LocalizationRef(_snapshot, idx).GetText();
+            }
+        }
+
+        /// <summary>
+        /// The grammatical gender of this actor.
+        /// Used for automatic gender resolution when no explicit
+        /// <see cref="TextResolutionParams.GenderOverride"/> is provided.
+        /// </summary>
+        public GrammaticalGender GrammaticalGender => _snapshot.Actors[_index].GrammaticalGender;
 
         /// <summary>
         /// The color of this actor (hex format, e.g., "#808080").
@@ -547,9 +596,41 @@ namespace GameScript
         public string Name => _snapshot.Localizations[_index].Name;
 
         /// <summary>
-        /// The localized text.
+        /// Index into <c>snapshot.Actors</c> for the subject actor of this localization.
+        /// Returns <c>-1</c> if no subject actor is set.
         /// </summary>
-        public string Text => _snapshot.Localizations[_index].Text;
+        public int SubjectActorIdx => _snapshot.Localizations[_index].SubjectActorIdx;
+
+        /// <summary>
+        /// The direct gender override for this localization.
+        /// Mutually exclusive with <see cref="SubjectActorIdx"/>. Returns <see cref="GenderCategory.Other"/> when unset.
+        /// </summary>
+        public GenderCategory SubjectGender => _snapshot.Localizations[_index].SubjectGender;
+
+        /// <summary>
+        /// Whether this localization uses <c>{placeholder}</c> syntax and requires template substitution.
+        /// </summary>
+        public bool IsTemplated => _snapshot.Localizations[_index].IsTemplated;
+
+        /// <summary>
+        /// The number of text variants in this localization entry.
+        /// </summary>
+        public int VariantCount => _snapshot.Localizations[_index].Variants?.Count ?? 0;
+
+        /// <summary>
+        /// Returns the static-gender-resolved text for this localization.
+        /// Gender is resolved from the snapshot only (subject actor's grammatical gender or the
+        /// localization's own gender override). Dynamic actors default to
+        /// <see cref="GenderCategory.Other"/>. Plural defaults to
+        /// <see cref="PluralCategory.Other"/>. No template substitution is performed.
+        /// Returns <c>null</c> if there are no variants or all matched variants have null text.
+        /// </summary>
+        public string GetText()
+        {
+            Localization loc = _snapshot.Localizations[_index];
+            GenderCategory gender = NodeRef.ResolveStaticGender(loc, _snapshot);
+            return VariantResolver.Resolve(loc, gender, PluralCategory.Other);
+        }
     }
 
     /// <summary>
@@ -591,5 +672,84 @@ namespace GameScript
         /// The hash of the snapshot for this locale (used for hot-reload detection).
         /// </summary>
         internal string Hash => _manifest.Locales[_index].Hash;
+    }
+
+    /// <summary>
+    /// Represents a candidate choice node presented to the player during a decision point.
+    /// Wraps a snapshot node index together with the runner-resolved UI response text, so
+    /// the listener never needs to call into the snapshot directly to render a choice button.
+    /// </summary>
+    public readonly struct ChoiceRef
+    {
+        readonly Snapshot _snapshot;
+        readonly int _index;
+        readonly string _resolvedUIResponseText;
+
+        internal ChoiceRef(Snapshot snapshot, int index, string resolvedUIResponseText)
+        {
+            _snapshot = snapshot;
+            _index = index;
+            _resolvedUIResponseText = resolvedUIResponseText;
+        }
+
+        /// <summary>
+        /// The index of the underlying node in the snapshot's Nodes array.
+        /// </summary>
+        public int Index => _index;
+
+        /// <summary>
+        /// The original database ID of the underlying node.
+        /// </summary>
+        public int Id => _snapshot.Nodes[_index].Id;
+
+        /// <summary>
+        /// The type of the underlying node.
+        /// </summary>
+        public NodeType Type => _snapshot.Nodes[_index].Type;
+
+        /// <summary>
+        /// The actor for the underlying node.
+        /// </summary>
+        public ActorRef Actor => new ActorRef(_snapshot, _snapshot.Nodes[_index].ActorIdx);
+
+        /// <summary>
+        /// The runner-resolved UI response text for this choice.
+        /// Gender, plural, and template substitution have already been applied using the
+        /// parameters returned from
+        /// <see cref="IGameScriptListener.OnDecisionParams(LocalizationRef, NodeRef)"/>.
+        /// Returns <c>null</c> if the underlying node has no UI response text.
+        /// </summary>
+        public string UIResponseText => _resolvedUIResponseText;
+
+        /// <summary>
+        /// Whether the underlying node has a condition method.
+        /// </summary>
+        public bool HasCondition => _snapshot.Nodes[_index].HasCondition;
+
+        /// <summary>
+        /// Whether the underlying node has an action method.
+        /// </summary>
+        public bool HasAction => _snapshot.Nodes[_index].HasAction;
+
+        /// <summary>
+        /// Whether the underlying node prevents showing response choices after it is selected.
+        /// </summary>
+        public bool IsPreventResponse => _snapshot.Nodes[_index].IsPreventResponse;
+
+        /// <summary>
+        /// The number of custom properties attached to the underlying node.
+        /// </summary>
+        public int PropertyCount => _snapshot.Nodes[_index].Properties?.Count ?? 0;
+
+        /// <summary>
+        /// Gets a custom property by index from the underlying node.
+        /// </summary>
+        public NodePropertyRef GetProperty(int i)
+            => new NodePropertyRef(_snapshot, _snapshot.Nodes[_index].Properties[i]);
+
+        /// <summary>
+        /// Returns the underlying <see cref="NodeRef"/> for this choice.
+        /// </summary>
+        public NodeRef Node => new NodeRef(_snapshot, _index);
     }
 }

@@ -231,12 +231,21 @@ func _load_data(settings: GameScriptSettings) -> void:
 		_current_locale_hash = ""
 		return
 
-	_database = _manifest.load_database_primary()
+	# Load editor locale snapshot (falls back to primary from manifest)
+	var editor_locale: LocaleRef = null
+	if settings.editor_locale_index >= 0 and settings.editor_locale_index < _manifest.get_locale_count():
+		editor_locale = _manifest.get_locale(settings.editor_locale_index)
+	else:
+		editor_locale = _manifest.get_primary_locale()
+
+	if editor_locale and editor_locale.is_valid():
+		_database = _manifest.load_database(editor_locale)
+	else:
+		_database = _manifest.load_database_primary()
 
 	# Store the hash of the current locale for hot-reload detection
-	var primary_locale := _manifest.get_primary_locale()
-	if primary_locale and primary_locale.is_valid():
-		_current_locale_hash = primary_locale.get_hash()
+	if editor_locale and editor_locale.is_valid():
+		_current_locale_hash = editor_locale.get_hash()
 	else:
 		_current_locale_hash = ""
 

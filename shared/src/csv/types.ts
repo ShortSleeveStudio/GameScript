@@ -1,7 +1,9 @@
 // CSV-related types and constants
-// Extracted from GameScriptElectron/src/main/build/build-common.ts
 
 import type { Localization } from '../types/entities.js';
+import type { PluralCategory, GenderCategory } from '../types/constants.js';
+import { localeIdToColumns, GENDER_CATEGORIES, PLURAL_DISPLAY_NAMES, GENDER_DISPLAY_NAMES } from '../types/constants.js';
+import { getRequiredPluralCategories } from '../cldr/plural-rules.js';
 
 // Export constants
 export const CSV_FILENAME_PREFIX_MISC = 'miscellaneous';
@@ -13,8 +15,8 @@ export const CSV_ENCODING = 'utf-8';
 
 // Column descriptor for CSV headers
 export interface CsvColumnDescriptor {
-  id: string;   // Database column name (e.g., 'locale_1')
-  name: string; // Display name for CSV header (e.g., 'English')
+  id: string;   // Database column name (e.g., 'locale_1_form_other_other')
+  name: string; // Display name for CSV header (e.g., 'English (other)')
 }
 
 // Options for CSV export
@@ -57,7 +59,7 @@ export interface LocalizationCsvRow {
   id: number;
   parent: number | null;
   name: string | null;
-  [localeColumn: `locale_${number}`]: string | null;
+  [localeColumn: `locale_${number}_form_${string}_${string}`]: string | null;
 }
 
 // Convert a Localization entity to a CSV-compatible row
@@ -72,11 +74,33 @@ export function localizationToCsvRow(
   return row;
 }
 
-// Build column descriptors for localizations with given locale IDs
+/**
+ * Build column descriptors for localization CSV export/import.
+ *
+ * Generates form-aware column descriptors using CLDR-relevant plural categories.
+ *
+ * Gender column behavior:
+ * - Default (no options): only `other`-gender columns (one per CLDR plural). Clean for export.
+ * - `includeAllGenders: true`: all 4 gender columns per plural. Use for import to accept any CSV.
+ * - `usedColumns`: curtails to only columns with data. Implies all genders are considered.
+ *
+ * @param localeIds - Ordered locale IDs to include
+ * @param localeNames - Map of locale ID to display name (e.g., "English")
+ * @param localeCodes - Map of locale ID to locale code (e.g., "en_US") for CLDR lookup
+ * @param options - Optional: includeAllGenders, usedColumns for curtailing
+ */
 export function buildLocalizationColumns(
   localeIds: number[],
-  localeNames: Map<number, string>
+  localeNames: Map<number, string>,
+  localeCodes: Map<number, string>,
+  options?: {
+    includeAllGenders?: boolean;
+    usedColumns?: ReadonlySet<string>;
+  },
 ): CsvColumnDescriptor[] {
+  const includeAllGenders = options?.includeAllGenders ?? false;
+  const usedColumns = options?.usedColumns;
+
   const columns: CsvColumnDescriptor[] = [
     { id: 'id', name: 'ID' },
     { id: 'parent', name: 'Conversation' },
@@ -85,18 +109,63 @@ export function buildLocalizationColumns(
 
   for (const localeId of localeIds) {
     const localeName = localeNames.get(localeId) ?? `Locale ${localeId}`;
-    columns.push({
-      id: `locale_${localeId}`,
-      name: localeName,
-    });
+    const localeCode = localeCodes.get(localeId) ?? '';
+    const requiredPlurals = getRequiredPluralCategories(localeCode);
+    const localeColumns = localeIdToColumns(localeId);
+
+    const genders = (includeAllGenders || usedColumns) ? GENDER_CATEGORIES : (['other'] as const);
+
+    for (const plural of requiredPlurals) {
+      for (const gender of genders) {
+        const colId = localeColumns.form(plural, gender);
+
+        // Curtail: skip columns that have no data
+        if (usedColumns && !usedColumns.has(colId)) continue;
+
+        // Build human-readable header
+        const formLabel = formatFormLabel(plural, gender, requiredPlurals.length, genders.length);
+        columns.push({
+          id: colId,
+          name: `${localeName} (${formLabel})`,
+        });
+      }
+    }
   }
 
   return columns;
 }
 
 /**
+ * Format a human-readable label for a form column.
+ */
+function formatFormLabel(
+  plural: PluralCategory,
+  gender: GenderCategory,
+  pluralCount: number,
+  genderCount: number,
+): string {
+  const pluralName = PLURAL_DISPLAY_NAMES[plural];
+  const genderName = GENDER_DISPLAY_NAMES[gender];
+
+  if (pluralCount === 1 && genderCount === 1) {
+    // Single form — no qualifier needed
+    return 'text';
+  }
+  if (genderCount === 1) {
+    // Only one gender — just show plural
+    return pluralName;
+  }
+  if (pluralCount === 1) {
+    // Only one plural — just show gender
+    return genderName;
+  }
+  // Both
+  return `${pluralName}/${genderName}`;
+}
+
+/**
  * Convert a parsed CSV row to a partial Localization update.
- * Extracts only the fields that are present in the CSV (name, parent, locale columns).
+ * Extracts only the fields that are present in the CSV (name, parent, locale form columns).
  * Used for CSV import to build update payloads.
  */
 export function csvRowToLocalizationUpdate(
@@ -112,7 +181,7 @@ export function csvRowToLocalizationUpdate(
     updates.parent = row.parent as number;
   }
 
-  // Include all locale columns present in the row
+  // Include all locale form columns present in the row
   for (const col of columns) {
     if (col.id.startsWith('locale_')) {
       const value = row[col.id as keyof Localization];

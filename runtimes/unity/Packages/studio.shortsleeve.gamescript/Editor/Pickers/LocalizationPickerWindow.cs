@@ -67,11 +67,14 @@ namespace GameScript.Editor
                     tagIndices[j] = locTagIndices[j];
                 }
 
+                // Resolve display text through the variant system (catch-all: Other/Other)
+                string text = VariantResolver.Resolve(loc, GenderCategory.Other, PluralCategory.Other) ?? "";
+
                 allItems.Add(new Item
                 {
                     Id = loc.Id,
                     Name = loc.Name,
-                    Text = loc.Text ?? "",
+                    Text = text,
                     TagIndices = tagIndices
                 });
             }

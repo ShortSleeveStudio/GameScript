@@ -66,6 +66,7 @@ export { GridCellRenderer, createCellRenderer } from './cell-renderer.svelte.js'
 export { GridCellRendererRadio, type RadioCellRendererContext } from './cell-renderer-radio.svelte.js';
 export { GridCellRendererColor, type ColorCellRendererContext } from './cell-renderer-color.svelte.js';
 export { GridCellRendererTag } from './cell-renderer-tag.svelte.js';
+export { GridCellRendererBoolean } from './cell-renderer-boolean.svelte.js';
 export { GridCellEditorText, createTextCellEditor } from './cell-editor-text.js';
 export {
   GridCellEditorNumber,
@@ -77,6 +78,8 @@ export {
   createConversationIdCellEditor,
 } from './cell-editor-conversation-id.js';
 export { GridCellEditorTag, type TagCellEditorParams } from './cell-editor-tag.svelte.js';
+export { GridCellEditorLocaleCode } from './cell-editor-locale-code.js';
+export { GridCellRendererLocaleCode } from './cell-renderer-locale-code.svelte.js';
 
 // Tag column utilities
 export {

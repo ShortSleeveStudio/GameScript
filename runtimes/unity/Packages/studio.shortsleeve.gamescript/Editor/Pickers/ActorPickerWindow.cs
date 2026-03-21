@@ -22,16 +22,28 @@ namespace GameScript.Editor
             if (actors == null)
                 return;
 
+            IList<Localization> localizations = snapshot.Localizations;
+
             for (int i = 0; i < actors.Count; i++)
             {
                 Actor actor = actors[i];
                 if (actor == null) continue;
 
+                // Resolve localized name through the variant system
+                string localizedName = "";
+                int nameIdx = actor.LocalizedNameIdx;
+                if (nameIdx >= 0 && localizations != null && nameIdx < localizations.Count)
+                {
+                    Localization loc = localizations[nameIdx];
+                    GenderCategory gender = NodeRef.ResolveStaticGender(loc, snapshot);
+                    localizedName = VariantResolver.Resolve(loc, gender, PluralCategory.Other) ?? "";
+                }
+
                 allItems.Add(new PickerItem
                 {
                     Id = actor.Id,
                     Name = actor.Name,
-                    SubText = actor.LocalizedName ?? ""
+                    SubText = localizedName
                 });
             }
         }

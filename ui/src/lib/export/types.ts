@@ -10,11 +10,22 @@ import type {
   NodeTypeName,
   EdgeTypeName,
   ExportPropertyTypeName,
+  PluralCategory,
+  GenderCategory,
 } from '@gamescript/shared';
 
 // =============================================================================
 // Export Data Types (intermediate format before FlatBuffers)
 // =============================================================================
+
+/**
+ * A single text variant for a specific plural × gender combination.
+ */
+export interface ExportTextVariant {
+  plural: PluralCategory;
+  gender: GenderCategory;
+  text: string;
+}
 
 /**
  * Exported conversation with resolved indices.
@@ -80,7 +91,7 @@ export interface ExportConversationProperty {
 }
 
 /**
- * Exported node with resolved indices and localized text.
+ * Exported node with resolved indices.
  */
 export interface ExportNode {
   /** Original database ID (for code lookups) */
@@ -90,10 +101,10 @@ export interface ExportNode {
   type: NodeTypeName;
   /** Index into ExportSnapshot.actors, -1 = no actor */
   actorIdx: number;
-  /** Resolved localized text for this locale */
-  voiceText: string | null;
-  /** Resolved localized text for this locale */
-  uiResponseText: string | null;
+  /** Index into ExportSnapshot.localizations (-1 = none) */
+  voiceTextIdx: number;
+  /** Index into ExportSnapshot.localizations (-1 = none) */
+  uiResponseTextIdx: number;
   hasCondition: boolean;
   hasAction: boolean;
   isPreventResponse: boolean;
@@ -124,29 +135,37 @@ export interface ExportEdge {
 }
 
 /**
- * Exported actor with resolved localized name.
+ * Exported actor with resolved index references.
  */
 export interface ExportActor {
   /** Original database ID */
   id: number;
   /** Internal name/identifier */
   name: string;
-  /** Resolved localized display name for this locale */
-  localizedName: string | null;
   /** Hex color, e.g., "#808080" */
   color: string;
+  /** Grammatical gender value */
+  grammaticalGender: string;
+  /** Index into ExportSnapshot.localizations */
+  localizedNameIdx: number;
 }
 
 /**
- * Exported localization (non-dialogue strings).
+ * Exported localization — dialogue text, actor names, and raw strings (unified).
  */
 export interface ExportLocalization {
   /** Original database ID */
   id: number;
-  /** Key, e.g., "menu.start", "item.sword.name" */
+  /** Key for raw localizations; null for node/actor-owned */
   name: string | null;
-  /** Resolved localized text for this locale */
-  text: string | null;
+  /** Index into ExportSnapshot.actors (-1 = none) */
+  subjectActorIdx: number;
+  /** Direct gender override; mutually exclusive with subjectActorIdx (null when using subject actor) */
+  subjectGender: string | null;
+  /** When true, text uses {placeholder} syntax */
+  isTemplated: boolean;
+  /** CLDR-filtered filled text variants (sparse) */
+  variants: ExportTextVariant[];
   /** Indices into tag values arrays, -1 = untagged for that category */
   tagIndices: number[];
 }
@@ -178,7 +197,7 @@ export interface LocaleSnapshot {
   edges: ExportEdge[];
   /** All actors */
   actors: ExportActor[];
-  /** All non-system localizations */
+  /** All localizations — dialogue text, actor names, and raw strings (unified array) */
   localizations: ExportLocalization[];
   /** All property templates */
   propertyTemplates: ExportPropertyTemplate[];
@@ -258,6 +277,8 @@ export interface IdToIndexMaps {
   nodes: Map<number, number>;
   edges: Map<number, number>;
   actors: Map<number, number>;
+  /** Maps localization DB ID to array index in the unified localizations array */
+  localizations: Map<number, number>;
   propertyTemplates: Map<number, number>;
   /** Maps tag value ID to [categoryIndex, valueIndex] */
   conversationTagValues: Map<number, [number, number]>;

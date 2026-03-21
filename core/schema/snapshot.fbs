@@ -1,4 +1,4 @@
-// GameScript FlatBuffers Snapshot Schema
+// GameScript FlatBuffers Snapshot Schema v2
 // Binary format for game engine runtime consumption
 //
 // IMPORTANT: All references between entities use ARRAY INDICES, not database IDs.
@@ -7,7 +7,7 @@
 
 namespace GameScript;
 
-file_identifier "GSPT";  // GameScript Snapshot
+file_identifier "GSP3";  // GameScript Snapshot v3 (breaking change: Localization vtable restructured)
 file_extension "gsb";
 
 // FlatSharp attribute for serializer generation
@@ -53,6 +53,44 @@ table ConversationProperty {
 }
 
 // ============================================================================
+// Plural / Gender Enums
+// ============================================================================
+
+enum PluralCategory : byte {
+  Zero = 0,
+  One = 1,
+  Two = 2,
+  Few = 3,
+  Many = 4,
+  Other = 5,
+}
+
+enum GenderCategory : byte {
+  Other = 0,
+  Masculine = 1,
+  Feminine = 2,
+  Neuter = 3,
+}
+
+enum GrammaticalGender : byte {
+  Other = 0,
+  Masculine = 1,
+  Feminine = 2,
+  Neuter = 3,
+  Dynamic = 4,
+}
+
+// ============================================================================
+// Text Variants
+// ============================================================================
+
+table TextVariant {
+  plural: PluralCategory;
+  gender: GenderCategory;
+  text: string;
+}
+
+// ============================================================================
 // Core Entities
 // ============================================================================
 
@@ -67,8 +105,8 @@ table Node {
   conversation_idx: int32;      // INDEX into Snapshot.conversations array
   type: NodeType;
   actor_idx: int32;             // INDEX into Snapshot.actors array (-1 = no actor)
-  voice_text: string;           // Resolved localized text for this locale
-  ui_response_text: string;     // Resolved localized text for this locale
+  voice_text_idx: int32;        // INDEX into Snapshot.localizations array (-1 = none)
+  ui_response_text_idx: int32;  // INDEX into Snapshot.localizations array (-1 = none)
   has_condition: bool;
   has_action: bool;
   is_prevent_response: bool;
@@ -99,8 +137,9 @@ table Edge {
 table Actor {
   id: int32;                    // Original database ID (for reference)
   name: string;                 // Internal name/identifier
-  localized_name: string;       // Resolved localized display name for this locale
   color: string;                // Hex color, e.g., "#808080"
+  grammatical_gender: GrammaticalGender;
+  localized_name_idx: int32;    // INDEX into Snapshot.localizations
 }
 
 table Conversation {
@@ -120,8 +159,11 @@ table Conversation {
 
 table Localization {
   id: int32;                    // Original database ID (for reference)
-  name: string;                 // Key, e.g., "menu.start", "item.sword.name"
-  text: string;                 // Resolved localized text for this locale
+  name: string;                 // Key for raw localizations; null for node/actor-owned
+  subject_actor_idx: int32;     // INDEX into Snapshot.actors (-1 = none). Always written explicitly.
+  subject_gender: GenderCategory; // Direct gender override; mutually exclusive with subject_actor_idx
+  is_templated: bool;           // When true, text uses {placeholder} syntax
+  variants: [TextVariant];      // CLDR-filtered filled forms only (sparse)
   tag_indices: [int32];         // Indices into localization_tag_values arrays, -1 = untagged
 }
 
@@ -148,7 +190,7 @@ table Snapshot (fs_serializer) {
   localization_tag_names: [string];
   localization_tag_values: [StringArray];  // Values per category
 
-  // Localizations (non-dialogue strings)
+  // All localizations — dialogue text, actor names, and raw strings (unified array)
   localizations: [Localization];
 
   // Property system

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TextResolutionParams.h"
 #include "Refs.generated.h"
 
 // Forward declarations
 class UGameScriptDatabase;
 class UGameScriptManifest;
-namespace GameScriptSchema
+namespace GameScript
 {
 	struct Conversation;
 	struct Node;
@@ -14,6 +15,7 @@ namespace GameScriptSchema
 	struct Actor;
 	struct Localization;
 	struct Locale;
+	struct Snapshot;
 	struct NodeProperty;
 	struct ConversationProperty;
 }
@@ -66,13 +68,22 @@ enum class EGSPropertyType : uint8
  * - DO NOT modify Database or Index fields after construction - these are immutable value types
  *
  * STRING ALLOCATION BEHAVIOR:
- * - String accessors (GetName, GetVoiceText, GetUIResponseText, etc.) allocate new FString instances on every call
+ * - String accessors (GetName, GetLocalizedName, GetText, etc.) allocate new FString instances on every call
  * - For frequently accessed strings (e.g., UI text updated every frame), cache the result in a local variable
  * - Example efficient usage:
- *     FString VoiceText = Node.GetVoiceText();  // Cache once
+ *     FString VoiceText = Localization.GetText();  // Cache once
  *     DialogueText->SetText(FText::FromString(VoiceText));  // Reuse
  * - Avoid calling string accessors in tight loops or per-frame updates without caching
  */
+
+// Forward declarations for ref types
+struct FNodeRef;
+struct FEdgeRef;
+struct FActorRef;
+struct FLocalizationRef;
+struct FConversationPropertyRef;
+struct FNodePropertyRef;
+struct FChoiceRef;
 
 USTRUCT(BlueprintType)
 struct GAMESCRIPT_API FConversationRef
@@ -128,8 +139,8 @@ struct GAMESCRIPT_API FNodeRef
 	int32 GetConversationId() const;
 	FConversationRef GetConversation() const;  // Direct ref to parent conversation
 	ENodeType GetType() const;
-	FString GetVoiceText() const;
-	FString GetUIResponseText() const;
+	int32 GetVoiceTextLocalizationIdx() const;
+	int32 GetUIResponseTextLocalizationIdx() const;
 	FActorRef GetActor() const;
 	bool HasCondition() const;
 	bool HasAction() const;
@@ -140,6 +151,15 @@ struct GAMESCRIPT_API FNodeRef
 	FEdgeRef GetIncomingEdge(int32 EdgeIndex) const;
 	int32 GetPropertyCount() const;
 	FNodePropertyRef GetProperty(int32 PropertyIndex) const;
+
+	/**
+	 * Resolves gender from the snapshot without a dynamic-actor provider.
+	 * Dynamic grammatical gender falls back to GenderCategory::Other.
+	 * Matches Unity's NodeRef.ResolveStaticGender().
+	 */
+	static EGSGenderCategory ResolveStaticGender(
+		const GameScript::Localization* Loc,
+		const GameScript::Snapshot* Snapshot);
 
 	const UGameScriptDatabase* Database;
 	int32 Index;
@@ -159,7 +179,7 @@ struct GAMESCRIPT_API FEdgeRef
 	bool operator==(const FEdgeRef& Other) const { return Database == Other.Database && Index == Other.Index; }
 	bool operator!=(const FEdgeRef& Other) const { return !(*this == Other); }
 
-	// Accessors (implemented in GameScriptDatabase.cpp)
+	// Accessors (implemented in Refs.cpp)
 	int32 GetId() const;
 	EEdgeType GetType() const;
 	FNodeRef GetSource() const;
@@ -188,7 +208,9 @@ struct GAMESCRIPT_API FActorRef
 	// Accessors (implemented in Refs.cpp)
 	int32 GetId() const;
 	FString GetName() const;           // Internal name/identifier
-	FString GetLocalizedName() const;  // Display name for UI
+	int32 GetLocalizedNameIdx() const; // Index into snapshot localizations, -1 if none
+	FString GetLocalizedName() const;  // Static-gender-resolved display name for UI
+	EGSGrammaticalGender GetGrammaticalGender() const;
 	FString GetColor() const;          // Hex color (e.g., "#808080")
 
 	const UGameScriptDatabase* Database;
@@ -209,14 +231,70 @@ struct GAMESCRIPT_API FLocalizationRef
 	bool operator==(const FLocalizationRef& Other) const { return Database == Other.Database && Index == Other.Index; }
 	bool operator!=(const FLocalizationRef& Other) const { return !(*this == Other); }
 
-	// Accessors (implemented in GameScriptDatabase.cpp)
+	// Accessors (implemented in Refs.cpp)
 	int32 GetId() const;
 	FString GetKey() const;
+	int32 GetSubjectActorIdx() const;       // Index into snapshot actors, -1 if none
+	EGSGenderCategory GetSubjectGender() const;
+	bool IsTemplated() const;
+	int32 GetVariantCount() const;
+
+	/**
+	 * Returns the static-gender-resolved text for this localization.
+	 * Gender is resolved from the snapshot only (subject actor's grammatical gender or the
+	 * localization's own gender override). Dynamic actors default to GenderCategory::Other.
+	 * Plural defaults to PluralCategory::Other. No template substitution is performed.
+	 * Returns empty FString if there are no variants or no variant matches.
+	 */
 	FString GetText() const;
-	// ... additional accessors
 
 	const UGameScriptDatabase* Database;
 	int32 Index;
+};
+
+/**
+ * Represents a candidate choice node presented to the player during a decision point.
+ * Wraps a snapshot node index together with the runner-resolved UI response text, so
+ * the listener never needs to call into the snapshot directly to render a choice button.
+ */
+USTRUCT(BlueprintType)
+struct GAMESCRIPT_API FChoiceRef
+{
+	GENERATED_BODY()
+
+	FChoiceRef() : Database(nullptr), Index(-1) {}
+	FChoiceRef(const UGameScriptDatabase* InDatabase, int32 InIndex, const FString& InResolvedText)
+		: Database(InDatabase), Index(InIndex), ResolvedUIResponseText(InResolvedText) {}
+
+	bool IsValid() const { return Database != nullptr && Index >= 0; }
+
+	bool operator==(const FChoiceRef& Other) const { return Database == Other.Database && Index == Other.Index; }
+	bool operator!=(const FChoiceRef& Other) const { return !(*this == Other); }
+
+	// Accessors (implemented in Refs.cpp)
+	int32 GetId() const;
+	ENodeType GetType() const;
+	FActorRef GetActor() const;
+	bool HasCondition() const;
+	bool HasAction() const;
+	bool IsPreventResponse() const;
+
+	/** Returns the runner-resolved UI response text. Gender, plural, and template
+	 *  substitution have already been applied. Empty if the node has no UI response text. */
+	FString GetUIResponseText() const { return ResolvedUIResponseText; }
+
+	int32 GetPropertyCount() const;
+	FNodePropertyRef GetProperty(int32 PropertyIndex) const;
+
+	/** Returns the underlying FNodeRef for this choice. */
+	FNodeRef GetNode() const;
+
+	const UGameScriptDatabase* Database;
+	int32 Index;
+
+	/** Pre-resolved UI response text stored at construction. */
+	UPROPERTY(BlueprintReadOnly, Category = "GameScript")
+	FString ResolvedUIResponseText;
 };
 
 USTRUCT(BlueprintType)

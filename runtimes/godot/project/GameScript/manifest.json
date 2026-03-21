@@ -1,19 +1,25 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
   "locales": [
     {
       "id": 1,
-      "name": "en_US",
+      "name": "x-source",
       "localizedName": "English",
-      "hash": "eed432c2f648c4725a52afadb64bf1d6c8fa99fbb15695507c006331f455a69f"
+      "hash": "c84ad32da041293d50dc517d1c2ee2c646b784b9613fe69b2735bcb05b8d2584"
     },
     {
       "id": 2,
-      "name": "ja_JP",
-      "localizedName": "Japanese",
-      "hash": "6a71187fcd1babc09916f50b96d39222abb02fcc527d5c75bce77cbab50af6d9"
+      "name": "en",
+      "localizedName": "English",
+      "hash": "883845ec7f45ce3c8c9cb40469cb41634d384466dc5875f8a8e3db425675a2fd"
+    },
+    {
+      "id": 3,
+      "name": "ru",
+      "localizedName": "русский",
+      "hash": "9296f9258f7ac5ce6d0fdf291674be00a340d104bcc7c262ad28a798637afce5"
     }
   ],
   "primaryLocale": 0,
-  "exportedAt": "2026-01-17T08:05:35.005Z"
+  "exportedAt": "2026-03-21T00:59:36.291Z"
 }

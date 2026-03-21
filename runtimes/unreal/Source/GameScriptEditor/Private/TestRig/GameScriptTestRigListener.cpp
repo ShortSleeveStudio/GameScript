@@ -1,11 +1,92 @@
 #include "TestRig/GameScriptTestRigListener.h"
 #include "TestRig/GameScriptTestRigContext.h"
 #include "GSCompletionHandle.h"
+#include "GameScriptRunner.h"
+#include "GameScriptDatabase.h"
 #include "Editor.h"
+
+// Builds resolution params for a localization, matching Unity's ConversationUI.BuildResolutionParams.
+// - Provides feminine gender override for dynamic subject actors
+// - Reads TemplateString/Count node properties for templated localizations
+static FTextResolutionParams BuildResolutionParams(
+	UGameScriptTestRigContext* Ctx,
+	FLocalizationRef Localization,
+	FNodeRef Node)
+{
+	FTextResolutionParams Params;
+
+	// Check the localization's SUBJECT actor (who the text is about), not the
+	// node's speaker actor. Provide feminine override for dynamic subject actors.
+	int32 SubjectIdx = Localization.GetSubjectActorIdx();
+	if (SubjectIdx >= 0 && Ctx && Ctx->GetDatabase())
+	{
+		FActorRef SubjectActor = Ctx->GetDatabase()->GetActorByIndex(SubjectIdx);
+		if (SubjectActor.IsValid() && SubjectActor.GetGrammaticalGender() == EGSGrammaticalGender::Dynamic)
+		{
+			Params.SetGenderOverride(EGSGenderCategory::Feminine);
+		}
+	}
+
+	// is_templated lives on the localization, not as a node property
+	if (!Localization.IsTemplated())
+	{
+		return Params;
+	}
+
+	// Read template args from node properties
+	FString TemplateName;
+	bool bHasCount = false;
+	int32 Count = 0;
+
+	int32 PropCount = Node.GetPropertyCount();
+	for (int32 i = 0; i < PropCount; i++)
+	{
+		FNodePropertyRef Prop = Node.GetProperty(i);
+		FString PropName = Prop.GetName();
+
+		FString StringVal;
+		int32 IntVal;
+		if (PropName == TEXT("TemplateString") && Prop.TryGetString(StringVal))
+		{
+			TemplateName = StringVal;
+		}
+		else if (PropName == TEXT("Count") && Prop.TryGetInt(IntVal))
+		{
+			bHasCount = true;
+			Count = IntVal;
+		}
+	}
+
+	if (TemplateName.IsEmpty())
+	{
+		return Params;
+	}
+
+	if (bHasCount)
+	{
+		Params.SetPlural(FGSPluralArg(TemplateName, Count));
+	}
+	else
+	{
+		Params.Args.Add(FGSArg::String(TemplateName, TEXT("TESTING")));
+	}
+
+	return Params;
+}
 
 void UGameScriptTestRigListener::SetContext(UGameScriptTestRigContext* InContext)
 {
 	Context = InContext;
+}
+
+FTextResolutionParams UGameScriptTestRigListener::OnSpeechParams_Implementation(FLocalizationRef Localization, FNodeRef Node)
+{
+	return BuildResolutionParams(Context, Localization, Node);
+}
+
+FTextResolutionParams UGameScriptTestRigListener::OnDecisionParams_Implementation(FLocalizationRef Localization, FNodeRef Node)
+{
+	return BuildResolutionParams(Context, Localization, Node);
 }
 
 void UGameScriptTestRigListener::CancelPendingTimers()
@@ -38,7 +119,7 @@ void UGameScriptTestRigListener::OnNodeEnter_Implementation(FNodeRef Node, UGSCo
 	}
 }
 
-void UGameScriptTestRigListener::OnSpeech_Implementation(FNodeRef Node, UGSCompletionHandle* Handle)
+void UGameScriptTestRigListener::OnSpeech_Implementation(FNodeRef Node, const FString& VoiceText, UGSCompletionHandle* Handle)
 {
 	if (!Context)
 	{
@@ -49,22 +130,23 @@ void UGameScriptTestRigListener::OnSpeech_Implementation(FNodeRef Node, UGSCompl
 		return;
 	}
 
-	// Get speaker name
+	// Get speaker name (prefer localized name, fall back to internal name)
 	FActorRef Actor = Node.GetActor();
 	FString SpeakerName;
 	if (Actor.IsValid())
 	{
-		SpeakerName = Actor.GetName();
+		SpeakerName = Actor.GetLocalizedName();
+		if (SpeakerName.IsEmpty())
+		{
+			SpeakerName = Actor.GetName();
+		}
 	}
 	if (SpeakerName.IsEmpty())
 	{
-		SpeakerName = TEXT("<Unknown>");
+		SpeakerName = TEXT("<Actor Missing>");
 	}
 
-	// Get dialogue text
-	FString VoiceText = Node.GetVoiceText();
-
-	// Add to history
+	// Add to history (VoiceText is pre-resolved by the runner)
 	if (!VoiceText.IsEmpty())
 	{
 		Context->AddHistoryItem(SpeakerName, VoiceText);
@@ -107,7 +189,7 @@ void UGameScriptTestRigListener::OnSpeech_Implementation(FNodeRef Node, UGSCompl
 	}
 }
 
-void UGameScriptTestRigListener::OnDecision_Implementation(const TArray<FNodeRef>& Choices, UGSCompletionHandle* Handle)
+void UGameScriptTestRigListener::OnDecision_Implementation(const TArray<FChoiceRef>& Choices, UGSCompletionHandle* Handle)
 {
 	// Cancel auto-advance timer if running
 	CancelPendingTimers();
@@ -225,12 +307,12 @@ void UGameScriptTestRigListener::OnCleanup_Implementation(FConversationRef Conve
 	}
 }
 
-FNodeRef UGameScriptTestRigListener::OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices)
+FChoiceRef UGameScriptTestRigListener::OnAutoDecision_Implementation(const TArray<FChoiceRef>& Choices)
 {
 	// For auto-decisions (hidden edges), just pick the first choice
 	if (Choices.Num() > 0)
 	{
 		return Choices[0];
 	}
-	return FNodeRef();
+	return FChoiceRef();
 }

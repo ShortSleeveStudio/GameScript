@@ -67,8 +67,12 @@ export interface LocalePrincipal extends Row, Principaled {}
 export interface Localization extends Row, SystemCreatable, Named {
   // Localizations can optionally belong to a conversation, but are typically standalone
   parent: number | null; // FK Conversation (nullable)
-  // Dynamic locale columns: locale_1, locale_2, etc.
-  [key: `locale_${number}`]: string | null;
+  // Gender resolution: at most one of subject_actor / subject_gender is set
+  subject_actor: number | null; // Actor ID (no SQL FK — circular dependency; CRUD-enforced)
+  subject_gender: string | null; // Direct gender: 'other' | 'masculine' | 'feminine' | 'neuter'
+  is_templated: boolean; // When true, text uses {placeholder} syntax — gates template substitution
+  // Dynamic locale form columns: locale_1_form_other_other, locale_1_form_one_masculine, etc.
+  [key: `locale_${number}_form_${string}_${string}`]: string | null;
   // Dynamic tag columns: tag_category_1, tag_category_2, etc.
   // Each references a LocalizationTagValue.id or null
   [key: `tag_category_${number}`]: number | null;
@@ -80,6 +84,7 @@ export interface Localization extends Row, SystemCreatable, Named {
 export interface Actor extends Row, Annotated, SystemCreatable, Named {
   color: string;
   localized_name: number; // FK Localization
+  grammatical_gender: string; // 'other' | 'masculine' | 'feminine' | 'neuter' | 'dynamic'
 }
 
 ///

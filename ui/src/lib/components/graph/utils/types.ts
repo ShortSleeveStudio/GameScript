@@ -120,6 +120,9 @@ export const NODE_VOICE_TEXT_HEIGHT = 80;
 /** Node divider height */
 export const NODE_DIVIDER_HEIGHT = 1;
 
+/** Logic node notes area height */
+export const NODE_LOGIC_NOTES_HEIGHT = 28;
+
 /**
  * Fixed node dimensions for ELK layout calculations.
  *
@@ -138,10 +141,10 @@ export const NODE_DIMENSIONS = {
     width: NODE_CONTENT_WIDTH + PORT_CONTAINER_THICKNESS_PX * 2,
     height: NODE_TITLE_HEIGHT + NODE_COLOR_HEIGHT + NODE_UI_TEXT_HEIGHT + NODE_DIVIDER_HEIGHT + NODE_VOICE_TEXT_HEIGHT,
   },
-  /** Logic node: content width + two ports (source and target), just title bar */
+  /** Logic node: content width + two ports (source and target), title bar + notes area */
   [NODE_TYPES.LOGIC]: {
     width: NODE_CONTENT_WIDTH + PORT_CONTAINER_THICKNESS_PX * 2,
-    height: NODE_TITLE_HEIGHT,
+    height: NODE_TITLE_HEIGHT + NODE_DIVIDER_HEIGHT + NODE_LOGIC_NOTES_HEIGHT,
   },
 } as const;
 

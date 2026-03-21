@@ -26,6 +26,7 @@ namespace GameScript
         JumpTable _jumpTable;
         IGameScriptListener _listener;
         Settings _settings;
+        GameScriptRunner _runner;
 
         int _conversationIndex;
         int _nodeIndex;
@@ -33,13 +34,17 @@ namespace GameScript
         // Access snapshot through database to support live locale switching
         Snapshot Snapshot => _database.Snapshot;
 
+        // Cached resolved texts for the current node (set before OnNodeEnter)
+        string _cachedVoiceText;
+        string _cachedUIResponseText;
+
         // For concurrent action+speech via WhenAllAwaiter
         AwaitableCompletionSource _speechSource;
         WhenAllAwaiter _whenAllAwaiter;
 
         // Reusable lists for collecting choices without allocation
-        readonly List<NodeRef> _choices;
-        readonly List<NodeRef> _highestPriorityChoices;
+        readonly List<ChoiceRef> _choices;
+        readonly List<ChoiceRef> _highestPriorityChoices;
 
         // Cancellation support
         CancellationTokenSource _cts;
@@ -88,8 +93,8 @@ namespace GameScript
             _cts = new CancellationTokenSource();
             _speechSource = new AwaitableCompletionSource();
             _whenAllAwaiter = new WhenAllAwaiter();
-            _choices = new List<NodeRef>(DefaultChoiceCapacity);
-            _highestPriorityChoices = new List<NodeRef>(DefaultChoiceCapacity);
+            _choices = new List<ChoiceRef>(DefaultChoiceCapacity);
+            _highestPriorityChoices = new List<ChoiceRef>(DefaultChoiceCapacity);
         }
         #endregion
 
@@ -107,9 +112,17 @@ namespace GameScript
             }
         }
 
-        public string VoiceText => Snapshot.Nodes[_nodeIndex].VoiceText;
+        /// <inheritdoc/>
+        public string VoiceText => _cachedVoiceText;
 
-        public string UIResponseText => Snapshot.Nodes[_nodeIndex].UiResponseText;
+        /// <inheritdoc/>
+        public string UIResponseText => _cachedUIResponseText;
+
+        /// <inheritdoc/>
+        public int VoiceTextLocalizationIdx => Snapshot.Nodes[_nodeIndex].VoiceTextIdx;
+
+        /// <inheritdoc/>
+        public int UIResponseTextLocalizationIdx => Snapshot.Nodes[_nodeIndex].UiResponseTextIdx;
 
         public int PropertyCount => Snapshot.Nodes[_nodeIndex].Properties?.Count ?? 0;
 
@@ -120,12 +133,13 @@ namespace GameScript
         #endregion
 
         #region Execution
-        internal void Initialize(GameScriptDatabase database, JumpTable jumpTable, int conversationIndex, IGameScriptListener listener)
+        internal void Initialize(GameScriptDatabase database, JumpTable jumpTable, int conversationIndex, IGameScriptListener listener, GameScriptRunner runner)
         {
             _database = database;
             _jumpTable = jumpTable;
             _conversationIndex = conversationIndex;
             _listener = listener;
+            _runner = runner;
             _nodeIndex = Snapshot.Conversations[conversationIndex].RootNodeIdx;
             SequenceNumber = s_NextSequenceNumber++;
         }
@@ -142,12 +156,16 @@ namespace GameScript
                 // Main loop
                 while (true)
                 {
-                    NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
                     Node node = Snapshot.Nodes[_nodeIndex];
 
                     // Root nodes skip directly to edge evaluation
                     if (node.Type == NodeType.Root)
                         goto EvaluateEdges;
+
+                    // Resolve and cache voice/UI response text for this node
+                    CacheNodeTexts(node);
+
+                    NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
 
                     // 2. Node Enter
                     await _listener.OnNodeEnter(nodeRef, _cts.Token);
@@ -211,8 +229,19 @@ namespace GameScript
 
                         if (conditionPassed)
                         {
-                            NodeRef targetRef = new NodeRef(Snapshot, targetNodeIdx);
-                            _choices.Add(targetRef);
+                            // Resolve UI response text for this choice via the listener
+                            string resolvedChoiceText = null;
+                            int uiIdx = targetNode.UiResponseTextIdx;
+                            if (uiIdx >= 0)
+                            {
+                                LocalizationRef locRef = new LocalizationRef(Snapshot, uiIdx);
+                                NodeRef targetNodeRef = new NodeRef(Snapshot, targetNodeIdx);
+                                TextResolutionParams choiceParams = _listener.OnDecisionParams(locRef, targetNodeRef);
+                                resolvedChoiceText = _runner.ResolveText(uiIdx, targetNodeRef, choiceParams);
+                            }
+
+                            ChoiceRef targetChoiceRef = new ChoiceRef(Snapshot, targetNodeIdx, resolvedChoiceText);
+                            _choices.Add(targetChoiceRef);
 
                             // Track actor consistency
                             if (_choices.Count == 1)
@@ -229,26 +258,30 @@ namespace GameScript
                             {
                                 highestPriority = edge.Priority;
                                 _highestPriorityChoices.Clear();
-                                _highestPriorityChoices.Add(targetRef);
+                                _highestPriorityChoices.Add(targetChoiceRef);
                             }
                             else if (edge.Priority == highestPriority)
                             {
-                                _highestPriorityChoices.Add(targetRef);
+                                _highestPriorityChoices.Add(targetChoiceRef);
                             }
                         }
                     }
+
+                    // Re-acquire nodeRef after edge evaluation (node variable still valid, but
+                    // _nodeIndex may have been temporarily mutated during condition evaluation)
+                    NodeRef currentNodeRef = new NodeRef(Snapshot, _nodeIndex);
 
                     // 5. Decision (optional) - if player must choose
                     bool isDecision = _choices.Count > 0 && ShouldShowDecision(node, allSameActor);
                     if (isDecision)
                     {
-                        NodeRef selected = await _listener.OnDecision(_choices, _cts.Token);
+                        ChoiceRef selected = await _listener.OnDecision(_choices, _cts.Token);
                         _nodeIndex = selected.Index;
                     }
                     else if (_choices.Count > 0)
                     {
                         // Auto-advance via listener (allows custom selection logic)
-                        NodeRef selected = _listener.OnAutoDecision(_highestPriorityChoices);
+                        ChoiceRef selected = _listener.OnAutoDecision(_highestPriorityChoices);
 
                         // Validate selection is one of the valid choices
                         bool foundInChoices = false;
@@ -274,7 +307,7 @@ namespace GameScript
                     // 6. Node Exit (skip for root nodes)
                     if (node.Type != NodeType.Root)
                     {
-                        await _listener.OnNodeExit(nodeRef, _cts.Token);
+                        await _listener.OnNodeExit(currentNodeRef, _cts.Token);
                     }
 
                     // No valid edges - conversation ends
@@ -317,6 +350,39 @@ namespace GameScript
             }
         }
 
+        // Resolves and caches voice text and UI response text for the current node.
+        // Voice text uses OnSpeechParams from the listener; UI response text uses static-gender
+        // resolution (it reflects the current node's own response text, not a choice's).
+        void CacheNodeTexts(Node node)
+        {
+            // Voice text
+            int voiceIdx = node.VoiceTextIdx;
+            if (voiceIdx >= 0)
+            {
+                LocalizationRef locRef = new LocalizationRef(Snapshot, voiceIdx);
+                NodeRef nodeRef = new NodeRef(Snapshot, _nodeIndex);
+                TextResolutionParams speechParams = _listener.OnSpeechParams(locRef, nodeRef);
+                _cachedVoiceText = _runner.ResolveText(voiceIdx, nodeRef, speechParams);
+            }
+            else
+            {
+                _cachedVoiceText = null;
+            }
+
+            // UI response text — static-gender resolution (no OnSpeechParams call for this)
+            int uiIdx = node.UiResponseTextIdx;
+            if (uiIdx >= 0)
+            {
+                Localization loc = Snapshot.Localizations[uiIdx];
+                GenderCategory gender = NodeRef.ResolveStaticGender(loc, Snapshot);
+                _cachedUIResponseText = VariantResolver.Resolve(loc, gender, PluralCategory.Other);
+            }
+            else
+            {
+                _cachedUIResponseText = null;
+            }
+        }
+
         async Awaitable ExecuteAction(Node node)
         {
             ActionDelegate action = _jumpTable.Actions[_nodeIndex];
@@ -337,7 +403,7 @@ namespace GameScript
                 // Both action and speech run concurrently
                 _whenAllAwaiter.WhenAll(
                     ExecuteAction(node),
-                    _listener.OnSpeech(nodeRef, _cts.Token),
+                    _listener.OnSpeech(nodeRef, _cachedVoiceText, _cts.Token),
                     _speechSource
                 );
                 try
@@ -354,7 +420,7 @@ namespace GameScript
             else
             {
                 // Speech only
-                await _listener.OnSpeech(nodeRef, _cts.Token);
+                await _listener.OnSpeech(nodeRef, _cachedVoiceText, _cts.Token);
             }
         }
 
@@ -371,8 +437,9 @@ namespace GameScript
             // Single choice with UI text = decision (unless settings prevent it)
             if (_choices.Count == 1 && !_settings.PreventSingleNodeChoices)
             {
-                string responseText = Snapshot.Nodes[_choices[0].Index].UiResponseText;
-                return !string.IsNullOrEmpty(responseText) && allSameActor;
+                // Use the index sentinel to check for UI text rather than the resolved string,
+                // so this check never depends on resolution results
+                return Snapshot.Nodes[_choices[0].Index].UiResponseTextIdx != -1 && allSameActor;
             }
 
             return false;
@@ -396,8 +463,11 @@ namespace GameScript
             _database = null;
             _jumpTable = null;
             _listener = null;
+            _runner = null;
             _conversationIndex = -1;
             _nodeIndex = -1;
+            _cachedVoiceText = null;
+            _cachedUIResponseText = null;
             _choices.Clear();
             _highestPriorityChoices.Clear();
         }

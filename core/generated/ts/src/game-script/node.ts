@@ -46,18 +46,14 @@ actorIdx():number {
   return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
-voiceText():string|null
-voiceText(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-voiceText(optionalEncoding?:any):string|Uint8Array|null {
+voiceTextIdx():number {
   const offset = this.bb!.__offset(this.bb_pos, 12);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
-uiResponseText():string|null
-uiResponseText(optionalEncoding:flatbuffers.Encoding):string|Uint8Array|null
-uiResponseText(optionalEncoding?:any):string|Uint8Array|null {
+uiResponseTextIdx():number {
   const offset = this.bb!.__offset(this.bb_pos, 14);
-  return offset ? this.bb!.__string(this.bb_pos + offset, optionalEncoding) : null;
+  return offset ? this.bb!.readInt32(this.bb_pos + offset) : 0;
 }
 
 hasCondition():boolean {
@@ -152,12 +148,12 @@ static addActorIdx(builder:flatbuffers.Builder, actorIdx:number) {
   builder.addFieldInt32(3, actorIdx, 0);
 }
 
-static addVoiceText(builder:flatbuffers.Builder, voiceTextOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(4, voiceTextOffset, 0);
+static addVoiceTextIdx(builder:flatbuffers.Builder, voiceTextIdx:number) {
+  builder.addFieldInt32(4, voiceTextIdx, 0);
 }
 
-static addUiResponseText(builder:flatbuffers.Builder, uiResponseTextOffset:flatbuffers.Offset) {
-  builder.addFieldOffset(5, uiResponseTextOffset, 0);
+static addUiResponseTextIdx(builder:flatbuffers.Builder, uiResponseTextIdx:number) {
+  builder.addFieldInt32(5, uiResponseTextIdx, 0);
 }
 
 static addHasCondition(builder:flatbuffers.Builder, hasCondition:boolean) {
@@ -247,14 +243,14 @@ static endNode(builder:flatbuffers.Builder):flatbuffers.Offset {
   return offset;
 }
 
-static createNode(builder:flatbuffers.Builder, id:number, conversationIdx:number, type:NodeType, actorIdx:number, voiceTextOffset:flatbuffers.Offset, uiResponseTextOffset:flatbuffers.Offset, hasCondition:boolean, hasAction:boolean, isPreventResponse:boolean, positionX:number, positionY:number, notesOffset:flatbuffers.Offset, propertiesOffset:flatbuffers.Offset, outgoingEdgeIndicesOffset:flatbuffers.Offset, incomingEdgeIndicesOffset:flatbuffers.Offset):flatbuffers.Offset {
+static createNode(builder:flatbuffers.Builder, id:number, conversationIdx:number, type:NodeType, actorIdx:number, voiceTextIdx:number, uiResponseTextIdx:number, hasCondition:boolean, hasAction:boolean, isPreventResponse:boolean, positionX:number, positionY:number, notesOffset:flatbuffers.Offset, propertiesOffset:flatbuffers.Offset, outgoingEdgeIndicesOffset:flatbuffers.Offset, incomingEdgeIndicesOffset:flatbuffers.Offset):flatbuffers.Offset {
   Node.startNode(builder);
   Node.addId(builder, id);
   Node.addConversationIdx(builder, conversationIdx);
   Node.addType(builder, type);
   Node.addActorIdx(builder, actorIdx);
-  Node.addVoiceText(builder, voiceTextOffset);
-  Node.addUiResponseText(builder, uiResponseTextOffset);
+  Node.addVoiceTextIdx(builder, voiceTextIdx);
+  Node.addUiResponseTextIdx(builder, uiResponseTextIdx);
   Node.addHasCondition(builder, hasCondition);
   Node.addHasAction(builder, hasAction);
   Node.addIsPreventResponse(builder, isPreventResponse);

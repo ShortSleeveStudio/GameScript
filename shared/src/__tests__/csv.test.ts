@@ -181,18 +181,59 @@ describe('CSV Serializer', () => {
   });
 
   describe('buildLocalizationColumns', () => {
-    it('should build columns with locale names', () => {
+    it('should build other-gender CLDR columns by default (no usedColumns)', () => {
       const localeIds = [1, 2];
       const localeNames = new Map([
         [1, 'English'],
-        [2, 'Spanish'],
+        [2, 'Japanese'],
+      ]);
+      const localeCodes = new Map([
+        [1, 'en'],
+        [2, 'ja'],
       ]);
 
-      const columns = buildLocalizationColumns(localeIds, localeNames);
+      const columns = buildLocalizationColumns(localeIds, localeNames, localeCodes);
 
-      expect(columns).toHaveLength(5); // id, parent, name, + 2 locales
-      expect(columns[3]).toEqual({ id: 'locale_1', name: 'English' });
-      expect(columns[4]).toEqual({ id: 'locale_2', name: 'Spanish' });
+      // id, parent, name + English (one, other) + Japanese (other) = 3 + 2 + 1 = 6
+      expect(columns).toHaveLength(6);
+      expect(columns[0]).toEqual({ id: 'id', name: 'ID' });
+      expect(columns[1]).toEqual({ id: 'parent', name: 'Conversation' });
+      expect(columns[2]).toEqual({ id: 'name', name: 'Name' });
+
+      // English: One, Other (other-gender only)
+      expect(columns[3]).toEqual({ id: 'locale_1_form_one_other', name: 'English (One)' });
+      expect(columns[4]).toEqual({ id: 'locale_1_form_other_other', name: 'English (Other)' });
+
+      // Japanese: other only
+      expect(columns[5]).toEqual({ id: 'locale_2_form_other_other', name: 'Japanese (text)' });
+    });
+
+    it('should curtail empty columns when usedColumns is provided', () => {
+      const localeIds = [1];
+      const localeNames = new Map([[1, 'English']]);
+      const localeCodes = new Map([[1, 'en']]);
+      const usedColumns = new Set(['locale_1_form_other_other', 'locale_1_form_one_other']);
+
+      const columns = buildLocalizationColumns(localeIds, localeNames, localeCodes, { usedColumns });
+
+      const localeColumns = columns.filter(c => c.id.startsWith('locale_'));
+      expect(localeColumns).toHaveLength(2);
+      expect(localeColumns[0].id).toBe('locale_1_form_one_other');
+      expect(localeColumns[1].id).toBe('locale_1_form_other_other');
+    });
+
+    it('should include all gender columns when includeAllGenders is true', () => {
+      const localeIds = [1];
+      const localeNames = new Map([[1, 'English']]);
+      const localeCodes = new Map([[1, 'en']]);
+
+      const columns = buildLocalizationColumns(localeIds, localeNames, localeCodes, { includeAllGenders: true });
+
+      // English: (one, other) × 4 genders = 8 locale columns + 3 static = 11
+      const localeColumns = columns.filter(c => c.id.startsWith('locale_'));
+      expect(localeColumns).toHaveLength(8);
+      expect(localeColumns[0]).toEqual({ id: 'locale_1_form_one_other', name: 'English (One/Other)' });
+      expect(localeColumns[1]).toEqual({ id: 'locale_1_form_one_masculine', name: 'English (One/Male)' });
     });
   });
 

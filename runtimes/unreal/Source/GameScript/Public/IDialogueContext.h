@@ -36,9 +36,13 @@ public:
 	// Actor reference (who's speaking)
 	virtual FActorRef GetActor() const = 0;
 
-	// Localized text
+	// Resolved localized text (cached by RunnerContext before OnNodeEnter)
 	virtual FString GetVoiceText() const = 0;
 	virtual FString GetUIResponseText() const = 0;
+
+	// Localization indices into snapshot.Localizations (-1 = none)
+	virtual int32 GetVoiceTextLocalizationIdx() const = 0;
+	virtual int32 GetUIResponseTextLocalizationIdx() const = 0;
 
 	// Custom properties
 	virtual int32 GetPropertyCount() const = 0;

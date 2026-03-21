@@ -339,6 +339,7 @@ namespace GameScript
 
         static GameScriptDatabase s_editorInstance;
         static string s_editorBasePath;
+        static int s_editorLocaleIndex = -1;
 
         /// <summary>
         /// Clears the static editor instance on domain reload.
@@ -394,8 +395,8 @@ namespace GameScript
                 return;
             }
 
-            // Check if settings path changed - invalidate cache
-            if (s_editorInstance != null && s_editorBasePath != basePath)
+            // Check if settings changed - invalidate cache
+            if (s_editorInstance != null && (s_editorBasePath != basePath || s_editorLocaleIndex != settings.EditorLocaleIndex))
             {
                 s_editorInstance = null;
                 s_editorBasePath = null;
@@ -405,6 +406,7 @@ namespace GameScript
             {
                 s_editorInstance = new GameScriptDatabase();
                 s_editorBasePath = basePath;
+                s_editorLocaleIndex = settings.EditorLocaleIndex;
             }
 
             // Load manifest and snapshot if not loaded
@@ -414,17 +416,19 @@ namespace GameScript
                 s_editorInstance._editorManifest = LoadManifestSync(manifestPath);
                 s_editorInstance.CacheEditorSnapshotPaths(basePath);
 
-                // Load primary locale snapshot
-                int primaryIndex = s_editorInstance._editorManifest.PrimaryLocaleIndex;
+                // Load editor locale snapshot (falls back to primary from manifest)
+                int editorIndex = settings.EditorLocaleIndex >= 0
+                    ? settings.EditorLocaleIndex
+                    : s_editorInstance._editorManifest.PrimaryLocaleIndex;
                 if (s_editorInstance._editorManifest.Locales != null && s_editorInstance._editorManifest.Locales.Length > 0)
                 {
-                    if (primaryIndex < 0 || primaryIndex >= s_editorInstance._editorManifest.Locales.Length)
-                        primaryIndex = 0;
+                    if (editorIndex < 0 || editorIndex >= s_editorInstance._editorManifest.Locales.Length)
+                        editorIndex = 0;
 
-                    if (File.Exists(s_editorInstance._snapshotPaths[primaryIndex]))
+                    if (File.Exists(s_editorInstance._snapshotPaths[editorIndex]))
                     {
-                        byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[primaryIndex]);
-                        s_editorInstance.SetEditorSnapshot(primaryIndex, buffer);
+                        byte[] buffer = File.ReadAllBytes(s_editorInstance._snapshotPaths[editorIndex]);
+                        s_editorInstance.SetEditorSnapshot(editorIndex, buffer);
                     }
                 }
             }

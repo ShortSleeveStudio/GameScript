@@ -4,6 +4,7 @@ import {
   query,
   type Localization,
   type TransactionContext,
+  type GenderCategory,
   TABLE_LOCALIZATIONS,
 } from '@gamescript/shared';
 
@@ -88,6 +89,9 @@ export interface CreateLocalizationParams {
   parent: number | null;
   name: string;
   is_system_created?: boolean;
+  subject_actor?: number | null;
+  subject_gender?: GenderCategory | null;
+  is_templated?: boolean;
 }
 
 // ============================================================================
@@ -101,6 +105,9 @@ export async function create(params: CreateLocalizationParams): Promise<Localiza
       parent: params.parent,
       name: params.name,
       is_system_created: params.is_system_created ?? false,
+      subject_actor: params.subject_actor ?? null,
+      subject_gender: params.subject_gender ?? null,
+      is_templated: params.is_templated ?? false,
     }
   );
 
