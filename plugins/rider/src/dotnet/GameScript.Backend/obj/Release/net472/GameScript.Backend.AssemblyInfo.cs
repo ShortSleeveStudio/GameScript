@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GameScript.Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fa34ca7528c2d63c974b50f37761d5c9b435ef1b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+514df1d7a333f02b6d4a8117ad05e7d5571829e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("GameScript.Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GameScript.Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

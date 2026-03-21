@@ -1,4 +1,4 @@
-# GameScript V2 Architecture
+# GameScript V3 Architecture
 
 ## Overview
 
@@ -167,6 +167,33 @@ Route through native IDE APIs:
 - Export as CSV
 - (future) Cloud spreadsheet sync
 - (future) Engine plugin port for localization updates
+
+### 10. Text Resolution Pipeline (V3)
+
+V3 introduces a complete text resolution system that runs identically in all three runtimes. The FlatBuffers snapshot schema (file identifier GSP3) adds the following:
+
+**Schema Changes (Localization)**:
+- `variants: [TextVariant]` — replaces the single `text` field. Each variant has a `plural` (PluralCategory) and `gender` (GenderCategory) pair plus the text string.
+- `subject_actor_idx: int` — index into the Actors array; the actor's grammatical gender drives variant selection.
+- `subject_gender: GenderCategory` — direct gender override (mutually exclusive with subject actor).
+- `is_templated: bool` — whether the text contains `{placeholder}` syntax requiring substitution.
+
+**Schema Changes (Node)**:
+- `voice_text_idx: int` — index into Localizations for the node's voice text (replaces inline text).
+- `ui_response_text_idx: int` — index into Localizations for the node's choice button text.
+
+**Schema Changes (Actor)**:
+- `grammatical_gender: GrammaticalGender` — Masculine, Feminine, Neuter, Other, or Dynamic.
+- `localized_name_idx: int` — index into Localizations for the actor's display name.
+
+**Pipeline Steps**:
+1. **Params Callback** — Runner calls `OnSpeechParams` / `OnDecisionParams` on the listener, receiving `TextResolutionParams` (optional gender override, optional `PluralArg` with decimal precision, typed `Args`).
+2. **Gender Resolution** — Resolves gender from: explicit override > subject actor's grammatical gender > localization's subject_gender > `GenderCategory.Other`.
+3. **Plural Resolution** — If a `PluralArg` is provided, CLDR rules (cardinal or ordinal) compute the plural category using full decimal operands (i, v, w, f, t). Otherwise defaults to `PluralCategory.Other`.
+4. **Variant Selection** — `VariantResolver` picks the best text variant via three-pass fallback: exact (plural+gender), gender fallback to Other, catch-all (Other/Other).
+5. **Template Substitution** — If `is_templated`, replaces `{name}` placeholders with locale-aware formatted values. Arg types: String, Int, Decimal, Percent, Currency (ISO 4217), RawInt.
+
+**Result**: `OnSpeech` receives fully resolved `voiceText`; `OnDecision` receives `ChoiceRef` / choice dicts carrying pre-resolved `ui_response_text`. Conditions and actions access resolved text via `IDialogueContext.VoiceText` / `UIResponseText`.
 
 
 ### Reactivity Guidelines

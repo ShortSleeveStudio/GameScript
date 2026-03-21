@@ -1,6 +1,6 @@
 # GameScript Godot Runtime Architecture
 
-Godot 4.x-specific implementation of the GameScript V2 runtime.
+Godot 4.x-specific implementation of the GameScript V3 runtime.
 
 ## Overview
 
@@ -166,13 +166,15 @@ var cancellation_token: CancellationToken  # For cooperative cancellation
 func get_node_id() -> int
 func get_conversation_id() -> int
 func get_actor() -> ActorRef
-func get_voice_text() -> String
-func get_ui_response_text() -> String
+func get_voice_text() -> String                          # Runner-resolved (gender/plural/template applied)
+func get_ui_response_text() -> String                    # Runner-resolved
+func get_voice_text_localization_idx() -> int            # Index into snapshot localizations (-1 if none)
+func get_ui_response_text_localization_idx() -> int      # Index into snapshot localizations (-1 if none)
 func get_property_count() -> int
 func get_property(index: int) -> NodePropertyRef
 ```
 
-The context provides node data and cancellation support - game-specific logic lives in your own code.
+The context provides node data and cancellation support - game-specific logic lives in your own code. The `get_voice_text()` and `get_ui_response_text()` methods return fully resolved text (gender, plural, and template substitution have already been applied by the runner).
 
 ---
 
@@ -184,12 +186,15 @@ The RunnerContext implements a state machine for conversation flow:
 ConversationEnter
     ↓ (on_conversation_enter callback)
     ↓ (await ReadyNotifier.ready signal)
+CacheNodeTexts
+    ↓ (on_speech_params → resolve voice text)
+    ↓ (on_decision_params per choice → resolve UI response texts)
 NodeEnter
     ↓ (on_node_enter callback)
     ↓ (await ReadyNotifier.ready signal)
 ActionAndSpeech
     ↓ (Logic nodes: action only)
-    ↓ (Dialogue nodes: action + on_speech concurrent)
+    ↓ (Dialogue nodes: action + on_speech(node, voice_text) concurrent)
     ↓ (await both complete)
 EvaluateEdges
     ↓ (check conditions on outgoing edges)
@@ -270,47 +275,59 @@ Extend to handle dialogue events:
 class_name MyDialogueUI
 extends GameScriptListener
 
-func on_conversation_enter(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+func on_conversation_enter(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     # Show dialogue UI
     notifier.on_ready()
 
-func on_speech(node: NodeRef, notifier: ReadyNotifier) -> void:
-    # Display dialogue text
-    dialogue_label.text = node.get_voice_text()
+# Text resolution params - called before on_speech to get TextResolutionParams
+# Default: auto-resolve gender, PluralCategory.OTHER, no template args
+func on_speech_params(localization: LocalizationRef, node: NodeRef) -> _GameScriptTextResolutionParams.TextResolutionParams:
+    var params := _GameScriptTextResolutionParams.TextResolutionParams.new()
+    # params.plural = _GameScriptTextResolutionParams.PluralArg.new("count", 5)
+    # params.args = [_GameScriptTextResolutionParams.Arg.string_arg("player", "Ada")]
+    return params
+
+func on_speech(node: NodeRef, voice_text: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
+    # voice_text is already fully resolved by the runner
+    dialogue_label.text = voice_text
     await get_tree().create_timer(2.0).timeout
     notifier.on_ready()
 
-func on_decision(choices: Array[NodeRef], notifier: DecisionNotifier) -> void:
-    # Show choice buttons
+func on_decision(choices: Array, notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
+    # Each choice: {"node": NodeRef, "ui_response_text": String}
     for choice in choices:
         var button := Button.new()
-        button.text = choice.get_ui_response_text()
-        button.pressed.connect(func(): notifier.on_decision_made(choice))
+        button.text = choice["ui_response_text"]  # Pre-resolved by the runner
+        button.pressed.connect(func(): notifier.on_decision_made(choice["node"]))
         choice_container.add_child(button)
 
-func on_auto_decision(choices: Array[NodeRef]) -> NodeRef:
-    # Auto-select highest priority (or custom logic)
+func on_auto_decision(choices: Array) -> Dictionary:
+    # Auto-select from highest-priority candidates
     return choices[0]
 
-func on_conversation_exit(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+func on_conversation_exit(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     # Hide dialogue UI
     notifier.on_ready()
 
-func on_conversation_cancelled(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+func on_conversation_cancelled(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     # Called on cancellation - can fade out UI, etc.
     # await fade_out_animation()
     notifier.on_ready()
 
-func on_error(conversation: ConversationRef, error: String, notifier: ReadyNotifier) -> void:
+func on_error(conversation: ConversationRef, error: String, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     push_error("Dialogue error: " + error)
-    # Can show error UI here
-    # await show_error_modal(error)
     notifier.on_ready()
 
-func on_cleanup(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+func on_cleanup(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     # Always called (normal exit, cancel, or error) - use for final cleanup
     notifier.on_ready()
 ```
+
+**V3 Changes from V2:**
+- `on_speech` now receives a `voice_text: String` parameter (pre-resolved by the runner)
+- `on_decision` choices are now dictionaries `{"node": NodeRef, "ui_response_text": String}` instead of plain `NodeRef`
+- New `on_speech_params` / `on_decision_params` callbacks for providing `TextResolutionParams`
+- `on_auto_decision` takes and returns `Dictionary` instead of `NodeRef`
 
 ### Notifiers
 Signal-based async coordination between runtime and game:
@@ -327,12 +344,12 @@ decision_notifier.on_decision_made(selected_node)
 
 **For custom signals** (decisions, custom UI), use the side-channel pattern:
 ```gdscript
-func on_decision(choices: Array[NodeRef], notifier: DecisionNotifier) -> void:
+func on_decision(choices: Array, notifier: _GameScriptNotifiers.DecisionNotifier) -> void:
     # Setup UI...
     # Just await your custom signal - no token checking needed
     await _choice_selected
 
-func on_conversation_cancelled(conversation: ConversationRef, notifier: ReadyNotifier) -> void:
+func on_conversation_cancelled(conversation: ConversationRef, notifier: _GameScriptNotifiers.ReadyNotifier) -> void:
     # Called immediately when stop_conversation() is requested
     # Emit your custom signal to unblock awaits
     _choice_selected.emit()
@@ -343,7 +360,54 @@ func on_conversation_cancelled(conversation: ConversationRef, notifier: ReadyNot
 
 ---
 
-## 6. Editor Integration
+## 6. Text Resolution (V3)
+
+The runner resolves all text before delivering it to listener callbacks. This ensures gender, plural, and template substitution are handled identically across all three runtimes.
+
+### Resolution Flow
+
+1. **on_speech_params / on_decision_params** — Listener returns `TextResolutionParams` (gender override, plural arg, typed args). Default: auto-resolve everything.
+2. **Gender Resolution** (`_resolve_gender`) — Priority: `TextResolutionParams.gender_override` > subject actor's `grammatical_gender` > localization's `subject_gender` > `GenderCategory.OTHER`. Dynamic actors without an override default to OTHER.
+3. **Plural Resolution** (`cldr_plural_rules.gd`) — If a `PluralArg` is provided, computes the CLDR plural category (ZERO/ONE/TWO/FEW/MANY/OTHER) using cardinal or ordinal rules. Supports decimal operands via `PluralArg.precision`.
+4. **Variant Selection** (`variant_resolver.gd`) — Three-pass fallback: exact (plural+gender), gender fallback to OTHER, catch-all (OTHER/OTHER).
+5. **Template Substitution** — If `is_templated`, replaces `{name}` placeholders with formatted values.
+
+### C++ Ref Updates (GDExtension)
+
+**LocalizationRef** (C++):
+- `get_subject_actor_idx()` — Index into snapshot actors, -1 if none
+- `get_subject_gender()` — Direct gender override (GenderCategory enum)
+- `is_templated()` — Whether text contains `{placeholder}` syntax
+- `get_variant_count()` — Number of text variants
+- `get_text()` — Static-gender-resolved text (no template substitution, dynamic actors default to OTHER)
+
+**ActorRef** (C++):
+- `get_grammatical_gender()` — Masculine, Feminine, Neuter, Other, or Dynamic
+- `get_localized_name_idx()` — Index into Localizations for the actor's display name
+- `get_localized_name()` — Static-gender-resolved localized display name
+
+**NodeRef** (C++):
+- `get_voice_text_localization_idx()` — Index into Localizations for voice text (-1 if none)
+- `get_ui_response_text_localization_idx()` — Index into Localizations for UI response text (-1 if none)
+
+### GDScript Components
+
+| File | Purpose |
+|------|---------|
+| `text_resolution_params.gd` | PluralArg, Arg, TextResolutionParams classes |
+| `variant_resolver.gd` | Three-pass variant selection (plural x gender) |
+| `cldr_plural_rules.gd` | CLDR cardinal + ordinal rules with decimal operands |
+| `iso_4217.gd` | Currency code to decimal places lookup |
+
+### Settings
+
+```gdscript
+@export var editor_locale_index: int = -1  # -1 = use primary from manifest
+```
+
+---
+
+## 7. Editor Integration
 
 ### EditorInspectorPlugin Pattern
 Custom Inspector UI for ID types with searchable picker dialogs:
@@ -414,7 +478,7 @@ Property drawers automatically reload when the snapshot changes:
 
 ---
 
-## 7. Data Access
+## 8. Data Access
 
 ### Via Database Ref Types
 ```gdscript
@@ -425,8 +489,15 @@ var root: NodeRef = conv.get_root_node()
 
 # Nodes
 var node: NodeRef = database.find_node(node_id)
-var voice_text: String = node.get_voice_text()
+var voice_loc_idx: int = node.get_voice_text_localization_idx()  # Index into localizations
+var ui_loc_idx: int = node.get_ui_response_text_localization_idx()
 var actor: ActorRef = node.get_actor()
+
+# Localizations (V3 variant-based text)
+var loc: LocalizationRef = database.find_localization(localization_id)
+var text: String = loc.get_text()                    # Static-gender-resolved, no template substitution
+var templated: bool = loc.is_templated()
+var subject_actor_idx: int = loc.get_subject_actor_idx()  # -1 if no subject actor
 
 # Traverse edges
 for i in range(node.get_outgoing_edge_count()):
@@ -460,7 +531,7 @@ var actor: ActorRef = database.find_actor(cached_actor_id)
 
 ---
 
-## 8. Project Structure
+## 9. Project Structure
 
 ```
 runtimes/godot/
@@ -481,7 +552,11 @@ runtimes/godot/
 │   │       │   ├── active_conversation.gd
 │   │       │   ├── notifiers.gd
 │   │       │   ├── cancellation_token.gd  # Cooperative cancellation
-│   │       │   └── signal_race.gd         # Await multiple signals
+│   │       │   ├── signal_race.gd         # Await multiple signals
+│   │       │   ├── text_resolution_params.gd  # PluralArg, Arg, TextResolutionParams
+│   │       │   ├── variant_resolver.gd    # Three-pass variant selection
+│   │       │   ├── cldr_plural_rules.gd   # CLDR cardinal + ordinal rules
+│   │       │   └── iso_4217.gd            # Currency code → decimal places
 │   │       ├── resources/           # ID wrapper resources
 │   │       │   ├── conversation_id.gd
 │   │       │   ├── actor_id.gd
@@ -523,7 +598,7 @@ runtimes/godot/
 
 ---
 
-## 9. Performance Considerations
+## 10. Performance Considerations
 
 - **Object pooling**: RunnerContext instances pooled and reused
 - **Jump tables**: Array-based O(1) dispatch with Callable, no dictionary overhead
@@ -534,7 +609,7 @@ runtimes/godot/
 
 ---
 
-## 10. Comparison with Unity Runtime
+## 11. Comparison with Unity Runtime
 
 | Feature | Unity (C#) | Godot (GDScript/C++) |
 |---------|------------|----------------------|
@@ -552,7 +627,7 @@ runtimes/godot/
 
 ---
 
-## 11. Building the GDExtension
+## 12. Building the GDExtension
 
 ### First-Time Setup
 Dependencies are fetched automatically on first build:

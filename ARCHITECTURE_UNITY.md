@@ -1,6 +1,6 @@
 # GameScript Unity Runtime Architecture
 
-Unity-specific implementation of the GameScript V2 runtime.
+Unity-specific implementation of the GameScript V3 runtime.
 
 ## Overview
 
@@ -159,15 +159,17 @@ public interface IDialogueContext
     // Current node data (from FlatBuffers snapshot)
     int NodeId { get; }
     int ConversationId { get; }
-    ActorRef Actor { get; }          // Who's speaking
-    string VoiceText { get; }        // Localized dialogue text
-    string UIResponseText { get; }   // Localized choice button text
+    ActorRef Actor { get; }                    // Who's speaking
+    string VoiceText { get; }                  // Runner-resolved voice text (gender/plural/template applied)
+    string UIResponseText { get; }             // Runner-resolved UI response text
+    int VoiceTextLocalizationIdx { get; }      // Index into snapshot.Localizations (-1 if none)
+    int UIResponseTextLocalizationIdx { get; } // Index into snapshot.Localizations (-1 if none)
     int PropertyCount { get; }
     NodePropertyRef GetProperty(int index);
 }
 ```
 
-The context provides node data and cancellation support - game-specific logic lives in your own code.
+The context provides node data and cancellation support - game-specific logic lives in your own code. The `VoiceText` and `UIResponseText` properties return fully resolved text (gender, plural, and template substitution have already been applied by the runner). The localization index properties allow direct access to the underlying localization entry if needed.
 
 ---
 
@@ -178,11 +180,14 @@ The RunnerContext implements a state machine for conversation flow:
 ```
 ConversationEnter
     ↓ (await OnConversationEnter)
+CacheNodeTexts
+    ↓ (OnSpeechParams → resolve voice text)
+    ↓ (OnDecisionParams per choice → resolve UI response texts)
 NodeEnter
     ↓ (await OnNodeEnter)
 ActionAndSpeech
     ↓ (Logic nodes: action only)
-    ↓ (Dialogue nodes: action + OnSpeech concurrent)
+    ↓ (Dialogue nodes: action + OnSpeech(node, voiceText) concurrent)
     ↓ (await both complete)
 EvaluateEdges
     ↓ (check conditions on outgoing edges)
@@ -261,43 +266,72 @@ public interface IGameScriptListener
     // Async lifecycle methods - return when ready to proceed
     Awaitable OnConversationEnter(ConversationRef conv, CancellationToken token);
     Awaitable OnNodeEnter(NodeRef node, CancellationToken token);
-    Awaitable OnSpeech(NodeRef node, CancellationToken token);                     // Present dialogue
-    Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token); // Player choice
+
+    // Text resolution params - called before OnSpeech/OnDecision to get TextResolutionParams
+    // Default: auto-resolve gender, PluralCategory.Other, no template args
+    virtual TextResolutionParams OnSpeechParams(LocalizationRef localization, NodeRef node) => default;
+    virtual TextResolutionParams OnDecisionParams(LocalizationRef localization, NodeRef choiceNode) => default;
+
+    // Present dialogue - voiceText is fully resolved (gender/plural/template applied)
+    Awaitable OnSpeech(NodeRef node, string voiceText, CancellationToken token);
+
+    // Player choice - each ChoiceRef carries pre-resolved UIResponseText
+    Awaitable<ChoiceRef> OnDecision(IReadOnlyList<ChoiceRef> choices, CancellationToken token);
+
     Awaitable OnNodeExit(NodeRef node, CancellationToken token);
     Awaitable OnConversationExit(ConversationRef conv, CancellationToken token);
 
     // Async cleanup methods - no cancellation token (must complete)
-    Awaitable OnConversationCancelled(ConversationRef conv);                 // Called on cancellation (can fade out UI, etc.)
-    Awaitable OnError(ConversationRef conv, Exception e);                    // Called on error (can show error UI, etc.)
-    Awaitable OnCleanup(ConversationRef conv);                               // Always called in finally (normal, cancel, error)
+    Awaitable OnConversationCancelled(ConversationRef conv);
+    Awaitable OnError(ConversationRef conv, Exception e);
+    Awaitable OnCleanup(ConversationRef conv);
 
-    // Sync auto-advance
-    NodeRef OnAutoDecision(IReadOnlyList<NodeRef> choices);                  // Auto-advance selection
+    // Sync auto-advance - returns a ChoiceRef
+    virtual ChoiceRef OnAutoDecision(IReadOnlyList<ChoiceRef> choices)
+        => choices[Random.Range(0, choices.Count)];
 }
 ```
+
+**V3 Changes from V2:**
+- `OnSpeech` now receives a `string voiceText` parameter (pre-resolved by the runner)
+- `OnDecision` now takes `IReadOnlyList<ChoiceRef>` instead of `IReadOnlyList<NodeRef>`, and returns `ChoiceRef`
+- New `OnSpeechParams` / `OnDecisionParams` callbacks for providing `TextResolutionParams`
+- `OnAutoDecision` takes and returns `ChoiceRef` instead of `NodeRef`
 
 ### Example Implementation
 ```csharp
 public class MyDialogueUI : MonoBehaviour, IGameScriptListener
 {
     // Pooled completion source to avoid allocation per decision
-    AwaitableCompletionSource<NodeRef> _decisionSource = new();
+    AwaitableCompletionSource<ChoiceRef> _decisionSource = new();
 
-    public async Awaitable OnSpeech(NodeRef node, CancellationToken token)
+    // Provide text resolution params for templated speech
+    public TextResolutionParams OnSpeechParams(LocalizationRef localization, NodeRef node)
     {
-        dialogueText.text = node.VoiceText;
+        return new TextResolutionParams
+        {
+            Plural = new PluralArg("count", GameState.ItemCount),
+            Args = new[] { Arg.String("player", GameState.PlayerName) }
+        };
+    }
+
+    public async Awaitable OnSpeech(NodeRef node, string voiceText, CancellationToken token)
+    {
+        // voiceText is already fully resolved by the runner
+        dialogueText.text = voiceText;
         await Awaitable.WaitForSecondsAsync(2f, token);
     }
 
-    public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+    public async Awaitable<ChoiceRef> OnDecision(IReadOnlyList<ChoiceRef> choices, CancellationToken token)
     {
         // Early exit if already cancelled
         if (token.IsCancellationRequested)
             throw new OperationCanceledException(token);
 
-        foreach (NodeRef choice in choices)
+        foreach (ChoiceRef choice in choices)
         {
-            CreateButton(choice, () => _decisionSource.TrySetResult(choice));
+            // UIResponseText is pre-resolved by the runner
+            CreateButton(choice.UIResponseText, () => _decisionSource.TrySetResult(choice));
         }
 
         try
@@ -353,7 +387,7 @@ await Awaitable.WaitForSecondsAsync(2f, token);  // Automatically cancelled
 4. Use `try/finally` to ensure `Reset()` is always called
 
 ```csharp
-public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+public async Awaitable<ChoiceRef> OnDecision(IReadOnlyList<ChoiceRef> choices, CancellationToken token)
 {
     // No need to check token or use token.Register()
     // Just await the source
@@ -373,7 +407,94 @@ public Awaitable OnConversationCancelled(ConversationRef conv)
 
 ---
 
-## 6. Editor Integration
+## 6. Text Resolution (V3)
+
+The runner resolves all text before delivering it to listener callbacks. This ensures gender, plural, and template substitution are handled identically across all three runtimes.
+
+### Resolution Flow
+
+1. **OnSpeechParams / OnDecisionParams** — Listener returns `TextResolutionParams` (gender override, plural arg, typed args). Default: auto-resolve everything.
+2. **Gender Resolution** (`ResolveGender`) — Priority: `TextResolutionParams.GenderOverride` > subject actor's `GrammaticalGender` > localization's `SubjectGender` > `GenderCategory.Other`. Dynamic actors without an override default to Other.
+3. **Plural Resolution** (`CldrPluralRules`) — If a `PluralArg` is provided, computes the CLDR plural category (Zero/One/Two/Few/Many/Other) using cardinal or ordinal rules. Supports decimal operands (i, v, w, f, t) via `PluralArg.Precision` for correct handling of numbers like "1.0" vs "1".
+4. **Variant Selection** (`VariantResolver.Resolve`) — Three-pass fallback over `Localization.Variants`: exact (plural+gender), gender fallback to Other, catch-all (Other/Other).
+5. **Template Substitution** — If `Localization.IsTemplated`, replaces `{name}` placeholders with formatted values from `PluralArg` and `Args`.
+
+### TextResolutionParams
+
+```csharp
+public struct TextResolutionParams
+{
+    public GenderCategory? GenderOverride;  // null = auto-resolve from snapshot
+    public PluralArg? Plural;               // null = PluralCategory.Other
+    public Arg[] Args;                      // Named typed substitutions
+}
+```
+
+### PluralArg (Decimal Support)
+
+```csharp
+// Integer plural
+new PluralArg("count", 5)                              // Cardinal, "5 items"
+new PluralArg("place", 3, PluralType.Ordinal)          // Ordinal, "3rd place"
+
+// Decimal plural (Value / 10^Precision)
+new PluralArg("weight", 15, 1)                         // 1.5 — uses CLDR operands i=1, v=1, w=1, f=5, t=5
+new PluralArg("score", 100, 1)                         // 10.0 — uses CLDR operands i=10, v=1, w=0, f=0, t=0
+```
+
+### Typed Args
+
+```csharp
+Arg.String("player", "Ada")              // Plain string
+Arg.Int("count", 1000)                   // "1,000" (locale-aware)
+Arg.Decimal("rate", 314, 2)              // "3.14" (locale-aware)
+Arg.Percent("chance", 155, 1)            // "15.5%" (locale-aware)
+Arg.Currency("price", 1999, "USD")       // "$19.99" (ISO 4217 decimal places)
+Arg.RawInt("id", 42)                     // "42" (no formatting)
+```
+
+### LocalizationRef
+
+```csharp
+public readonly struct LocalizationRef
+{
+    public int SubjectActorIdx { get; }      // -1 if no subject actor
+    public GenderCategory SubjectGender { get; }
+    public bool IsTemplated { get; }
+    public int VariantCount { get; }
+
+    // Static-gender-resolved text (no template substitution, dynamic actors → Other)
+    public string GetText();
+}
+```
+
+### ChoiceRef
+
+```csharp
+public readonly struct ChoiceRef
+{
+    public int Index { get; }
+    public int Id { get; }
+    public ActorRef Actor { get; }
+    public string UIResponseText { get; }    // Pre-resolved by runner
+    public NodeRef Node { get; }             // Underlying node
+    // ... plus HasCondition, HasAction, IsPreventResponse, properties
+}
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `TextResolutionParams.cs` | PluralArg, Arg, TextResolutionParams structs |
+| `VariantResolver.cs` | Three-pass variant selection (plural × gender) |
+| `CldrPluralRules.cs` | CLDR cardinal + ordinal rules with decimal operands |
+| `Iso4217.cs` | Currency code → decimal places lookup |
+| `Refs.cs` | LocalizationRef (SubjectActorIdx, GetText), ChoiceRef |
+
+---
+
+## 7. Editor Integration
 
 ### UI Toolkit (Code-Only)
 All editor UI built with UI Toolkit using pure C# (no UXML files). USS stylesheets are allowed for styling.
@@ -427,7 +548,7 @@ The property drawers read directly from the live snapshot. Workflow:
 
 ---
 
-## 7. Data Access
+## 8. Data Access
 
 ### Via Database Ref Types
 ```csharp
@@ -438,8 +559,15 @@ NodeRef root = conv.RootNode;
 
 // Nodes
 NodeRef node = database.FindNode(nodeId);
-string voiceText = node.VoiceText;
+int voiceLocIdx = node.VoiceTextLocalizationIdx;  // Index into localizations
+int uiLocIdx = node.UIResponseTextLocalizationIdx;
 ActorRef actor = node.Actor;
+
+// Localizations (V3 variant-based text)
+LocalizationRef loc = database.FindLocalization(localizationId);
+string text = loc.GetText();                    // Static-gender-resolved, no template substitution
+bool templated = loc.IsTemplated;
+int subjectActorIdx = loc.SubjectActorIdx;      // -1 if no subject actor
 
 // Traverse edges
 for (int i = 0; i < node.OutgoingEdgeCount; i++)
@@ -482,7 +610,7 @@ bool Matches(Conversation conv, int[] selectedPerCategory)
 
 ---
 
-## 8. Project Structure
+## 9. Project Structure
 
 ```
 Packages/studio.shortsleeve.gamescript/
@@ -492,8 +620,12 @@ Packages/studio.shortsleeve.gamescript/
     Command.cs                # IPC command structure for engine-to-editor communication
     Manifest.cs               # JSON manifest deserialization
     Ids.cs                    # ConversationId, ActorId, NodeId, etc.
-    Refs.cs                   # NodeRef, ConversationRef, ActorRef, etc.
+    Refs.cs                   # NodeRef, ConversationRef, ActorRef, LocalizationRef, ChoiceRef, etc.
     IDialogueContext.cs       # Interface for conditions/actions
+    TextResolutionParams.cs   # PluralArg, Arg, TextResolutionParams
+    VariantResolver.cs        # Three-pass variant selection (plural × gender)
+    CldrPluralRules.cs        # CLDR cardinal + ordinal rules with decimal operands
+    Iso4217.cs                # Currency code → decimal places lookup
     JumpTableBuilder.cs       # Reflection-based function binding
     Execution/
       GameScriptManifest.cs   # Manifest handle, creates databases/runners
@@ -535,7 +667,7 @@ Packages/studio.shortsleeve.gamescript/
 
 ---
 
-## 9. Performance Considerations
+## 10. Performance Considerations
 
 - **Object pooling**: RunnerContext instances pooled and reused
 - **Jump tables**: Array-based O(1) dispatch, no dictionary overhead

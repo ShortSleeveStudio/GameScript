@@ -248,10 +248,46 @@ The spreadsheet will have columns matching your locales (ID, Name, English, Fren
 - **Native Code Integration** - Conditions and actions written in C#/C++/GDScript
 - **Database-Backed** - PostgreSQL for teams, SQLite for individuals
 - **Localization** - Built-in multi-language support with CSV export
+- **Text Resolution** - CLDR plural rules, grammatical gender, template substitution with typed args
 - **Binary Snapshots** - FlatBuffers format for zero-copy runtime access
 - **Hot Reload** - Automatic export on save, instant updates in-engine
 - **Undo/Redo** - Full history with multiplayer resilience
 - **Golden Layout UI** - Customizable panel arrangement
+
+## Text Resolution System
+
+GameScript V3 includes a complete text resolution pipeline that produces identical results across all three runtimes (Unity, Unreal, Godot). The pipeline runs automatically before text is delivered to your listener callbacks.
+
+### Variant Selection
+
+Each localization entry can have multiple text variants indexed by **plural category** (Zero, One, Two, Few, Many, Other) and **gender category** (Masculine, Feminine, Neuter, Other). The resolver picks the best match using a three-pass fallback: exact match, gender fallback to Other, then catch-all (Other/Other).
+
+### CLDR Plural Rules
+
+Full Unicode CLDR cardinal and ordinal plural rules are implemented natively in each runtime. Decimal operand support (i, v, w, f, t) enables correct category selection for numbers like "1.0" vs "1" in languages that distinguish them. Pass a `PluralArg` with `Value` and `Precision` to drive both plural selection and numeric substitution.
+
+### Gender Resolution
+
+Gender is resolved automatically from the snapshot: each localization can reference a **subject actor** whose grammatical gender (Masculine, Feminine, Neuter, Other, Dynamic) drives variant selection. Alternatively, a direct gender override on the localization entry or via `TextResolutionParams.GenderOverride` at runtime gives full control.
+
+### Template Substitution
+
+Localization text can contain `{placeholder}` tokens. The runner substitutes values from typed arguments:
+
+| Arg Type | Example | Description |
+|----------|---------|-------------|
+| String | `Arg.String("player", "Ada")` | Plain string substitution |
+| Int | `Arg.Int("count", 1000)` | Locale-aware integer ("1,000") |
+| Decimal | `Arg.Decimal("rate", 314, 2)` | Locale-aware decimal ("3.14") |
+| Percent | `Arg.Percent("chance", 155, 1)` | Locale-aware percentage ("15.5%") |
+| Currency | `Arg.Currency("price", 1999, "USD")` | Locale-aware currency ("$19.99") |
+| RawInt | `Arg.RawInt("id", 42)` | Unformatted integer ("42") |
+
+Currency formatting uses ISO 4217 for decimal place lookup. The `PluralArg` drives both plural category selection and numeric template substitution.
+
+### Listener Integration
+
+The runner calls `OnSpeechParams` / `OnDecisionParams` on your listener before resolving text, giving you the opportunity to provide `TextResolutionParams` (gender override, plural arg, typed args). The resolved text is then delivered as a ready-to-display string via `OnSpeech(node, voiceText, ...)` and `OnDecision(choices, ...)`.
 
 ## Repository Structure
 
@@ -341,15 +377,17 @@ Kotlin-based plugin for JetBrains Rider:
 
 Unity package providing:
 - FlatBuffer snapshot loading
-- Dialogue state machine
+- Dialogue state machine with text resolution pipeline
 - Attribute-based function binding
+- CLDR plural rules, gender resolution, template substitution
 - Editor tooling
 
 ### Godot Runtime (`runtimes/godot/`)
 
 Godot 4.x addon providing:
 - C++ GDExtension for FlatBuffer parsing
-- GDScript dialogue execution engine
+- GDScript dialogue execution engine with text resolution pipeline
+- CLDR plural rules, gender resolution, template substitution
 - Custom Inspector plugins for ID types
 - Export validation
 
@@ -357,8 +395,9 @@ Godot 4.x addon providing:
 
 Unreal Engine plugin providing:
 - FlatBuffer snapshot loading
-- Dialogue state machine with UGameplayTask support
+- Dialogue state machine with UGameplayTask support and text resolution pipeline
 - Macro-based function binding (NODE_CONDITION/NODE_ACTION)
+- CLDR plural rules, gender resolution, template substitution
 - Custom property drawers and picker windows
 - Pre-PIE build validation
 - IPC integration with GameScript IDE
@@ -375,7 +414,7 @@ Install via the Unity Package Manager using a Git URL:
    ```
    https://github.com/ShortSleeveStudio/GameScript.git?path=/runtimes/unity/Packages/studio.shortsleeve.gamescript#vX.Y.Z
    ```
-   Replace `vX.Y.Z` with the desired version tag (e.g., `v2.0.10`).
+   Replace `vX.Y.Z` with the desired version tag (e.g., `v3.0.0`).
 
 ### Godot
 

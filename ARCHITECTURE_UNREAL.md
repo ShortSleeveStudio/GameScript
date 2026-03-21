@@ -1,6 +1,6 @@
 # GameScript Unreal Runtime Architecture
 
-Unreal-specific implementation of the GameScript V2 runtime.
+Unreal-specific implementation of the GameScript V3 runtime.
 
 ## Overview
 
@@ -166,9 +166,11 @@ interface IDialogueContext
     // Current node data (from FlatBuffers snapshot)
     int32 GetNodeId() const;
     int32 GetConversationId() const;
-    FActorRef GetActor() const;          // Who's speaking
-    FString GetVoiceText() const;        // Localized dialogue text
-    FString GetUIResponseText() const;   // Localized choice button text
+    FActorRef GetActor() const;                    // Who's speaking
+    FString GetVoiceText() const;                  // Runner-resolved voice text (gender/plural/template applied)
+    FString GetUIResponseText() const;             // Runner-resolved UI response text
+    int32 GetVoiceTextLocalizationIdx() const;     // Index into snapshot Localizations (-1 if none)
+    int32 GetUIResponseTextLocalizationIdx() const; // Index into snapshot Localizations (-1 if none)
     int32 GetPropertyCount() const;
     FNodePropertyRef GetProperty(int32 Index) const;
 
@@ -177,7 +179,7 @@ interface IDialogueContext
 };
 ```
 
-The context provides node data, cancellation support, and task ownership - game-specific logic lives in your own code.
+The context provides node data, cancellation support, and task ownership - game-specific logic lives in your own code. The `GetVoiceText()` and `GetUIResponseText()` methods return fully resolved text (gender, plural, and template substitution have already been applied by the runner).
 
 ---
 
@@ -188,11 +190,14 @@ The URunnerContext implements a state machine for conversation flow:
 ```
 ConversationEnter
     ↓ (await OnConversationEnter)
+CacheNodeTexts
+    ↓ (OnSpeechParams → resolve voice text)
+    ↓ (OnDecisionParams per choice → resolve UI response texts)
 NodeEnter
     ↓ (await OnNodeEnter)
 ActionAndSpeech
     ↓ (Logic nodes: action only)
-    ↓ (Dialogue nodes: action + OnSpeech concurrent)
+    ↓ (Dialogue nodes: action + OnSpeech(Node, VoiceText) concurrent)
     ↓ (await both complete)
 EvaluateEdges
     ↓ (check conditions on outgoing edges)
@@ -267,13 +272,26 @@ class IGameScriptListener
         FNodeRef Node,
         UGSCompletionHandle* Handle);
 
+    // Text resolution params - called before OnSpeech/OnDecision
+    // Default: auto-resolve gender, PluralCategory::Other, no template args
+    virtual FTextResolutionParams OnSpeechParams_Implementation(
+        FLocalizationRef Localization,
+        FNodeRef Node);
+
+    virtual FTextResolutionParams OnDecisionParams_Implementation(
+        FLocalizationRef Localization,
+        FNodeRef Node);
+
+    // Present dialogue - VoiceText is fully resolved (gender/plural/template applied)
     virtual void OnSpeech_Implementation(
         FNodeRef Node,
-        UGSCompletionHandle* Handle);  // Present dialogue
+        const FString& VoiceText,
+        UGSCompletionHandle* Handle);
 
+    // Player choice - each FChoiceRef carries pre-resolved UIResponseText
     virtual void OnDecision_Implementation(
-        const TArray<FNodeRef>& Choices,
-        UGSCompletionHandle* Handle);  // Player choice
+        const TArray<FChoiceRef>& Choices,
+        UGSCompletionHandle* Handle);
 
     virtual void OnNodeExit_Implementation(
         FNodeRef Node,
@@ -286,29 +304,47 @@ class IGameScriptListener
     // Async cleanup methods - receive handle, no cancellation (must complete)
     virtual void OnConversationCancelled_Implementation(
         FConversationRef Conversation,
-        UGSCompletionHandle* Handle);  // Called on cancellation (can fade out UI, etc.)
+        UGSCompletionHandle* Handle);
 
     virtual void OnError_Implementation(
         FConversationRef Conversation,
         const FString& ErrorMessage,
-        UGSCompletionHandle* Handle);  // Called on error (can show error UI, etc.)
+        UGSCompletionHandle* Handle);
 
     virtual void OnCleanup_Implementation(
         FConversationRef Conversation,
-        UGSCompletionHandle* Handle);  // Always called (normal, cancel, error)
+        UGSCompletionHandle* Handle);
 
-    // Sync auto-advance
-    virtual FNodeRef OnAutoDecision_Implementation(const TArray<FNodeRef>& Choices);
+    // Sync auto-advance - returns FChoiceRef
+    virtual FChoiceRef OnAutoDecision_Implementation(const TArray<FChoiceRef>& Choices);
 };
 ```
+
+**V3 Changes from V2:**
+- `OnSpeech` now receives `const FString& VoiceText` (pre-resolved by the runner)
+- `OnDecision` now takes `const TArray<FChoiceRef>&` instead of `const TArray<FNodeRef>&`
+- New `OnSpeechParams` / `OnDecisionParams` callbacks for providing `FTextResolutionParams`
+- `OnAutoDecision` takes and returns `FChoiceRef` instead of `FNodeRef`
 
 ### Example Implementation
 ```cpp
 class UMyDialogueUI : public UUserWidget, public IGameScriptListener
 {
-    virtual void OnSpeech_Implementation(FNodeRef Node, UGSCompletionHandle* Handle) override
+    // Provide text resolution params for templated speech
+    virtual FTextResolutionParams OnSpeechParams_Implementation(
+        FLocalizationRef Localization, FNodeRef Node) override
     {
-        DialogueText->SetText(FText::FromString(Node.GetVoiceText()));
+        FTextResolutionParams Params;
+        Params.SetPlural(FGSPluralArg(TEXT("count"), GameState->ItemCount));
+        Params.Args.Add(FGSArg::String(TEXT("player"), GameState->PlayerName));
+        return Params;
+    }
+
+    virtual void OnSpeech_Implementation(
+        FNodeRef Node, const FString& VoiceText, UGSCompletionHandle* Handle) override
+    {
+        // VoiceText is already fully resolved by the runner
+        DialogueText->SetText(FText::FromString(VoiceText));
 
         // Store handle for later
         PendingHandle = Handle;
@@ -324,18 +360,20 @@ class UMyDialogueUI : public UUserWidget, public IGameScriptListener
     }
 
     virtual void OnDecision_Implementation(
-        const TArray<FNodeRef>& Choices,
+        const TArray<FChoiceRef>& Choices,
         UGSCompletionHandle* Handle) override
     {
         PendingDecisionHandle = Handle;
 
         for (int32 i = 0; i < Choices.Num(); ++i)
         {
-            CreateButton(Choices[i], i);
+            // UIResponseText is pre-resolved by the runner
+            CreateButton(Choices[i].GetUIResponseText(), i);
         }
     }
 
-    virtual void OnConversationCancelled_Implementation(FConversationRef Conversation) override
+    virtual void OnConversationCancelled_Implementation(
+        FConversationRef Conversation, UGSCompletionHandle* Handle) override
     {
         // Unblock pending operations
         if (PendingDecisionHandle)
@@ -343,6 +381,7 @@ class UMyDialogueUI : public UUserWidget, public IGameScriptListener
             PendingDecisionHandle->NotifyReady();
         }
         HideUI();
+        Handle->NotifyReady();
     }
 
 private:
@@ -376,7 +415,102 @@ The **UGSCompletionHandle** object serves as a "return address" for async operat
 
 ---
 
-## 6. Editor Integration
+## 6. Text Resolution (V3)
+
+The runner resolves all text before delivering it to listener callbacks. This ensures gender, plural, and template substitution are handled identically across all three runtimes.
+
+### Resolution Flow
+
+1. **OnSpeechParams / OnDecisionParams** — Listener returns `FTextResolutionParams` (gender override, plural arg, typed args). Default: auto-resolve everything.
+2. **Gender Resolution** — Priority: `FTextResolutionParams.GenderOverride` > subject actor's `EGSGrammaticalGender` > localization's subject gender > `EGSGenderCategory::Other`. Dynamic actors without an override default to Other.
+3. **Plural Resolution** (`CldrPluralRules`) — If `bHasPlural` is true, computes the CLDR plural category (Zero/One/Two/Few/Many/Other) using cardinal or ordinal rules. Supports decimal operands via `FGSPluralArg.Precision`.
+4. **Variant Selection** (`VariantResolver`) — Three-pass fallback: exact (plural+gender), gender fallback to Other, catch-all (Other/Other).
+5. **Template Substitution** — If `IsTemplated()`, replaces `{name}` placeholders with formatted values.
+
+### FTextResolutionParams
+
+```cpp
+USTRUCT(BlueprintType)
+struct FTextResolutionParams
+{
+    bool bHasGenderOverride = false;
+    EGSGenderCategory GenderOverride = EGSGenderCategory::Other;
+    bool bHasPlural = false;
+    FGSPluralArg Plural;
+    TArray<FGSArg> Args;
+
+    void SetGenderOverride(EGSGenderCategory InGender);
+    void SetPlural(const FGSPluralArg& InPlural);
+};
+```
+
+### FGSPluralArg (Decimal Support)
+
+```cpp
+// Integer plural
+FGSPluralArg(TEXT("count"), 5)                                    // Cardinal, "5 items"
+FGSPluralArg(TEXT("place"), 3, EGSPluralType::Ordinal)            // Ordinal, "3rd place"
+
+// Decimal plural (Value / 10^Precision)
+FGSPluralArg(TEXT("weight"), 15, 1)                               // 1.5
+FGSPluralArg(TEXT("score"), 100, 1, EGSPluralType::Cardinal)      // 10.0
+```
+
+### Typed Args (FGSArg)
+
+```cpp
+FGSArg::String(TEXT("player"), TEXT("Ada"))         // Plain string
+FGSArg::Int(TEXT("count"), 1000)                    // "1,000" (locale-aware)
+FGSArg::Decimal(TEXT("rate"), 314, 2)               // "3.14" (locale-aware)
+FGSArg::Percent(TEXT("chance"), 155, 1)             // "15.5%" (locale-aware)
+FGSArg::Currency(TEXT("price"), 1999, TEXT("USD"))  // "$19.99" (ISO 4217)
+FGSArg::RawInt(TEXT("id"), 42)                      // "42" (no formatting)
+```
+
+### FLocalizationRef
+
+```cpp
+struct FLocalizationRef
+{
+    int32 GetSubjectActorIdx() const;       // -1 if no subject actor
+    EGSGenderCategory GetSubjectGender() const;
+    bool IsTemplated() const;
+    int32 GetVariantCount() const;
+    FString GetText() const;                // Static-gender-resolved, no template substitution
+};
+```
+
+### FChoiceRef
+
+```cpp
+struct FChoiceRef
+{
+    int32 GetId() const;
+    ENodeType GetType() const;
+    FActorRef GetActor() const;
+    FString GetUIResponseText() const;      // Pre-resolved by runner
+    FNodeRef GetNode() const;               // Underlying node
+    bool HasCondition() const;
+    bool HasAction() const;
+    bool IsPreventResponse() const;
+    int32 GetPropertyCount() const;
+    FNodePropertyRef GetProperty(int32 Index) const;
+};
+```
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `TextResolutionParams.h` | FGSPluralArg, FGSArg, FTextResolutionParams, enums |
+| `VariantResolver.h/.cpp` | Three-pass variant selection (plural x gender) |
+| `CldrPluralRules.h/.cpp` | CLDR cardinal + ordinal rules with decimal operands |
+| `Iso4217.h/.cpp` | Currency code to decimal places lookup |
+| `Refs.h` | FLocalizationRef, FChoiceRef |
+
+---
+
+## 7. Editor Integration
 
 ### Custom Property Drawers
 Entity references stored as ID wrapper structs with custom editor UI:
@@ -405,7 +539,7 @@ The property drawers read directly from the live snapshot. Workflow:
 
 ---
 
-## 7. Data Access
+## 8. Data Access
 
 ### Via Database Ref Types
 ```cpp
@@ -416,8 +550,15 @@ FNodeRef Root = Conv.GetRootNode();
 
 // Nodes
 FNodeRef Node = Database->FindNode(NodeId);
-FString VoiceText = Node.GetVoiceText();
+int32 VoiceLocIdx = Node.GetVoiceTextLocalizationIdx();  // Index into localizations
+int32 UILocIdx = Node.GetUIResponseTextLocalizationIdx();
 FActorRef Actor = Node.GetActor();
+
+// Localizations (V3 variant-based text)
+FLocalizationRef Loc = Database->FindLocalization(LocalizationId);
+FString Text = Loc.GetText();                    // Static-gender-resolved, no template substitution
+bool bTemplated = Loc.IsTemplated();
+int32 SubjectActorIdx = Loc.GetSubjectActorIdx(); // -1 if no subject actor
 
 // Traverse edges
 for (int32 i = 0; i < Node.GetOutgoingEdgeCount(); ++i)
@@ -434,7 +575,7 @@ FEdgeRef Edge = Database->FindEdge(EdgeId);
 
 ---
 
-## 8. Project Structure
+## 9. Project Structure
 
 ```
 runtimes/unreal/
@@ -452,7 +593,11 @@ runtimes/unreal/
 │   │   │   ├── GSCompletionHandle.h
 │   │   │   ├── Attributes.h            # NODE_ACTION, NODE_CONDITION macros
 │   │   │   ├── Ids.h                   # ID wrapper structs
-│   │   │   ├── Refs.h                  # Reference wrapper structs
+│   │   │   ├── Refs.h                  # Reference wrapper structs (FLocalizationRef, FChoiceRef, etc.)
+│   │   │   ├── TextResolutionParams.h  # FGSPluralArg, FGSArg, FTextResolutionParams, enums
+│   │   │   ├── VariantResolver.h       # Three-pass variant selection (plural × gender)
+│   │   │   ├── CldrPluralRules.h       # CLDR cardinal + ordinal rules with decimal operands
+│   │   │   ├── Iso4217.h              # Currency code → decimal places lookup
 │   │   │   ├── JumpTableBuilder.h
 │   │   │   └── GameplayTasks/
 │   │   │       ├── DialogueActionTask.h
@@ -461,8 +606,11 @@ runtimes/unreal/
 │   │   └── Private/
 │   │       ├── RunnerContext.h/.cpp
 │   │       ├── CancellationToken.h/.cpp
+│   │       ├── VariantResolver.cpp
+│   │       ├── CldrPluralRules.cpp
+│   │       ├── Iso4217.cpp
 │   │       └── Generated/
-│   │           └── snapshot.h
+│   │           └── snapshot_generated.h
 │   │
 │   └── GameScriptEditor/               # Editor module
 │       ├── GameScriptEditor.Build.cs
@@ -489,7 +637,7 @@ runtimes/unreal/
 
 ---
 
-## 9. Performance Considerations
+## 10. Performance Considerations
 
 - **Object pooling**: URunnerContext instances pooled and reused
 - **Jump tables**: Array-based O(1) dispatch, no dictionary overhead
@@ -501,7 +649,7 @@ runtimes/unreal/
 
 ---
 
-## 10. Key Differences from Unity/Godot
+## 11. Key Differences from Unity/Godot
 
 ### Async Pattern: UGameplayTask vs Awaitable/async
 
@@ -531,7 +679,7 @@ UGameplayTask* Node_456_Action(const IDialogueContext* Context)
 **Unity/Godot:** Async methods return values directly
 ```csharp
 // Unity
-public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, CancellationToken token)
+public async Awaitable<ChoiceRef> OnDecision(IReadOnlyList<ChoiceRef> choices, CancellationToken token)
 {
     return await ShowChoicesAndWait(choices);
 }
@@ -541,7 +689,7 @@ public async Awaitable<NodeRef> OnDecision(IReadOnlyList<NodeRef> choices, Cance
 ```cpp
 // Unreal
 virtual void OnDecision_Implementation(
-    const TArray<FNodeRef>& Choices,
+    const TArray<FChoiceRef>& Choices,
     UGSCompletionHandle* Handle) override
 {
     // Store handle, call SelectChoiceByIndex() later
@@ -558,7 +706,7 @@ virtual void OnDecision_Implementation(
 
 ---
 
-## 11. Build System
+## 12. Build System
 
 ### FlatBuffers Integration
 - Pre-build step auto-fetches FlatBuffers headers if missing
@@ -587,7 +735,7 @@ PrivateDependencyModuleNames.AddRange(new string[]
 
 ## Success Criteria
 
-The Unreal runtime achieves **feature parity with Unity V2**:
+The Unreal runtime achieves **feature parity with Unity V3**, including the text resolution pipeline:
 
 - ✅ All listener methods (OnSpeech, OnDecision, etc.)
 - ✅ Async pattern → UGameplayTask pattern
