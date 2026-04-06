@@ -342,7 +342,7 @@ namespace GameScript
         internal static GenderCategory ResolveStaticGender(Localization loc, Snapshot snapshot)
         {
             int actorIdx = loc.SubjectActorIdx;
-            if (actorIdx >= 0)
+            if (actorIdx >= 0 && actorIdx < snapshot.Actors.Count)
             {
                 GrammaticalGender gg = snapshot.Actors[actorIdx].GrammaticalGender;
                 switch (gg)

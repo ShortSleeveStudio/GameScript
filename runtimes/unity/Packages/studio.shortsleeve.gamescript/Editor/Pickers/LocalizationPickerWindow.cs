@@ -87,8 +87,8 @@ namespace GameScript.Editor
 
             if (!string.IsNullOrEmpty(searchText))
             {
-                bool nameMatch = item.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
-                bool textMatch = item.Text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                bool nameMatch = item.Name != null && item.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                bool textMatch = item.Text != null && item.Text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
                 if (!nameMatch && !textMatch)
                     return false;
             }
@@ -131,9 +131,10 @@ namespace GameScript.Editor
             }
 
             Label textLabel = element.Q<Label>("text");
-            string displayText = item.Text.Length > MaxDisplayTextLength
-                ? item.Text.Substring(0, MaxDisplayTextLength - 3) + "..."
-                : item.Text;
+            string safeText = item.Text ?? "";
+            string displayText = safeText.Length > MaxDisplayTextLength
+                ? safeText.Substring(0, MaxDisplayTextLength - 3) + "..."
+                : safeText;
             textLabel.text = displayText;
 
             if (item.Id == currentValue)
