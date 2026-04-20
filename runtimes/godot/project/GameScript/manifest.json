@@ -1,25 +1,25 @@
 {
   "version": "2.0.0",
   "locales": [
-    {
-      "id": 1,
-      "name": "x-source",
-      "localizedName": "English",
-      "hash": "c84ad32da041293d50dc517d1c2ee2c646b784b9613fe69b2735bcb05b8d2584"
-    },
-    {
-      "id": 2,
-      "name": "en",
-      "localizedName": "English",
-      "hash": "883845ec7f45ce3c8c9cb40469cb41634d384466dc5875f8a8e3db425675a2fd"
-    },
-    {
-      "id": 3,
-      "name": "ru",
-      "localizedName": "русский",
-      "hash": "9296f9258f7ac5ce6d0fdf291674be00a340d104bcc7c262ad28a798637afce5"
-    }
+	{
+	  "id": 1,
+	  "name": "x-source",
+	  "localizedName": "English",
+	  "hash": "05cf79345ebcacf11b5b884d6f4e30fc10e98368550169f407a428ce7a72fa51"
+	},
+	{
+	  "id": 2,
+	  "name": "en",
+	  "localizedName": "English",
+	  "hash": "b9b47e974b6bd39b1fe6480477920ce707e9c47ab3449e4350961fc68841f741"
+	},
+	{
+	  "id": 3,
+	  "name": "ru",
+	  "localizedName": "русский",
+	  "hash": "b5d4f1d51bfcfe2904193b2b7a7e4a9374e183363d95042cd5ecfb2a11be15d3"
+	}
   ],
   "primaryLocale": 0,
-  "exportedAt": "2026-03-21T00:59:36.291Z"
+  "exportedAt": "2026-04-20T21:09:45.255Z"
 }
