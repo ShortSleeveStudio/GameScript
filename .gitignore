@@ -37,3 +37,13 @@ coverage/
 runtimes/godot/gdextension/godot-cpp/
 runtimes/godot/gdextension/flatbuffers/
 runtimes/unreal/ThirdParty/flatbuffers/
+
+# SCons build artifacts (Godot GDExtension)
+runtimes/godot/gdextension/**/*.os
+runtimes/godot/gdextension/**/*.o
+runtimes/godot/gdextension/**/*.obj
+runtimes/godot/gdextension/.sconsign.dblite
+
+# .NET build artifacts (Rider plugin backend; runtimes/csharp has its own .gitignore)
+plugins/rider/src/dotnet/**/bin/
+plugins/rider/src/dotnet/**/obj/

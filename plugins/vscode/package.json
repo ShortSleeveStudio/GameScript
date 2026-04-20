@@ -2,7 +2,7 @@
   "name": "gamescript",
   "displayName": "GameScript",
   "description": "Visual dialogue authoring for games",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "publisher": "ShortSleeveStudio",
   "repository": {
     "type": "git",

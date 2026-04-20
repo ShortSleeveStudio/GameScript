@@ -24,7 +24,7 @@ using FlatSharp.Internal;
 // nullable disabled for Unity
 namespace FlatSharp.Compiler.Generated
 {
-    internal static class CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1
+    internal static class CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa
     {
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::GameScript.EdgeType Clone(global::GameScript.EdgeType item)
@@ -77,19 +77,19 @@ namespace FlatSharp.Compiler.Generated
             {
                 
                 case 1:
-                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(item.Item1));
+                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(item.Item1));
                 
 
                 case 2:
-                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(item.Item2));
+                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(item.Item2));
                 
 
                 case 3:
-                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(item.Item3));
+                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(item.Item3));
                 
 
                 case 4:
-                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(item.Item4));
+                    return new global::GameScript.PropertyValue(global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(item.Item4));
                 
                 default: 
                     global::FlatSharp.Internal.FSThrow.InvalidOperation_InvalidUnionDiscriminator<global::GameScript.PropertyValue>(discriminator);
@@ -167,7 +167,7 @@ namespace FlatSharp.Compiler.Generated
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.ConversationProperty>? Clone(global::System.Collections.Generic.IList<GameScript.ConversationProperty>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.ConversationProperty>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.ConversationProperty>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -182,7 +182,7 @@ namespace FlatSharp.Compiler.Generated
             
             if (item.HasValue)
             {
-                return global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(item.Value);
+                return global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(item.Value);
             }
 
             return null;
@@ -204,7 +204,7 @@ namespace FlatSharp.Compiler.Generated
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.TextVariant>? Clone(global::System.Collections.Generic.IList<GameScript.TextVariant>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.TextVariant>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.TextVariant>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -222,7 +222,7 @@ namespace FlatSharp.Compiler.Generated
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.NodeProperty>? Clone(global::System.Collections.Generic.IList<GameScript.NodeProperty>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.NodeProperty>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.NodeProperty>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -246,49 +246,49 @@ namespace FlatSharp.Compiler.Generated
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<System.String>? Clone(global::System.Collections.Generic.IList<System.String>? item)
         {
-            return VectorCloneHelpers.Clone<System.String>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<System.String>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.StringArray>? Clone(global::System.Collections.Generic.IList<GameScript.StringArray>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.StringArray>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.StringArray>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.Conversation>? Clone(global::System.Collections.Generic.IList<GameScript.Conversation>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.Conversation>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.Conversation>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.Node>? Clone(global::System.Collections.Generic.IList<GameScript.Node>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.Node>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.Node>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.Edge>? Clone(global::System.Collections.Generic.IList<GameScript.Edge>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.Edge>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.Edge>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.Actor>? Clone(global::System.Collections.Generic.IList<GameScript.Actor>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.Actor>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.Actor>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.Localization>? Clone(global::System.Collections.Generic.IList<GameScript.Localization>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.Localization>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.Localization>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
         public static global::System.Collections.Generic.IList<GameScript.PropertyTemplate>? Clone(global::System.Collections.Generic.IList<GameScript.PropertyTemplate>? item)
         {
-            return VectorCloneHelpers.Clone<GameScript.PropertyTemplate>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone);
+            return VectorCloneHelpers.Clone<GameScript.PropertyTemplate>(item, global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone);
         }
         
         [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -1064,18 +1064,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_32a2e44aef7b4a279038c07271d7cf57_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_15166994189648339a90d758cc0d9f5b_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_32a2e44aef7b4a279038c07271d7cf57_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_15166994189648339a90d758cc0d9f5b_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Int32Value")]
-            internal sealed class tableReader_32a2e44aef7b4a279038c07271d7cf57_Lazy<TInputBuffer> 
+            internal sealed class tableReader_15166994189648339a90d758cc0d9f5b_Lazy<TInputBuffer> 
                 : global::GameScript.Int32Value
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1096,7 +1096,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_32a2e44aef7b4a279038c07271d7cf57_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_15166994189648339a90d758cc0d9f5b_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -1158,18 +1158,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_32a2e44aef7b4a279038c07271d7cf57_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_15166994189648339a90d758cc0d9f5b_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_32a2e44aef7b4a279038c07271d7cf57_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_15166994189648339a90d758cc0d9f5b_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Int32Value")]
-            internal sealed class tableReader_32a2e44aef7b4a279038c07271d7cf57_Progressive<TInputBuffer> 
+            internal sealed class tableReader_15166994189648339a90d758cc0d9f5b_Progressive<TInputBuffer> 
                 : global::GameScript.Int32Value
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1192,7 +1192,7 @@ private System.Int32 __index0Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_32a2e44aef7b4a279038c07271d7cf57_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_15166994189648339a90d758cc0d9f5b_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -1261,18 +1261,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_32a2e44aef7b4a279038c07271d7cf57_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_15166994189648339a90d758cc0d9f5b_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_32a2e44aef7b4a279038c07271d7cf57_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_15166994189648339a90d758cc0d9f5b_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Int32Value")]
-            internal sealed class tableReader_32a2e44aef7b4a279038c07271d7cf57_Greedy<TInputBuffer> 
+            internal sealed class tableReader_15166994189648339a90d758cc0d9f5b_Greedy<TInputBuffer> 
                 : global::GameScript.Int32Value
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1290,7 +1290,7 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_32a2e44aef7b4a279038c07271d7cf57_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_15166994189648339a90d758cc0d9f5b_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -1350,18 +1350,18 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_32a2e44aef7b4a279038c07271d7cf57_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N58EE567B4359E250D25872249DB161ABBD92C4552F123FFEE14825802F0D7527.Helpers.tableReader_15166994189648339a90d758cc0d9f5b_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_32a2e44aef7b4a279038c07271d7cf57_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_15166994189648339a90d758cc0d9f5b_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Int32Value")]
-            internal sealed class tableReader_32a2e44aef7b4a279038c07271d7cf57_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_15166994189648339a90d758cc0d9f5b_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Int32Value
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1379,7 +1379,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_32a2e44aef7b4a279038c07271d7cf57_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_15166994189648339a90d758cc0d9f5b_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -1438,7 +1438,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_1b8107fc4d9b4eec9cd0da4c50a6996d
+            private static class tableMetadata_496030828c76491b83260be64fba2aaf
             {
                 
                 public static readonly TableFieldContext Value = new TableFieldContext(
@@ -1519,18 +1519,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_041d96f6e28f412aa622e5657dbee8e9_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_324088bd88034ea4a94553821eeea7fd_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_041d96f6e28f412aa622e5657dbee8e9_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_324088bd88034ea4a94553821eeea7fd_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy FloatValue")]
-            internal sealed class tableReader_041d96f6e28f412aa622e5657dbee8e9_Lazy<TInputBuffer> 
+            internal sealed class tableReader_324088bd88034ea4a94553821eeea7fd_Lazy<TInputBuffer> 
                 : global::GameScript.FloatValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1551,7 +1551,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_041d96f6e28f412aa622e5657dbee8e9_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_324088bd88034ea4a94553821eeea7fd_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -1613,18 +1613,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_041d96f6e28f412aa622e5657dbee8e9_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_324088bd88034ea4a94553821eeea7fd_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_041d96f6e28f412aa622e5657dbee8e9_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_324088bd88034ea4a94553821eeea7fd_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive FloatValue")]
-            internal sealed class tableReader_041d96f6e28f412aa622e5657dbee8e9_Progressive<TInputBuffer> 
+            internal sealed class tableReader_324088bd88034ea4a94553821eeea7fd_Progressive<TInputBuffer> 
                 : global::GameScript.FloatValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1647,7 +1647,7 @@ private System.Single __index0Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_041d96f6e28f412aa622e5657dbee8e9_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_324088bd88034ea4a94553821eeea7fd_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -1716,18 +1716,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_041d96f6e28f412aa622e5657dbee8e9_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_324088bd88034ea4a94553821eeea7fd_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_041d96f6e28f412aa622e5657dbee8e9_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_324088bd88034ea4a94553821eeea7fd_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy FloatValue")]
-            internal sealed class tableReader_041d96f6e28f412aa622e5657dbee8e9_Greedy<TInputBuffer> 
+            internal sealed class tableReader_324088bd88034ea4a94553821eeea7fd_Greedy<TInputBuffer> 
                 : global::GameScript.FloatValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1745,7 +1745,7 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_041d96f6e28f412aa622e5657dbee8e9_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_324088bd88034ea4a94553821eeea7fd_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -1805,18 +1805,18 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_041d96f6e28f412aa622e5657dbee8e9_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N34307F60792CE273B4178972C380F7455321237C51A3E1429894B87F43FF5BFD.Helpers.tableReader_324088bd88034ea4a94553821eeea7fd_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_041d96f6e28f412aa622e5657dbee8e9_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_324088bd88034ea4a94553821eeea7fd_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable FloatValue")]
-            internal sealed class tableReader_041d96f6e28f412aa622e5657dbee8e9_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_324088bd88034ea4a94553821eeea7fd_GreedyMutable<TInputBuffer> 
                 : global::GameScript.FloatValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -1834,7 +1834,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_041d96f6e28f412aa622e5657dbee8e9_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_324088bd88034ea4a94553821eeea7fd_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -1893,7 +1893,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_01ae7a12a3864e039127827ae92558f6
+            private static class tableMetadata_e07c2970bf5249deb1e9a353949a9874
             {
                 
                 public static readonly TableFieldContext Value = new TableFieldContext(
@@ -1974,18 +1974,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_8a7985ef58cb419389d082f485288c4a_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_e82031d7881547f2b54a48666d704ed6_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_8a7985ef58cb419389d082f485288c4a_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e82031d7881547f2b54a48666d704ed6_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy BoolValue")]
-            internal sealed class tableReader_8a7985ef58cb419389d082f485288c4a_Lazy<TInputBuffer> 
+            internal sealed class tableReader_e82031d7881547f2b54a48666d704ed6_Lazy<TInputBuffer> 
                 : global::GameScript.BoolValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -2006,7 +2006,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_8a7985ef58cb419389d082f485288c4a_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e82031d7881547f2b54a48666d704ed6_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -2068,18 +2068,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_8a7985ef58cb419389d082f485288c4a_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_e82031d7881547f2b54a48666d704ed6_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_8a7985ef58cb419389d082f485288c4a_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e82031d7881547f2b54a48666d704ed6_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive BoolValue")]
-            internal sealed class tableReader_8a7985ef58cb419389d082f485288c4a_Progressive<TInputBuffer> 
+            internal sealed class tableReader_e82031d7881547f2b54a48666d704ed6_Progressive<TInputBuffer> 
                 : global::GameScript.BoolValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -2102,7 +2102,7 @@ private System.Boolean __index0Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_8a7985ef58cb419389d082f485288c4a_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e82031d7881547f2b54a48666d704ed6_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -2171,18 +2171,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_8a7985ef58cb419389d082f485288c4a_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_e82031d7881547f2b54a48666d704ed6_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_8a7985ef58cb419389d082f485288c4a_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e82031d7881547f2b54a48666d704ed6_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy BoolValue")]
-            internal sealed class tableReader_8a7985ef58cb419389d082f485288c4a_Greedy<TInputBuffer> 
+            internal sealed class tableReader_e82031d7881547f2b54a48666d704ed6_Greedy<TInputBuffer> 
                 : global::GameScript.BoolValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -2200,7 +2200,7 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_8a7985ef58cb419389d082f485288c4a_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e82031d7881547f2b54a48666d704ed6_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -2260,18 +2260,18 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_8a7985ef58cb419389d082f485288c4a_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N754ADA4DB89B3740F0BEDD1CC8604D2FA03F1D21406FB50B2BD9D4BAF75D8605.Helpers.tableReader_e82031d7881547f2b54a48666d704ed6_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_8a7985ef58cb419389d082f485288c4a_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e82031d7881547f2b54a48666d704ed6_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable BoolValue")]
-            internal sealed class tableReader_8a7985ef58cb419389d082f485288c4a_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_e82031d7881547f2b54a48666d704ed6_GreedyMutable<TInputBuffer> 
                 : global::GameScript.BoolValue
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -2289,7 +2289,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_8a7985ef58cb419389d082f485288c4a_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e82031d7881547f2b54a48666d704ed6_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -2348,7 +2348,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_76c644cd9ef148b982227429e8dca3b3
+            private static class tableMetadata_eb55534072dd47b783639c3979908449
             {
                 
                 public static readonly TableFieldContext Value = new TableFieldContext(
@@ -2718,7 +2718,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_366c7149dd2843e68e7a454bd2b2b786.Color);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_e496177d2b744d90b18d28e842ad226c.Color);
             
                     }
                 
@@ -2727,7 +2727,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_366c7149dd2843e68e7a454bd2b2b786.Name);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_e496177d2b744d90b18d28e842ad226c.Name);
             
                     }
                 
@@ -2736,18 +2736,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Actor")]
-            internal sealed class tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy<TInputBuffer> 
+            internal sealed class tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy<TInputBuffer> 
                 : global::GameScript.Actor
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -2768,7 +2768,7 @@ private VTable8 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -2990,18 +2990,18 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Actor")]
-            internal sealed class tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer> 
+            internal sealed class tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer> 
                 : global::GameScript.Actor
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -3028,7 +3028,7 @@ private System.Int32 __index4Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -3285,18 +3285,18 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Actor")]
-            internal sealed class tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer> 
+            internal sealed class tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer> 
                 : global::GameScript.Actor
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -3318,7 +3318,7 @@ private System.Int32 __index4Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -3542,18 +3542,18 @@ this.__index4Value = ReadIndex4Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_8cb9de3437a1461390f786970d95d2e6_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Actor")]
-            internal sealed class tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_8cb9de3437a1461390f786970d95d2e6_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Actor
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -3575,7 +3575,7 @@ private System.Int32 __index4Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_8cb9de3437a1461390f786970d95d2e6_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -3798,7 +3798,7 @@ this.__index4Value = ReadIndex4Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_366c7149dd2843e68e7a454bd2b2b786
+            private static class tableMetadata_e496177d2b744d90b18d28e842ad226c
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -4159,7 +4159,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_2302a13ab2b24f45a92927295fae3612.Notes);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Notes);
             
                     }
                 
@@ -4168,7 +4168,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_2302a13ab2b24f45a92927295fae3612.Name);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Name);
             
                     }
                 
@@ -4177,18 +4177,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2863a8f98135476d91175fa551e7b769_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e97edfac47294675a386808efdb355f1_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Conversation")]
-            internal sealed class tableReader_2863a8f98135476d91175fa551e7b769_Lazy<TInputBuffer> 
+            internal sealed class tableReader_e97edfac47294675a386808efdb355f1_Lazy<TInputBuffer> 
                 : global::GameScript.Conversation
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -4209,7 +4209,7 @@ private VTableGeneric __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2863a8f98135476d91175fa551e7b769_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e97edfac47294675a386808efdb355f1_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -4533,7 +4533,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.TagIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -4556,7 +4556,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.Properties);
+            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -4579,7 +4579,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.NodeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.NodeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -4602,7 +4602,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.EdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.EdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -4631,18 +4631,18 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Conversation")]
-            internal sealed class tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer> 
+            internal sealed class tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer> 
                 : global::GameScript.Conversation
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -4675,7 +4675,7 @@ private System.Int32 __index9Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2863a8f98135476d91175fa551e7b769_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e97edfac47294675a386808efdb355f1_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -5069,7 +5069,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.TagIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5092,7 +5092,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.Properties);
+            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5115,7 +5115,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.NodeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.NodeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5138,7 +5138,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.EdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.EdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5167,18 +5167,18 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Conversation")]
-            internal sealed class tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer> 
+            internal sealed class tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer> 
                 : global::GameScript.Conversation
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -5205,7 +5205,7 @@ private System.Int32 __index9Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2863a8f98135476d91175fa551e7b769_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e97edfac47294675a386808efdb355f1_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -5536,7 +5536,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.TagIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5559,7 +5559,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.Properties);
+            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5582,7 +5582,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.NodeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.NodeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5605,7 +5605,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.EdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.EdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -5634,18 +5634,18 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2863a8f98135476d91175fa551e7b769_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_e97edfac47294675a386808efdb355f1_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Conversation")]
-            internal sealed class tableReader_2863a8f98135476d91175fa551e7b769_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_e97edfac47294675a386808efdb355f1_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Conversation
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -5672,7 +5672,7 @@ private System.Int32 __index9Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2863a8f98135476d91175fa551e7b769_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_e97edfac47294675a386808efdb355f1_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -6003,7 +6003,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.TagIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -6026,7 +6026,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.Properties);
+            return global::FlatSharp.Compiler.Generated.N3AC9340542D18BA2E4194520D879BFA884455206FAD9B97AB51C71173C1972E5.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -6049,7 +6049,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.NodeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.NodeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -6072,7 +6072,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_2302a13ab2b24f45a92927295fae3612.EdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_76ee36cbd8564ad6a704668f1e85f42d.EdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -6100,7 +6100,7 @@ this.__index9Value = ReadIndex9Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_2302a13ab2b24f45a92927295fae3612
+            private static class tableMetadata_76ee36cbd8564ad6a704668f1e85f42d
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -6897,14 +6897,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -6980,7 +6980,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_36328ea51c40011569d2041f93b572a1_Progressive(
             TInputBuffer memory,
@@ -6997,7 +6997,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.ConversationProperty this[int index]
@@ -7018,15 +7018,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -7034,7 +7034,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -7065,14 +7065,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -7139,7 +7139,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.ConversationProperty>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_36328ea51c40011569d2041f93b572a1_Greedy(
             TInputBuffer buffer,
@@ -7150,7 +7150,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -7171,7 +7171,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.ConversationProperty value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.ConversationProperty? item)
@@ -7417,7 +7417,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             var offsetTuple = (index1Offset, index2Offset);
-            global::FlatSharp.Compiler.Generated.N1DB39184F8123A997E4811CC3008685D9674D37699C694ABEFE62B06CA4AE511.Helpers.Serialize(spanWriter, span, index1Value, ref offsetTuple, context, tableMetadata_59ced5f3d1864361be3a99461e313753.Value);
+            global::FlatSharp.Compiler.Generated.N1DB39184F8123A997E4811CC3008685D9674D37699C694ABEFE62B06CA4AE511.Helpers.Serialize(spanWriter, span, index1Value, ref offsetTuple, context, tableMetadata_f812b6f7a0f74f1db92bb6f5d283c3d3.Value);
             
                     }
                 
@@ -7426,18 +7426,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy ConversationProperty")]
-            internal sealed class tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy<TInputBuffer> 
+            internal sealed class tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy<TInputBuffer> 
                 : global::GameScript.ConversationProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -7458,7 +7458,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_cfd377f40e274de2bf869c179333dbb7_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d338c770ce6740b081e1ca9a3cd97459_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -7579,18 +7579,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive ConversationProperty")]
-            internal sealed class tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive<TInputBuffer> 
+            internal sealed class tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive<TInputBuffer> 
                 : global::GameScript.ConversationProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -7614,7 +7614,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_cfd377f40e274de2bf869c179333dbb7_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d338c770ce6740b081e1ca9a3cd97459_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -7749,18 +7749,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy ConversationProperty")]
-            internal sealed class tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy<TInputBuffer> 
+            internal sealed class tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy<TInputBuffer> 
                 : global::GameScript.ConversationProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -7779,7 +7779,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_cfd377f40e274de2bf869c179333dbb7_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d338c770ce6740b081e1ca9a3cd97459_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -7899,18 +7899,18 @@ this.__index1Value = ReadIndex1Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_cfd377f40e274de2bf869c179333dbb7_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N27DA3E82AB05B7C0BDCB0342753CC5C678A47472404071236907457AD60B88C2.Helpers.tableReader_d338c770ce6740b081e1ca9a3cd97459_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_cfd377f40e274de2bf869c179333dbb7_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d338c770ce6740b081e1ca9a3cd97459_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable ConversationProperty")]
-            internal sealed class tableReader_cfd377f40e274de2bf869c179333dbb7_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_d338c770ce6740b081e1ca9a3cd97459_GreedyMutable<TInputBuffer> 
                 : global::GameScript.ConversationProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -7929,7 +7929,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_cfd377f40e274de2bf869c179333dbb7_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d338c770ce6740b081e1ca9a3cd97459_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -8048,7 +8048,7 @@ this.__index1Value = ReadIndex1Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_59ced5f3d1864361be3a99461e313753
+            private static class tableMetadata_f812b6f7a0f74f1db92bb6f5d283c3d3
             {
                 
                 public static readonly TableFieldContext TemplateIdx = new TableFieldContext(
@@ -8340,18 +8340,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Edge")]
-            internal sealed class tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy<TInputBuffer> 
+            internal sealed class tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy<TInputBuffer> 
                 : global::GameScript.Edge
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -8372,7 +8372,7 @@ private VTable8 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -8634,18 +8634,18 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Edge")]
-            internal sealed class tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer> 
+            internal sealed class tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer> 
                 : global::GameScript.Edge
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -8673,7 +8673,7 @@ private GameScript.EdgeType __index5Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -8977,18 +8977,18 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Edge")]
-            internal sealed class tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer> 
+            internal sealed class tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer> 
                 : global::GameScript.Edge
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -9011,7 +9011,7 @@ private GameScript.EdgeType __index5Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -9276,18 +9276,18 @@ this.__index5Value = ReadIndex5Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_2b322df8ad4542e8816d444cd71d45f3_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7de94a98e4064807b4e7c2c6c8d932e5_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Edge")]
-            internal sealed class tableReader_2b322df8ad4542e8816d444cd71d45f3_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_7de94a98e4064807b4e7c2c6c8d932e5_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Edge
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -9310,7 +9310,7 @@ private GameScript.EdgeType __index5Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_2b322df8ad4542e8816d444cd71d45f3_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7de94a98e4064807b4e7c2c6c8d932e5_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -9574,7 +9574,7 @@ this.__index5Value = ReadIndex5Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_b674cd1b995d47028dfca358f2e564e2
+            private static class tableMetadata_8810444e2e9f441b85a142006344642e
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -9844,7 +9844,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_06539fa1d6254d37896165444cf8c613.Name);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.Name);
             
                     }
                 
@@ -9853,18 +9853,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Localization")]
-            internal sealed class tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy<TInputBuffer> 
+            internal sealed class tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy<TInputBuffer> 
                 : global::GameScript.Localization
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -9885,7 +9885,7 @@ private VTable8 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -10158,7 +10158,7 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.Variants);
+            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.Variants);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -10181,24 +10181,24 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.TagIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Localization")]
-            internal sealed class tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer> 
+            internal sealed class tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer> 
                 : global::GameScript.Localization
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -10227,7 +10227,7 @@ private System.Collections.Generic.IList<System.Int32>? __index6Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -10549,7 +10549,7 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.Variants);
+            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.Variants);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -10572,24 +10572,24 @@ VTable8.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.TagIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Localization")]
-            internal sealed class tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer> 
+            internal sealed class tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer> 
                 : global::GameScript.Localization
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -10613,7 +10613,7 @@ private System.Collections.Generic.IList<System.Int32>? __index6Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -10890,7 +10890,7 @@ this.__index6Value = ReadIndex6Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.Variants);
+            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.Variants);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -10913,24 +10913,24 @@ this.__index6Value = ReadIndex6Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.TagIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_03eee8d7d998402096fb92143e7b6a65_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_f704285e999e4ae9aa757abb2470b74f_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Localization")]
-            internal sealed class tableReader_03eee8d7d998402096fb92143e7b6a65_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_f704285e999e4ae9aa757abb2470b74f_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Localization
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -10954,7 +10954,7 @@ private System.Collections.Generic.IList<System.Int32>? __index6Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_03eee8d7d998402096fb92143e7b6a65_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_f704285e999e4ae9aa757abb2470b74f_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable8.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -11231,7 +11231,7 @@ this.__index6Value = ReadIndex6Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.Variants);
+            return global::FlatSharp.Compiler.Generated.NEB4A6C8BFA1F076CD6EA3F8970E984A564A02BAB5CDDCEE6970485B1F7E285E6.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.Variants);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -11254,12 +11254,12 @@ this.__index6Value = ReadIndex6Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_06539fa1d6254d37896165444cf8c613.TagIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f.TagIndices);
             }
             }
         
 
-            private static class tableMetadata_06539fa1d6254d37896165444cf8c613
+            private static class tableMetadata_9676e988e5b34a56b6c8868cbae3fa6f
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -11477,14 +11477,14 @@ this.__index6Value = ReadIndex6Value(buffer, offset, vtable, remainingDepth);
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -11560,7 +11560,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_59d56bf5b4b68c317cbb6b750d2f4fd6_Progressive(
             TInputBuffer memory,
@@ -11577,7 +11577,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.TextVariant this[int index]
@@ -11598,15 +11598,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -11614,7 +11614,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -11645,14 +11645,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -11719,7 +11719,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.TextVariant>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_59d56bf5b4b68c317cbb6b750d2f4fd6_Greedy(
             TInputBuffer buffer,
@@ -11730,7 +11730,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -11751,7 +11751,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.TextVariant value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.TextVariant? item)
@@ -12006,7 +12006,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_0cb6b247e9bf40b69fb11598642118e5.Text);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_e77e3b490192490db63c9016a0354ab7.Text);
             
                     }
                 
@@ -12015,18 +12015,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_f24236178d5f43439c1e89741931c8da_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy TextVariant")]
-            internal sealed class tableReader_f24236178d5f43439c1e89741931c8da_Lazy<TInputBuffer> 
+            internal sealed class tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy<TInputBuffer> 
                 : global::GameScript.TextVariant
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -12047,7 +12047,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_f24236178d5f43439c1e89741931c8da_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_46dd99245b4b4f2e93f5e2a38c438368_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -12189,18 +12189,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive TextVariant")]
-            internal sealed class tableReader_f24236178d5f43439c1e89741931c8da_Progressive<TInputBuffer> 
+            internal sealed class tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive<TInputBuffer> 
                 : global::GameScript.TextVariant
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -12225,7 +12225,7 @@ private System.String? __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_f24236178d5f43439c1e89741931c8da_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_46dd99245b4b4f2e93f5e2a38c438368_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -12388,18 +12388,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy TextVariant")]
-            internal sealed class tableReader_f24236178d5f43439c1e89741931c8da_Greedy<TInputBuffer> 
+            internal sealed class tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy<TInputBuffer> 
                 : global::GameScript.TextVariant
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -12419,7 +12419,7 @@ private System.String? __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_f24236178d5f43439c1e89741931c8da_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_46dd99245b4b4f2e93f5e2a38c438368_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -12561,18 +12561,18 @@ this.__index2Value = ReadIndex2Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_f24236178d5f43439c1e89741931c8da_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND62E9003C4DE50D5E5E0C1F1FDAE5152EFE70AE062912864DD220383E8C95F72.Helpers.tableReader_46dd99245b4b4f2e93f5e2a38c438368_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_f24236178d5f43439c1e89741931c8da_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_46dd99245b4b4f2e93f5e2a38c438368_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable TextVariant")]
-            internal sealed class tableReader_f24236178d5f43439c1e89741931c8da_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_46dd99245b4b4f2e93f5e2a38c438368_GreedyMutable<TInputBuffer> 
                 : global::GameScript.TextVariant
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -12592,7 +12592,7 @@ private System.String? __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_f24236178d5f43439c1e89741931c8da_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_46dd99245b4b4f2e93f5e2a38c438368_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -12733,7 +12733,7 @@ this.__index2Value = ReadIndex2Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_0cb6b247e9bf40b69fb11598642118e5
+            private static class tableMetadata_e77e3b490192490db63c9016a0354ab7
             {
                 
                 public static readonly TableFieldContext Plural = new TableFieldContext(
@@ -13184,7 +13184,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index11Value!, index11Offset, context, tableMetadata_7373b5d5432444b68f4a3b5144be7488.Notes);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index11Value!, index11Offset, context, tableMetadata_6432161e9fdf4234b78a418de626ce1c.Notes);
             
                     }
                 
@@ -13193,18 +13193,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Node")]
-            internal sealed class tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy<TInputBuffer> 
+            internal sealed class tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy<TInputBuffer> 
                 : global::GameScript.Node
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -13225,7 +13225,7 @@ private VTableGeneric __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -13795,7 +13795,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.Properties);
+            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -13818,7 +13818,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.OutgoingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.OutgoingEdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -13841,24 +13841,24 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.IncomingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.IncomingEdgeIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Node")]
-            internal sealed class tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer> 
+            internal sealed class tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer> 
                 : global::GameScript.Node
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -13896,7 +13896,7 @@ private System.Collections.Generic.IList<System.Int32>? __index14Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -14571,7 +14571,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.Properties);
+            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -14594,7 +14594,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.OutgoingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.OutgoingEdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -14617,24 +14617,24 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.IncomingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.IncomingEdgeIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Node")]
-            internal sealed class tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer> 
+            internal sealed class tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer> 
                 : global::GameScript.Node
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -14666,7 +14666,7 @@ private System.Collections.Generic.IList<System.Int32>? __index14Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -15248,7 +15248,7 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.Properties);
+            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -15271,7 +15271,7 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.OutgoingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.OutgoingEdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -15294,24 +15294,24 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.IncomingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.IncomingEdgeIndices);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_4ec7d6d35fdf4806bbc1cd090a370507_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_7993bf71884c45ef81f70285523ca1bf_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Node")]
-            internal sealed class tableReader_4ec7d6d35fdf4806bbc1cd090a370507_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_7993bf71884c45ef81f70285523ca1bf_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Node
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -15343,7 +15343,7 @@ private System.Collections.Generic.IList<System.Int32>? __index14Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_4ec7d6d35fdf4806bbc1cd090a370507_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_7993bf71884c45ef81f70285523ca1bf_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -15925,7 +15925,7 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.Properties);
+            return global::FlatSharp.Compiler.Generated.NCD798724EA2288AB2D24604464CD2E2B3E1CF1B639E9C0BE7EEC460E52F55A46.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.Properties);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -15948,7 +15948,7 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.OutgoingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.OutgoingEdgeIndices);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -15971,12 +15971,12 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_7373b5d5432444b68f4a3b5144be7488.IncomingEdgeIndices);
+            return global::FlatSharp.Compiler.Generated.NE68D57F4496A1376D8E4DE70B038C329316EF710795CB9E1F471028AC54CDABA.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_6432161e9fdf4234b78a418de626ce1c.IncomingEdgeIndices);
             }
             }
         
 
-            private static class tableMetadata_7373b5d5432444b68f4a3b5144be7488
+            private static class tableMetadata_6432161e9fdf4234b78a418de626ce1c
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -16234,14 +16234,14 @@ this.__index14Value = ReadIndex14Value(buffer, offset, vtable, remainingDepth);
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -16317,7 +16317,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_09572963cb0bce57fa21eb954e8b9bd6_Progressive(
             TInputBuffer memory,
@@ -16334,7 +16334,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.NodeProperty this[int index]
@@ -16355,15 +16355,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -16371,7 +16371,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -16402,14 +16402,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -16476,7 +16476,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.NodeProperty>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_09572963cb0bce57fa21eb954e8b9bd6_Greedy(
             TInputBuffer buffer,
@@ -16487,7 +16487,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -16508,7 +16508,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.NodeProperty value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.NodeProperty? item)
@@ -16754,7 +16754,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             var offsetTuple = (index1Offset, index2Offset);
-            global::FlatSharp.Compiler.Generated.N1DB39184F8123A997E4811CC3008685D9674D37699C694ABEFE62B06CA4AE511.Helpers.Serialize(spanWriter, span, index1Value, ref offsetTuple, context, tableMetadata_aa2d7aa7e3464311a7094ee2a5e10f3d.Value);
+            global::FlatSharp.Compiler.Generated.N1DB39184F8123A997E4811CC3008685D9674D37699C694ABEFE62B06CA4AE511.Helpers.Serialize(spanWriter, span, index1Value, ref offsetTuple, context, tableMetadata_f89e53abb464456cabf182b973fd5230.Value);
             
                     }
                 
@@ -16763,18 +16763,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_c129890ff3cf4950a1f94ec821825818_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy NodeProperty")]
-            internal sealed class tableReader_c129890ff3cf4950a1f94ec821825818_Lazy<TInputBuffer> 
+            internal sealed class tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy<TInputBuffer> 
                 : global::GameScript.NodeProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -16795,7 +16795,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_c129890ff3cf4950a1f94ec821825818_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -16916,18 +16916,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive NodeProperty")]
-            internal sealed class tableReader_c129890ff3cf4950a1f94ec821825818_Progressive<TInputBuffer> 
+            internal sealed class tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive<TInputBuffer> 
                 : global::GameScript.NodeProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -16951,7 +16951,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_c129890ff3cf4950a1f94ec821825818_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -17086,18 +17086,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy NodeProperty")]
-            internal sealed class tableReader_c129890ff3cf4950a1f94ec821825818_Greedy<TInputBuffer> 
+            internal sealed class tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy<TInputBuffer> 
                 : global::GameScript.NodeProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -17116,7 +17116,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_c129890ff3cf4950a1f94ec821825818_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -17236,18 +17236,18 @@ this.__index1Value = ReadIndex1Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_c129890ff3cf4950a1f94ec821825818_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N3149071E01E66CD3BD4887DC8BDF4CA56849ACFA90011F89670F4D54BC14E0F2.Helpers.tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_c129890ff3cf4950a1f94ec821825818_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable NodeProperty")]
-            internal sealed class tableReader_c129890ff3cf4950a1f94ec821825818_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_GreedyMutable<TInputBuffer> 
                 : global::GameScript.NodeProperty
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -17266,7 +17266,7 @@ private System.Nullable<GameScript.PropertyValue> __index1Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_c129890ff3cf4950a1f94ec821825818_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_1b23a9876afd40fa9b9ada3dcae6c19c_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -17385,7 +17385,7 @@ this.__index1Value = ReadIndex1Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_aa2d7aa7e3464311a7094ee2a5e10f3d
+            private static class tableMetadata_f89e53abb464456cabf182b973fd5230
             {
                 
                 public static readonly TableFieldContext TemplateIdx = new TableFieldContext(
@@ -17519,7 +17519,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_d7bbeb46ed8a418fa9fa8696f959bf6d.Name);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_3bc0e67c486044d283cb972eb107d7e8.Name);
             
                     }
                 
@@ -17528,18 +17528,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy PropertyTemplate")]
-            internal sealed class tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy<TInputBuffer> 
+            internal sealed class tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy<TInputBuffer> 
                 : global::GameScript.PropertyTemplate
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -17560,7 +17560,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -17702,18 +17702,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive PropertyTemplate")]
-            internal sealed class tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer> 
+            internal sealed class tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer> 
                 : global::GameScript.PropertyTemplate
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -17738,7 +17738,7 @@ private GameScript.PropertyType __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -17901,18 +17901,18 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy PropertyTemplate")]
-            internal sealed class tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer> 
+            internal sealed class tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer> 
                 : global::GameScript.PropertyTemplate
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -17932,7 +17932,7 @@ private GameScript.PropertyType __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -18074,18 +18074,18 @@ this.__index2Value = ReadIndex2Value(buffer, offset, vtable, remainingDepth);
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_1d6b7bbcaf0f4413901ceee542996389_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d39e97c357e24bc3b4a851a5e39eba80_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable PropertyTemplate")]
-            internal sealed class tableReader_1d6b7bbcaf0f4413901ceee542996389_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_d39e97c357e24bc3b4a851a5e39eba80_GreedyMutable<TInputBuffer> 
                 : global::GameScript.PropertyTemplate
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -18105,7 +18105,7 @@ private GameScript.PropertyType __index2Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_1d6b7bbcaf0f4413901ceee542996389_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d39e97c357e24bc3b4a851a5e39eba80_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -18246,7 +18246,7 @@ this.__index2Value = ReadIndex2Value(buffer, offset, vtable, remainingDepth);
             }
         
 
-            private static class tableMetadata_d7bbeb46ed8a418fa9fa8696f959bf6d
+            private static class tableMetadata_3bc0e67c486044d283cb972eb107d7e8
             {
                 
                 public static readonly TableFieldContext Id = new TableFieldContext(
@@ -18649,7 +18649,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index8Value!, index8Offset, context, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagNames);
+            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index8Value!, index8Offset, context, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagNames);
             
                     }
                 
@@ -18703,7 +18703,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagNames);
+            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index2Value!, index2Offset, context, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagNames);
             
                     }
                 
@@ -18712,7 +18712,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocaleName);
+            global::FlatSharp.Compiler.Generated.N713267F71061CB50DD0B6E0459A8B28F01DB10694EEF7B2C6253EFEEF1AAB66E.Helpers.Serialize(spanWriter, span, index1Value!, index1Offset, context, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocaleName);
             
                     }
                 
@@ -18721,18 +18721,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_b6a1adc404674b2c84cc835658cbdf57_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_c28c1b452d7e4c27a209979103d78d61_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_b6a1adc404674b2c84cc835658cbdf57_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_c28c1b452d7e4c27a209979103d78d61_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy Snapshot")]
-            internal sealed class tableReader_b6a1adc404674b2c84cc835658cbdf57_Lazy<TInputBuffer> 
+            internal sealed class tableReader_c28c1b452d7e4c27a209979103d78d61_Lazy<TInputBuffer> 
                 : global::GameScript.Snapshot
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -18753,7 +18753,7 @@ private VTableGeneric __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_b6a1adc404674b2c84cc835658cbdf57_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_c28c1b452d7e4c27a209979103d78d61_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -19042,7 +19042,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19065,7 +19065,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19088,7 +19088,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Conversations);
+            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Conversations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19111,7 +19111,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Nodes);
+            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Nodes);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19134,7 +19134,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Edges);
+            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Edges);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19157,7 +19157,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Actors);
+            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Actors);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19180,7 +19180,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19203,7 +19203,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19226,7 +19226,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Localizations);
+            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Localizations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19249,24 +19249,24 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.PropertyTemplates);
+            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.PropertyTemplates);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_b6a1adc404674b2c84cc835658cbdf57_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_c28c1b452d7e4c27a209979103d78d61_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_b6a1adc404674b2c84cc835658cbdf57_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_c28c1b452d7e4c27a209979103d78d61_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive Snapshot")]
-            internal sealed class tableReader_b6a1adc404674b2c84cc835658cbdf57_Progressive<TInputBuffer> 
+            internal sealed class tableReader_c28c1b452d7e4c27a209979103d78d61_Progressive<TInputBuffer> 
                 : global::GameScript.Snapshot
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -19301,7 +19301,7 @@ private System.Collections.Generic.IList<GameScript.PropertyTemplate>? __index11
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_b6a1adc404674b2c84cc835658cbdf57_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_c28c1b452d7e4c27a209979103d78d61_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -19674,7 +19674,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19697,7 +19697,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19720,7 +19720,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Conversations);
+            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Conversations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19743,7 +19743,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Nodes);
+            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Nodes);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19766,7 +19766,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Edges);
+            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Edges);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19789,7 +19789,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Actors);
+            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Actors);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19812,7 +19812,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19835,7 +19835,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19858,7 +19858,7 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Localizations);
+            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Localizations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -19881,24 +19881,24 @@ VTableGeneric.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.PropertyTemplates);
+            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.PropertyTemplates);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_b6a1adc404674b2c84cc835658cbdf57_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_c28c1b452d7e4c27a209979103d78d61_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_b6a1adc404674b2c84cc835658cbdf57_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_c28c1b452d7e4c27a209979103d78d61_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy Snapshot")]
-            internal sealed class tableReader_b6a1adc404674b2c84cc835658cbdf57_Greedy<TInputBuffer> 
+            internal sealed class tableReader_c28c1b452d7e4c27a209979103d78d61_Greedy<TInputBuffer> 
                 : global::GameScript.Snapshot
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -19927,7 +19927,7 @@ private System.Collections.Generic.IList<GameScript.PropertyTemplate>? __index11
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_b6a1adc404674b2c84cc835658cbdf57_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_c28c1b452d7e4c27a209979103d78d61_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -20225,7 +20225,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20248,7 +20248,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20271,7 +20271,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Conversations);
+            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Conversations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20294,7 +20294,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Nodes);
+            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Nodes);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20317,7 +20317,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Edges);
+            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Edges);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20340,7 +20340,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Actors);
+            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Actors);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20363,7 +20363,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20386,7 +20386,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20409,7 +20409,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Localizations);
+            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Localizations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20432,24 +20432,24 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.PropertyTemplates);
+            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.PropertyTemplates);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_b6a1adc404674b2c84cc835658cbdf57_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.NB8A42D002DB8A15892D03FB2E3EB67C0C5CD122EE0F12325D71A2731F27633E1.Helpers.tableReader_c28c1b452d7e4c27a209979103d78d61_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_b6a1adc404674b2c84cc835658cbdf57_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_c28c1b452d7e4c27a209979103d78d61_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable Snapshot")]
-            internal sealed class tableReader_b6a1adc404674b2c84cc835658cbdf57_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_c28c1b452d7e4c27a209979103d78d61_GreedyMutable<TInputBuffer> 
                 : global::GameScript.Snapshot
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -20478,7 +20478,7 @@ private System.Collections.Generic.IList<GameScript.PropertyTemplate>? __index11
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_b6a1adc404674b2c84cc835658cbdf57_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_c28c1b452d7e4c27a209979103d78d61_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTableGeneric.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -20776,7 +20776,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20799,7 +20799,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.ConversationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.ConversationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20822,7 +20822,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Conversations);
+            return global::FlatSharp.Compiler.Generated.N21047EC3FF1AD320CF123F6364C3EB7B7E16118C52EDB513FAF86806DDF2FF48.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Conversations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20845,7 +20845,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Nodes);
+            return global::FlatSharp.Compiler.Generated.NA15ACBC944F56F3B134CBCB9979A55897C1E1A85D50CAF60EE92C25C822C3FE5.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Nodes);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20868,7 +20868,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Edges);
+            return global::FlatSharp.Compiler.Generated.N2F447A52FE5C7EE72FC5B6061BAF9CE661A089E0545C2DB1552B836163D6A382.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Edges);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20891,7 +20891,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Actors);
+            return global::FlatSharp.Compiler.Generated.N265D93B0B070B417151159962FA04226D65E3EF418B355D1FD483C8D8B9C3691.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Actors);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20914,7 +20914,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagNames);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagNames);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20937,7 +20937,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.LocalizationTagValues);
+            return global::FlatSharp.Compiler.Generated.N5772B8853E12B467E002332E459C5045ECF55D487B0EC07465284E5F5EF21EBD.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.LocalizationTagValues);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20960,7 +20960,7 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.Localizations);
+            return global::FlatSharp.Compiler.Generated.N337F451A0EF729D846C796AD1E1DACF3365FE26352ABDB1CAE4DF98533869091.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.Localizations);
             }
 
             [System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
@@ -20983,12 +20983,12 @@ this.__index11Value = ReadIndex11Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_90b789e3fa61435fb49e1ecc2c192934.PropertyTemplates);
+            return global::FlatSharp.Compiler.Generated.NA9D085CC38B34B49E948D6CFFBF3521BACD4229DAB36C3089A65BB09093C171F.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf.PropertyTemplates);
             }
             }
         
 
-            private static class tableMetadata_90b789e3fa61435fb49e1ecc2c192934
+            private static class tableMetadata_c4fbc86e4f3c4cee88068bce3172dfcf
             {
                 
                 public static readonly TableFieldContext LocaleId = new TableFieldContext(
@@ -21915,14 +21915,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -21998,7 +21998,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_3aa41c765a0ee6ea46346970d46986e8_Progressive(
             TInputBuffer memory,
@@ -22015,7 +22015,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.StringArray this[int index]
@@ -22036,15 +22036,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -22052,7 +22052,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -22083,14 +22083,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -22157,7 +22157,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.StringArray>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_3aa41c765a0ee6ea46346970d46986e8_Greedy(
             TInputBuffer buffer,
@@ -22168,7 +22168,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -22189,7 +22189,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.StringArray value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.StringArray? item)
@@ -22503,14 +22503,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -22586,7 +22586,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_ccebda4cc8668e3b9b6b8d3f32f781de_Progressive(
             TInputBuffer memory,
@@ -22603,7 +22603,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.Conversation this[int index]
@@ -22624,15 +22624,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -22640,7 +22640,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -22671,14 +22671,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -22745,7 +22745,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.Conversation>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_ccebda4cc8668e3b9b6b8d3f32f781de_Greedy(
             TInputBuffer buffer,
@@ -22756,7 +22756,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -22777,7 +22777,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_2863a8f98135476d91175fa551e7b769_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N787B70803CD8D2F9BDD261DF377F571FB84F565DE839A6C0EF1C71F830FDC30D.Helpers.tableReader_e97edfac47294675a386808efdb355f1_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.Conversation value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.Conversation? item)
@@ -23091,14 +23091,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -23174,7 +23174,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_f835b4ad94a611ec0816731e40fbad3d_Progressive(
             TInputBuffer memory,
@@ -23191,7 +23191,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.Node this[int index]
@@ -23212,15 +23212,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -23228,7 +23228,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -23259,14 +23259,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -23333,7 +23333,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.Node>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_f835b4ad94a611ec0816731e40fbad3d_Greedy(
             TInputBuffer buffer,
@@ -23344,7 +23344,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -23365,7 +23365,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_4ec7d6d35fdf4806bbc1cd090a370507_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N17880F1312CCDA58820FEDDF9AC1D5DE03BB1B6793488C414A93885F1FFE5C08.Helpers.tableReader_7993bf71884c45ef81f70285523ca1bf_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.Node value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.Node? item)
@@ -23679,14 +23679,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -23762,7 +23762,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_8912e8725a1ece57e326647cc6c6ea7b_Progressive(
             TInputBuffer memory,
@@ -23779,7 +23779,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.Edge this[int index]
@@ -23800,15 +23800,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -23816,7 +23816,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -23847,14 +23847,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -23921,7 +23921,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.Edge>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_8912e8725a1ece57e326647cc6c6ea7b_Greedy(
             TInputBuffer buffer,
@@ -23932,7 +23932,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -23953,7 +23953,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_2b322df8ad4542e8816d444cd71d45f3_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.NEC443FB9BA5F426F9BE5F744754FD43AB3C6916AA7D7052B1D5611612BA23543.Helpers.tableReader_7de94a98e4064807b4e7c2c6c8d932e5_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.Edge value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.Edge? item)
@@ -24267,14 +24267,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -24350,7 +24350,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_663ae78fe1ab227cfd39a84e64aa60de_Progressive(
             TInputBuffer memory,
@@ -24367,7 +24367,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.Actor this[int index]
@@ -24388,15 +24388,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -24404,7 +24404,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -24435,14 +24435,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -24509,7 +24509,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.Actor>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_663ae78fe1ab227cfd39a84e64aa60de_Greedy(
             TInputBuffer buffer,
@@ -24520,7 +24520,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -24541,7 +24541,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_3a3d4418e7634aee8e8c6ac945eba0ff_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N41B320B9FED78C11114A32D9463E1A34AD94C4820E871D484B16605F2221D7FA.Helpers.tableReader_8cb9de3437a1461390f786970d95d2e6_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.Actor value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.Actor? item)
@@ -24855,14 +24855,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -24938,7 +24938,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_450b21737083b8c7889ca4046bebf5d7_Progressive(
             TInputBuffer memory,
@@ -24955,7 +24955,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.Localization this[int index]
@@ -24976,15 +24976,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -24992,7 +24992,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -25023,14 +25023,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -25097,7 +25097,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.Localization>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_450b21737083b8c7889ca4046bebf5d7_Greedy(
             TInputBuffer buffer,
@@ -25108,7 +25108,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -25129,7 +25129,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_03eee8d7d998402096fb92143e7b6a65_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N40551BC861AF2CB80EF501675F54720C8CC78DFBE06A34913D34A8AB4BF07B6A.Helpers.tableReader_f704285e999e4ae9aa757abb2470b74f_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.Localization value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.Localization? item)
@@ -25443,14 +25443,14 @@ System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() =>
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Lazy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy<TInputBuffer> SafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy<TInputBuffer> SafeParseItem(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
             return this.UnsafeParseItem(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Lazy<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Lazy<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return global::FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.Parse_Lazy(buffer, offset, remainingDepth);
@@ -25526,7 +25526,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         private readonly TInputBuffer buffer;
         private readonly TableFieldContext fieldContext;
         private readonly short remainingDepth;
-        private readonly FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[]?[] items;
+        private readonly FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[]?[] items;
         
         public GeneratedVector_3d232b0790042876c119789fe6815c62_Progressive(
             TInputBuffer memory,
@@ -25543,7 +25543,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
             
             int progressiveMinLength = (int)(count / ChunkSize) + 1;
-            this.items = new FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[]?[progressiveMinLength];
+            this.items = new FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[]?[progressiveMinLength];
         }
 
         public global::GameScript.PropertyTemplate this[int index]
@@ -25564,15 +25564,15 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[] GetOrCreateRow(FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
             return items[rowIndex] ?? this.CreateRow(items, rowIndex);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[] CreateRow(FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[]?[] items, uint rowIndex)
         {
-            var row = new FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer>?[(int)ChunkSize];
+            var row = new FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer>?[(int)ChunkSize];
             items[rowIndex] = row;
 
             
@@ -25580,7 +25580,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             return row;
         }
 
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer> ProgressiveGet(int index)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer> ProgressiveGet(int index)
         {
             VectorUtilities.CheckIndex(index, this.count);
 
@@ -25611,14 +25611,14 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer> UnsafeParseItem(int index)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer> UnsafeParseItem(int index)
         {
             int offset = this.offset + (index << 2);
             return UnsafeParseFromOffset(offset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Progressive<TInputBuffer> UnsafeParseFromOffset(int offset)
         {
             return global::FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.Parse_Progressive(buffer, offset, remainingDepth);
         }
@@ -25685,7 +25685,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
         , IReadOnlyList<global::GameScript.PropertyTemplate>
         where TInputBuffer : IInputBuffer
     {
-        private readonly List<FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer>> list;
+        private readonly List<FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer>> list;
 
         public GeneratedVector_3d232b0790042876c119789fe6815c62_Greedy(
             TInputBuffer buffer,
@@ -25696,7 +25696,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
             int count = (int)buffer.ReadUInt(offset);
             offset += sizeof(int);
             
-            var list = new List<FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer>>(count);
+            var list = new List<FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer>>(count);
             this.list = list;
             
             for (int i = 0; i < count; ++i)
@@ -25717,7 +25717,7 @@ int IFlatBufferDeserializedVector.OffsetOf(int index)
 
         public FlatBufferDeserializationOption DeserializationOption => FlatBufferDeserializationOption.Greedy;
 
-        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_1d6b7bbcaf0f4413901ceee542996389_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
+        private FlatSharp.Compiler.Generated.N169DFF115525EC6E0411A9EE758C4A4253FADBA37217AFCBAA8758A3969972C1.Helpers.tableReader_d39e97c357e24bc3b4a851a5e39eba80_Greedy<TInputBuffer> GetItem(int index) => this.list[index];
         private void SetItem(int index, global::GameScript.PropertyTemplate value) => global::FlatSharp.Internal.FSThrow.NotMutable_DeserializedVector();
 
         public bool Contains(global::GameScript.PropertyTemplate? item)
@@ -25926,7 +25926,7 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
                     {
                         
             
-            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index0Value!, index0Offset, context, tableMetadata_18a86fd841c14ccb82129aa7bd03517f.Values);
+            global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Serialize(spanWriter, span, index0Value!, index0Offset, context, tableMetadata_af665312763d46ef91941ddf08ed00b7.Values);
             
                     }
                 
@@ -25935,18 +25935,18 @@ spanWriter.WriteInt(span, tableStart - vtablePosition, tableStart);
 
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Lazy<TInputBuffer> Parse_Lazy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_109b0e4b0ec74880b746a282a9130776_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d04457301cb24df5bd9384f106073fe7_Lazy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Lazy StringArray")]
-            internal sealed class tableReader_109b0e4b0ec74880b746a282a9130776_Lazy<TInputBuffer> 
+            internal sealed class tableReader_d04457301cb24df5bd9384f106073fe7_Lazy<TInputBuffer> 
                 : global::GameScript.StringArray
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -25967,7 +25967,7 @@ private VTable4 __vtable;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_109b0e4b0ec74880b746a282a9130776_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d04457301cb24df5bd9384f106073fe7_Lazy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -26023,24 +26023,24 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_18a86fd841c14ccb82129aa7bd03517f.Values);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Lazy(buffer, absoluteLocation, remainingDepth, tableMetadata_af665312763d46ef91941ddf08ed00b7.Values);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer> Parse_Progressive<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Progressive StringArray")]
-            internal sealed class tableReader_109b0e4b0ec74880b746a282a9130776_Progressive<TInputBuffer> 
+            internal sealed class tableReader_d04457301cb24df5bd9384f106073fe7_Progressive<TInputBuffer> 
                 : global::GameScript.StringArray
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -26063,7 +26063,7 @@ private System.Collections.Generic.IList<System.String>? __index0Value;
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_109b0e4b0ec74880b746a282a9130776_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d04457301cb24df5bd9384f106073fe7_Progressive(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 this.__buffer = buffer;
@@ -26126,24 +26126,24 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_18a86fd841c14ccb82129aa7bd03517f.Values);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Progressive(buffer, absoluteLocation, remainingDepth, tableMetadata_af665312763d46ef91941ddf08ed00b7.Values);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer> Parse_Greedy<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("Greedy StringArray")]
-            internal sealed class tableReader_109b0e4b0ec74880b746a282a9130776_Greedy<TInputBuffer> 
+            internal sealed class tableReader_d04457301cb24df5bd9384f106073fe7_Greedy<TInputBuffer> 
                 : global::GameScript.StringArray
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -26161,7 +26161,7 @@ VTable4.Create<TInputBuffer>(buffer, offset, out this.__vtable);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_109b0e4b0ec74880b746a282a9130776_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d04457301cb24df5bd9384f106073fe7_Greedy(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -26215,24 +26215,24 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_18a86fd841c14ccb82129aa7bd03517f.Values);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_Greedy(buffer, absoluteLocation, remainingDepth, tableMetadata_af665312763d46ef91941ddf08ed00b7.Values);
             }
             }
         
 
             [global::System.Runtime.CompilerServices.MethodImplAttribute(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_109b0e4b0ec74880b746a282a9130776_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
+            internal static FlatSharp.Compiler.Generated.ND987712D80CCA9E5D1BBBDB962CA33452F9C3F9AEBD9881D7CADD650752ADA49.Helpers.tableReader_d04457301cb24df5bd9384f106073fe7_GreedyMutable<TInputBuffer> Parse_GreedyMutable<TInputBuffer>(
                 TInputBuffer buffer, 
                 int offset,
                 short remainingDepth
                 ) where TInputBuffer : IInputBuffer
             {
                 
-                return new tableReader_109b0e4b0ec74880b746a282a9130776_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
+                return new tableReader_d04457301cb24df5bd9384f106073fe7_GreedyMutable<TInputBuffer>(buffer, offset + buffer.ReadUOffset(offset), remainingDepth);
             }
 
             [System.Diagnostics.DebuggerDisplay("GreedyMutable StringArray")]
-            internal sealed class tableReader_109b0e4b0ec74880b746a282a9130776_GreedyMutable<TInputBuffer> 
+            internal sealed class tableReader_d04457301cb24df5bd9384f106073fe7_GreedyMutable<TInputBuffer> 
                 : global::GameScript.StringArray
                 , global::FlatSharp.IFlatBufferDeserializedObject
                 where TInputBuffer : IInputBuffer
@@ -26250,7 +26250,7 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
             [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
 #endif
             [global::System.Runtime.CompilerServices.MethodImplAttribute(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
-            public tableReader_109b0e4b0ec74880b746a282a9130776_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
+            public tableReader_d04457301cb24df5bd9384f106073fe7_GreedyMutable(TInputBuffer buffer, int offset, short remainingDepth) 
                 : base(__CtorContext) 
             {
                 VTable4.Create<TInputBuffer>(buffer, offset, out var vtable);
@@ -26304,12 +26304,12 @@ this.__index0Value = ReadIndex0Value(buffer, offset, vtable, remainingDepth);
                 absoluteLocation = offset + relativeOffset;
             }
         
-            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_18a86fd841c14ccb82129aa7bd03517f.Values);
+            return global::FlatSharp.Compiler.Generated.NA877967FDEF65B5ED29FA12AD5046634A6B8239F428E5D77BF513D4524DB0B62.Helpers.Parse_GreedyMutable(buffer, absoluteLocation, remainingDepth, tableMetadata_af665312763d46ef91941ddf08ed00b7.Values);
             }
             }
         
 
-            private static class tableMetadata_18a86fd841c14ccb82129aa7bd03517f
+            private static class tableMetadata_af665312763d46ef91941ddf08ed00b7
             {
                 
                 public static readonly TableFieldContext Values = new TableFieldContext(
@@ -26712,11 +26712,11 @@ namespace GameScript
 #endif
         public Actor(Actor source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Name);
-            this.Color = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Color);
-            this.GrammaticalGender = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.GrammaticalGender);
-            this.LocalizedNameIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.LocalizedNameIdx);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Name);
+            this.Color = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Color);
+            this.GrammaticalGender = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.GrammaticalGender);
+            this.LocalizedNameIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.LocalizedNameIdx);
             this.OnInitialized(null);
         }
         
@@ -26777,7 +26777,7 @@ namespace GameScript
 #endif
         public BoolValue(BoolValue source)
         {
-            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Value);
+            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Value);
             this.OnInitialized(null);
         }
         
@@ -26835,16 +26835,16 @@ namespace GameScript
 #endif
         public Conversation(Conversation source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Name);
-            this.Notes = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Notes);
-            this.IsLayoutAuto = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.IsLayoutAuto);
-            this.IsLayoutVertical = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.IsLayoutVertical);
-            this.TagIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.TagIndices);
-            this.Properties = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Properties);
-            this.NodeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.NodeIndices);
-            this.EdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.EdgeIndices);
-            this.RootNodeIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.RootNodeIdx);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Name);
+            this.Notes = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Notes);
+            this.IsLayoutAuto = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.IsLayoutAuto);
+            this.IsLayoutVertical = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.IsLayoutVertical);
+            this.TagIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.TagIndices);
+            this.Properties = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Properties);
+            this.NodeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.NodeIndices);
+            this.EdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.EdgeIndices);
+            this.RootNodeIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.RootNodeIdx);
             this.OnInitialized(null);
         }
         
@@ -26921,8 +26921,8 @@ namespace GameScript
 #endif
         public ConversationProperty(ConversationProperty source)
         {
-            this.TemplateIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.TemplateIdx);
-            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Value);
+            this.TemplateIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.TemplateIdx);
+            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Value);
             this.OnInitialized(null);
         }
         
@@ -26979,12 +26979,12 @@ namespace GameScript
 #endif
         public Edge(Edge source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.ConversationIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.ConversationIdx);
-            this.SourceIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.SourceIdx);
-            this.TargetIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.TargetIdx);
-            this.Priority = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Priority);
-            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Type);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.ConversationIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.ConversationIdx);
+            this.SourceIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.SourceIdx);
+            this.TargetIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.TargetIdx);
+            this.Priority = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Priority);
+            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Type);
             this.OnInitialized(null);
         }
         
@@ -27048,7 +27048,7 @@ namespace GameScript
 #endif
         public FloatValue(FloatValue source)
         {
-            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Value);
+            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Value);
             this.OnInitialized(null);
         }
         
@@ -27097,7 +27097,7 @@ namespace GameScript
 #endif
         public Int32Value(Int32Value source)
         {
-            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Value);
+            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Value);
             this.OnInitialized(null);
         }
         
@@ -27152,13 +27152,13 @@ namespace GameScript
 #endif
         public Localization(Localization source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Name);
-            this.SubjectActorIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.SubjectActorIdx);
-            this.SubjectGender = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.SubjectGender);
-            this.IsTemplated = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.IsTemplated);
-            this.Variants = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Variants);
-            this.TagIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.TagIndices);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Name);
+            this.SubjectActorIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.SubjectActorIdx);
+            this.SubjectGender = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.SubjectGender);
+            this.IsTemplated = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.IsTemplated);
+            this.Variants = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Variants);
+            this.TagIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.TagIndices);
             this.OnInitialized(null);
         }
         
@@ -27239,21 +27239,21 @@ namespace GameScript
 #endif
         public Node(Node source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.ConversationIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.ConversationIdx);
-            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Type);
-            this.ActorIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.ActorIdx);
-            this.VoiceTextIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.VoiceTextIdx);
-            this.UiResponseTextIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.UiResponseTextIdx);
-            this.HasCondition = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.HasCondition);
-            this.HasAction = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.HasAction);
-            this.IsPreventResponse = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.IsPreventResponse);
-            this.PositionX = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.PositionX);
-            this.PositionY = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.PositionY);
-            this.Notes = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Notes);
-            this.Properties = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Properties);
-            this.OutgoingEdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.OutgoingEdgeIndices);
-            this.IncomingEdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.IncomingEdgeIndices);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.ConversationIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.ConversationIdx);
+            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Type);
+            this.ActorIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.ActorIdx);
+            this.VoiceTextIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.VoiceTextIdx);
+            this.UiResponseTextIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.UiResponseTextIdx);
+            this.HasCondition = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.HasCondition);
+            this.HasAction = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.HasAction);
+            this.IsPreventResponse = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.IsPreventResponse);
+            this.PositionX = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.PositionX);
+            this.PositionY = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.PositionY);
+            this.Notes = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Notes);
+            this.Properties = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Properties);
+            this.OutgoingEdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.OutgoingEdgeIndices);
+            this.IncomingEdgeIndices = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.IncomingEdgeIndices);
             this.OnInitialized(null);
         }
         
@@ -27345,8 +27345,8 @@ namespace GameScript
 #endif
         public NodeProperty(NodeProperty source)
         {
-            this.TemplateIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.TemplateIdx);
-            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Value);
+            this.TemplateIdx = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.TemplateIdx);
+            this.Value = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Value);
             this.OnInitialized(null);
         }
         
@@ -27400,9 +27400,9 @@ namespace GameScript
 #endif
         public PropertyTemplate(PropertyTemplate source)
         {
-            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Id);
-            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Name);
-            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Type);
+            this.Id = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Id);
+            this.Name = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Name);
+            this.Type = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Type);
             this.OnInitialized(null);
         }
         
@@ -27471,18 +27471,18 @@ namespace GameScript
 #endif
         public Snapshot(Snapshot source)
         {
-            this.LocaleId = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.LocaleId);
-            this.LocaleName = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.LocaleName);
-            this.ConversationTagNames = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.ConversationTagNames);
-            this.ConversationTagValues = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.ConversationTagValues);
-            this.Conversations = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Conversations);
-            this.Nodes = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Nodes);
-            this.Edges = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Edges);
-            this.Actors = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Actors);
-            this.LocalizationTagNames = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.LocalizationTagNames);
-            this.LocalizationTagValues = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.LocalizationTagValues);
-            this.Localizations = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Localizations);
-            this.PropertyTemplates = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.PropertyTemplates);
+            this.LocaleId = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.LocaleId);
+            this.LocaleName = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.LocaleName);
+            this.ConversationTagNames = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.ConversationTagNames);
+            this.ConversationTagValues = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.ConversationTagValues);
+            this.Conversations = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Conversations);
+            this.Nodes = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Nodes);
+            this.Edges = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Edges);
+            this.Actors = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Actors);
+            this.LocalizationTagNames = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.LocalizationTagNames);
+            this.LocalizationTagValues = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.LocalizationTagValues);
+            this.Localizations = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Localizations);
+            this.PropertyTemplates = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.PropertyTemplates);
             this.OnInitialized(null);
         }
         
@@ -27581,7 +27581,7 @@ namespace GameScript
 #endif
         public StringArray(StringArray source)
         {
-            this.Values = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Values);
+            this.Values = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Values);
             this.OnInitialized(null);
         }
         
@@ -27632,9 +27632,9 @@ namespace GameScript
 #endif
         public TextVariant(TextVariant source)
         {
-            this.Plural = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Plural);
-            this.Gender = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Gender);
-            this.Text = global::FlatSharp.Compiler.Generated.CloneHelpers_023872f84f80488e8b6d6ba64dfffdb1.Clone(source.Text);
+            this.Plural = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Plural);
+            this.Gender = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Gender);
+            this.Text = global::FlatSharp.Compiler.Generated.CloneHelpers_9535e3eb018949b7a1807f947fd7fdfa.Clone(source.Text);
             this.OnInitialized(null);
         }
         
