@@ -12,6 +12,9 @@ export const LS_KEY_DOCK_LAYOUT: string = 'dock-layout';
 export const LS_KEY_SETTINGS_DB_TYPE: string = 'settings-database-type';
 export const LS_KEY_SETTINGS_DB_CONNECTION_CONFIG: string = 'settings-database-connection-config';
 
+// Recently used SQLite database file paths (most-recent first)
+export const LS_KEY_RECENT_SQLITE_DATABASES: string = 'settings-recent-sqlite-databases';
+
 // Conversation Editor - viewport persistence per conversation
 export const LS_KEY_CONVERSATION_EDITOR_VIEWPORT_PREFIX = 'graph-layout-';
 export function conversationIdToViewportKey(conversationId: number): string {

@@ -15,6 +15,7 @@ import {
     LS_KEY_SETTINGS_DB_CONNECTION_CONFIG,
 } from '$lib/constants/local-storage.js';
 import { toastWarning } from './notifications';
+import { addRecentSqliteDatabase } from './recent-databases';
 
 // ============================================================================
 // Types
@@ -148,6 +149,10 @@ export function initConnectionStores(onConnected?: (type: DatabaseType) => void)
         // Save the connection config for auto-reconnect
         if (pendingConfig) {
             saveConnectionConfig(pendingConfig);
+            // Track SQLite databases for quick re-selection in the connection panel
+            if (pendingConfig.type === 'sqlite' && pendingConfig.filepath) {
+                addRecentSqliteDatabase(pendingConfig.filepath);
+            }
             pendingConfig = null;
         }
     });

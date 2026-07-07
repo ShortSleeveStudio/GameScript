@@ -21,6 +21,10 @@
         disconnect as disconnectStore,
         connect as connectStore,
     } from '$lib/stores/connection.js';
+    import {
+        recentSqliteDatabases,
+        removeRecentSqliteDatabase,
+    } from '$lib/stores/recent-databases.js';
     import { snapshotOutputPathTableView, getSnapshotOutputPath } from '$lib/tables';
     import { exportController } from '$lib/export';
     import Inspector from '$lib/components/inspector/Inspector.svelte';
@@ -161,6 +165,70 @@
         }
     }
 
+    // Recent SQLite databases (quick re-connect). Only files that still exist
+    // on disk are offered; missing entries are filtered out (and pruned when
+    // a user tries to open one that has since been deleted).
+    let existingRecents = $state<string[]>([]);
+
+    function basename(path: string): string {
+        const parts = path.split(/[\\/]/);
+        return parts[parts.length - 1] || path;
+    }
+
+    // Refresh the list of existing recent databases whenever the SQLite
+    // connection tab is shown or the recorded list changes.
+    $effect(() => {
+        const list = $recentSqliteDatabases;
+        if (activePanel !== 'connection' || selectedDbType !== 'sqlite') {
+            return;
+        }
+
+        let cancelled = false;
+        (async () => {
+            const checked = await Promise.all(
+                list.map(async (path) => {
+                    try {
+                        return (await bridge.fileExists(path)) ? path : null;
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+            if (!cancelled) {
+                existingRecents = checked.filter((p): p is string => p !== null);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        };
+    });
+
+    async function handleConnectRecent(filepath: string) {
+        if (!filepath || isConnecting) return;
+
+        isConnecting = true;
+        try {
+            const exists = await bridge.fileExists(filepath);
+            if (!exists) {
+                toastError('Database file no longer exists');
+                handleRemoveRecent(filepath);
+                return;
+            }
+            connectStore({ type: 'sqlite', filepath });
+            activePanel = 'none';
+        } catch (error) {
+            toastError('Failed to open database', error);
+        } finally {
+            isConnecting = false;
+        }
+    }
+
+    function handleRemoveRecent(filepath: string) {
+        removeRecentSqliteDatabase(filepath);
+        existingRecents = existingRecents.filter((p) => p !== filepath);
+    }
+
     async function handleConnectPostgres() {
         if (!pgDatabase || !pgUser) return;
 
@@ -298,6 +366,34 @@
                     <Button onclick={handleOpenSqlite} disabled={isConnecting}>
                         Open Database
                     </Button>
+                    {#if existingRecents.length > 0}
+                        <div class="recent-section">
+                            <span class="recent-header">Recent Databases</span>
+                            <div class="recent-databases">
+                            {#each existingRecents as path (path)}
+                                <div class="recent-item">
+                                    <button
+                                        class="recent-connect"
+                                        onclick={() => handleConnectRecent(path)}
+                                        disabled={isConnecting}
+                                        title={path}
+                                    >
+                                        {basename(path)}
+                                    </button>
+                                    <button
+                                        class="recent-remove"
+                                        onclick={() => handleRemoveRecent(path)}
+                                        disabled={isConnecting}
+                                        title="Remove from recent list"
+                                        aria-label="Remove {basename(path)} from recent list"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            {/each}
+                            </div>
+                        </div>
+                    {/if}
                 </div>
             {:else}
                 <div class="postgres-form">
@@ -533,6 +629,86 @@
         display: flex;
         flex-direction: column;
         gap: 8px;
+    }
+
+    .recent-section {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 4px;
+    }
+
+    .recent-header {
+        font-size: var(--gs-font-size-small);
+        color: var(--gs-fg-secondary);
+    }
+
+    .recent-databases {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        height: 140px;
+        overflow-y: auto;
+        padding: 4px;
+        background: var(--gs-bg-primary);
+        border: 1px solid var(--gs-border-primary);
+        border-radius: 4px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .recent-item {
+        display: flex;
+        align-items: stretch;
+        gap: 2px;
+    }
+
+    .recent-connect {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+        padding: 4px 8px;
+        background: var(--gs-bg-secondary);
+        border: 1px solid var(--gs-border-primary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: var(--gs-font-size-small);
+        color: var(--gs-fg-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transition: background-color 0.15s, border-color 0.15s;
+    }
+
+    .recent-connect:hover:not(:disabled) {
+        background: var(--gs-bg-hover);
+        border-color: var(--gs-border-secondary);
+    }
+
+    .recent-remove {
+        flex-shrink: 0;
+        width: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--gs-bg-secondary);
+        border: 1px solid var(--gs-border-primary);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 10px;
+        color: var(--gs-fg-secondary);
+        transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .recent-remove:hover:not(:disabled) {
+        background: var(--gs-bg-hover);
+        border-color: var(--gs-status-error);
+        color: var(--gs-status-error);
+    }
+
+    .recent-connect:disabled,
+    .recent-remove:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .postgres-form {
