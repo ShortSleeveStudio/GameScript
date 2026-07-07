@@ -119,10 +119,11 @@ intellijPlatform {
         ideaVersion {
             // Minimum 2025.1 required for Kotlin 2.x coroutines bytecode compatibility (SpillingKt)
             sinceBuild = "251"
-            // Cap at 2025.3.x: the Rd framework changed RdId to a value class in 2026.2 (262),
-            // removing RdId.Mix(String) / RdBindableBase.Identify(...), which our generated
-            // protocol model calls. Building against the 2026.2 SDK is a separate upgrade.
-            untilBuild = "253.*"
+            // Cap at 2026.1.x (261): the Rd framework changed RdId to a value class in 2026.2
+            // (262), removing RdId.Mix(String) / RdBindableBase.Identify(...) that our generated
+            // protocol model calls, so the plugin is binary-incompatible with 262. 261 is fine
+            // (the Marketplace verifier flagged only 262). Supporting 262 needs an SDK upgrade.
+            untilBuild = "261.*"
         }
     }
 
