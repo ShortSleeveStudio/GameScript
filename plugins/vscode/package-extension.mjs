@@ -82,6 +82,15 @@ try {
   console.log('\n=== Step 2: Creating deployment with pnpm deploy ===');
   run(`pnpm deploy --filter=./plugins/vscode --prod --legacy "${deployDir}"`, join(__dirname, '../..'));
 
+  // pnpm deploy copies the whole plugin directory, including .vsix files from earlier
+  // packaging runs. Steps 4b and 5 pick up the first .vsix in the staging dir, so a stale
+  // one (e.g. gamescript-3.1.0.vsix sorting before 3.2.1) would be patched and shipped
+  // instead of the one vsce builds. Remove them so only the new package exists.
+  for (const staleVsix of readdirSync(deployDir).filter((f) => f.endsWith('.vsix'))) {
+    console.log(`  Removing stale ${staleVsix} copied by pnpm deploy`);
+    rmSync(join(deployDir, staleVsix));
+  }
+
   // Step 2b: Selectively copy native modules from .pnpm to top-level node_modules
   console.log('\n=== Step 2b: Extracting native modules from pnpm store ===');
   const nodeModulesDir = join(deployDir, 'node_modules');
