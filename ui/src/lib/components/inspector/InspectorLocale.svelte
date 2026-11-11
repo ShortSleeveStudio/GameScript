@@ -8,7 +8,7 @@
      * Ported from GameScriptElectron, updated for CLDR locale code selection.
      */
     import type { Locale } from '@gamescript/shared';
-    import { LOCALE_AUTONYMS, isKnownLocale, getLocaleAutonym } from '@gamescript/shared';
+    import { LOCALE_AUTONYMS, isKnownLocale, getLocaleAutonym, findLocaleCode } from '@gamescript/shared';
     import type { IDbRowView } from '$lib/db';
     import type { FocusPayloadLocale } from '$lib/stores/focus.js';
     import { IsLoadingStore } from '$lib/stores/is-loading.js';
@@ -57,21 +57,10 @@
     // CLDR validity of the active code (updates while typing in custom mode)
     let isValidCldr = $derived(isKnownLocale(activeCode));
 
-    // Find the best matching dropdown option for the current code.
-    // Handles cases like "en_US" matching dropdown option "en".
-    function findDropdownMatch(code: string): string | null {
-        // Exact match
-        if (cldrOptions.some(o => o.value === code)) return code;
-        // Normalized separator (en_US → en-US, but CLDR autonyms use bare codes like "en")
-        const normalized = code.includes('_') ? code.replace(/_/g, '-') : code.replace(/-/g, '_');
-        if (cldrOptions.some(o => o.value === normalized)) return normalized;
-        // Language subtag (en_US → en)
-        const lang = code.split(/[-_]/)[0];
-        if (lang !== code && cldrOptions.some(o => o.value === lang)) return lang;
-        return null;
-    }
-
-    let dropdownMatchCode = $derived(findDropdownMatch(currentCode));
+    // Dropdown option for the current code, ignoring separator and case ("en_us" → "en-US").
+    // Deliberately no language-subtag fallback: that displayed "zh-Hant" as "zh", hiding the
+    // real code, and re-selecting would overwrite it. Codes CLDR doesn't list stay in custom mode.
+    let dropdownMatchCode = $derived(findLocaleCode(currentCode));
     let isCurrentInCldr = $derived(dropdownMatchCode !== null);
 
     // Sync custom mode with the current locale code

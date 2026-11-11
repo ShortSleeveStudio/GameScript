@@ -129,43 +129,179 @@ console.log(`Generated ${outPath} with ${entries.length} locale entries.`);
 // Generate locale-display-names.ts (autonyms)
 // ============================================================================
 
+const cldrCorePath = resolve(__dirname, '../node_modules/cldr-core');
 const localeNamesBasePath = resolve(__dirname, '../node_modules/cldr-localenames-full/main');
 
-/**
- * Try to read a language's autonym from its own CLDR locale directory.
- * For "pt-PT", try: pt-PT/languages.json → key "pt", then pt/languages.json → key "pt".
- */
-function getAutonym(localeCode: string): string | null {
-  // The language subtag is the key to look up in the languages file
-  const langSubtag = localeCode.split('-')[0];
+// The locale list comes from CLDR's available locales, not from plurals.json.
+// plurals.json is keyed almost entirely by bare language ("zh", "es") because
+// regional variants share their language's plural rules, so deriving the list
+// from it dropped every regional/script variant (zh-Hant, es-419, fr-CA, ...).
+//
+// Default-content locales (pt-BR, ja-JP, zh-Hans-CN, ...) are not listed in
+// availableLocales because CLDR treats them as identical to their parent, but
+// projects commonly name locales that way, so they are included too.
+const availableLocales: string[] = JSON.parse(
+  readFileSync(resolve(cldrCorePath, 'availableLocales.json'), 'utf-8')
+).availableLocales.full;
+const defaultContentLocales: string[] = JSON.parse(
+  readFileSync(resolve(cldrCorePath, 'defaultContent.json'), 'utf-8')
+).defaultContent;
+const defaultContentSet = new Set(defaultContentLocales);
 
-  // Try the full locale code directory first, then the language subtag
-  const candidates = [localeCode, langSubtag];
-  // Deduplicate (e.g., "en" would try "en" twice)
-  const unique = [...new Set(candidates)];
+const likelySubtags: Record<string, string> = JSON.parse(
+  readFileSync(resolve(cldrCorePath, 'supplemental/likelySubtags.json'), 'utf-8')
+).supplemental.likelySubtags;
 
-  for (const dir of unique) {
+type DisplayNames = {
+  languages: Record<string, string>;
+  scripts: Record<string, string>;
+  territories: Record<string, string>;
+  variants: Record<string, string>;
+  localePattern: string;
+  localeSeparator: string;
+};
+
+const displayNamesCache = new Map<string, DisplayNames | null>();
+
+/** Load the display-name tables written in the given CLDR locale, or null if it has no directory. */
+function loadDisplayNames(dir: string): DisplayNames | null {
+  if (displayNamesCache.has(dir)) return displayNamesCache.get(dir)!;
+  // Smaller locales ship only some of these files (e.g. no scripts.json), so each is optional
+  const read = (file: string) => {
     try {
-      const filePath = resolve(localeNamesBasePath, dir, 'languages.json');
-      const data = JSON.parse(readFileSync(filePath, 'utf-8'));
-      const languages = data.main[dir]?.localeDisplayNames?.languages;
-      if (languages && languages[langSubtag]) {
-        return languages[langSubtag];
-      }
+      return JSON.parse(readFileSync(resolve(localeNamesBasePath, dir, file), 'utf-8')).main[dir]
+        .localeDisplayNames ?? {};
     } catch {
-      // Directory doesn't exist for this locale — try next candidate
+      return null;
     }
-  }
-  return null;
+  };
+  const languages = read('languages.json')?.languages;
+  const patterns = read('localeDisplayNames.json')?.localeDisplayPattern;
+  // A locale without its own language names counts as having no data
+  const result: DisplayNames | null = languages
+    ? {
+        languages,
+        scripts: read('scripts.json')?.scripts ?? {},
+        territories: read('territories.json')?.territories ?? {},
+        variants: read('variants.json')?.variants ?? {},
+        localePattern: patterns?.localePattern ?? '{0} ({1})',
+        localeSeparator: patterns?.localeSeparator ?? '{0}, {1}',
+      }
+    : null;
+  displayNamesCache.set(dir, result);
+  return result;
 }
 
-// Build autonym entries for all locales that have plural rules
+/** Drop the last subtag: "zh-Hant-HK" → "zh-Hant", "zh" → null. */
+function truncateLocale(localeCode: string): string | null {
+  const i = localeCode.lastIndexOf('-');
+  return i > 0 ? localeCode.slice(0, i) : null;
+}
+
+/**
+ * Get a locale's name written in that locale itself.
+ *
+ * - "zh-Hant" → "繁體中文", "es-419" → "español latinoamericano" (CLDR dialect names)
+ * - "zh-Hant-HK" → "繁體中文（中國香港特別行政區）" (dialect name + region qualifier)
+ * - "sr-Latn" → "srpski (latinica)" (language + script qualifier)
+ * - "ja-JP", "pt-BR" → same as "ja", "pt" (default content is identical to its parent,
+ *   and this name is exported as the player-facing language name)
+ */
+function getAutonym(localeCode: string): string | null {
+  if (defaultContentSet.has(localeCode)) {
+    const parent = truncateLocale(localeCode);
+    if (parent) return getAutonym(parent);
+  }
+
+  // Use the locale's own data, or its nearest ancestor's (default-content locales have no directory)
+  let names: DisplayNames | null = null;
+  for (let dir: string | null = localeCode; dir && !names; dir = truncateLocale(dir)) {
+    names = loadDisplayNames(dir);
+  }
+  if (!names) return null;
+
+  // Longest prefix with its own language name ("zh-Hant" for "zh-Hant-HK")
+  const subtags = localeCode.split('-');
+  let baseLength = subtags.length;
+  while (baseLength > 0 && !names.languages[subtags.slice(0, baseLength).join('-')]) baseLength--;
+  if (baseLength === 0) return null;
+  const base = names.languages[subtags.slice(0, baseLength).join('-')];
+
+  // Qualify with the remaining script / region / variant subtags
+  const qualifiers: string[] = [];
+  for (const subtag of subtags.slice(baseLength)) {
+    const qualifier = /^[A-Z][a-z]{3}$/.test(subtag)
+      ? names.scripts[subtag]
+      : /^([A-Z]{2}|\d{3})$/.test(subtag)
+        ? names.territories[subtag]
+        : names.variants[subtag.toUpperCase()]; // "valencia" → key "VALENCIA"
+    qualifiers.push(qualifier ?? subtag);
+  }
+  if (qualifiers.length === 0) return base;
+
+  // Function replacers so a "$" in a name is never read as a replacement pattern
+  const fill = (pattern: string, a: string, b: string) =>
+    pattern.replace('{0}', () => a).replace('{1}', () => b);
+  const joined = qualifiers.reduce((acc, q) => fill(names!.localeSeparator, acc, q));
+  return fill(names.localePattern, base, joined);
+}
+
+/**
+ * Region-only aliases for script-qualified locales, using CLDR likely subtags:
+ * "zh-Hant-TW" → "zh-TW", "zh-Hans-CN" → "zh-CN", "sr-Latn-ME" → "sr-ME".
+ * These short forms are what most projects (and OS/store language settings) use,
+ * so they get an entry with the full locale's name. Only added when the short form
+ * actually implies that script, and never over an existing CLDR locale.
+ */
+function getRegionAliases(locales: Iterable<string>): [string, string][] {
+  const existing = new Set(locales);
+  const aliases: [string, string][] = [];
+  for (const locale of existing) {
+    const match = /^([a-z]{2,3})-([A-Z][a-z]{3})-([A-Z]{2}|\d{3})$/.exec(locale);
+    if (!match) continue;
+    const [, lang, script, region] = match;
+    const alias = `${lang}-${region}`;
+    if (existing.has(alias)) continue;
+    // Maximize the short form: lang-REGION entry, else the language's likely script
+    const likely = likelySubtags[alias] ?? likelySubtags[lang];
+    if (likely?.split('-')[1] !== script) continue;
+    aliases.push([alias, locale]);
+  }
+  return aliases;
+}
+
+// Build autonym entries for every CLDR locale, plus any plural-rules locale not otherwise listed
+const autonymLocales = new Set<string>([
+  ...availableLocales,
+  ...defaultContentLocales,
+  ...entries.map(([locale]) => locale),
+]);
+autonymLocales.delete('root');
+autonymLocales.delete('und');
+
+// Keep only locales isKnownLocale() accepts (exact or language-subtag plural rules).
+// The UI and exporter treat "known" as "has a CLDR name", so a listed locale it
+// rejected would show "Unknown locale" right after being picked from the list.
+const pluralLocales = new Set(entries.map(([locale]) => locale));
+for (const locale of autonymLocales) {
+  if (!pluralLocales.has(locale) && !pluralLocales.has(locale.split('-')[0])) {
+    autonymLocales.delete(locale);
+  }
+}
+
 const autonymEntries: [string, string][] = [];
 
-for (const [locale] of entries) {
+for (const locale of autonymLocales) {
   const autonym = getAutonym(locale);
   if (autonym) {
     autonymEntries.push([locale, autonym]);
+  }
+}
+
+for (const [alias, target] of getRegionAliases(autonymLocales)) {
+  const autonym = getAutonym(target);
+  if (autonym) {
+    autonymEntries.push([alias, autonym]);
   }
 }
 
@@ -177,7 +313,7 @@ const nameLines: string[] = [
   '// Generated from cldr-localenames-full — do not edit manually.',
   '// Re-generate with: npx tsx shared/scripts/generate-cldr-tables.ts',
   '//',
-  `// Source: cldr-localenames-full/main/*/languages.json (${autonymEntries.length} autonyms)`,
+  `// Source: cldr-core availableLocales + defaultContent, names from cldr-localenames-full (${autonymEntries.length} autonyms)`,
   `// Generated: ${new Date().toISOString().split('T')[0]}`,
   '',
   '/**',
@@ -198,25 +334,31 @@ nameLines.push('');
 nameLines.push('/** Lookup map of locale code → autonym. */');
 nameLines.push('export const LOCALE_AUTONYMS: ReadonlyMap<string, string> = new Map(LOCALE_AUTONYMS_DATA);');
 nameLines.push('');
+nameLines.push('/** Lowercased, hyphen-separated code → canonical LOCALE_AUTONYMS key. */');
+nameLines.push('const CANONICAL_CODES: ReadonlyMap<string, string> = new Map(');
+nameLines.push('  LOCALE_AUTONYMS_DATA.map(([code]) => [code.toLowerCase(), code] as const)');
+nameLines.push(');');
+nameLines.push('');
+nameLines.push('/**');
+nameLines.push(' * Find the LOCALE_AUTONYMS key for a locale code, ignoring separator and case');
+nameLines.push(' * (locale tags are case-insensitive): "zh_TW", "zh-tw", "ZH-TW" → "zh-TW".');
+nameLines.push(' * Returns null if CLDR does not list the code; no language-subtag fallback.');
+nameLines.push(' */');
+nameLines.push('export function findLocaleCode(localeCode: string): string | null {');
+nameLines.push("  return CANONICAL_CODES.get(localeCode.replace(/_/g, '-').toLowerCase()) ?? null;");
+nameLines.push('}');
+nameLines.push('');
 nameLines.push('/**');
 nameLines.push(' * Get the autonym for a locale code.');
-nameLines.push(' * Returns the code itself if no autonym is found.');
+nameLines.push(' * Falls back to the language subtag ("de_XX" → "Deutsch"), then to the code itself.');
 nameLines.push(' */');
 nameLines.push('export function getLocaleAutonym(localeCode: string): string {');
-nameLines.push('  const autonym = LOCALE_AUTONYMS.get(localeCode);');
-nameLines.push('  if (autonym) return autonym;');
-nameLines.push('');
-nameLines.push('  // Normalize separator and try again');
-nameLines.push("  const normalized = localeCode.includes('_') ? localeCode.replace(/_/g, '-') : localeCode.replace(/-/g, '_');");
-nameLines.push('  const normalizedMatch = LOCALE_AUTONYMS.get(normalized);');
-nameLines.push('  if (normalizedMatch) return normalizedMatch;');
+nameLines.push('  const code = findLocaleCode(localeCode);');
+nameLines.push('  if (code) return LOCALE_AUTONYMS.get(code)!;');
 nameLines.push('');
 nameLines.push('  // Language subtag fallback');
-nameLines.push("  const lang = localeCode.split(/[-_]/)[0];");
-nameLines.push('  if (lang !== localeCode) {');
-nameLines.push('    const langMatch = LOCALE_AUTONYMS.get(lang);');
-nameLines.push('    if (langMatch) return langMatch;');
-nameLines.push('  }');
+nameLines.push("  const lang = findLocaleCode(localeCode.split(/[-_]/)[0]);");
+nameLines.push('  if (lang) return LOCALE_AUTONYMS.get(lang)!;');
 nameLines.push('');
 nameLines.push('  return localeCode;');
 nameLines.push('}');

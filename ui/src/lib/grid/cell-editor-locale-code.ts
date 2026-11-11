@@ -14,7 +14,7 @@ import type {
   ICellEditorParams,
 } from '@ag-grid-community/core';
 import type { Row } from '@gamescript/shared';
-import { LOCALE_AUTONYMS } from '@gamescript/shared';
+import { LOCALE_AUTONYMS, findLocaleCode } from '@gamescript/shared';
 import { type IDbRowView } from '$lib/db';
 import { common } from '$lib/crud';
 import { toastError } from '$lib/stores/notifications.js';
@@ -23,7 +23,6 @@ import type { GridContext } from './context.js';
 // Build options once at module level
 const cldrEntries = [...LOCALE_AUTONYMS.entries()]
   .sort((a, b) => a[0].localeCompare(b[0]));
-const cldrCodeSet = new Set(cldrEntries.map(([code]) => code));
 
 export class GridCellEditorLocaleCode<RowType extends Row>
   implements ICellEditorComp<IDbRowView<RowType>, string, GridContext>
@@ -50,8 +49,8 @@ export class GridCellEditorLocaleCode<RowType extends Row>
     const newValue = this.select.value;
     if (!newValue) return undefined;
 
-    // Skip if the user didn't change the selection (handles subtag matching:
-    // DB has "en_US", dropdown shows "en" — closing without changing shouldn't save)
+    // Skip if the user didn't change the selection (handles separator/case matching:
+    // DB has "en_US", dropdown shows "en-US" — closing without changing shouldn't save)
     if (newValue === this.initialSelectValue) return undefined;
 
     const oldRow = { ...this.rowView.getValue() };
@@ -84,15 +83,9 @@ export class GridCellEditorLocaleCode<RowType extends Row>
 
     const currentValue = String(this.rowView.getValue()[this.columnName as keyof RowType] ?? '');
 
-    // Find best match: exact → normalized separator → subtag fallback
-    const normalized = currentValue.includes('_')
-      ? currentValue.replace(/_/g, '-')
-      : currentValue.replace(/-/g, '_');
-    const subtag = currentValue.split(/[-_]/)[0];
-    const matchCode = cldrCodeSet.has(currentValue) ? currentValue
-      : cldrCodeSet.has(normalized) ? normalized
-      : cldrCodeSet.has(subtag) ? subtag
-      : null;
+    // Match ignoring separator and case. No language-subtag fallback: it would
+    // preselect "zh" for "zh-Hant"; unlisted codes are shown as "(custom)" instead.
+    const matchCode = findLocaleCode(currentValue);
 
     this.select = document.createElement('select');
     this.select.style.cssText = 'width: 100%; height: 100%; font-size: 13px; font-family: inherit; background: var(--gs-bg-primary); color: var(--gs-fg-primary); border: none; outline: none;';
