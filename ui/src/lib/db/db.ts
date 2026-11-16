@@ -137,9 +137,8 @@ class Database {
                     await this.notifyOnRowLifecycleEvent(tableType, rows);
                     break;
                 case 'delete':
-                    // Clear deleted rows from cache and focus, then notify table views
-                    this.removeRowViewsAndFocus(tableType, rows.map((r) => r.id));
-                    await this.notifyOnRowLifecycleEvent(tableType, rows);
+                    // Clear deleted rows from cache and focus, then reload the views they were in
+                    await this.notifyOnRowsDeleted(tableType, rows);
                     break;
                 case 'update':
                     // We have full row data, no need to fetch
@@ -758,6 +757,36 @@ class Database {
             if (tableView.filter.wouldAffectRows(rows)) {
                 await tableView._onReloadRequired();
             }
+        }
+    }
+
+    /**
+     * Handle row delete events.
+     * SQLite sends the deleted rows (RETURNING *), which filters can match. PostgreSQL can only
+     * send their ids (the rows are gone before LISTEN clients could read them), which no filter
+     * matches, so a view also reloads when it holds one of the deleted rows. With no rows at all,
+     * which rows went is unknown, so every view of the table reloads.
+     */
+    private async notifyOnRowsDeleted<RowType extends Row>(
+        tableType: TableRef,
+        rows: RowType[],
+    ): Promise<void> {
+        const ids = rows.map((r) => r.id);
+        const tableViews = this.getTableViewsForTable<RowType>(tableType);
+        // Decided before the row views go, while the views still hold the deleted rows.
+        const affected = tableViews
+            ? [...tableViews.values()].filter(
+                  (tableView) =>
+                      rows.length === 0 ||
+                      tableView.filter.wouldAffectRows(rows) ||
+                      ids.some((id) => tableView.getRowById(id) !== undefined),
+              )
+            : [];
+
+        this.removeRowViewsAndFocus(tableType, ids);
+
+        for (const tableView of affected) {
+            await tableView._onReloadRequired();
         }
     }
 

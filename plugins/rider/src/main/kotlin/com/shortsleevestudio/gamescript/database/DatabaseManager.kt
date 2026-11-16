@@ -266,8 +266,15 @@ class DatabaseManager(
             val operation = json.get("operation")?.asString ?: return
             val ids = json.get("ids")?.asJsonArray?.mapNotNull { it.asLong } ?: emptyList()
 
-            // For delete operations or empty IDs, notify without rows
-            if (operation == "delete" || ids.isEmpty()) {
+            // Deleted rows can't be read back, so pass their ids on; the UI drops those rows and
+            // reloads the views holding them. Without them the deletion never reaches the UI.
+            if (operation == "delete") {
+                notifyChange(table, operation, ids.map { mapOf<String, Any?>("id" to it) })
+                return
+            }
+
+            // No ids: notify without rows
+            if (ids.isEmpty()) {
                 notifyChange(table, operation, emptyList())
                 return
             }

@@ -906,6 +906,12 @@ export class DatabaseManager {
               // Notifications are eventually consistent - failures are expected
               console.warn(`[DatabaseManager] Failed to fetch row data for notification:`, error);
             }
+          } else if (data.operation === 'delete' && Array.isArray(data.ids)) {
+            // Deleted rows can't be read back, so pass their ids on; the UI drops those rows
+            // and reloads the views holding them. Without them the deletion never reaches the UI.
+            rows = data.ids
+              .filter((id: unknown): id is number => typeof id === 'number')
+              .map((id: number) => ({ id }));
           }
 
           this.emitChange({
