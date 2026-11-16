@@ -60,11 +60,37 @@ export function generateSchemaStatements(dialect: DatabaseDialect): SchemaStatem
 		const trimmed = stmt.sql.trim().toUpperCase();
 		const isDDL = trimmed.startsWith('ALTER') || trimmed.startsWith('CREATE') || trimmed.startsWith('DROP');
 		statements.push({
-			sql: stmt.sql,
+			sql: dialect === 'postgres' ? toPostgresPlaceholders(stmt.sql) : stmt.sql,
 			params: stmt.params,
 			isDDL,
 		});
 	}
 
 	return statements;
+}
+
+/**
+ * Rewrite SQLite-style `?` placeholders as PostgreSQL `$1, $2, ...`.
+ * Skips `?` inside single-quoted string literals and double-quoted identifiers.
+ */
+export function toPostgresPlaceholders(sql: string): string {
+	let result = '';
+	let index = 0;
+	let quote: string | null = null;
+	for (const ch of sql) {
+		if (quote) {
+			// A doubled quote ('' or "") is an escape; toggling twice leaves us inside the quote.
+			if (ch === quote) quote = null;
+			result += ch;
+		} else if (ch === "'" || ch === '"') {
+			quote = ch;
+			result += ch;
+		} else if (ch === '?') {
+			index++;
+			result += `$${index}`;
+		} else {
+			result += ch;
+		}
+	}
+	return result;
 }

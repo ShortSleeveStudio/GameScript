@@ -245,7 +245,7 @@ class Database {
             }
         }
         const result = await bridge.query<{ count: number }>(sql, params, connection);
-        return result[0]?.count ?? 0;
+        return Number(result[0]?.count ?? 0);
     }
 
     /**

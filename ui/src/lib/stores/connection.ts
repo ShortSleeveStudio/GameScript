@@ -6,7 +6,7 @@
  */
 
 import { writable, derived, type Writable, type Readable } from 'svelte/store';
-import type { DatabaseType } from '@gamescript/shared';
+import type { DatabaseConfig, DatabaseType, PostgresSslMode } from '@gamescript/shared';
 import { bridge } from '$lib/api/bridge.js';
 // Note: db import removed to avoid circular dependency
 // Dialect is set via onConnected callback passed to initConnectionStores()
@@ -28,7 +28,22 @@ export interface SavedConnectionConfig {
     port?: number;
     database?: string;
     username?: string;
+    sslMode?: PostgresSslMode;
+    sslRootCert?: string;
     // Note: password is NOT saved for security reasons
+}
+
+/** Connection request from the UI. Uses `username`; mapped to DatabaseConfig.user for the backend. */
+export interface ConnectRequest {
+    type: DatabaseType;
+    filepath?: string;
+    host?: string;
+    port?: number;
+    database?: string;
+    username?: string;
+    password?: string;
+    sslMode?: PostgresSslMode;
+    sslRootCert?: string;
 }
 
 // ============================================================================
@@ -164,14 +179,16 @@ export function initConnectionStores(onConnected?: (type: DatabaseType) => void)
         // Don't clear the saved config on disconnect - user might want to reconnect
     });
 
-    bridge.on('error', (error: string) => {
-        connectionError.set(error);
-        isConnecting.set(false);
-        pendingConfig = null;
-        // Clear saved config on connection error so user sees fresh connection UI
-        // This handles cases like deleted/corrupted database files
-        clearConnectionConfig();
-    });
+    bridge.on('error', handleConnectionError);
+}
+
+function handleConnectionError(error: string): void {
+    connectionError.set(error);
+    isConnecting.set(false);
+    pendingConfig = null;
+    // Clear saved config on connection error so user sees fresh connection UI
+    // This handles cases like deleted/corrupted database files
+    clearConnectionConfig();
 }
 
 /**
@@ -229,6 +246,8 @@ export async function tryAutoReconnect(): Promise<boolean> {
             port: savedConfig.port,
             database: savedConfig.database,
             username: savedConfig.username,
+            sslMode: savedConfig.sslMode,
+            sslRootCert: savedConfig.sslRootCert,
         });
         return true;
     }
@@ -246,15 +265,7 @@ export function getSavedConnectionConfig(): SavedConnectionConfig | null {
 /**
  * Request a database connection.
  */
-export function connect(config: {
-    type: DatabaseType;
-    filepath?: string;
-    host?: string;
-    port?: number;
-    database?: string;
-    username?: string;
-    password?: string;
-}, createNew = false): void {
+export function connect(config: ConnectRequest, createNew = false): void {
     isConnecting.set(true);
     connectionError.set(null);
 
@@ -266,9 +277,33 @@ export function connect(config: {
         port: config.port,
         database: config.database,
         username: config.username,
+        sslMode: config.sslMode,
+        sslRootCert: config.sslRootCert,
     };
 
-    bridge.connect(config, createNew);
+    // bridge.connect rejects on open/schema/migration failures; without this the
+    // UI stays in "connecting" and the error only reaches the global rejection handler.
+    bridge.connect(toDatabaseConfig(config), createNew).catch((error: unknown) => {
+        handleConnectionError(error instanceof Error ? error.message : String(error));
+    });
+}
+
+/**
+ * Map a UI connect request to the backend's DatabaseConfig.
+ * Both backends read `user`, so `username` must be renamed here.
+ */
+export function toDatabaseConfig(config: ConnectRequest): DatabaseConfig {
+    return {
+        type: config.type,
+        filepath: config.filepath,
+        host: config.host,
+        port: config.port,
+        database: config.database,
+        user: config.username,
+        password: config.password,
+        sslMode: config.sslMode,
+        sslRootCert: config.sslRootCert,
+    };
 }
 
 /**

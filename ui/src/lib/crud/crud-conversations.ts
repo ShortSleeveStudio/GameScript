@@ -10,6 +10,8 @@ import {
   type ConversationProperty,
   type Localization,
   type CodeTemplateType,
+  type CodeOutputFolder,
+  TABLE_CODE_OUTPUT_FOLDER,
   TABLE_CONVERSATIONS,
   TABLE_NODES,
   TABLE_EDGES,
@@ -19,6 +21,9 @@ import {
   NODE_TYPE_ROOT,
   DB_DEFAULT_ACTOR_ID,
 } from '@gamescript/shared';
+
+/** code_output_folder is a singleton table; its row is created during schema initialization. */
+const CODE_OUTPUT_FOLDER_ROW_ID = 1;
 
 // ============================================================================
 // Read
@@ -176,9 +181,33 @@ export async function restore(conversationId: number): Promise<void> {
 // Permanent delete (cascades to all children)
 // ============================================================================
 
-export async function permanentlyDelete(conversationId: number, codeTemplate: CodeTemplateType): Promise<void> {
-  // Delete the conversation code file (no undo for permanent delete)
-  await bridge.deleteCodeFile(conversationId, codeTemplate);
+export interface PermanentDeleteResult {
+  /**
+   * True when nodes in the conversation had conditions/actions but no code output
+   * folder is set, so a code file may still exist and was not deleted.
+   */
+  codeFileSkipped: boolean;
+}
+
+export async function permanentlyDelete(
+  conversationId: number,
+  codeTemplate: CodeTemplateType
+): Promise<PermanentDeleteResult> {
+  // Delete the conversation code file (no undo for permanent delete).
+  // Code files can only be generated once a code output folder is set, so without one
+  // there is normally nothing to delete. If nodes still have conditions/actions, the
+  // folder was cleared after code was generated: delete the data anyway and report it.
+  let codeFileSkipped = false;
+  const folderRow = await db.selectById<CodeOutputFolder>(TABLE_CODE_OUTPUT_FOLDER, CODE_OUTPUT_FOLDER_ROW_ID);
+  if (folderRow?.value?.trim()) {
+    await bridge.deleteCodeFile(conversationId, codeTemplate);
+  } else {
+    const conversationNodes = await db.select<Node>(
+      TABLE_NODES,
+      query<Node>().where('parent').eq(conversationId).build()
+    );
+    codeFileSkipped = conversationNodes.some((n) => n.has_condition || n.has_action);
+  }
 
   await db.transaction(async (tx) => {
     // 1. Get all nodes for this conversation
@@ -249,4 +278,6 @@ export async function permanentlyDelete(conversationId: number, codeTemplate: Co
     // 9. Delete the conversation itself
     await db.delete(TABLE_CONVERSATIONS, conversationId, tx);
   });
+
+  return { codeFileSkipped };
 }

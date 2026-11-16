@@ -67,7 +67,9 @@ class DbHandlers(
             port = configObj.get("port")?.asInt,
             database = configObj.get("database")?.asString,
             user = configObj.get("user")?.asString,
-            password = configObj.get("password")?.asString
+            password = configObj.get("password")?.asString,
+            sslMode = configObj.get("sslMode")?.asString,
+            sslRootCert = configObj.get("sslRootCert")?.asString
         )
     }
 

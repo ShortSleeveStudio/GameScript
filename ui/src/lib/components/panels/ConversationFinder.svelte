@@ -53,7 +53,7 @@
   import { registerUndoable, Undoable } from '$lib/undo';
   import { conversations } from '$lib/crud';
   import { focusConversation } from '$lib/stores/focus.js';
-  import { toastError, toastSuccess } from '$lib/stores/notifications.js';
+  import { toastError, toastSuccess, toastWarning } from '$lib/stores/notifications.js';
   import { isDarkMode } from '$lib/stores/theme.js';
   import { IsLoadingStore } from '$lib/stores/is-loading.js';
   import { conversationTagCategoriesTable, conversationTagValuesTable, codeTemplateTableView, getCodeTemplate } from '$lib/tables';
@@ -202,12 +202,20 @@
     await isLoading.wrapPromise(
       (async () => {
         try {
+          const skippedCodeIds: number[] = [];
           for (const conv of selectedConversations) {
-            await conversations.permanentlyDelete(conv.id, codeTemplate);
+            const result = await conversations.permanentlyDelete(conv.id, codeTemplate);
+            if (result.codeFileSkipped) skippedCodeIds.push(conv.id);
           }
 
           api?.refreshInfiniteCache();
           toastSuccess(`Permanently deleted ${selectedConversations.length} conversation(s)`);
+          if (skippedCodeIds.length > 0) {
+            toastWarning(
+              `Code for conversation(s) ${skippedCodeIds.join(', ')} was not deleted because no code output folder is set. ` +
+              'Remove those code files manually.'
+            );
+          }
         } catch (err) {
           toastError('Failed to delete permanently', err);
         }

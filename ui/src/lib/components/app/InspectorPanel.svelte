@@ -29,7 +29,8 @@
     import { exportController } from '$lib/export';
     import Inspector from '$lib/components/inspector/Inspector.svelte';
     import SettingsPanel from './SettingsPanel.svelte';
-    import { Button, TabGroup, Input } from '$lib/components/common';
+    import { Button, TabGroup, Input, Dropdown, type DropdownOption } from '$lib/components/common';
+    import { POSTGRES_SSL_MODES, type PostgresSslMode } from '@gamescript/shared';
 
     // Notifications
     import { toastError, toastSuccess } from '$lib/stores/notifications.js';
@@ -48,6 +49,20 @@
     let pgDatabase = $state('');
     let pgUser = $state('');
     let pgPassword = $state('');
+    let pgSslMode = $state<PostgresSslMode>('disable');
+    let pgSslRootCert = $state('');
+
+    const SSL_MODE_OPTIONS: DropdownOption[] = [
+        { value: 'disable', label: 'Disable' },
+        { value: 'require', label: 'Require (encrypt only)' },
+        { value: 'verify-full', label: 'Verify full (encrypt + verify server)' },
+    ];
+
+    function handleSslModeChange(value: string | number) {
+        if ((POSTGRES_SSL_MODES as readonly string[]).includes(String(value))) {
+            pgSslMode = value as PostgresSslMode;
+        }
+    }
 
     // Load saved PostgreSQL config on mount (for form pre-fill)
     onMount(() => {
@@ -58,6 +73,8 @@
             pgPort = savedConfig.port || 5432;
             pgDatabase = savedConfig.database || '';
             pgUser = savedConfig.username || '';
+            pgSslMode = savedConfig.sslMode ?? 'disable';
+            pgSslRootCert = savedConfig.sslRootCert || '';
             // Note: password is never saved
         }
     });
@@ -241,6 +258,8 @@
                 database: pgDatabase,
                 username: pgUser,
                 password: pgPassword,
+                sslMode: pgSslMode,
+                sslRootCert: pgSslMode === 'verify-full' && pgSslRootCert.trim() ? pgSslRootCert.trim() : undefined,
             });
             activePanel = 'none';
         } catch (error) {
@@ -419,6 +438,25 @@
                         <label for="pgPassword">Password</label>
                         <Input type="password" bind:value={pgPassword} placeholder="password" />
                     </div>
+                    <div class="form-group">
+                        <label for="pgSslMode">SSL</label>
+                        <Dropdown
+                            options={SSL_MODE_OPTIONS}
+                            value={pgSslMode}
+                            onchange={handleSslModeChange}
+                            fullWidth
+                        />
+                    </div>
+                    {#if pgSslMode === 'verify-full'}
+                        <div class="form-group">
+                            <label for="pgSslRootCert">CA certificate (optional)</label>
+                            <Input
+                                type="text"
+                                bind:value={pgSslRootCert}
+                                placeholder="path to .crt/.pem (blank = default CAs)"
+                            />
+                        </div>
+                    {/if}
                     <Button
                         variant="primary"
                         onclick={handleConnectPostgres}

@@ -43,6 +43,56 @@ interface Sqlite3Static {
 let sqlite3: Sqlite3Static | undefined;
 let pg: typeof import('pg') | undefined;
 
+/**
+ * Parse BIGINT (INT8) results, e.g. COUNT(*), as numbers instead of node-postgres's
+ * default strings, so callers see the same types as SQLite and the Rider plugin.
+ * Values outside the safe integer range stay strings rather than losing precision.
+ * Scoped to our pool/client; the global pg.types registry is left untouched.
+ */
+export function createPgTypeOverrides(pgModule: typeof import('pg')): import('pg').TypeOverrides {
+  const overrides = new pgModule.TypeOverrides();
+  overrides.setTypeParser(pgModule.types.builtins.INT8, (value: string) => {
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) ? parsed : value;
+  });
+  return overrides;
+}
+
+/**
+ * Translate a DatabaseConfig's SSL settings into node-postgres's `ssl` option.
+ *
+ * sslMode omitted returns undefined so node-postgres still honors the PGSSLMODE
+ * environment variable, matching behavior from before sslMode existed.
+ */
+export async function buildPgSslOption(
+  config: Pick<DatabaseConfig, 'sslMode' | 'sslRootCert'>
+): Promise<false | import('tls').ConnectionOptions | undefined> {
+  switch (config.sslMode) {
+    case undefined:
+      return undefined;
+    case 'disable':
+      return false;
+    case 'require':
+      return { rejectUnauthorized: false };
+    case 'verify-full': {
+      if (!config.sslRootCert) {
+        return { rejectUnauthorized: true };
+      }
+      const { readFile } = await import('fs/promises');
+      let ca: string;
+      try {
+        ca = await readFile(config.sslRootCert, 'utf8');
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        throw new Error(`[DatabaseManager] Could not read SSL root certificate "${config.sslRootCert}": ${reason}`);
+      }
+      return { rejectUnauthorized: true, ca };
+    }
+    default:
+      throw new Error(`[DatabaseManager] Unknown sslMode "${String(config.sslMode)}"`);
+  }
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -333,6 +383,8 @@ export class DatabaseManager {
           database: config.database,
           user: config.user,
           password: config.password,
+          ssl: await buildPgSslOption(config),
+          types: createPgTypeOverrides(pg),
         });
 
         // Test connection
@@ -795,8 +847,8 @@ export class DatabaseManager {
 
     // Create a dedicated client for LISTEN (can't use pool for persistent listen)
     // Extract only the connection options we need
-    const { host, port, database, user, password } = this._pgPool.options;
-    this._pgNotifyClient = new pg.Client({ host, port, database, user, password });
+    const { host, port, database, user, password, ssl } = this._pgPool.options;
+    this._pgNotifyClient = new pg.Client({ host, port, database, user, password, ssl, types: createPgTypeOverrides(pg) });
     await this._pgNotifyClient.connect();
 
     // Handle LISTEN client errors - critical failures for notification system

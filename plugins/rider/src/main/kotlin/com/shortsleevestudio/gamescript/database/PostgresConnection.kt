@@ -2,12 +2,14 @@ package com.shortsleevestudio.gamescript.database
 
 import com.github.jasync.sql.db.Connection
 import com.github.jasync.sql.db.QueryResult
+import com.github.jasync.sql.db.SSLConfiguration
 import com.github.jasync.sql.db.pool.ConnectionPool
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnection
 import com.github.jasync.sql.db.postgresql.PostgreSQLConnectionBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -20,8 +22,31 @@ class PostgresConnection(
     private val port: Int,
     private val database: String,
     private val user: String,
-    private val password: String?
+    private val password: String?,
+    private val ssl: SSLConfiguration = SSLConfiguration()
 ) {
+
+    companion object {
+        /**
+         * Map the shared sslMode values ("disable", "require", "verify-full") to jasync's
+         * SSLConfiguration. Null means disable. jasync's Require skips certificate checks and
+         * VerifyFull checks the chain plus hostname, matching the VS Code plugin.
+         */
+        fun buildSslConfiguration(sslMode: String?, sslRootCert: String?): SSLConfiguration {
+            return when (sslMode) {
+                null, "disable" -> SSLConfiguration(mode = SSLConfiguration.Mode.Disable)
+                "require" -> SSLConfiguration(mode = SSLConfiguration.Mode.Require)
+                "verify-full" -> {
+                    val rootCert = sslRootCert?.takeIf { it.isNotBlank() }?.let { File(it) }
+                    if (rootCert != null && !rootCert.isFile) {
+                        throw IllegalArgumentException("SSL root certificate not found: $sslRootCert")
+                    }
+                    SSLConfiguration(mode = SSLConfiguration.Mode.VerifyFull, rootCert = rootCert)
+                }
+                else -> throw IllegalArgumentException("Unknown sslMode \"$sslMode\"")
+            }
+        }
+    }
 
     private var pool: ConnectionPool<PostgreSQLConnection>? = null
     private var listenPool: ConnectionPool<PostgreSQLConnection>? = null
@@ -41,6 +66,7 @@ class PostgresConnection(
             this.database = this@PostgresConnection.database
             this.username = this@PostgresConnection.user
             this.password = this@PostgresConnection.password
+            this.ssl = this@PostgresConnection.ssl
             this.maxActiveConnections = 10
             this.maxIdleTime = 60_000
             this.maxPendingQueries = 100
@@ -197,6 +223,7 @@ class PostgresConnection(
                 this.database = this@PostgresConnection.database
                 this.username = this@PostgresConnection.user
                 this.password = this@PostgresConnection.password
+                this.ssl = this@PostgresConnection.ssl
                 this.maxActiveConnections = 1
             } as ConnectionPool<PostgreSQLConnection>
 

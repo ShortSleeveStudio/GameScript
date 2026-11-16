@@ -57,13 +57,13 @@ export function generateInitializationSQL(): InitializationStatement[] {
   // =========================================================================
   // Insert localization for default locale's localized name (id will be 1)
   statements.push({
-    sql: 'INSERT INTO localizations (parent, name, is_system_created, subject_actor, subject_gender, is_templated) VALUES (NULL, NULL, 1, NULL, NULL, 0)',
+    sql: 'INSERT INTO localizations (parent, name, is_system_created, subject_actor, subject_gender, is_templated) VALUES (NULL, NULL, TRUE, NULL, NULL, FALSE)',
     params: [],
   });
 
   // Insert default locale with localized_name reference (id will be 1)
   statements.push({
-    sql: 'INSERT INTO locales (name, localized_name, is_system_created) VALUES (?, 1, 1)',
+    sql: 'INSERT INTO locales (name, localized_name, is_system_created) VALUES (?, 1, TRUE)',
     params: [DEFAULT_LOCALE_CODE],
   });
 
@@ -92,7 +92,7 @@ export function generateInitializationSQL(): InitializationStatement[] {
   // =========================================================================
   // Insert localization for default actor's localized name (id will be 2)
   statements.push({
-    sql: 'INSERT INTO localizations (parent, name, is_system_created, subject_actor, subject_gender, is_templated) VALUES (NULL, NULL, 1, NULL, NULL, 0)',
+    sql: 'INSERT INTO localizations (parent, name, is_system_created, subject_actor, subject_gender, is_templated) VALUES (NULL, NULL, TRUE, NULL, NULL, FALSE)',
     params: [],
   });
 
@@ -104,7 +104,7 @@ export function generateInitializationSQL(): InitializationStatement[] {
 
   // Insert default actor (Narrator) with localized_name reference and grammatical_gender
   statements.push({
-    sql: "INSERT INTO actors (name, color, localized_name, is_system_created, grammatical_gender) VALUES (?, ?, 2, 1, 'other')",
+    sql: "INSERT INTO actors (name, color, localized_name, is_system_created, grammatical_gender) VALUES (?, ?, 2, TRUE, 'other')",
     params: [DEFAULT_ACTOR_NAME, DEFAULT_ACTOR_COLOR],
   });
 

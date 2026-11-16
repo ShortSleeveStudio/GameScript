@@ -15,6 +15,19 @@ export const DATABASE_TYPE_SQLITE: DatabaseTypeRef = { id: 0, name: 'SQLite', ty
 export const DATABASE_TYPE_POSTGRES: DatabaseTypeRef = { id: 1, name: 'PostgreSQL', type: 'postgres' };
 export const DATABASE_TYPES: DatabaseTypeRef[] = [DATABASE_TYPE_SQLITE, DATABASE_TYPE_POSTGRES];
 
+/**
+ * PostgreSQL SSL mode, named after libpq's sslmode values.
+ * - disable: plaintext connection.
+ * - require: encrypted, server certificate not verified.
+ * - verify-full: encrypted, certificate chain and hostname verified.
+ *   Uses sslRootCert when set, otherwise the runtime's default CA list
+ *   (Node's bundled CAs in VS Code, the JDK's cacerts in Rider), not the OS store.
+ *   Private CAs such as Supabase's need sslRootCert.
+ */
+export type PostgresSslMode = 'disable' | 'require' | 'verify-full';
+
+export const POSTGRES_SSL_MODES: readonly PostgresSslMode[] = ['disable', 'require', 'verify-full'];
+
 export interface DatabaseConfig {
   type: DatabaseType;
   // SQLite
@@ -25,6 +38,13 @@ export interface DatabaseConfig {
   database?: string;
   user?: string;
   password?: string;
+  /**
+   * When omitted: Rider uses 'disable'; VS Code defers to node-postgres, which honors
+   * the PGSSLMODE environment variable (unset = no SSL). The connection form always sets it.
+   */
+  sslMode?: PostgresSslMode;
+  /** Path to a PEM CA certificate file. Only used when sslMode is 'verify-full'. */
+  sslRootCert?: string;
 }
 
 export interface QueryResult<T = unknown> {

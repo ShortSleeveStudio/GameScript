@@ -25,7 +25,11 @@ data class DatabaseConfig(
     val port: Int? = null,
     val database: String? = null,
     val user: String? = null,
-    val password: String? = null
+    val password: String? = null,
+    /** "disable", "require" or "verify-full". Null means disable. */
+    val sslMode: String? = null,
+    /** PEM CA certificate path, used only for verify-full. */
+    val sslRootCert: String? = null
 )
 
 /**
@@ -97,7 +101,8 @@ class DatabaseManager(
                     port = config.port ?: 5432,
                     database = database,
                     user = user,
-                    password = config.password
+                    password = config.password,
+                    ssl = PostgresConnection.buildSslConfiguration(config.sslMode, config.sslRootCert)
                 )
                 conn.connect()
                 postgresConnection = conn
