@@ -387,6 +387,15 @@ export class DatabaseManager {
           types: createPgTypeOverrides(pg),
         });
 
+        // Read doubles at full precision. Servers and poolers may default extra_float_digits to 0
+        // (Supabase's do), which prints 15 significant digits: 719.1999999999999 reads as 719.2,
+        // and saving a row read that way rounds it. Queued on each new connection before any query.
+        this._pgPool.on('connect', (client) => {
+          client.query('SET extra_float_digits = 3').catch((error: unknown) => {
+            console.warn('[DatabaseManager] Could not set extra_float_digits:', error);
+          });
+        });
+
         // Test connection
         const client = await this._pgPool.connect();
         client.release();
@@ -753,8 +762,10 @@ export class DatabaseManager {
     }
 
     if (this._pgNotifyClient) {
-      await this._pgNotifyClient.end();
+      // Forgotten before it ends, so its 'end' handler knows the close was meant (see below).
+      const notifyClient = this._pgNotifyClient;
       this._pgNotifyClient = undefined;
+      await notifyClient.end();
     }
 
     this._type = undefined;
@@ -833,8 +844,10 @@ export class DatabaseManager {
    */
   public stopChangeNotifications(): void {
     if (this._pgNotifyClient) {
-      this._pgNotifyClient.end();
+      // Forgotten before it ends, so its 'end' handler knows the close was meant.
+      const notifyClient = this._pgNotifyClient;
       this._pgNotifyClient = undefined;
+      void notifyClient.end();
     }
   }
 
@@ -848,22 +861,27 @@ export class DatabaseManager {
     // Create a dedicated client for LISTEN (can't use pool for persistent listen)
     // Extract only the connection options we need
     const { host, port, database, user, password, ssl } = this._pgPool.options;
-    this._pgNotifyClient = new pg.Client({ host, port, database, user, password, ssl, types: createPgTypeOverrides(pg) });
-    await this._pgNotifyClient.connect();
+    const notifyClient = new pg.Client({ host, port, database, user, password, ssl, types: createPgTypeOverrides(pg) });
+    this._pgNotifyClient = notifyClient;
+    await notifyClient.connect();
 
-    // Handle LISTEN client errors - critical failures for notification system
-    this._pgNotifyClient.on('error', (err) => {
+    // Handle LISTEN client errors - critical failures for notification system.
+    // Only while it is still the live listener: closing the database or stopping notifications
+    // forgets it first, and that end (or an error on the way out) is not a failure to report.
+    notifyClient.on('error', (err) => {
+      if (this._pgNotifyClient !== notifyClient) return;
       console.error('[DatabaseManager] PostgreSQL LISTEN client error:', err);
       this.emitError(`Database notification system error: ${err.message}`);
     });
 
-    this._pgNotifyClient.on('end', () => {
+    notifyClient.on('end', () => {
+      if (this._pgNotifyClient !== notifyClient) return;
       console.error('[DatabaseManager] PostgreSQL LISTEN client disconnected');
       this.emitError('Database notification system disconnected');
     });
 
     // Listen for notifications on the 'gamescript_changes' channel
-    this._pgNotifyClient.on('notification', async (msg) => {
+    notifyClient.on('notification', async (msg) => {
       if (msg.channel === 'gamescript_changes' && msg.payload) {
         try {
           const data = JSON.parse(msg.payload);
@@ -926,7 +944,7 @@ export class DatabaseManager {
       }
     });
 
-    await this._pgNotifyClient.query('LISTEN gamescript_changes');
+    await notifyClient.query('LISTEN gamescript_changes');
     console.log('[DatabaseManager] PostgreSQL: Listening for change notifications');
   }
 
