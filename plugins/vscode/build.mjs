@@ -33,8 +33,16 @@ const buildOptions = {
   entryPoints: ['src/extension.ts'],
   bundle: true,
   outfile: 'dist/extension.js',
-  external: ['vscode', '@vscode/sqlite3', 'pg'],
+  // pg is plain JavaScript and is bundled here: shipping it in node_modules left out its own
+  // dependencies (pg-pool, pg-types, ...), so Postgres failed to load from a packaged .vsix.
+  // pg-native is pg's optional native binding, never used. @vscode/sqlite3 is native and ships
+  // in node_modules (package-extension.mjs).
+  external: ['vscode', '@vscode/sqlite3', 'pg-native'],
   format: 'esm',
+  // Bundled CommonJS (pg) calls require for Node built-ins; ESM output needs one defined.
+  banner: {
+    js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);",
+  },
   platform: 'node',
   target: 'node18',
   sourcemap: true,

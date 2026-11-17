@@ -536,7 +536,22 @@ This builds the UI and launches a sandboxed Rider instance with the plugin.
 pnpm package:vscode
 ```
 
-Creates `.vsix` file in `plugins/vscode/`.
+Creates one universal `.vsix` in `plugins/vscode/` that runs SQLite on Apple Silicon Macs and Windows x64. It needs a SQLite binary for each of those platforms, so on its own it stops and names the one it lacks.
+
+SQLite's driver is native code, built separately on each platform. This machine's binary comes from `pnpm install`. Build the other platform's on that platform, from a temp folder:
+
+```bash
+npm install --no-save --prefix <tmp> @vscode/sqlite3@<version in pnpm-lock.yaml>
+# -> <tmp>/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node
+```
+
+Put each one at `<dir>/<platform>-<arch>/vscode-sqlite3.node` (`darwin-arm64`, `win32-x64`) and package with:
+
+```bash
+node plugins/vscode/package-extension.mjs --sqlite-binaries <dir>
+```
+
+`--allow-missing` packages without a platform's binary; SQLite then reports it isn't available there. PostgreSQL works on every platform. Windows builds need Visual Studio's "Spectre-mitigated libs" component.
 
 ### Rider Plugin
 

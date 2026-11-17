@@ -109,7 +109,7 @@
     "vscode:prepublish": "pnpm run build",
     "build": "node build.mjs",
     "dev": "node build.mjs --watch",
-    "clean": "rm -rf dist /tmp/vscode-gamescript-package",
+    "clean": "rm -rf dist",
     "package": "node package-extension.mjs",
     "lint": "eslint src --ext ts"
   },
@@ -119,8 +119,7 @@
     "pg": "^8.11.5"
   },
   "bundledDependencies": [
-    "@vscode/sqlite3",
-    "pg"
+    "@vscode/sqlite3"
   ],
   "devDependencies": {
     "@types/node": "^20.12.7",

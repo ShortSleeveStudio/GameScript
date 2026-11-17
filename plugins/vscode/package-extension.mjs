@@ -1,277 +1,197 @@
 #!/usr/bin/env node
 /**
- * Package the VS Code extension using pnpm deploy to handle native modules.
+ * Package the VS Code extension as one universal .vsix that runs SQLite on every platform listed in
+ * SQLITE_TARGETS.
  *
- * This script:
- * 1. Runs the standard build (esbuild + UI copy)
- * 2. Uses `pnpm deploy --prod` to create a staging folder with dependencies
- * 3. Selectively copies only the native modules we need from .pnpm
- * 4. Copies the built dist/ into the deploy folder
- * 5. Runs vsce package with --no-dependencies (node_modules whitelisted)
- * 6. Moves the .vsix back to the plugin directory
+ * @vscode/sqlite3 is a native module: its vscode-sqlite3.node only loads on the OS and CPU it was
+ * built for, and can't be cross-compiled. So each platform's binary is built once on that platform
+ * (see "Building a binary" below), and this script packs all of them into the extension under
+ * node_modules/@vscode/sqlite3/build/<platform>-<arch>/, with a loader that picks the running one.
+ * Everything else is plain JavaScript and is bundled into dist/extension.js by build.mjs (pg too).
  *
- * Key insight: pnpm v10+ creates complex symlink structures in .pnpm that can't
- * be fully flattened with cp -rL (cycles, broken links). Instead, we selectively
- * copy only the native modules that must be bundled at runtime.
+ * Usage:
+ *   node package-extension.mjs --sqlite-binaries <dir> [--allow-missing]
+ *
+ *   <dir> holds <platform>-<arch>/vscode-sqlite3.node for each target, e.g.
+ *     <dir>/darwin-arm64/vscode-sqlite3.node
+ *     <dir>/win32-x64/vscode-sqlite3.node
+ *   The binary built for this machine by pnpm install (node_modules/@vscode/sqlite3/build/Release)
+ *   is used for this machine's target when <dir> lacks it. --allow-missing packages without the
+ *   targets that have no binary; SQLite then says it isn't available there. Postgres works on all.
+ *
+ * Building a binary (on the platform itself; needs Node, Python and a C++ toolchain):
+ *   npm install --no-save --prefix <tmp> @vscode/sqlite3@<version in pnpm-lock.yaml>
+ *   -> <tmp>/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node
+ *
+ * Works the same on macOS, Linux and Windows: Node file APIs only, and vsce for the zip.
  */
-import { execSync } from 'child_process';
+import { execSync } from 'node:child_process';
 import {
-  existsSync,
   cpSync,
-  rmSync,
-  readdirSync,
-  readFileSync,
-  writeFileSync,
+  existsSync,
   mkdirSync,
-} from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { createRequire } from 'node:module';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-// Deploy to /tmp to avoid symlink cycles (pnpm can create symlinks pointing back into the repo)
-const deployDir = '/tmp/vscode-gamescript-package';
+const require = createRequire(import.meta.url);
 
-// Native modules that must be included at runtime (not bundled by esbuild)
-const nativeModules = ['@vscode/sqlite3', 'pg'];
+/** The platforms the .vsix must run SQLite on. */
+const SQLITE_TARGETS = ['darwin-arm64', 'win32-x64'];
+const SQLITE = '@vscode/sqlite3';
+const BINARY = 'vscode-sqlite3.node';
 
-// Packages bundled by esbuild (removed from deps, don't need in node_modules)
-const bundledByEsbuild = ['@gamescript/shared'];
+function parseArgs(argv) {
+  const out = { binaries: null, allowMissing: false };
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--sqlite-binaries') out.binaries = argv[++i];
+    else if (argv[i] === '--allow-missing') out.allowMissing = true;
+    else throw new Error(`Unexpected argument: ${argv[i]}`);
+  }
+  return out;
+}
 
 function run(cmd, cwd = __dirname) {
   console.log(`> ${cmd}`);
   execSync(cmd, { cwd, stdio: 'inherit' });
 }
 
-function cleanup() {
-  if (existsSync(deployDir)) {
-    rmSync(deployDir, { recursive: true });
+// Replaces lib/sqlite3-binding.js, which loads ../build/Release/vscode-sqlite3.node.
+const BINDING_LOADER = `// Written by GameScript's package-extension.mjs: one binary per platform, picked at run time.
+const path = require('path');
+const target = process.platform + '-' + process.arch;
+const file = path.join(__dirname, '..', 'build', target, '${BINARY}');
+let binding;
+try {
+  binding = require(file);
+} catch (error) {
+  if (error && error.code === 'MODULE_NOT_FOUND') {
+    throw new Error('GameScript has no SQLite support built for ' + target + '. PostgreSQL works on every platform.');
   }
+  throw error;
 }
+module.exports = exports = binding;
+`;
 
-/**
- * Find a package in pnpm's .pnpm directory structure.
- * pnpm stores packages as: .pnpm/<package-name>@<version>/node_modules/<package-name>
- */
-function findPackageInPnpm(pnpmDir, packageName) {
-  if (!existsSync(pnpmDir)) return null;
-
-  const entries = readdirSync(pnpmDir);
-  // Convert @scope/name to @scope+name for pnpm directory naming
-  const pnpmName = packageName.replace('/', '+');
-
-  for (const entry of entries) {
-    if (entry.startsWith(pnpmName + '@')) {
-      const packagePath = join(pnpmDir, entry, 'node_modules', packageName);
-      if (existsSync(packagePath)) {
-        return packagePath;
-      }
+/** The file names in a zip (a .vsix), read from its central directory. */
+function zipEntries(file) {
+  const buf = readFileSync(file);
+  // The end-of-central-directory record is the last 22 bytes, plus a comment of up to 64 KiB.
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= Math.max(0, buf.length - 22 - 0xffff); i--) {
+    if (buf.readUInt32LE(i) === 0x06054b50) {
+      eocd = i;
+      break;
     }
   }
-  return null;
+  if (eocd < 0) throw new Error(`${file} is not a zip`);
+  const count = buf.readUInt16LE(eocd + 10);
+  let at = buf.readUInt32LE(eocd + 16);
+  const names = [];
+  for (let n = 0; n < count; n++) {
+    if (buf.readUInt32LE(at) !== 0x02014b50) throw new Error(`${file}: bad central directory`);
+    const nameLength = buf.readUInt16LE(at + 28);
+    const extraLength = buf.readUInt16LE(at + 30);
+    const commentLength = buf.readUInt16LE(at + 32);
+    names.push(buf.toString('utf8', at + 46, at + 46 + nameLength));
+    at += 46 + nameLength + extraLength + commentLength;
+  }
+  return names;
 }
 
-try {
-  // Clean up any previous staging directory
-  cleanup();
+const opts = parseArgs(process.argv.slice(2));
+const stage = mkdtempSync(join(tmpdir(), 'gamescript-vsix-'));
 
-  // Step 1: Run the standard build
+try {
+  // Step 1: the extension bundle (pg included) and the UI.
   console.log('\n=== Step 1: Building extension ===');
   run('node build.mjs');
 
-  // Step 2: Use pnpm deploy with --prod to keep the VSIX small
-  console.log('\n=== Step 2: Creating deployment with pnpm deploy ===');
-  run(`pnpm deploy --filter=./plugins/vscode --prod --legacy "${deployDir}"`, join(__dirname, '../..'));
-
-  // pnpm deploy copies the whole plugin directory, including .vsix files from earlier
-  // packaging runs. Steps 4b and 5 pick up the first .vsix in the staging dir, so a stale
-  // one (e.g. gamescript-3.1.0.vsix sorting before 3.2.1) would be patched and shipped
-  // instead of the one vsce builds. Remove them so only the new package exists.
-  for (const staleVsix of readdirSync(deployDir).filter((f) => f.endsWith('.vsix'))) {
-    console.log(`  Removing stale ${staleVsix} copied by pnpm deploy`);
-    rmSync(join(deployDir, staleVsix));
-  }
-
-  // Step 2b: Selectively copy native modules from .pnpm to top-level node_modules
-  console.log('\n=== Step 2b: Extracting native modules from pnpm store ===');
-  const nodeModulesDir = join(deployDir, 'node_modules');
-  const pnpmDir = join(nodeModulesDir, '.pnpm');
-
-  // Create fresh node_modules with only the packages we need
-  const tempNodeModules = join(deployDir, 'node_modules_clean');
-  mkdirSync(tempNodeModules, { recursive: true });
-
-  for (const moduleName of nativeModules) {
-    const sourcePath = findPackageInPnpm(pnpmDir, moduleName);
-    if (!sourcePath) {
-      throw new Error(`Could not find ${moduleName} in pnpm store at ${pnpmDir}`);
-    }
-
-    // Determine target path (handle scoped packages)
-    let targetPath;
-    if (moduleName.startsWith('@')) {
-      const [scope, name] = moduleName.split('/');
-      mkdirSync(join(tempNodeModules, scope), { recursive: true });
-      targetPath = join(tempNodeModules, scope, name);
+  // Step 2: find a binary for every target.
+  console.log('\n=== Step 2: Collecting SQLite binaries ===');
+  const sqliteDir = dirname(require.resolve(`${SQLITE}/package.json`));
+  const hostTarget = `${process.platform}-${process.arch}`;
+  const binaries = new Map();
+  for (const target of SQLITE_TARGETS) {
+    const given = opts.binaries ? join(opts.binaries, target, BINARY) : null;
+    const host = target === hostTarget ? join(sqliteDir, 'build', 'Release', BINARY) : null;
+    const found = [given, host].find((p) => p && existsSync(p));
+    if (found) {
+      binaries.set(target, found);
+      console.log(`  ${target}: ${found}`);
+    } else if (opts.allowMissing) {
+      console.log(`  ${target}: none (SQLite won't be available there)`);
     } else {
-      targetPath = join(tempNodeModules, moduleName);
-    }
-
-    // Copy with symlink dereferencing
-    console.log(`  Copying ${moduleName}...`);
-    execSync(`cp -rL "${sourcePath}" "${targetPath}"`);
-  }
-
-  // Replace original node_modules with our clean version
-  rmSync(nodeModulesDir, { recursive: true });
-  execSync(`mv "${tempNodeModules}" "${nodeModulesDir}"`);
-
-  console.log('  Native modules extracted successfully');
-
-  // Remove pnpm-lock.yaml from staging (vsce doesn't need it)
-  const pnpmLock = join(deployDir, 'pnpm-lock.yaml');
-  if (existsSync(pnpmLock)) {
-    rmSync(pnpmLock);
-  }
-
-  // Step 3: Sync built artifacts
-  console.log('\n=== Step 3: Updating staging with built artifacts ===');
-  const distSource = join(__dirname, 'dist');
-  const distTarget = join(deployDir, 'dist');
-
-  // Remove the source dist from deploy (it has unbuilt .ts files)
-  rmSync(distTarget, { recursive: true, force: true });
-
-  // Copy our built dist
-  cpSync(distSource, distTarget, { recursive: true });
-
-  // Step 3b: Update staged package.json
-  console.log('\n=== Step 3b: Updating package.json ===');
-  const stagedPackageJsonPath = join(deployDir, 'package.json');
-  const packageJson = JSON.parse(readFileSync(stagedPackageJsonPath, 'utf8'));
-
-  // Remove vscode:prepublish to prevent re-running build
-  delete packageJson.scripts['vscode:prepublish'];
-
-  // Remove bundled-by-esbuild packages from dependencies
-  for (const pkg of bundledByEsbuild) {
-    if (packageJson.dependencies?.[pkg]) {
-      delete packageJson.dependencies[pkg];
-      console.log(`  Removed ${pkg} from dependencies (bundled by esbuild)`);
+      throw new Error(`No ${BINARY} for ${target}. Build it on that platform (see this file's header), or pass --allow-missing.`);
     }
   }
 
-  writeFileSync(stagedPackageJsonPath, JSON.stringify(packageJson, null, 2));
+  // Step 3: stage the extension. Only what ships: package.json, dist/, and @vscode/sqlite3's runtime.
+  console.log('\n=== Step 3: Staging ===');
+  const packageJson = JSON.parse(readFileSync(join(__dirname, 'package.json'), 'utf8'));
+  const sqliteVersion = JSON.parse(readFileSync(join(sqliteDir, 'package.json'), 'utf8')).version;
+  delete packageJson.scripts;
+  delete packageJson.devDependencies;
+  // Everything but the native module is in dist/extension.js. vsce's dependency mode (npm list)
+  // then includes exactly node_modules/@vscode/sqlite3.
+  packageJson.dependencies = { [SQLITE]: sqliteVersion };
+  delete packageJson.bundledDependencies;
+  writeFileSync(join(stage, 'package.json'), JSON.stringify(packageJson, null, 2));
+  cpSync(join(__dirname, 'dist'), join(stage, 'dist'), { recursive: true });
 
-  // Step 3c: Create .vscodeignore that whitelists node_modules
-  // With --no-dependencies, vsce ignores node_modules by default.
-  // We need to explicitly include it via .vscodeignore whitelist.
-  console.log('\n=== Step 3c: Creating .vscodeignore whitelist ===');
-  const vscodeignoreContent = `
-# Source files (bundled in dist/)
-src/**
-*.ts
-tsconfig.json
+  const stagedSqlite = join(stage, 'node_modules', SQLITE);
+  mkdirSync(join(stagedSqlite, 'lib'), { recursive: true });
+  for (const file of ['sqlite3.js', 'trace.js']) {
+    cpSync(join(sqliteDir, 'lib', file), join(stagedSqlite, 'lib', file), { dereference: true });
+  }
+  writeFileSync(join(stagedSqlite, 'lib', 'sqlite3-binding.js'), BINDING_LOADER);
+  cpSync(join(sqliteDir, 'LICENSE'), join(stagedSqlite, 'LICENSE'), { dereference: true });
+  // Its build-time dependencies (node-addon-api, tar) aren't needed at run time, and npm list would
+  // report them missing.
+  const sqlitePackage = JSON.parse(readFileSync(join(sqliteDir, 'package.json'), 'utf8'));
+  delete sqlitePackage.dependencies;
+  delete sqlitePackage.devDependencies;
+  delete sqlitePackage.scripts;
+  writeFileSync(join(stagedSqlite, 'package.json'), JSON.stringify(sqlitePackage, null, 2));
+  for (const [target, file] of binaries) {
+    mkdirSync(join(stagedSqlite, 'build', target), { recursive: true });
+    cpSync(file, join(stagedSqlite, 'build', target, BINARY), { dereference: true });
+  }
+  writeFileSync(join(stage, '.vscodeignore'), ['**/*.ts', '**/*.md', 'node_modules/**/*.d.ts'].join('\n'));
 
-# Build tools
-build.mjs
-package-extension.mjs
-
-# Dev files
-.gitignore
-.eslintrc*
-.vscode/**
-test/**
-test_workspace/**
-
-# Package manager
-pnpm-lock.yaml
-
-# Trim node_modules bloat
-node_modules/**/*.md
-node_modules/**/*.ts
-node_modules/**/test/**
-node_modules/**/tests/**
-node_modules/**/.github/**
-node_modules/**/docs/**
-node_modules/**/src/**
-`;
-  writeFileSync(join(deployDir, '.vscodeignore'), vscodeignoreContent.trim());
-
-  // Step 4: Run vsce package with --no-dependencies
-  // We use --no-dependencies because npm list will fail on our selective node_modules
+  // Step 4: package. --skip-license: the extension has never shipped a LICENSE file.
   console.log('\n=== Step 4: Packaging with vsce ===');
-  run('npx @vscode/vsce package --no-dependencies', deployDir);
+  const vsixName = `${packageJson.name}-${packageJson.version}.vsix`;
+  run(`npx --yes @vscode/vsce@3 package --skip-license --out "${vsixName}"`, stage);
 
-  // Step 4b: Manually inject node_modules into the VSIX
-  // vsce --no-dependencies completely ignores node_modules, so we must add it manually
-  console.log('\n=== Step 4b: Injecting node_modules into VSIX ===');
-  const vsixFile = readdirSync(deployDir).find((f) => f.endsWith('.vsix'));
-  if (!vsixFile) {
-    throw new Error('No .vsix file found after vsce package');
-  }
-  const vsixPath = join(deployDir, vsixFile);
+  // Step 5: check what went in, then move it next to this script.
+  console.log('\n=== Step 5: Checking the package ===');
+  const vsixPath = join(stage, vsixName);
+  const entries = new Set(zipEntries(vsixPath));
+  const expect = [
+    'extension/dist/extension.js',
+    `extension/node_modules/${SQLITE}/lib/sqlite3-binding.js`,
+    ...[...binaries.keys()].map((t) => `extension/node_modules/${SQLITE}/build/${t}/${BINARY}`),
+  ];
+  const missing = expect.filter((e) => !entries.has(e));
+  const strays = [...entries].filter(
+    (e) => e.startsWith('extension/node_modules/') && !e.startsWith(`extension/node_modules/${SQLITE}/`)
+  );
+  if (missing.length) throw new Error(`The package lacks: ${missing.join(', ')}`);
+  if (strays.length) throw new Error(`Unexpected modules in the package: ${strays.slice(0, 5).join(', ')}`);
+  console.log(`  ${entries.size} files; extension.js, the loader and ${binaries.size} binaries present; no other modules`);
 
-  // VSIX is a zip file. We need to add node_modules under extension/
-  // Use zip command to add node_modules to the existing vsix
-  execSync(`cd "${deployDir}" && zip -r "${vsixPath}" node_modules -x "*.md" -x "*.ts" -x "*/test/*" -x "*/tests/*" -x "*/.github/*" -x "*/docs/*" -x "*/src/*"`, {
-    cwd: deployDir,
-  });
-
-  // The files need to be under extension/ in the vsix, not at root
-  // Let's fix this by extracting, moving, and re-zipping
-  const extractDir = join(deployDir, 'vsix_extracted');
-  if (existsSync(extractDir)) {
-    rmSync(extractDir, { recursive: true });
-  }
-  mkdirSync(extractDir, { recursive: true });
-  execSync(`unzip -q "${vsixPath}" -d "${extractDir}"`);
-
-  // Move node_modules into extension/
-  const extensionDir = join(extractDir, 'extension');
-  // Remove any existing node_modules in extension/ first
-  const targetNodeModules = join(extensionDir, 'node_modules');
-  if (existsSync(targetNodeModules)) {
-    rmSync(targetNodeModules, { recursive: true });
-  }
-  if (existsSync(join(extractDir, 'node_modules'))) {
-    execSync(`mv "${join(extractDir, 'node_modules')}" "${extensionDir}/"`);
-  }
-  // Also copy from deployDir if not already there
-  if (!existsSync(join(extensionDir, 'node_modules'))) {
-    execSync(`cp -r "${nodeModulesDir}" "${extensionDir}/"`);
-  }
-
-  // Re-create the vsix
-  rmSync(vsixPath);
-  execSync(`cd "${extractDir}" && zip -r "${vsixPath}" .`);
-  rmSync(extractDir, { recursive: true });
-
-  console.log('  node_modules injected successfully');
-
-  // Step 5: Move .vsix back to the plugin directory
-  console.log('\n=== Step 5: Moving .vsix to plugin directory ===');
-  const vsixFiles = readdirSync(deployDir).filter((f) => f.endsWith('.vsix'));
-  if (vsixFiles.length === 0) {
-    throw new Error('No .vsix file found after packaging');
-  }
-
-  const vsixSource = join(deployDir, vsixFiles[0]);
-  const vsixTarget = join(__dirname, vsixFiles[0]);
-
-  // Remove old vsix if exists
-  if (existsSync(vsixTarget)) {
-    rmSync(vsixTarget);
-  }
-
-  cpSync(vsixSource, vsixTarget);
-  console.log(`\nPackaged: ${vsixFiles[0]}`);
-
-  // Cleanup staging directory
-  cleanup();
-
-  console.log('\n=== Done! ===');
-} catch (error) {
-  console.error('\nPackaging failed:', error.message);
-  cleanup();
-  process.exit(1);
+  const outPath = join(__dirname, vsixName);
+  rmSync(outPath, { force: true });
+  cpSync(vsixPath, outPath);
+  console.log(`\nPackaged ${vsixName} with SQLite for: ${[...binaries.keys()].join(', ') || 'no platform'}`);
+} finally {
+  rmSync(stage, { recursive: true, force: true });
 }
